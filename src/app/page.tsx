@@ -4,6 +4,15 @@ import { useState } from "react";
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
 
+type EnemyRally = {
+  id: number;
+  enemyName: string;
+  x: number;
+  y: number;
+  marchTime: number;
+  impactTime: Date;
+};
+
 export default function Home() {
   const [enemyName, setEnemyName] = useState("");
   const [x, setX] = useState(600);
@@ -13,7 +22,7 @@ export default function Home() {
   const [seconds, setSeconds] = useState(0);
 
   const [impactTime, setImpactTime] = useState<Date | null>(null);
-
+  const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const marchTime = calculateMarchTime(x, y);
   function syncRally() {
   const calculatedImpactTime = calculateImpactTime(
@@ -22,8 +31,20 @@ export default function Home() {
     seconds,
     marchTime
   );
-
   setImpactTime(calculatedImpactTime);
+  const newRally: EnemyRally = {
+  id: Date.now(),
+  enemyName: enemyName || "Unknown enemy",
+  x: x,
+  y: y,
+  marchTime: marchTime,
+  impactTime: calculatedImpactTime,
+};
+
+setRallies((currentRallies) => [
+  ...currentRallies,
+  newRally,
+]);
 }
 
   return (
@@ -101,6 +122,23 @@ export default function Home() {
     UTC
   </p>
 )}  
+<h2>Incoming rallies</h2>
+
+<ul>
+  {rallies.map((rally) => (
+    <li key={rally.id}>
+      {rally.enemyName} —{" "}
+      {rally.impactTime.toLocaleTimeString("en-GB", {
+        timeZone: "UTC",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })}{" "}
+      UTC
+    </li>
+  ))}
+</ul>
     </main>
   );
 }
