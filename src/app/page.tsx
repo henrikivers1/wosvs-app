@@ -5,6 +5,7 @@ import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
 
 export default function Home() {
+  const [enemyName, setEnemyName] = useState("");
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
 
@@ -29,7 +30,15 @@ export default function Home() {
     <main>
       <h1>WOS Battle Planner</h1>
       <p>Enemy rally timing for SVS.</p>
-
+      <label>
+  Enemy rally leader
+  <input
+    type="text"
+    value={enemyName}
+    onChange={(event) => setEnemyName(event.target.value)}
+    placeholder="Enter player name"
+  />
+</label>
       <label>
         Enemy X coordinate
         <input
@@ -81,7 +90,7 @@ export default function Home() {
 <p>March time: {marchTime} seconds</p>
 {impactTime && (
   <p>
-    Enemy impact:{" "}
+    {enemyName || "Unknown enemy"} impact:{" "}
     {impactTime.toLocaleTimeString("en-GB", {
       timeZone: "UTC",
       hour12: false,
