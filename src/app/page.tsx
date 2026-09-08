@@ -46,7 +46,11 @@ setRallies((currentRallies) => [
   newRally,
 ]);
 }
-
+function removeRally(id: number) {
+  setRallies((currentRallies) =>
+    currentRallies.filter((rally) => rally.id !== id)
+  );
+}
   return (
     <main>
       <h1>WOS Battle Planner</h1>
@@ -136,6 +140,9 @@ setRallies((currentRallies) => [
         second: "2-digit",
       })}{" "}
       UTC
+      <button onClick={() => removeRally(rally.id)}>
+  Remove
+</button>
     </li>
   ))}
 </ul>
