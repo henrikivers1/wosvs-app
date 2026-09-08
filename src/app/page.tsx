@@ -41,10 +41,11 @@ export default function Home() {
   impactTime: calculatedImpactTime,
 };
 
-setRallies((currentRallies) => [
-  ...currentRallies,
-  newRally,
-]);
+setRallies((currentRallies) =>
+  [...currentRallies, newRally].sort(
+    (a, b) => a.impactTime.getTime() - b.impactTime.getTime()
+  )
+);
 }
 function removeRally(id: number) {
   setRallies((currentRallies) =>
