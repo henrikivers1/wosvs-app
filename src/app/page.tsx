@@ -12,7 +12,10 @@ type EnemyRally = {
   marchTime: number;
   impactTime: Date;
 };
-
+type RallyWave = {
+  impactSecond: number;
+  rallies: EnemyRally[];
+};
 export default function Home() {
   const [enemyName, setEnemyName] = useState("");
   const [x, setX] = useState(600);
@@ -24,6 +27,26 @@ export default function Home() {
   const [impactTime, setImpactTime] = useState<Date | null>(null);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const marchTime = calculateMarchTime(x, y);
+  const rallyWaves = rallies.reduce<RallyWave[]>((waves, rally) => {
+  const impactSecond = Math.floor(
+    rally.impactTime.getTime() / 1000
+  );
+
+  const existingWave = waves.find(
+    (wave) => wave.impactSecond === impactSecond
+  );
+
+  if (existingWave) {
+    existingWave.rallies.push(rally);
+  } else {
+    waves.push({
+      impactSecond: impactSecond,
+      rallies: [rally],
+    });
+  }
+
+  return waves;
+}, []);
   function syncRally() {
   const calculatedImpactTime = calculateImpactTime(
     new Date(),
@@ -127,26 +150,37 @@ function removeRally(id: number) {
     UTC
   </p>
 )}  
-<h2>Incoming rallies</h2>
+<h2>Incoming rally schedule</h2>
 
-<ul>
-  {rallies.map((rally) => (
-    <li key={rally.id}>
-      {rally.enemyName} —{" "}
-      {rally.impactTime.toLocaleTimeString("en-GB", {
-        timeZone: "UTC",
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })}{" "}
-      UTC
-      <button onClick={() => removeRally(rally.id)}>
-  Remove
-</button>
-    </li>
-  ))}
-</ul>
+{rallyWaves.map((wave, index) => (
+  <section key={wave.impactSecond}>
+    <h3>
+      Wave {index + 1}:{" "}
+      {new Date(wave.impactSecond * 1000).toLocaleTimeString(
+        "en-GB",
+        {
+          timeZone: "UTC",
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }
+      )}{" "}
+      UTC — {wave.rallies.length} rallies
+    </h3>
+
+    <ul>
+      {wave.rallies.map((rally) => (
+        <li key={rally.id}>
+          {rally.enemyName}
+          <button onClick={() => removeRally(rally.id)}>
+            Remove
+          </button>
+        </li>
+      ))}
+    </ul>
+  </section>
+))}
     </main>
   );
 }
