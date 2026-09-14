@@ -54,8 +54,7 @@ const [garrisonPetActive, setGarrisonPetActive] =
   const impactSecond = Math.floor(
     rally.impactTime.getTime() / 1000
   );
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const existingWave = waves.find(
+    const existingWave = waves.find(
     (wave) => wave.impactSecond === impactSecond
   );
 
