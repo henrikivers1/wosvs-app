@@ -1,3 +1,10 @@
+export type EnemyLeader = {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+  petActive: boolean;
+};
 export type EnemyRally = {
   id: number;
   enemyName: string;

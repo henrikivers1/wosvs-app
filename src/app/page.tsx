@@ -8,11 +8,21 @@ import {
   calculateSendTime,
 } from "@/lib/reinforcementTime";
 import type {
+  EnemyLeader,
   EnemyRally,
   RallyWave,
 } from "@/types/rally";
+type AdminPanel = "leaders" | "call";
 type ViewMode = "admin" | "garrison";
 export default function Home() {
+  const [adminPanel, setAdminPanel] =
+    useState<AdminPanel>("leaders");
+
+  const [enemyLeaders, setEnemyLeaders] =
+    useState<EnemyLeader[]>([]);
+
+  const [selectedLeaderId, setSelectedLeaderId] =
+    useState<number | null>(null);
   const [viewMode, setViewMode] =
     useState<ViewMode>("admin");
   const [enemyName, setEnemyName] = useState("");
@@ -30,13 +40,21 @@ export default function Home() {
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
   const alertedWaves = useRef<Set<number>>(new Set());
-  const [impactTime, setImpactTime] = useState<Date | null>(null);
+  const [impactTime, setImpactTime] =
+  useState<Date | null>(null);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
-  const marchTime = calculateMarchTime(
-    x,
-    y,
-    enemyPetActive
-  );
+  const selectedLeader =
+    enemyLeaders.find(
+      (leader) => leader.id === selectedLeaderId
+    ) ?? null;
+
+  const marchTime = selectedLeader
+    ? calculateMarchTime(
+      selectedLeader.x,
+      selectedLeader.y,
+      selectedLeader.petActive
+    )
+    : 0;
   const garrisonMarchTime = calculateMarchTime(
     garrisonX,
     garrisonY,
@@ -63,27 +81,100 @@ export default function Home() {
 
     return waves;
   }, []);
+  function addEnemyLeader() {
+    const trimmedName = enemyName.trim();
+
+    if (!trimmedName) {
+      alert("Enter the enemy leader's name.");
+      return;
+    }
+
+    if (x < 0 || x > 1199 || y < 0 || y > 1199) {
+      alert("Coordinates must be between 0 and 1199.");
+      return;
+    }
+
+    const nameAlreadyExists = enemyLeaders.some(
+      (leader) =>
+        leader.name.toLowerCase() ===
+        trimmedName.toLowerCase()
+    );
+
+    if (nameAlreadyExists) {
+      alert("That enemy leader already exists.");
+      return;
+    }
+
+    const newLeader: EnemyLeader = {
+      id: Date.now(),
+      name: trimmedName,
+      x,
+      y,
+      petActive: enemyPetActive,
+    };
+
+    setEnemyLeaders((currentLeaders) =>
+      [...currentLeaders, newLeader].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
+    );
+
+    setSelectedLeaderId(newLeader.id);
+    setEnemyName("");
+  }
+
+  function toggleEnemyLeaderPet(id: number) {
+    setEnemyLeaders((currentLeaders) =>
+      currentLeaders.map((leader) =>
+        leader.id === id
+          ? {
+            ...leader,
+            petActive: !leader.petActive,
+          }
+          : leader
+      )
+    );
+  }
+
+  function removeEnemyLeader(id: number) {
+    setEnemyLeaders((currentLeaders) =>
+      currentLeaders.filter(
+        (leader) => leader.id !== id
+      )
+    );
+
+    setSelectedLeaderId((currentId) =>
+      currentId === id ? null : currentId
+    );
+  }
   function syncRally() {
+    if (!selectedLeader) {
+      alert("Select an enemy rally leader.");
+      return;
+    }
+
     const calculatedImpactTime = calculateImpactTime(
       new Date(),
       minutes,
       seconds,
       marchTime
     );
-    setImpactTime(calculatedImpactTime);
+
     const newRally: EnemyRally = {
       id: Date.now(),
-      enemyName: enemyName || "Unknown enemy",
-      x: x,
-      y: y,
-      marchTime: marchTime,
+      enemyName: selectedLeader.name,
+      x: selectedLeader.x,
+      y: selectedLeader.y,
+      marchTime,
       impactTime: calculatedImpactTime,
-      petActive: enemyPetActive,
+      petActive: selectedLeader.petActive,
     };
 
     setRallies((currentRallies) =>
       [...currentRallies, newRally].sort(
-        (a, b) => a.impactTime.getTime() - b.impactTime.getTime()
+        (a, b) =>
+          a.impactTime.getTime() -
+          b.impactTime.getTime()
       )
     );
   }
@@ -211,111 +302,203 @@ export default function Home() {
         </nav>
       </header>
 
-      {viewMode === "admin" && (
-        <section>
-          <h2>Enemy rally</h2>
+     {viewMode === "admin" && (
+  <>
+    <nav>
+      <button
+        type="button"
+        onClick={() => setAdminPanel("leaders")}
+      >
+        Manage leaders
+      </button>
 
-          <label>
-            Enemy rally leader
-            <input
-              type="text"
-              value={enemyName}
-              onChange={(event) =>
-                setEnemyName(event.target.value)
-              }
-              placeholder="Enter player name"
-            />
-          </label>
+      <button
+        type="button"
+        onClick={() => setAdminPanel("call")}
+      >
+        Call rally
+      </button>
+    </nav>
 
-          <label>
-            Enemy X coordinate
-            <input
-              type="number"
-              min="0"
-              max="1199"
-              value={x}
-              onChange={(event) =>
-                setX(Number(event.target.value))
-              }
-            />
-          </label>
+    {adminPanel === "leaders" && (
+      <section>
+        <h2>Add enemy rally leader</h2>
 
-          <label>
-            Enemy Y coordinate
-            <input
-              type="number"
-              min="0"
-              max="1199"
-              value={y}
-              onChange={(event) =>
-                setY(Number(event.target.value))
-              }
-            />
-          </label>
+        <label>
+          Player name
+          <input
+            type="text"
+            value={enemyName}
+            onChange={(event) =>
+              setEnemyName(event.target.value)
+            }
+          />
+        </label>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={enemyPetActive}
-              onChange={(event) =>
-                setEnemyPetActive(event.target.checked)
-              }
-            />
-            Enemy pet active
-          </label>
+        <label>
+          X coordinate
+          <input
+            type="number"
+            min="0"
+            max="1199"
+            value={x}
+            onChange={(event) =>
+              setX(Number(event.target.value))
+            }
+          />
+        </label>
 
-          <label>
-            Rally minutes remaining
-            <input
-              type="number"
-              min="0"
-              max="5"
-              value={minutes}
-              onChange={(event) =>
-                setMinutes(Number(event.target.value))
-              }
-            />
-          </label>
+        <label>
+          Y coordinate
+          <input
+            type="number"
+            min="0"
+            max="1199"
+            value={y}
+            onChange={(event) =>
+              setY(Number(event.target.value))
+            }
+          />
+        </label>
 
-          <label>
-            Rally seconds remaining
-            <input
-              type="number"
-              min="0"
-              max="59"
-              value={seconds}
-              onChange={(event) =>
-                setSeconds(Number(event.target.value))
-              }
-            />
-          </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={enemyPetActive}
+            onChange={(event) =>
+              setEnemyPetActive(event.target.checked)
+            }
+          />
+          Pet active
+        </label>
 
-          <button type="button" onClick={syncRally}>
-            Sync Rally
-          </button>
+        <button
+          type="button"
+          onClick={addEnemyLeader}
+        >
+          Add leader
+        </button>
 
+        <h3>Saved leaders</h3>
+
+        {enemyLeaders.length === 0 ? (
+          <p>No enemy leaders added.</p>
+        ) : (
+          <ul>
+            {enemyLeaders.map((leader) => (
+              <li key={leader.id}>
+                {leader.name} — {leader.x}:{leader.y}
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={leader.petActive}
+                    onChange={() =>
+                      toggleEnemyLeaderPet(leader.id)
+                    }
+                  />
+                  Pet active
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    removeEnemyLeader(leader.id)
+                  }
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    )}
+
+    {adminPanel === "call" && (
+      <section>
+        <h2>Call enemy rally</h2>
+
+        <label>
+          Rally leader
+          <select
+            value={selectedLeaderId ?? ""}
+            onChange={(event) =>
+              setSelectedLeaderId(
+                event.target.value
+                  ? Number(event.target.value)
+                  : null
+              )
+            }
+          >
+            <option value="">
+              Select rally leader
+            </option>
+
+            {enemyLeaders.map((leader) => (
+              <option
+                key={leader.id}
+                value={leader.id}
+              >
+                {leader.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {selectedLeader && (
           <p>
-            Rally timer: {minutes}:
-            {seconds.toString().padStart(2, "0")}
+            Position: {selectedLeader.x}:
+            {selectedLeader.y} — March:{" "}
+            {marchTime} seconds
+            {selectedLeader.petActive
+              ? " — Pet active"
+              : ""}
           </p>
+        )}
 
-          <p>Enemy march time: {marchTime} seconds</p>
+        <label>
+          Rally minutes remaining
+          <input
+            type="number"
+            min="0"
+            max="5"
+            value={minutes}
+            onChange={(event) =>
+              setMinutes(Number(event.target.value))
+            }
+          />
+        </label>
 
-          {impactTime && (
-            <p>
-              {enemyName || "Unknown enemy"} impact:{" "}
-              {impactTime.toLocaleTimeString("en-GB", {
-                timeZone: "UTC",
-                hour12: false,
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })}{" "}
-              UTC
-            </p>
-          )}
-        </section>
-      )}
+        <label>
+          Rally seconds remaining
+          <input
+            type="number"
+            min="0"
+            max="59"
+            value={seconds}
+            onChange={(event) =>
+              setSeconds(Number(event.target.value))
+            }
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={syncRally}
+          disabled={!selectedLeader}
+        >
+          Sync Rally
+        </button>
+
+        <p>
+          Rally timer: {minutes}:
+          {seconds.toString().padStart(2, "0")}
+        </p>
+      </section>
+    )}
+  </>
+)}
 
       {viewMode === "garrison" && (
         <section>
