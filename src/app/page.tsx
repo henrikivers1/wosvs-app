@@ -7,26 +7,18 @@ import {
   calculateSecondsUntil,
   calculateSendTime,
 } from "@/lib/reinforcementTime";
-type EnemyRally = {
-  id: number;
-  enemyName: string;
-  x: number;
-  y: number;
-  marchTime: number;
-  impactTime: Date;
-  petActive: boolean;
-};
-type RallyWave = {
-  impactSecond: number;
-  rallies: EnemyRally[];
-};
+import type {
+  EnemyRally,
+  RallyWave,
+} from "@/types/rally";
+
 export default function Home() {
   const [enemyName, setEnemyName] = useState("");
   const [enemyPetActive, setEnemyPetActive] =
-  useState(false);
+    useState(false);
 
-const [garrisonPetActive, setGarrisonPetActive] =
-  useState(false);
+  const [garrisonPetActive, setGarrisonPetActive] =
+    useState(false);
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -39,101 +31,66 @@ const [garrisonPetActive, setGarrisonPetActive] =
   const [impactTime, setImpactTime] = useState<Date | null>(null);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const marchTime = calculateMarchTime(
-  x,
-  y,
-  enemyPetActive
-);
+    x,
+    y,
+    enemyPetActive
+  );
   const garrisonMarchTime = calculateMarchTime(
-  garrisonX,
-  garrisonY,
-  garrisonPetActive
-);
+    garrisonX,
+    garrisonY,
+    garrisonPetActive
+  );
   const [notificationsEnabled, setNotificationsEnabled] =
-  useState(false);
+    useState(false);
   const rallyWaves = rallies.reduce<RallyWave[]>((waves, rally) => {
-  const impactSecond = Math.floor(
-    rally.impactTime.getTime() / 1000
-  );
+    const impactSecond = Math.floor(
+      rally.impactTime.getTime() / 1000
+    );
     const existingWave = waves.find(
-    (wave) => wave.impactSecond === impactSecond
-  );
+      (wave) => wave.impactSecond === impactSecond
+    );
 
-  if (existingWave) {
-    existingWave.rallies.push(rally);
-  } else {
-    waves.push({
-      impactSecond: impactSecond,
-      rallies: [rally],
-    });
-  }
+    if (existingWave) {
+      existingWave.rallies.push(rally);
+    } else {
+      waves.push({
+        impactSecond: impactSecond,
+        rallies: [rally],
+      });
+    }
 
-  return waves;
-}, []);
+    return waves;
+  }, []);
   function syncRally() {
-  const calculatedImpactTime = calculateImpactTime(
-    new Date(),
-    minutes,
-    seconds,
-    marchTime
-  );
-  setImpactTime(calculatedImpactTime);
-  const newRally: EnemyRally = {
-  id: Date.now(),
-  enemyName: enemyName || "Unknown enemy",
-  x: x,
-  y: y,
-  marchTime: marchTime,
-  impactTime: calculatedImpactTime,
-  petActive: enemyPetActive,
-};
+    const calculatedImpactTime = calculateImpactTime(
+      new Date(),
+      minutes,
+      seconds,
+      marchTime
+    );
+    setImpactTime(calculatedImpactTime);
+    const newRally: EnemyRally = {
+      id: Date.now(),
+      enemyName: enemyName || "Unknown enemy",
+      x: x,
+      y: y,
+      marchTime: marchTime,
+      impactTime: calculatedImpactTime,
+      petActive: enemyPetActive,
+    };
 
-setRallies((currentRallies) =>
-  [...currentRallies, newRally].sort(
-    (a, b) => a.impactTime.getTime() - b.impactTime.getTime()
-  )
-);
-}
-function removeRally(id: number) {
-  setRallies((currentRallies) =>
-    currentRallies.filter((rally) => rally.id !== id)
-  );
-}
-function getSecondsUntilSend(wave: RallyWave): number {
-  const waveImpactTime = new Date(
-    wave.impactSecond * 1000
-  );
-
-  const sendTime = calculateSendTime(
-    waveImpactTime,
-    garrisonMarchTime
-  );
-
-  return calculateSecondsUntil(sendTime, currentTime);
-}
-function getSendStatus(wave: RallyWave): string {
-  const secondsRemaining = getSecondsUntilSend(wave);
-
-  if (secondsRemaining > 0) {
-    return `Send in ${secondsRemaining} seconds`;
+    setRallies((currentRallies) =>
+      [...currentRallies, newRally].sort(
+        (a, b) => a.impactTime.getTime() - b.impactTime.getTime()
+      )
+    );
   }
-
-  if (secondsRemaining === 0) {
-    return "SEND NOW";
+  function removeRally(id: number) {
+    setRallies((currentRallies) =>
+      currentRallies.filter((rally) => rally.id !== id)
+    );
   }
-
-  return "Send time passed";
-}
-useEffect(() => {
-  const intervalId = window.setInterval(() => {
-    setCurrentTime(new Date());
-  }, 100);
-
-  return () => {
-    window.clearInterval(intervalId);
-  };  
-}, []);
-useEffect(() => {
-  rallyWaves.forEach((wave) => {
+  function getSecondsUntilSend(wave: RallyWave): number {
     const waveImpactTime = new Date(
       wave.impactSecond * 1000
     );
@@ -143,125 +100,159 @@ useEffect(() => {
       garrisonMarchTime
     );
 
-    const secondsRemaining = calculateSecondsUntil(
-      sendTime,
-      currentTime
-    );
-
-    const alreadyAlerted = alertedWaves.current.has(
-      wave.impactSecond
-    );
-
-    if (
-  secondsRemaining >= 0 &&
-  secondsRemaining <= 1 &&
-  !alreadyAlerted
-) {
-      alertedWaves.current.add(wave.impactSecond);
-
-      if (soundEnabled) {
-  const alert = new SpeechSynthesisUtterance("Send now");
-  window.speechSynthesis.speak(alert);
-}
-           if (
-  notificationsEnabled &&
-  "Notification" in window &&
-  Notification.permission === "granted"
-)
-  {
-  new Notification("SEND REINFORCEMENTS NOW", {
-    body: `${wave.rallies.length} enemy rallies are incoming.`,
-    tag: `wave-${wave.impactSecond}`,
-  });
-}
-    }
-  });
-}, [
-  currentTime,
-  garrisonMarchTime,
-  rallyWaves,
-  notificationsEnabled,
-  soundEnabled,
-
-]);
-async function enableNotifications() {
-  if (!("Notification" in window)) {
-    alert("This browser does not support notifications.");
-    return;
+    return calculateSecondsUntil(sendTime, currentTime);
   }
+  function getSendStatus(wave: RallyWave): string {
+    const secondsRemaining = getSecondsUntilSend(wave);
 
-  const permission = await Notification.requestPermission();
+    if (secondsRemaining > 0) {
+      return `Send in ${secondsRemaining} seconds`;
+    }
 
-  setNotificationsEnabled(permission === "granted");
-}  
-return (
+    if (secondsRemaining === 0) {
+      return "SEND NOW";
+    }
+
+    return "Send time passed";
+  }
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 100);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+  useEffect(() => {
+    rallyWaves.forEach((wave) => {
+      const waveImpactTime = new Date(
+        wave.impactSecond * 1000
+      );
+
+      const sendTime = calculateSendTime(
+        waveImpactTime,
+        garrisonMarchTime
+      );
+
+      const secondsRemaining = calculateSecondsUntil(
+        sendTime,
+        currentTime
+      );
+
+      const alreadyAlerted = alertedWaves.current.has(
+        wave.impactSecond
+      );
+
+      if (
+        secondsRemaining >= 0 &&
+        secondsRemaining <= 1 &&
+        !alreadyAlerted
+      ) {
+        alertedWaves.current.add(wave.impactSecond);
+
+        if (soundEnabled) {
+          const alert = new SpeechSynthesisUtterance("Send now");
+          window.speechSynthesis.speak(alert);
+        }
+        if (
+          notificationsEnabled &&
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
+          new Notification("SEND REINFORCEMENTS NOW", {
+            body: `${wave.rallies.length} enemy rallies are incoming.`,
+            tag: `wave-${wave.impactSecond}`,
+          });
+        }
+      }
+    });
+  }, [
+    currentTime,
+    garrisonMarchTime,
+    rallyWaves,
+    notificationsEnabled,
+    soundEnabled,
+
+  ]);
+  async function enableNotifications() {
+    if (!("Notification" in window)) {
+      alert("This browser does not support notifications.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    setNotificationsEnabled(permission === "granted");
+  }
+  return (
     <main>
       <button onClick={enableNotifications}>
-  {notificationsEnabled
-    ? "Notifications enabled"
-    : "Enable notifications"}
-</button>
+        {notificationsEnabled
+          ? "Notifications enabled"
+          : "Enable notifications"}
+      </button>
 
-<label>
-  <input
-    type="checkbox"
-    checked={soundEnabled}
-    onChange={(event) =>
-      setSoundEnabled(event.target.checked)
-    }
-  />
-  Sound alerts
-</label>
+      <label>
+        <input
+          type="checkbox"
+          checked={soundEnabled}
+          onChange={(event) =>
+            setSoundEnabled(event.target.checked)
+          }
+        />
+        Sound alerts
+      </label>
       <h1>WOS Battle Planner</h1>
       <p>Enemy rally timing for SVS.</p>
       <label>
-  Enemy rally leader
-  <input
-    type="text"
-    value={enemyName}
-    onChange={(event) => setEnemyName(event.target.value)}
-    placeholder="Enter player name"
-  />
-  <h2>Your garrison position</h2>
+        Enemy rally leader
+        <input
+          type="text"
+          value={enemyName}
+          onChange={(event) => setEnemyName(event.target.value)}
+          placeholder="Enter player name"
+        />
+        <h2>Your garrison position</h2>
 
-<label>
-  Your X coordinate
-  <input
-    type="number"
-    min="0"
-    max="1199"
-    value={garrisonX}
-    onChange={(event) =>
-      setGarrisonX(Number(event.target.value))
-    }
-  />
-</label>
+        <label>
+          Your X coordinate
+          <input
+            type="number"
+            min="0"
+            max="1199"
+            value={garrisonX}
+            onChange={(event) =>
+              setGarrisonX(Number(event.target.value))
+            }
+          />
+        </label>
 
-<label>
-  Your Y coordinate
-  <input
-    type="number"
-    min="0"
-    max="1199"
-    value={garrisonY}
-    onChange={(event) =>
-      setGarrisonY(Number(event.target.value))
-    }
-  />
-</label>
+        <label>
+          Your Y coordinate
+          <input
+            type="number"
+            min="0"
+            max="1199"
+            value={garrisonY}
+            onChange={(event) =>
+              setGarrisonY(Number(event.target.value))
+            }
+          />
+        </label>
 
-<p>Your march time: {garrisonMarchTime} seconds</p>
-<label>
-  <input
-    type="checkbox"
-    checked={garrisonPetActive}
-    onChange={(event) =>
-      setGarrisonPetActive(event.target.checked)
-    }
-  />
-  My Pet
-</label>
-</label>
+        <p>Your march time: {garrisonMarchTime} seconds</p>
+        <label>
+          <input
+            type="checkbox"
+            checked={garrisonPetActive}
+            onChange={(event) =>
+              setGarrisonPetActive(event.target.checked)
+            }
+          />
+          My Pet
+        </label>
+      </label>
       <label>
         Enemy X coordinate
         <input
@@ -284,102 +275,102 @@ return (
       </label>
       <label>
         <label>
-  <input
-    type="checkbox"
-    checked={enemyPetActive}
-    onChange={(event) =>
-      setEnemyPetActive(event.target.checked)
-    }
-  />
-  Enemy Pet
-</label>
-  Rally minutes remaining
-  <input
-    type="number"
-    min="0"
-    max="5"
-    value={minutes}
-    onChange={(event) => setMinutes(Number(event.target.value))}
-  />
-</label>
+          <input
+            type="checkbox"
+            checked={enemyPetActive}
+            onChange={(event) =>
+              setEnemyPetActive(event.target.checked)
+            }
+          />
+          Enemy Pet
+        </label>
+        Rally minutes remaining
+        <input
+          type="number"
+          min="0"
+          max="5"
+          value={minutes}
+          onChange={(event) => setMinutes(Number(event.target.value))}
+        />
+      </label>
 
-<label>
-  Rally seconds remaining
-  <input
-    type="number"
-    min="0"
-    max="59"
-    value= {seconds}
-    onChange={(event) => setSeconds(Number(event.target.value))}
-  />
-</label>
-<button onClick={syncRally}>
-  Sync Rally
-</button>
-<p>
-  Rally timer: {minutes}:{seconds.toString().padStart(2, "0")}
-</p>
-<p>March time: {marchTime} seconds</p>
-{impactTime && (
-  <p>
-    {enemyName || "Unknown enemy"} impact:{" "}
-    {impactTime.toLocaleTimeString("en-GB", {
-      timeZone: "UTC",
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })}{" "}
-    UTC
-  </p>
-)}  
-<h2>Incoming rally schedule</h2>
+      <label>
+        Rally seconds remaining
+        <input
+          type="number"
+          min="0"
+          max="59"
+          value={seconds}
+          onChange={(event) => setSeconds(Number(event.target.value))}
+        />
+      </label>
+      <button onClick={syncRally}>
+        Sync Rally
+      </button>
+      <p>
+        Rally timer: {minutes}:{seconds.toString().padStart(2, "0")}
+      </p>
+      <p>March time: {marchTime} seconds</p>
+      {impactTime && (
+        <p>
+          {enemyName || "Unknown enemy"} impact:{" "}
+          {impactTime.toLocaleTimeString("en-GB", {
+            timeZone: "UTC",
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}{" "}
+          UTC
+        </p>
+      )}
+      <h2>Incoming rally schedule</h2>
 
-{rallyWaves.map((wave, index) => (
-  <section key={wave.impactSecond}>
-    <h3>
-      Wave {index + 1}:{" "}
-      {new Date(wave.impactSecond * 1000).toLocaleTimeString(
-        "en-GB",
-        {
-          timeZone: "UTC",
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }
-        
-      )}{" "}
-      UTC — {wave.rallies.length} rallies
-      <p>{getSendStatus(wave)}</p>
-    </h3>
-    <p>
-  Send reinforcement at:{" "}
-  {calculateSendTime(
-    new Date(wave.impactSecond * 1000),
-    garrisonMarchTime
-  ).toLocaleTimeString("en-GB", {
-    timeZone: "UTC",
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  })}{" "}
-  UTC
-</p>
-    <ul>
-      {wave.rallies.map((rally) => (
-        <li key={rally.id}>
-          {rally.enemyName}
-          {rally.petActive ? " — Pet active" : ""}
-          <button onClick={() => removeRally(rally.id)}>
-            Remove
-          </button>
-        </li>
+      {rallyWaves.map((wave, index) => (
+        <section key={wave.impactSecond}>
+          <h3>
+            Wave {index + 1}:{" "}
+            {new Date(wave.impactSecond * 1000).toLocaleTimeString(
+              "en-GB",
+              {
+                timeZone: "UTC",
+                hour12: false,
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              }
+
+            )}{" "}
+            UTC — {wave.rallies.length} rallies
+            <p>{getSendStatus(wave)}</p>
+          </h3>
+          <p>
+            Send reinforcement at:{" "}
+            {calculateSendTime(
+              new Date(wave.impactSecond * 1000),
+              garrisonMarchTime
+            ).toLocaleTimeString("en-GB", {
+              timeZone: "UTC",
+              hour12: false,
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}{" "}
+            UTC
+          </p>
+          <ul>
+            {wave.rallies.map((rally) => (
+              <li key={rally.id}>
+                {rally.enemyName}
+                {rally.petActive ? " — Pet active" : ""}
+                <button onClick={() => removeRally(rally.id)}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
-  </section>
-))}
     </main>
   );
 }
