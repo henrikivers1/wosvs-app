@@ -14,6 +14,7 @@ type EnemyRally = {
   y: number;
   marchTime: number;
   impactTime: Date;
+  petActive: boolean;
 };
 type RallyWave = {
   impactSecond: number;
@@ -21,6 +22,11 @@ type RallyWave = {
 };
 export default function Home() {
   const [enemyName, setEnemyName] = useState("");
+  const [enemyPetActive, setEnemyPetActive] =
+  useState(false);
+
+const [garrisonPetActive, setGarrisonPetActive] =
+  useState(false);
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -32,11 +38,16 @@ export default function Home() {
   const alertedWaves = useRef<Set<number>>(new Set());
   const [impactTime, setImpactTime] = useState<Date | null>(null);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
-  const marchTime = calculateMarchTime(x, y);
+  const marchTime = calculateMarchTime(
+  x,
+  y,
+  enemyPetActive
+);
   const garrisonMarchTime = calculateMarchTime(
   garrisonX,
-  garrisonY
-  );
+  garrisonY,
+  garrisonPetActive
+);
   const [notificationsEnabled, setNotificationsEnabled] =
   useState(false);
   const rallyWaves = rallies.reduce<RallyWave[]>((waves, rally) => {
@@ -74,6 +85,7 @@ export default function Home() {
   y: y,
   marchTime: marchTime,
   impactTime: calculatedImpactTime,
+  petActive: enemyPetActive,
 };
 
 setRallies((currentRallies) =>
@@ -240,6 +252,16 @@ return (
 </label>
 
 <p>Your march time: {garrisonMarchTime} seconds</p>
+<label>
+  <input
+    type="checkbox"
+    checked={garrisonPetActive}
+    onChange={(event) =>
+      setGarrisonPetActive(event.target.checked)
+    }
+  />
+  My Pet
+</label>
 </label>
       <label>
         Enemy X coordinate
@@ -251,7 +273,6 @@ return (
           onChange={(event) => setX(Number(event.target.value))}
         />
       </label>
-
       <label>
         Enemy Y coordinate
         <input
@@ -263,6 +284,16 @@ return (
         />
       </label>
       <label>
+        <label>
+  <input
+    type="checkbox"
+    checked={enemyPetActive}
+    onChange={(event) =>
+      setEnemyPetActive(event.target.checked)
+    }
+  />
+  Enemy Pet
+</label>
   Rally minutes remaining
   <input
     type="number"
@@ -341,6 +372,7 @@ return (
       {wave.rallies.map((rally) => (
         <li key={rally.id}>
           {rally.enemyName}
+          {rally.petActive ? " — Pet active" : ""}
           <button onClick={() => removeRally(rally.id)}>
             Remove
           </button>
