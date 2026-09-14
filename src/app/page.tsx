@@ -96,6 +96,19 @@ function getSecondsUntilSend(wave: RallyWave): number {
 
   return calculateSecondsUntil(sendTime, currentTime);
 }
+function getSendStatus(wave: RallyWave): string {
+  const secondsRemaining = getSecondsUntilSend(wave);
+
+  if (secondsRemaining > 0) {
+    return `Send in ${secondsRemaining} seconds`;
+  }
+
+  if (secondsRemaining === 0) {
+    return "SEND NOW";
+  }
+
+  return "Send time passed";
+}
 useEffect(() => {
   const intervalId = window.setInterval(() => {
     setCurrentTime(new Date());
@@ -227,11 +240,7 @@ useEffect(() => {
         
       )}{" "}
       UTC — {wave.rallies.length} rallies
-      <p>
-  {getSecondsUntilSend(wave) > 0
-    ? `Send in ${getSecondsUntilSend(wave)} seconds`
-    : "SEND NOW"}
-</p>
+      <p>{getSendStatus(wave)}</p>
     </h3>
     <p>
   Send reinforcement at:{" "}
