@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
 import {
@@ -23,12 +23,13 @@ export default function Home() {
   const [enemyName, setEnemyName] = useState("");
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [garrisonX, setGarrisonX] = useState(600);
   const [garrisonY, setGarrisonY] = useState(606);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
-
+  const alertedWaves = useRef<Set<number>>(new Set());
   const [impactTime, setImpactTime] = useState<Date | null>(null);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const marchTime = calculateMarchTime(x, y);
@@ -36,11 +37,13 @@ export default function Home() {
   garrisonX,
   garrisonY
   );
+  const [notificationsEnabled, setNotificationsEnabled] =
+  useState(false);
   const rallyWaves = rallies.reduce<RallyWave[]>((waves, rally) => {
   const impactSecond = Math.floor(
     rally.impactTime.getTime() / 1000
   );
-
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const existingWave = waves.find(
     (wave) => wave.impactSecond === impactSecond
   );
@@ -116,10 +119,88 @@ useEffect(() => {
 
   return () => {
     window.clearInterval(intervalId);
-  };
+  };  
 }, []);
-  return (
+useEffect(() => {
+  rallyWaves.forEach((wave) => {
+    const waveImpactTime = new Date(
+      wave.impactSecond * 1000
+    );
+
+    const sendTime = calculateSendTime(
+      waveImpactTime,
+      garrisonMarchTime
+    );
+
+    const secondsRemaining = calculateSecondsUntil(
+      sendTime,
+      currentTime
+    );
+
+    const alreadyAlerted = alertedWaves.current.has(
+      wave.impactSecond
+    );
+
+    if (
+  secondsRemaining >= 0 &&
+  secondsRemaining <= 1 &&
+  !alreadyAlerted
+) {
+      alertedWaves.current.add(wave.impactSecond);
+
+      if (soundEnabled) {
+  const alert = new SpeechSynthesisUtterance("Send now");
+  window.speechSynthesis.speak(alert);
+}
+           if (
+  notificationsEnabled &&
+  "Notification" in window &&
+  Notification.permission === "granted"
+)
+  {
+  new Notification("SEND REINFORCEMENTS NOW", {
+    body: `${wave.rallies.length} enemy rallies are incoming.`,
+    tag: `wave-${wave.impactSecond}`,
+  });
+}
+    }
+  });
+}, [
+  currentTime,
+  garrisonMarchTime,
+  rallyWaves,
+  notificationsEnabled,
+  soundEnabled,
+
+]);
+async function enableNotifications() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support notifications.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  setNotificationsEnabled(permission === "granted");
+}  
+return (
     <main>
+      <button onClick={enableNotifications}>
+  {notificationsEnabled
+    ? "Notifications enabled"
+    : "Enable notifications"}
+</button>
+
+<label>
+  <input
+    type="checkbox"
+    checked={soundEnabled}
+    onChange={(event) =>
+      setSoundEnabled(event.target.checked)
+    }
+  />
+  Sound alerts
+</label>
       <h1>WOS Battle Planner</h1>
       <p>Enemy rally timing for SVS.</p>
       <label>
