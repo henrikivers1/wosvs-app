@@ -11,8 +11,10 @@ import type {
   EnemyRally,
   RallyWave,
 } from "@/types/rally";
-
+type ViewMode = "admin" | "garrison";
 export default function Home() {
+  const [viewMode, setViewMode] =
+    useState<ViewMode>("admin");
   const [enemyName, setEnemyName] = useState("");
   const [enemyPetActive, setEnemyPetActive] =
     useState(false);
@@ -145,6 +147,7 @@ export default function Home() {
       );
 
       if (
+        viewMode === "garrison" &&
         secondsRemaining >= 0 &&
         secondsRemaining <= 1 &&
         !alreadyAlerted
@@ -187,190 +190,271 @@ export default function Home() {
   }
   return (
     <main>
-      <button onClick={enableNotifications}>
-        {notificationsEnabled
-          ? "Notifications enabled"
-          : "Enable notifications"}
-      </button>
+      <header>
+        <h1>WOS Battle Planner</h1>
+        <p>SVS castle rally and reinforcement timing.</p>
 
-      <label>
-        <input
-          type="checkbox"
-          checked={soundEnabled}
-          onChange={(event) =>
-            setSoundEnabled(event.target.checked)
-          }
-        />
-        Sound alerts
-      </label>
-      <h1>WOS Battle Planner</h1>
-      <p>Enemy rally timing for SVS.</p>
-      <label>
-        Enemy rally leader
-        <input
-          type="text"
-          value={enemyName}
-          onChange={(event) => setEnemyName(event.target.value)}
-          placeholder="Enter player name"
-        />
-        <h2>Your garrison position</h2>
+        <nav>
+          <button
+            type="button"
+            onClick={() => setViewMode("admin")}
+          >
+            Admin
+          </button>
 
-        <label>
-          Your X coordinate
-          <input
-            type="number"
-            min="0"
-            max="1199"
-            value={garrisonX}
-            onChange={(event) =>
-              setGarrisonX(Number(event.target.value))
-            }
-          />
-        </label>
+          <button
+            type="button"
+            onClick={() => setViewMode("garrison")}
+          >
+            Garrison
+          </button>
+        </nav>
+      </header>
 
-        <label>
-          Your Y coordinate
-          <input
-            type="number"
-            min="0"
-            max="1199"
-            value={garrisonY}
-            onChange={(event) =>
-              setGarrisonY(Number(event.target.value))
-            }
-          />
-        </label>
+      {viewMode === "admin" && (
+        <section>
+          <h2>Enemy rally</h2>
 
-        <p>Your march time: {garrisonMarchTime} seconds</p>
-        <label>
-          <input
-            type="checkbox"
-            checked={garrisonPetActive}
-            onChange={(event) =>
-              setGarrisonPetActive(event.target.checked)
-            }
-          />
-          My Pet
-        </label>
-      </label>
-      <label>
-        Enemy X coordinate
-        <input
-          type="number"
-          min="0"
-          max="1199"
-          value={x}
-          onChange={(event) => setX(Number(event.target.value))}
-        />
-      </label>
-      <label>
-        Enemy Y coordinate
-        <input
-          type="number"
-          min="0"
-          max="1199"
-          value={y}
-          onChange={(event) => setY(Number(event.target.value))}
-        />
-      </label>
-      <label>
-        <label>
-          <input
-            type="checkbox"
-            checked={enemyPetActive}
-            onChange={(event) =>
-              setEnemyPetActive(event.target.checked)
-            }
-          />
-          Enemy Pet
-        </label>
-        Rally minutes remaining
-        <input
-          type="number"
-          min="0"
-          max="5"
-          value={minutes}
-          onChange={(event) => setMinutes(Number(event.target.value))}
-        />
-      </label>
+          <label>
+            Enemy rally leader
+            <input
+              type="text"
+              value={enemyName}
+              onChange={(event) =>
+                setEnemyName(event.target.value)
+              }
+              placeholder="Enter player name"
+            />
+          </label>
 
-      <label>
-        Rally seconds remaining
-        <input
-          type="number"
-          min="0"
-          max="59"
-          value={seconds}
-          onChange={(event) => setSeconds(Number(event.target.value))}
-        />
-      </label>
-      <button onClick={syncRally}>
-        Sync Rally
-      </button>
-      <p>
-        Rally timer: {minutes}:{seconds.toString().padStart(2, "0")}
-      </p>
-      <p>March time: {marchTime} seconds</p>
-      {impactTime && (
-        <p>
-          {enemyName || "Unknown enemy"} impact:{" "}
-          {impactTime.toLocaleTimeString("en-GB", {
-            timeZone: "UTC",
-            hour12: false,
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })}{" "}
-          UTC
-        </p>
-      )}
-      <h2>Incoming rally schedule</h2>
+          <label>
+            Enemy X coordinate
+            <input
+              type="number"
+              min="0"
+              max="1199"
+              value={x}
+              onChange={(event) =>
+                setX(Number(event.target.value))
+              }
+            />
+          </label>
 
-      {rallyWaves.map((wave, index) => (
-        <section key={wave.impactSecond}>
-          <h3>
-            Wave {index + 1}:{" "}
-            {new Date(wave.impactSecond * 1000).toLocaleTimeString(
-              "en-GB",
-              {
+          <label>
+            Enemy Y coordinate
+            <input
+              type="number"
+              min="0"
+              max="1199"
+              value={y}
+              onChange={(event) =>
+                setY(Number(event.target.value))
+              }
+            />
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={enemyPetActive}
+              onChange={(event) =>
+                setEnemyPetActive(event.target.checked)
+              }
+            />
+            Enemy pet active
+          </label>
+
+          <label>
+            Rally minutes remaining
+            <input
+              type="number"
+              min="0"
+              max="5"
+              value={minutes}
+              onChange={(event) =>
+                setMinutes(Number(event.target.value))
+              }
+            />
+          </label>
+
+          <label>
+            Rally seconds remaining
+            <input
+              type="number"
+              min="0"
+              max="59"
+              value={seconds}
+              onChange={(event) =>
+                setSeconds(Number(event.target.value))
+              }
+            />
+          </label>
+
+          <button type="button" onClick={syncRally}>
+            Sync Rally
+          </button>
+
+          <p>
+            Rally timer: {minutes}:
+            {seconds.toString().padStart(2, "0")}
+          </p>
+
+          <p>Enemy march time: {marchTime} seconds</p>
+
+          {impactTime && (
+            <p>
+              {enemyName || "Unknown enemy"} impact:{" "}
+              {impactTime.toLocaleTimeString("en-GB", {
                 timeZone: "UTC",
                 hour12: false,
                 hour: "2-digit",
                 minute: "2-digit",
                 second: "2-digit",
-              }
-
-            )}{" "}
-            UTC — {wave.rallies.length} rallies
-            <p>{getSendStatus(wave)}</p>
-          </h3>
-          <p>
-            Send reinforcement at:{" "}
-            {calculateSendTime(
-              new Date(wave.impactSecond * 1000),
-              garrisonMarchTime
-            ).toLocaleTimeString("en-GB", {
-              timeZone: "UTC",
-              hour12: false,
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}{" "}
-            UTC
-          </p>
-          <ul>
-            {wave.rallies.map((rally) => (
-              <li key={rally.id}>
-                {rally.enemyName}
-                {rally.petActive ? " — Pet active" : ""}
-                <button onClick={() => removeRally(rally.id)}>
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
+              })}{" "}
+              UTC
+            </p>
+          )}
         </section>
-      ))}
+      )}
+
+      {viewMode === "garrison" && (
+        <section>
+          <h2>Your garrison position</h2>
+
+          <button
+            type="button"
+            onClick={enableNotifications}
+          >
+            {notificationsEnabled
+              ? "Notifications enabled"
+              : "Enable notifications"}
+          </button>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={soundEnabled}
+              onChange={(event) =>
+                setSoundEnabled(event.target.checked)
+              }
+            />
+            Sound alerts
+          </label>
+
+          <label>
+            Your X coordinate
+            <input
+              type="number"
+              min="0"
+              max="1199"
+              value={garrisonX}
+              onChange={(event) =>
+                setGarrisonX(Number(event.target.value))
+              }
+            />
+          </label>
+
+          <label>
+            Your Y coordinate
+            <input
+              type="number"
+              min="0"
+              max="1199"
+              value={garrisonY}
+              onChange={(event) =>
+                setGarrisonY(Number(event.target.value))
+              }
+            />
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={garrisonPetActive}
+              onChange={(event) =>
+                setGarrisonPetActive(event.target.checked)
+              }
+            />
+            My pet is active
+          </label>
+
+          <p>
+            Your march time: {garrisonMarchTime} seconds
+          </p>
+        </section>
+      )}
+
+      <section>
+        <h2>Incoming rally schedule</h2>
+
+        {rallyWaves.length === 0 && (
+          <p>No incoming rallies.</p>
+        )}
+
+        {rallyWaves.map((wave, index) => (
+          <article key={wave.impactSecond}>
+            <h3>
+              Wave {index + 1}:{" "}
+              {new Date(
+                wave.impactSecond * 1000
+              ).toLocaleTimeString("en-GB", {
+                timeZone: "UTC",
+                hour12: false,
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}{" "}
+              UTC — {wave.rallies.length}{" "}
+              {wave.rallies.length === 1
+                ? "rally"
+                : "rallies"}
+            </h3>
+
+            {viewMode === "garrison" && (
+              <>
+                <p>
+                  Send reinforcement at:{" "}
+                  {calculateSendTime(
+                    new Date(wave.impactSecond * 1000),
+                    garrisonMarchTime
+                  ).toLocaleTimeString("en-GB", {
+                    timeZone: "UTC",
+                    hour12: false,
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}{" "}
+                  UTC
+                </p>
+
+                <p>{getSendStatus(wave)}</p>
+              </>
+            )}
+
+            <ul>
+              {wave.rallies.map((rally) => (
+                <li key={rally.id}>
+                  {rally.enemyName}
+                  {rally.petActive
+                    ? " — Pet active"
+                    : ""}
+
+                  {viewMode === "admin" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeRally(rally.id)
+                      }
+                    >
+                      Remove
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </section>
     </main>
   );
 }
