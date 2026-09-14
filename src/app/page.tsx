@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
 import {
@@ -12,85 +17,166 @@ import type {
   EnemyRally,
   RallyWave,
 } from "@/types/rally";
-type AdminPanel = "leaders" | "call";
+
 type ViewMode = "admin" | "garrison";
+type AdminPanel = "leaders" | "call";
+
+const PET_DURATION_MS = 2 * 60 * 60 * 1000;
+
+function formatUtcTime(date: Date): string {
+  return date.toLocaleTimeString("en-GB", {
+    timeZone: "UTC",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function isEnemyPetActive(
+  leader: EnemyLeader,
+  currentTime: Date
+): boolean {
+  return (
+    leader.petExpiresAt !== null &&
+    leader.petExpiresAt > currentTime.getTime()
+  );
+}
+
+function getEnemyPetTimeRemaining(
+  leader: EnemyLeader,
+  currentTime: Date
+): string {
+  if (!isEnemyPetActive(leader, currentTime)) {
+    return "Inactive";
+  }
+
+  const totalSeconds = Math.ceil(
+    (leader.petExpiresAt! - currentTime.getTime()) /
+    1000
+  );
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor(
+    (totalSeconds % 3600) / 60
+  );
+  const seconds = totalSeconds % 60;
+
+  return `${hours}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+}
+
 export default function Home() {
+  const [viewMode, setViewMode] =
+    useState<ViewMode>("admin");
+
   const [adminPanel, setAdminPanel] =
     useState<AdminPanel>("leaders");
 
-  const [enemyLeaders, setEnemyLeaders] =
-    useState<EnemyLeader[]>([]);
-
-  const [selectedLeaderId, setSelectedLeaderId] =
-    useState<number | null>(null);
-  const [viewMode, setViewMode] =
-    useState<ViewMode>("admin");
   const [enemyName, setEnemyName] = useState("");
+  const [x, setX] = useState(600);
+  const [y, setY] = useState(606);
   const [enemyPetActive, setEnemyPetActive] =
     useState(false);
 
-  const [garrisonPetActive, setGarrisonPetActive] =
-    useState(false);
-  const [x, setX] = useState(600);
-  const [y, setY] = useState(606);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [garrisonX, setGarrisonX] = useState(600);
-  const [garrisonY, setGarrisonY] = useState(606);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [enemyLeaders, setEnemyLeaders] = useState<
+    EnemyLeader[]
+  >([]);
+
+  const [selectedLeaderId, setSelectedLeaderId] =
+    useState<number | null>(null);
+
+  const [nextLeaderId, setNextLeaderId] = useState(1);
+  const [nextRallyId, setNextRallyId] = useState(1);
+
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
+
+  const [garrisonX, setGarrisonX] = useState(600);
+  const [garrisonY, setGarrisonY] = useState(606);
+  const [garrisonPetActive, setGarrisonPetActive] =
+    useState(false);
+
+  const [rallies, setRallies] = useState<EnemyRally[]>(
+    []
+  );
+
+  const [currentTime, setCurrentTime] = useState(
+    new Date()
+  );
+
+  const [notificationsEnabled, setNotificationsEnabled] =
+    useState(false);
+
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
   const alertedWaves = useRef<Set<number>>(new Set());
-  const [impactTime, setImpactTime] =
-  useState<Date | null>(null);
-  const [rallies, setRallies] = useState<EnemyRally[]>([]);
+
   const selectedLeader =
     enemyLeaders.find(
       (leader) => leader.id === selectedLeaderId
     ) ?? null;
 
+  const selectedLeaderPetActive = selectedLeader
+    ? isEnemyPetActive(selectedLeader, currentTime)
+    : false;
+
   const marchTime = selectedLeader
     ? calculateMarchTime(
       selectedLeader.x,
       selectedLeader.y,
-      selectedLeader.petActive
+      selectedLeaderPetActive
     )
     : 0;
+
   const garrisonMarchTime = calculateMarchTime(
     garrisonX,
     garrisonY,
     garrisonPetActive
   );
-  const [notificationsEnabled, setNotificationsEnabled] =
-    useState(false);
-  const rallyWaves = rallies.reduce<RallyWave[]>((waves, rally) => {
-    const impactSecond = Math.floor(
-      rally.impactTime.getTime() / 1000
-    );
-    const existingWave = waves.find(
-      (wave) => wave.impactSecond === impactSecond
-    );
 
-    if (existingWave) {
-      existingWave.rallies.push(rally);
-    } else {
-      waves.push({
-        impactSecond: impactSecond,
-        rallies: [rally],
-      });
-    }
+  const rallyWaves = useMemo(() => {
+    return rallies.reduce<RallyWave[]>(
+      (waves, rally) => {
+        const impactSecond = Math.floor(
+          rally.impactTime.getTime() / 1000
+        );
 
-    return waves;
-  }, []);
+        const existingWave = waves.find(
+          (wave) =>
+            wave.impactSecond === impactSecond
+        );
+
+        if (existingWave) {
+          existingWave.rallies.push(rally);
+        } else {
+          waves.push({
+            impactSecond,
+            rallies: [rally],
+          });
+        }
+
+        return waves;
+      },
+      []
+    );
+  }, [rallies]);
+
   function addEnemyLeader() {
     const trimmedName = enemyName.trim();
 
     if (!trimmedName) {
-      alert("Enter the enemy leader's name.");
+      window.alert("Enter the enemy leader's name.");
       return;
     }
 
     if (x < 0 || x > 1199 || y < 0 || y > 1199) {
-      alert("Coordinates must be between 0 and 1199.");
+      window.alert(
+        "Coordinates must be between 0 and 1199."
+      );
       return;
     }
 
@@ -101,16 +187,18 @@ export default function Home() {
     );
 
     if (nameAlreadyExists) {
-      alert("That enemy leader already exists.");
+      window.alert("That enemy leader already exists.");
       return;
     }
 
     const newLeader: EnemyLeader = {
-      id: Date.now(),
+      id: nextLeaderId,
       name: trimmedName,
       x,
       y,
-      petActive: enemyPetActive,
+      petExpiresAt: enemyPetActive
+        ? currentTime.getTime() + PET_DURATION_MS
+        : null,
     };
 
     setEnemyLeaders((currentLeaders) =>
@@ -120,19 +208,31 @@ export default function Home() {
     );
 
     setSelectedLeaderId(newLeader.id);
+    setNextLeaderId((currentId) => currentId + 1);
     setEnemyName("");
+    setEnemyPetActive(false);
   }
 
   function toggleEnemyLeaderPet(id: number) {
+    const now = currentTime.getTime();
+
     setEnemyLeaders((currentLeaders) =>
-      currentLeaders.map((leader) =>
-        leader.id === id
-          ? {
-            ...leader,
-            petActive: !leader.petActive,
-          }
-          : leader
-      )
+      currentLeaders.map((leader) => {
+        if (leader.id !== id) {
+          return leader;
+        }
+
+        const currentlyActive =
+          leader.petExpiresAt !== null &&
+          leader.petExpiresAt > now;
+
+        return {
+          ...leader,
+          petExpiresAt: currentlyActive
+            ? null
+            : now + PET_DURATION_MS,
+        };
+      })
     );
   }
 
@@ -147,27 +247,28 @@ export default function Home() {
       currentId === id ? null : currentId
     );
   }
+
   function syncRally() {
     if (!selectedLeader) {
-      alert("Select an enemy rally leader.");
+      window.alert("Select an enemy rally leader.");
       return;
     }
 
     const calculatedImpactTime = calculateImpactTime(
-      new Date(),
+      currentTime,
       minutes,
       seconds,
       marchTime
     );
 
     const newRally: EnemyRally = {
-      id: Date.now(),
+      id: nextRallyId,
       enemyName: selectedLeader.name,
       x: selectedLeader.x,
       y: selectedLeader.y,
       marchTime,
       impactTime: calculatedImpactTime,
-      petActive: selectedLeader.petActive,
+      petActive: selectedLeaderPetActive,
     };
 
     setRallies((currentRallies) =>
@@ -177,13 +278,21 @@ export default function Home() {
           b.impactTime.getTime()
       )
     );
+
+    setNextRallyId((currentId) => currentId + 1);
   }
+
   function removeRally(id: number) {
     setRallies((currentRallies) =>
-      currentRallies.filter((rally) => rally.id !== id)
+      currentRallies.filter(
+        (rally) => rally.id !== id
+      )
     );
   }
-  function getSecondsUntilSend(wave: RallyWave): number {
+
+  function getSecondsUntilSend(
+    wave: RallyWave
+  ): number {
     const waveImpactTime = new Date(
       wave.impactSecond * 1000
     );
@@ -193,8 +302,12 @@ export default function Home() {
       garrisonMarchTime
     );
 
-    return calculateSecondsUntil(sendTime, currentTime);
+    return calculateSecondsUntil(
+      sendTime,
+      currentTime
+    );
   }
+
   function getSendStatus(wave: RallyWave): string {
     const secondsRemaining = getSecondsUntilSend(wave);
 
@@ -208,6 +321,23 @@ export default function Home() {
 
     return "Send time passed";
   }
+
+  async function enableNotifications() {
+    if (!("Notification" in window)) {
+      window.alert(
+        "This browser does not support notifications."
+      );
+      return;
+    }
+
+    const permission =
+      await Notification.requestPermission();
+
+    setNotificationsEnabled(
+      permission === "granted"
+    );
+  }
+
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       setCurrentTime(new Date());
@@ -217,6 +347,7 @@ export default function Home() {
       window.clearInterval(intervalId);
     };
   }, []);
+
   useEffect(() => {
     rallyWaves.forEach((wave) => {
       const waveImpactTime = new Date(
@@ -246,18 +377,24 @@ export default function Home() {
         alertedWaves.current.add(wave.impactSecond);
 
         if (soundEnabled) {
-          const alert = new SpeechSynthesisUtterance("Send now");
-          window.speechSynthesis.speak(alert);
+          const speechAlert =
+            new SpeechSynthesisUtterance("Send now");
+
+          window.speechSynthesis.speak(speechAlert);
         }
+
         if (
           notificationsEnabled &&
           "Notification" in window &&
           Notification.permission === "granted"
         ) {
-          new Notification("SEND REINFORCEMENTS NOW", {
-            body: `${wave.rallies.length} enemy rallies are incoming.`,
-            tag: `wave-${wave.impactSecond}`,
-          });
+          new Notification(
+            "SEND REINFORCEMENTS NOW",
+            {
+              body: `${wave.rallies.length} enemy rallies are incoming.`,
+              tag: `wave-${wave.impactSecond}`,
+            }
+          );
         }
       }
     });
@@ -267,23 +404,16 @@ export default function Home() {
     rallyWaves,
     notificationsEnabled,
     soundEnabled,
-
+    viewMode,
   ]);
-  async function enableNotifications() {
-    if (!("Notification" in window)) {
-      alert("This browser does not support notifications.");
-      return;
-    }
 
-    const permission = await Notification.requestPermission();
-
-    setNotificationsEnabled(permission === "granted");
-  }
   return (
     <main>
       <header>
         <h1>WOS Battle Planner</h1>
-        <p>SVS castle rally and reinforcement timing.</p>
+        <p>
+          SVS castle rally and reinforcement timing.
+        </p>
 
         <nav>
           <button
@@ -302,203 +432,231 @@ export default function Home() {
         </nav>
       </header>
 
-     {viewMode === "admin" && (
-  <>
-    <nav>
-      <button
-        type="button"
-        onClick={() => setAdminPanel("leaders")}
-      >
-        Manage leaders
-      </button>
+      {viewMode === "admin" && (
+        <>
+          <nav>
+            <button
+              type="button"
+              onClick={() =>
+                setAdminPanel("leaders")
+              }
+            >
+              Manage leaders
+            </button>
 
-      <button
-        type="button"
-        onClick={() => setAdminPanel("call")}
-      >
-        Call rally
-      </button>
-    </nav>
+            <button
+              type="button"
+              onClick={() => setAdminPanel("call")}
+            >
+              Call rally
+            </button>
+          </nav>
 
-    {adminPanel === "leaders" && (
-      <section>
-        <h2>Add enemy rally leader</h2>
+          {adminPanel === "leaders" && (
+            <section>
+              <h2>Manage enemy rally leaders</h2>
 
-        <label>
-          Player name
-          <input
-            type="text"
-            value={enemyName}
-            onChange={(event) =>
-              setEnemyName(event.target.value)
-            }
-          />
-        </label>
+              <label>
+                Player name
+                <input
+                  type="text"
+                  value={enemyName}
+                  onChange={(event) =>
+                    setEnemyName(event.target.value)
+                  }
+                />
+              </label>
 
-        <label>
-          X coordinate
-          <input
-            type="number"
-            min="0"
-            max="1199"
-            value={x}
-            onChange={(event) =>
-              setX(Number(event.target.value))
-            }
-          />
-        </label>
+              <label>
+                X coordinate
+                <input
+                  type="number"
+                  min="0"
+                  max="1199"
+                  value={x}
+                  onChange={(event) =>
+                    setX(Number(event.target.value))
+                  }
+                />
+              </label>
 
-        <label>
-          Y coordinate
-          <input
-            type="number"
-            min="0"
-            max="1199"
-            value={y}
-            onChange={(event) =>
-              setY(Number(event.target.value))
-            }
-          />
-        </label>
+              <label>
+                Y coordinate
+                <input
+                  type="number"
+                  min="0"
+                  max="1199"
+                  value={y}
+                  onChange={(event) =>
+                    setY(Number(event.target.value))
+                  }
+                />
+              </label>
 
-        <label>
-          <input
-            type="checkbox"
-            checked={enemyPetActive}
-            onChange={(event) =>
-              setEnemyPetActive(event.target.checked)
-            }
-          />
-          Pet active
-        </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={enemyPetActive}
+                  onChange={(event) =>
+                    setEnemyPetActive(
+                      event.target.checked
+                    )
+                  }
+                />
+                Pet Activation
+              </label>
 
-        <button
-          type="button"
-          onClick={addEnemyLeader}
-        >
-          Add leader
-        </button>
+              <button
+                type="button"
+                onClick={addEnemyLeader}
+              >
+                Add leader
+              </button>
 
-        <h3>Saved leaders</h3>
+              <h3>Saved leaders</h3>
 
-        {enemyLeaders.length === 0 ? (
-          <p>No enemy leaders added.</p>
-        ) : (
-          <ul>
-            {enemyLeaders.map((leader) => (
-              <li key={leader.id}>
-                {leader.name} — {leader.x}:{leader.y}
+              {enemyLeaders.length === 0 ? (
+                <p>No enemy leaders added.</p>
+              ) : (
+                <ul>
+                  {enemyLeaders.map((leader) => (
+                    <li key={leader.id}>
+                      <span>
+                        {leader.name} — {leader.x}:
+                        {leader.y}
+                      </span>{" "}
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={isEnemyPetActive(
+                            leader,
+                            currentTime
+                          )}
+                          onChange={() =>
+                            toggleEnemyLeaderPet(
+                              leader.id
+                            )
+                          }
+                        />
+                        Pet active
+                      </label>{" "}
+                      <span>
+                        Pet remaining:{" "}
+                        {getEnemyPetTimeRemaining(
+                          leader,
+                          currentTime
+                        )}
+                      </span>{" "}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeEnemyLeader(
+                            leader.id
+                          )
+                        }
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
 
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={leader.petActive}
-                    onChange={() =>
-                      toggleEnemyLeaderPet(leader.id)
-                    }
-                  />
-                  Pet active
-                </label>
+          {adminPanel === "call" && (
+            <section>
+              <h2>Call enemy rally</h2>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    removeEnemyLeader(leader.id)
+              <label>
+                Rally leader
+                <select
+                  value={selectedLeaderId ?? ""}
+                  onChange={(event) =>
+                    setSelectedLeaderId(
+                      event.target.value
+                        ? Number(event.target.value)
+                        : null
+                    )
                   }
                 >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    )}
+                  <option value="">
+                    Select rally leader
+                  </option>
 
-    {adminPanel === "call" && (
-      <section>
-        <h2>Call enemy rally</h2>
+                  {enemyLeaders.map((leader) => (
+                    <option
+                      key={leader.id}
+                      value={leader.id}
+                    >
+                      {leader.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-        <label>
-          Rally leader
-          <select
-            value={selectedLeaderId ?? ""}
-            onChange={(event) =>
-              setSelectedLeaderId(
-                event.target.value
-                  ? Number(event.target.value)
-                  : null
-              )
-            }
-          >
-            <option value="">
-              Select rally leader
-            </option>
+              {selectedLeader && (
+                <p>
+                  Position: {selectedLeader.x}:
+                  {selectedLeader.y} — March:{" "}
+                  {marchTime} seconds
+                  {selectedLeaderPetActive
+                    ? ` — Pet remaining: ${getEnemyPetTimeRemaining(
+                      selectedLeader,
+                      currentTime
+                    )}`
+                    : " — Pet inactive"}
+                </p>
+              )}
 
-            {enemyLeaders.map((leader) => (
-              <option
-                key={leader.id}
-                value={leader.id}
+              <label>
+                Rally minutes remaining
+                <input
+                  type="number"
+                  min="0"
+                  max="5"
+                  value={minutes}
+                  onChange={(event) =>
+                    setMinutes(
+                      Number(event.target.value)
+                    )
+                  }
+                />
+              </label>
+
+              <label>
+                Rally seconds remaining
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={seconds}
+                  onChange={(event) =>
+                    setSeconds(
+                      Number(event.target.value)
+                    )
+                  }
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={syncRally}
+                disabled={!selectedLeader}
               >
-                {leader.name}
-              </option>
-            ))}
-          </select>
-        </label>
+                Sync Rally
+              </button>
 
-        {selectedLeader && (
-          <p>
-            Position: {selectedLeader.x}:
-            {selectedLeader.y} — March:{" "}
-            {marchTime} seconds
-            {selectedLeader.petActive
-              ? " — Pet active"
-              : ""}
-          </p>
-        )}
-
-        <label>
-          Rally minutes remaining
-          <input
-            type="number"
-            min="0"
-            max="5"
-            value={minutes}
-            onChange={(event) =>
-              setMinutes(Number(event.target.value))
-            }
-          />
-        </label>
-
-        <label>
-          Rally seconds remaining
-          <input
-            type="number"
-            min="0"
-            max="59"
-            value={seconds}
-            onChange={(event) =>
-              setSeconds(Number(event.target.value))
-            }
-          />
-        </label>
-
-        <button
-          type="button"
-          onClick={syncRally}
-          disabled={!selectedLeader}
-        >
-          Sync Rally
-        </button>
-
-        <p>
-          Rally timer: {minutes}:
-          {seconds.toString().padStart(2, "0")}
-        </p>
-      </section>
-    )}
-  </>
-)}
+              <p>
+                Rally timer: {minutes}:
+                {seconds
+                  .toString()
+                  .padStart(2, "0")}
+              </p>
+            </section>
+          )}
+        </>
+      )}
 
       {viewMode === "garrison" && (
         <section>
@@ -518,7 +676,9 @@ export default function Home() {
               type="checkbox"
               checked={soundEnabled}
               onChange={(event) =>
-                setSoundEnabled(event.target.checked)
+                setSoundEnabled(
+                  event.target.checked
+                )
               }
             />
             Sound alerts
@@ -532,7 +692,9 @@ export default function Home() {
               max="1199"
               value={garrisonX}
               onChange={(event) =>
-                setGarrisonX(Number(event.target.value))
+                setGarrisonX(
+                  Number(event.target.value)
+                )
               }
             />
           </label>
@@ -545,7 +707,9 @@ export default function Home() {
               max="1199"
               value={garrisonY}
               onChange={(event) =>
-                setGarrisonY(Number(event.target.value))
+                setGarrisonY(
+                  Number(event.target.value)
+                )
               }
             />
           </label>
@@ -555,14 +719,17 @@ export default function Home() {
               type="checkbox"
               checked={garrisonPetActive}
               onChange={(event) =>
-                setGarrisonPetActive(event.target.checked)
+                setGarrisonPetActive(
+                  event.target.checked
+                )
               }
             />
             My pet is active
           </label>
 
           <p>
-            Your march time: {garrisonMarchTime} seconds
+            Your march time: {garrisonMarchTime}{" "}
+            seconds
           </p>
         </section>
       )}
@@ -578,15 +745,9 @@ export default function Home() {
           <article key={wave.impactSecond}>
             <h3>
               Wave {index + 1}:{" "}
-              {new Date(
-                wave.impactSecond * 1000
-              ).toLocaleTimeString("en-GB", {
-                timeZone: "UTC",
-                hour12: false,
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })}{" "}
+              {formatUtcTime(
+                new Date(wave.impactSecond * 1000)
+              )}{" "}
               UTC — {wave.rallies.length}{" "}
               {wave.rallies.length === 1
                 ? "rally"
@@ -597,16 +758,14 @@ export default function Home() {
               <>
                 <p>
                   Send reinforcement at:{" "}
-                  {calculateSendTime(
-                    new Date(wave.impactSecond * 1000),
-                    garrisonMarchTime
-                  ).toLocaleTimeString("en-GB", {
-                    timeZone: "UTC",
-                    hour12: false,
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })}{" "}
+                  {formatUtcTime(
+                    calculateSendTime(
+                      new Date(
+                        wave.impactSecond * 1000
+                      ),
+                      garrisonMarchTime
+                    )
+                  )}{" "}
                   UTC
                 </p>
 
