@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
+import { calculateSendTime } from "@/lib/reinforcementTime";
 
 type EnemyRally = {
   id: number;
@@ -20,6 +21,8 @@ export default function Home() {
   const [enemyName, setEnemyName] = useState("");
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
+  const [garrisonX, setGarrisonX] = useState(600);
+  const [garrisonY, setGarrisonY] = useState(606);
 
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
@@ -27,6 +30,10 @@ export default function Home() {
   const [impactTime, setImpactTime] = useState<Date | null>(null);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const marchTime = calculateMarchTime(x, y);
+  const garrisonMarchTime = calculateMarchTime(
+  garrisonX,
+  garrisonY
+  );
   const rallyWaves = rallies.reduce<RallyWave[]>((waves, rally) => {
   const impactSecond = Math.floor(
     rally.impactTime.getTime() / 1000
@@ -87,6 +94,35 @@ function removeRally(id: number) {
     onChange={(event) => setEnemyName(event.target.value)}
     placeholder="Enter player name"
   />
+  <h2>Your garrison position</h2>
+
+<label>
+  Your X coordinate
+  <input
+    type="number"
+    min="0"
+    max="1199"
+    value={garrisonX}
+    onChange={(event) =>
+      setGarrisonX(Number(event.target.value))
+    }
+  />
+</label>
+
+<label>
+  Your Y coordinate
+  <input
+    type="number"
+    min="0"
+    max="1199"
+    value={garrisonY}
+    onChange={(event) =>
+      setGarrisonY(Number(event.target.value))
+    }
+  />
+</label>
+
+<p>Your march time: {garrisonMarchTime} seconds</p>
 </label>
       <label>
         Enemy X coordinate
@@ -168,7 +204,20 @@ function removeRally(id: number) {
       )}{" "}
       UTC — {wave.rallies.length} rallies
     </h3>
-
+    <p>
+  Send reinforcement at:{" "}
+  {calculateSendTime(
+    new Date(wave.impactSecond * 1000),
+    garrisonMarchTime
+  ).toLocaleTimeString("en-GB", {
+    timeZone: "UTC",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })}{" "}
+  UTC
+</p>
     <ul>
       {wave.rallies.map((rally) => (
         <li key={rally.id}>
