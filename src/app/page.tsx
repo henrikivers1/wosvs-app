@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
-import { calculateSendTime } from "@/lib/reinforcementTime";
-
+import {
+  calculateSecondsUntil,
+  calculateSendTime,
+} from "@/lib/reinforcementTime";
 type EnemyRally = {
   id: number;
   enemyName: string;
@@ -23,7 +25,7 @@ export default function Home() {
   const [y, setY] = useState(606);
   const [garrisonX, setGarrisonX] = useState(600);
   const [garrisonY, setGarrisonY] = useState(606);
-
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
 
@@ -82,6 +84,27 @@ function removeRally(id: number) {
     currentRallies.filter((rally) => rally.id !== id)
   );
 }
+function getSecondsUntilSend(wave: RallyWave): number {
+  const waveImpactTime = new Date(
+    wave.impactSecond * 1000
+  );
+
+  const sendTime = calculateSendTime(
+    waveImpactTime,
+    garrisonMarchTime
+  );
+
+  return calculateSecondsUntil(sendTime, currentTime);
+}
+useEffect(() => {
+  const intervalId = window.setInterval(() => {
+    setCurrentTime(new Date());
+  }, 100);
+
+  return () => {
+    window.clearInterval(intervalId);
+  };
+}, []);
   return (
     <main>
       <h1>WOS Battle Planner</h1>
@@ -201,8 +224,14 @@ function removeRally(id: number) {
           minute: "2-digit",
           second: "2-digit",
         }
+        
       )}{" "}
       UTC — {wave.rallies.length} rallies
+      <p>
+  {getSecondsUntilSend(wave) > 0
+    ? `Send in ${getSecondsUntilSend(wave)} seconds`
+    : "SEND NOW"}
+</p>
     </h3>
     <p>
   Send reinforcement at:{" "}

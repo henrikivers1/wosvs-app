@@ -6,3 +6,11 @@ export function calculateSendTime(
     impactTime.getTime() - marchTimeSeconds * 1000
   );
 }
+export function calculateSecondsUntil(
+  targetTime: Date,
+  currentTime: Date
+): number {
+  return Math.ceil(
+    (targetTime.getTime() - currentTime.getTime()) / 1000
+  );
+}
