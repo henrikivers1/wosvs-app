@@ -776,19 +776,17 @@ export default function Home() {
             <ul>
               {wave.rallies.map((rally) => (
                 <li key={rally.id}>
-                  {rally.enemyName}
-                  {rally.petActive
-                    ? " — Pet active"
-                    : ""}
+                  <span>
+                    {rally.enemyName}
+                    {rally.petActive ? " — Pet active" : ""}
+                  </span>
 
                   {viewMode === "admin" && (
                     <button
                       type="button"
-                      onClick={() =>
-                        removeRally(rally.id)
-                      }
+                      onClick={() => removeRally(rally.id)}
                     >
-                      Remove
+                      Cancel rally
                     </button>
                   )}
                 </li>
