@@ -1,26 +1,294 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #071019;
+  --surface: #0d1824;
+  --surface-light: #132333;
+  --border: #24384a;
+  --text: #f5f7fa;
+  --muted: #9cafc1;
+  --primary: #4aa8ff;
+  --primary-hover: #75bcff;
+  --danger: #ff6673;
+  --danger-background: #351820;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(49, 130, 206, 0.16),
+      transparent 35%
+    ),
+    var(--background);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+main {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 64px;
+}
+
+header {
+  padding: 28px;
+  margin-bottom: 20px;
+  background: rgba(13, 24, 36, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24);
+}
+
+header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 5vw, 2.7rem);
+  letter-spacing: -0.04em;
+}
+
+header p {
+  margin: 8px 0 22px;
+  color: var(--muted);
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+main > nav {
+  margin-bottom: 20px;
+}
+
+button {
+  min-height: 42px;
+  padding: 10px 18px;
+  color: #04111d;
+  font-weight: 700;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+header nav button,
+main > nav button {
+  color: var(--text);
+  background: var(--surface-light);
+  border-color: var(--border);
+}
+
+header nav button:hover,
+main > nav button:hover {
+  color: var(--text);
+  background: #1b3043;
+  border-color: var(--primary);
+}
+
+section {
+  padding: 24px;
+  margin-top: 20px;
+  background: rgba(13, 24, 36, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+section h2 {
+  margin: 0 0 20px;
+  font-size: 1.35rem;
+}
+
+section h3 {
+  margin: 24px 0 12px;
+  color: #dcecff;
+}
+
+label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0 14px 18px 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+  vertical-align: top;
+}
+
+label:has(input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+}
+
+input:not([type="checkbox"]),
+select {
+  width: 220px;
+  min-height: 43px;
+  padding: 9px 12px;
+  color: var(--text);
+  background: #08131e;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline: none;
+}
+
+input:not([type="checkbox"]):focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(74, 168, 255, 0.15);
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+section > button {
+  margin: 0 10px 18px 0;
+}
+
+p {
+  line-height: 1.55;
+}
+
+section > p {
+  color: var(--muted);
+}
+
+article {
+  padding: 18px;
+  margin-top: 14px;
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 12px;
+}
+
+article h3 {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+article p {
+  margin: 8px 0;
+}
+
+ul {
+  padding: 0;
+  margin: 14px 0 0;
+  list-style: none;
+}
+
+li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  background: rgba(5, 14, 22, 0.55);
+  border: 1px solid rgba(72, 99, 122, 0.45);
+  border-radius: 9px;
+}
+
+li label {
+  margin: 0;
+}
+
+li button {
+  min-height: 36px;
+  padding: 7px 12px;
+  margin-left: auto;
+  color: #ffabb2;
+  background: var(--danger-background);
+  border-color: rgba(255, 102, 115, 0.4);
+}
+
+li button:hover:not(:disabled) {
+  color: white;
+  background: #54202a;
+  border-color: var(--danger);
+}
+
+@media (max-width: 640px) {
+  main {
+    width: min(100% - 20px, 1100px);
+    padding-top: 10px;
+  }
+
+  header,
+  section {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  nav button {
+    flex: 1;
+  }
+
+  label {
+    display: flex;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  input:not([type="checkbox"]),
+  select {
+    width: 100%;
+  }
+
+  section > button {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  li button {
+    width: 100%;
+    margin-left: 0;
+  }
 }
