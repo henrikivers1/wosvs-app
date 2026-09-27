@@ -75,6 +75,14 @@ li button:hover:not(:disabled) { color: white; background: #54202a; border-color
 .dashboard-card:hover { border-color: var(--primary); transform: translateY(-2px); }
 .dashboard-card span { color: var(--muted); line-height: 1.5; }
 .send-now { color: #ffdf6b; font-size: 1.15rem; font-weight: 800; }
+.signed-in-user { display: inline-flex; align-items: center; padding: 0 8px; color: var(--muted); font-size: 0.86rem; }
+.auth-card { width: min(460px, 100%); margin: 20px auto; }
+.auth-form { display: flex; flex-direction: column; }
+.auth-form label, .auth-form input { width: 100%; }
+.auth-form button { width: 100%; margin-bottom: 12px; }
+.auth-message { padding: 12px; color: #dcecff; background: var(--surface-light); border: 1px solid var(--border); border-radius: 9px; }
+.text-button { width: 100%; color: var(--primary); background: transparent; border-color: transparent; }
+.text-button:hover:not(:disabled) { color: var(--primary-hover); background: rgba(74, 168, 255, 0.08); border-color: transparent; }
 .edit-leader-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; width: 100%; }
 .edit-leader-form label { margin: 0; }
 .edit-leader-form button { margin-left: 0; }

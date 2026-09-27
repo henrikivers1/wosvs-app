@@ -117,7 +117,9 @@ export function BattleProvider({
   }, [supabase]);
 
   useEffect(() => {
-    void loadBattleData();
+    const initialLoadId = window.setTimeout(() => {
+      void loadBattleData();
+    }, 0);
 
     const channel = supabase
       .channel("wosvs-battle-data")
@@ -142,6 +144,7 @@ export function BattleProvider({
       .subscribe();
 
     return () => {
+      window.clearTimeout(initialLoadId);
       void supabase.removeChannel(channel);
     };
   }, [loadBattleData, supabase]);
