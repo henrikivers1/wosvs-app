@@ -21,6 +21,12 @@ type BattleContextValue = {
     petActive: boolean
   ) => string | null;
   toggleEnemyLeaderPet: (id: number) => void;
+  updateEnemyLeader: (
+    id: number,
+    name: string,
+    x: number,
+    y: number
+  ) => string | null;
   removeEnemyLeader: (id: number) => void;
   addRally: (rally: Omit<EnemyRally, "id">) => void;
   removeRally: (id: number) => void;
@@ -45,7 +51,18 @@ export function BattleProvider({
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      setCurrentTime(new Date());
+      const now = new Date();
+      setCurrentTime(now);
+      setRallies((currentRallies) => {
+        const activeRallies = currentRallies.filter(
+          (rally) =>
+            rally.impactTime.getTime() >= now.getTime() - 15_000
+        );
+
+        return activeRallies.length === currentRallies.length
+          ? currentRallies
+          : activeRallies;
+      });
     }, 100);
 
     return () => window.clearInterval(intervalId);
@@ -107,6 +124,40 @@ export function BattleProvider({
     );
   }
 
+  function updateEnemyLeader(
+    id: number,
+    name: string,
+    x: number,
+    y: number
+  ): string | null {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) return "Enter the enemy leader's name.";
+    if (x < 0 || x > 1199 || y < 0 || y > 1199) {
+      return "Coordinates must be between 0 and 1199.";
+    }
+    if (
+      enemyLeaders.some(
+        (leader) =>
+          leader.id !== id &&
+          leader.name.toLowerCase() === trimmedName.toLowerCase()
+      )
+    ) {
+      return "That enemy leader already exists.";
+    }
+
+    setEnemyLeaders((leaders) =>
+      leaders
+        .map((leader) =>
+          leader.id === id
+            ? { ...leader, name: trimmedName, x, y }
+            : leader
+        )
+        .sort((a, b) => a.name.localeCompare(b.name))
+    );
+    return null;
+  }
+
   function removeEnemyLeader(id: number) {
     setEnemyLeaders((leaders) =>
       leaders.filter((leader) => leader.id !== id)
@@ -141,6 +192,7 @@ export function BattleProvider({
         currentTime,
         addEnemyLeader,
         toggleEnemyLeaderPet,
+        updateEnemyLeader,
         removeEnemyLeader,
         addRally,
         removeRally,

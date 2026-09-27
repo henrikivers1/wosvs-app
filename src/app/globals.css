@@ -75,6 +75,12 @@ li button:hover:not(:disabled) { color: white; background: #54202a; border-color
 .dashboard-card:hover { border-color: var(--primary); transform: translateY(-2px); }
 .dashboard-card span { color: var(--muted); line-height: 1.5; }
 .send-now { color: #ffdf6b; font-size: 1.15rem; font-weight: 800; }
+.edit-leader-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; width: 100%; }
+.edit-leader-form label { margin: 0; }
+.edit-leader-form button { margin-left: 0; }
+li .edit-button, li .save-button { color: #04111d; background: var(--primary); border-color: var(--primary); }
+li .edit-button:hover:not(:disabled), li .save-button:hover:not(:disabled) { color: #04111d; background: var(--primary-hover); border-color: var(--primary-hover); }
+li .cancel-edit-button { color: var(--text); background: var(--surface-light); border-color: var(--border); }
 
 @media (max-width: 640px) {
   main { width: min(100% - 20px, 1100px); padding-top: 10px; }
@@ -84,5 +90,6 @@ li button:hover:not(:disabled) { color: white; background: #54202a; border-color
   input:not([type="checkbox"]), select { width: 100%; }
   section > button { width: 100%; margin-right: 0; }
   li button { width: 100%; margin-left: 0; }
+  .edit-leader-form { align-items: stretch; }
   .page-grid { grid-template-columns: 1fr; }
 }
