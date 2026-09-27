@@ -2,34 +2,49 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
 import { PET_DURATION_MS } from "@/lib/battleDisplay";
+import { createClient } from "@/lib/supabase/client";
 import type { EnemyLeader, EnemyRally } from "@/types/rally";
+
+const DEVELOPMENT_STATE_ID =
+  "00000000-0000-0000-0000-000000000001";
+const DEVELOPMENT_BATTLE_ID =
+  "00000000-0000-0000-0000-000000000002";
+
+type NewRally = Omit<EnemyRally, "id">;
 
 type BattleContextValue = {
   enemyLeaders: EnemyLeader[];
   rallies: EnemyRally[];
   currentTime: Date;
+  loading: boolean;
   addEnemyLeader: (
     name: string,
     x: number,
     y: number,
     petActive: boolean
-  ) => string | null;
-  toggleEnemyLeaderPet: (id: number) => void;
+  ) => Promise<string | null>;
+  toggleEnemyLeaderPet: (id: number) => Promise<string | null>;
   updateEnemyLeader: (
     id: number,
     name: string,
     x: number,
-    y: number
-  ) => string | null;
-  removeEnemyLeader: (id: number) => void;
-  addRally: (rally: Omit<EnemyRally, "id">) => void;
-  removeRally: (id: number) => void;
+    y: number,
+    petActive: boolean
+  ) => Promise<string | null>;
+  removeEnemyLeader: (id: number) => Promise<string | null>;
+  addRally: (
+    rally: NewRally,
+    enemyLeaderId: number
+  ) => Promise<string | null>;
+  removeRally: (id: number) => Promise<string | null>;
 };
 
 const BattleContext = createContext<BattleContextValue | null>(
@@ -41,16 +56,98 @@ export function BattleProvider({
 }: {
   children: ReactNode;
 }) {
+  const supabase = useMemo(() => createClient(), []);
   const [enemyLeaders, setEnemyLeaders] = useState<
     EnemyLeader[]
   >([]);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
-  const [nextLeaderId, setNextLeaderId] = useState(1);
-  const [nextRallyId, setNextRallyId] = useState(1);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+  const loadBattleData = useCallback(async () => {
+    const [leadersResult, ralliesResult] = await Promise.all([
+      supabase
+        .from("enemy_leaders")
+        .select("id, name, x, y, pet_expires_at")
+        .eq("state_id", DEVELOPMENT_STATE_ID)
+        .order("name"),
+      supabase
+        .from("rallies")
+        .select(
+          "id, enemy_name, x, y, march_time, impact_time, pet_active"
+        )
+        .eq("battle_id", DEVELOPMENT_BATTLE_ID)
+        .order("impact_time"),
+    ]);
+
+    if (leadersResult.error) {
+      console.error(leadersResult.error);
+    } else {
+      setEnemyLeaders(
+        leadersResult.data.map((leader) => ({
+          id: leader.id,
+          name: leader.name,
+          x: leader.x,
+          y: leader.y,
+          petExpiresAt: leader.pet_expires_at
+            ? new Date(leader.pet_expires_at).getTime()
+            : null,
+        }))
+      );
+    }
+
+    if (ralliesResult.error) {
+      console.error(ralliesResult.error);
+    } else {
+      setRallies(
+        ralliesResult.data
+          .map((rally) => ({
+            id: rally.id,
+            enemyName: rally.enemy_name,
+            x: rally.x,
+            y: rally.y,
+            marchTime: rally.march_time,
+            impactTime: new Date(rally.impact_time),
+            petActive: rally.pet_active,
+          }))
+      );
+    }
+
+    setLoading(false);
+  }, [supabase]);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
+    void loadBattleData();
+
+    const channel = supabase
+      .channel("wosvs-battle-data")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "enemy_leaders",
+        },
+        () => void loadBattleData()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "rallies",
+        },
+        () => void loadBattleData()
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadBattleData, supabase]);
+
+  useEffect(() => {
+    const clockId = window.setInterval(() => {
       const now = new Date();
       setCurrentTime(now);
       setRallies((currentRallies) => {
@@ -58,130 +155,172 @@ export function BattleProvider({
           (rally) =>
             rally.impactTime.getTime() >= now.getTime() - 15_000
         );
-
         return activeRallies.length === currentRallies.length
           ? currentRallies
           : activeRallies;
       });
     }, 100);
 
-    return () => window.clearInterval(intervalId);
-  }, []);
+    const cleanupId = window.setInterval(() => {
+      const cutoff = new Date(
+        new Date().getTime() - 15_000
+      ).toISOString();
+      void supabase
+        .from("rallies")
+        .delete()
+        .eq("battle_id", DEVELOPMENT_BATTLE_ID)
+        .lt("impact_time", cutoff);
+    }, 5_000);
 
-  function addEnemyLeader(
+    return () => {
+      window.clearInterval(clockId);
+      window.clearInterval(cleanupId);
+    };
+  }, [supabase]);
+
+  async function addEnemyLeader(
     name: string,
     x: number,
     y: number,
     petActive: boolean
-  ): string | null {
+  ): Promise<string | null> {
     const trimmedName = name.trim();
-
     if (!trimmedName) return "Enter the enemy leader's name.";
     if (x < 0 || x > 1199 || y < 0 || y > 1199) {
       return "Coordinates must be between 0 and 1199.";
     }
-    if (
-      enemyLeaders.some(
-        (leader) =>
-          leader.name.toLowerCase() === trimmedName.toLowerCase()
-      )
-    ) {
-      return "That enemy leader already exists.";
-    }
 
-    const newLeader: EnemyLeader = {
-      id: nextLeaderId,
+    const petExpiresAt = petActive
+      ? new Date(
+          currentTime.getTime() + PET_DURATION_MS
+        ).toISOString()
+      : null;
+    const { error } = await supabase.from("enemy_leaders").insert({
+      state_id: DEVELOPMENT_STATE_ID,
       name: trimmedName,
       x,
       y,
-      petExpiresAt: petActive
-        ? currentTime.getTime() + PET_DURATION_MS
-        : null,
-    };
+      pet_expires_at: petExpiresAt,
+    });
 
-    setEnemyLeaders((leaders) =>
-      [...leaders, newLeader].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      )
-    );
-    setNextLeaderId((id) => id + 1);
+    if (error) {
+      return error.code === "23505"
+        ? "That enemy leader already exists."
+        : error.message;
+    }
+    await loadBattleData();
     return null;
   }
 
-  function toggleEnemyLeaderPet(id: number) {
-    const now = currentTime.getTime();
-    setEnemyLeaders((leaders) =>
-      leaders.map((leader) => {
-        if (leader.id !== id) return leader;
-        const active =
-          leader.petExpiresAt !== null &&
-          leader.petExpiresAt > now;
-        return {
-          ...leader,
-          petExpiresAt: active ? null : now + PET_DURATION_MS,
-        };
-      })
-    );
+  async function toggleEnemyLeaderPet(
+    id: number
+  ): Promise<string | null> {
+    const leader = enemyLeaders.find((item) => item.id === id);
+    if (!leader) return "Enemy leader not found.";
+
+    const currentlyActive =
+      leader.petExpiresAt !== null &&
+      leader.petExpiresAt > currentTime.getTime();
+    const petExpiresAt = currentlyActive
+      ? null
+      : new Date(
+          currentTime.getTime() + PET_DURATION_MS
+        ).toISOString();
+    const { error } = await supabase
+      .from("enemy_leaders")
+      .update({ pet_expires_at: petExpiresAt })
+      .eq("id", id);
+
+    if (error) return error.message;
+    await loadBattleData();
+    return null;
   }
 
-  function updateEnemyLeader(
+  async function updateEnemyLeader(
     id: number,
     name: string,
     x: number,
-    y: number
-  ): string | null {
+    y: number,
+    petActive: boolean
+  ): Promise<string | null> {
     const trimmedName = name.trim();
-
     if (!trimmedName) return "Enter the enemy leader's name.";
     if (x < 0 || x > 1199 || y < 0 || y > 1199) {
       return "Coordinates must be between 0 and 1199.";
     }
-    if (
-      enemyLeaders.some(
-        (leader) =>
-          leader.id !== id &&
-          leader.name.toLowerCase() === trimmedName.toLowerCase()
-      )
-    ) {
-      return "That enemy leader already exists.";
-    }
 
-    setEnemyLeaders((leaders) =>
-      leaders
-        .map((leader) =>
-          leader.id === id
-            ? { ...leader, name: trimmedName, x, y }
-            : leader
-        )
-        .sort((a, b) => a.name.localeCompare(b.name))
-    );
+    const leader = enemyLeaders.find((item) => item.id === id);
+    if (!leader) return "Enemy leader not found.";
+    const existingPetActive =
+      leader.petExpiresAt !== null &&
+      leader.petExpiresAt > currentTime.getTime();
+    const petExpiresAt = petActive
+      ? existingPetActive
+        ? new Date(leader.petExpiresAt!).toISOString()
+        : new Date(
+            currentTime.getTime() + PET_DURATION_MS
+          ).toISOString()
+      : null;
+    const { error } = await supabase
+      .from("enemy_leaders")
+      .update({
+        name: trimmedName,
+        x,
+        y,
+        pet_expires_at: petExpiresAt,
+      })
+      .eq("id", id);
+
+    if (error) {
+      return error.code === "23505"
+        ? "That enemy leader already exists."
+        : error.message;
+    }
+    await loadBattleData();
     return null;
   }
 
-  function removeEnemyLeader(id: number) {
-    setEnemyLeaders((leaders) =>
-      leaders.filter((leader) => leader.id !== id)
-    );
+  async function removeEnemyLeader(
+    id: number
+  ): Promise<string | null> {
+    const { error } = await supabase
+      .from("enemy_leaders")
+      .delete()
+      .eq("id", id);
+    if (error) return error.message;
+    await loadBattleData();
+    return null;
   }
 
-  function addRally(rally: Omit<EnemyRally, "id">) {
-    const newRally: EnemyRally = {
-      ...rally,
-      id: nextRallyId,
-    };
-    setRallies((currentRallies) =>
-      [...currentRallies, newRally].sort(
-        (a, b) =>
-          a.impactTime.getTime() - b.impactTime.getTime()
-      )
-    );
-    setNextRallyId((id) => id + 1);
+  async function addRally(
+    rally: NewRally,
+    enemyLeaderId: number
+  ): Promise<string | null> {
+    const { error } = await supabase.from("rallies").insert({
+      battle_id: DEVELOPMENT_BATTLE_ID,
+      enemy_leader_id: enemyLeaderId,
+      enemy_name: rally.enemyName,
+      x: rally.x,
+      y: rally.y,
+      march_time: rally.marchTime,
+      impact_time: rally.impactTime.toISOString(),
+      pet_active: rally.petActive,
+    });
+    if (error) return error.message;
+    await loadBattleData();
+    return null;
   }
 
-  function removeRally(id: number) {
-    setRallies((currentRallies) =>
-      currentRallies.filter((rally) => rally.id !== id)
-    );
+  async function removeRally(
+    id: number
+  ): Promise<string | null> {
+    const { error } = await supabase
+      .from("rallies")
+      .delete()
+      .eq("id", id);
+    if (error) return error.message;
+    await loadBattleData();
+    return null;
   }
 
   return (
@@ -190,6 +329,7 @@ export function BattleProvider({
         enemyLeaders,
         rallies,
         currentTime,
+        loading,
         addEnemyLeader,
         toggleEnemyLeaderPet,
         updateEnemyLeader,

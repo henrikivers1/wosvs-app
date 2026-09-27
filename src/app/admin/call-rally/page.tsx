@@ -45,7 +45,7 @@ export default function CallRallyPage() {
     [rallies]
   );
 
-  function callRally() {
+  async function callRally() {
     if (!selectedLeader) {
       window.alert("Select an enemy rally leader.");
       return;
@@ -57,14 +57,18 @@ export default function CallRallyPage() {
       seconds,
       marchTime
     );
-    addRally({
-      enemyName: selectedLeader.name,
-      x: selectedLeader.x,
-      y: selectedLeader.y,
-      marchTime,
-      impactTime,
-      petActive,
-    });
+    const error = await addRally(
+      {
+        enemyName: selectedLeader.name,
+        x: selectedLeader.x,
+        y: selectedLeader.y,
+        marchTime,
+        impactTime,
+        petActive,
+      },
+      selectedLeader.id
+    );
+    if (error) window.alert(error);
   }
 
   return (
@@ -164,7 +168,10 @@ export default function CallRallyPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => removeRally(rally.id)}
+                    onClick={async () => {
+                      const error = await removeRally(rally.id);
+                      if (error) window.alert(error);
+                    }}
                   >
                     Cancel rally
                   </button>

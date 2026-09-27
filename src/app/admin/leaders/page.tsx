@@ -27,9 +27,10 @@ export default function ManageLeadersPage() {
   const [editName, setEditName] = useState("");
   const [editX, setEditX] = useState(0);
   const [editY, setEditY] = useState(0);
+  const [editPetActive, setEditPetActive] = useState(false);
 
-  function handleAddLeader() {
-    const error = addEnemyLeader(
+  async function handleAddLeader() {
+    const error = await addEnemyLeader(
       enemyName,
       x,
       y,
@@ -53,20 +54,27 @@ export default function ManageLeadersPage() {
     setEditName(name);
     setEditX(leaderX);
     setEditY(leaderY);
+    const leader = enemyLeaders.find(
+      (savedLeader) => savedLeader.id === id
+    );
+    setEditPetActive(
+      leader ? isEnemyPetActive(leader, currentTime) : false
+    );
   }
 
   function cancelEditing() {
     setEditingLeaderId(null);
   }
 
-  function saveLeader() {
+  async function saveLeader() {
     if (editingLeaderId === null) return;
 
-    const error = updateEnemyLeader(
+    const error = await updateEnemyLeader(
       editingLeaderId,
       editName,
       editX,
-      editY
+      editY,
+      editPetActive
     );
     if (error) {
       window.alert(error);
@@ -165,6 +173,16 @@ export default function ManageLeadersPage() {
                         }
                       />
                     </label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={editPetActive}
+                        onChange={(event) =>
+                          setEditPetActive(event.target.checked)
+                        }
+                      />
+                      Pet active
+                    </label>
                     <button
                       className="save-button"
                       type="button"
@@ -192,9 +210,11 @@ export default function ManageLeadersPage() {
                           leader,
                           currentTime
                         )}
-                        onChange={() =>
-                          toggleEnemyLeaderPet(leader.id)
-                        }
+                        onChange={async () => {
+                          const error =
+                            await toggleEnemyLeaderPet(leader.id);
+                          if (error) window.alert(error);
+                        }}
                       />
                       Pet active
                     </label>
@@ -221,9 +241,12 @@ export default function ManageLeadersPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        removeEnemyLeader(leader.id)
-                      }
+                      onClick={async () => {
+                        const error = await removeEnemyLeader(
+                          leader.id
+                        );
+                        if (error) window.alert(error);
+                      }}
                     >
                       Remove leader
                     </button>
