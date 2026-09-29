@@ -114,11 +114,13 @@ export function AppHeader() {
   const canCallRallies =
     Boolean(activeMembership?.battleId) &&
     (activeMembership?.role === "owner" ||
-      activeMembership?.role === "rally_caller");
+      activeMembership?.role === "admin" ||
+      activeMembership?.capabilities.includes("rally_caller"));
   const canUseGarrison =
     Boolean(activeMembership?.battleId) &&
     (activeMembership?.role === "owner" ||
-      activeMembership?.role === "garrison");
+      activeMembership?.role === "admin" ||
+      activeMembership?.capabilities.includes("garrison"));
   const profileInitial = username?.charAt(0).toUpperCase() || "?";
   function navClassName(href: string) {
     return pathname === href ? "nav-link active-nav-link" : "nav-link";
@@ -130,8 +132,8 @@ export function AppHeader() {
         <Link className="brand-link" href="/">
           <span className="brand-mark">WOS</span>
           <span className="brand-copy">
-            <strong>Battle Planner</strong>
-            <small>SVS operations</small>
+            <strong>WOSOverwatch</strong>
+            <small>Battle coordination</small>
           </span>
         </Link>
 
@@ -227,7 +229,8 @@ export function AppHeader() {
                 Stats &amp; history
               </Link>
             )}
-            {activeMembership?.role === "owner" && (
+            {(activeMembership?.role === "owner" ||
+              activeMembership?.role === "admin") && (
               <Link
                 className={navClassName("/state/manage")}
                 href="/state/manage"

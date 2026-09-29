@@ -10,7 +10,11 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { StateMembership, StateRole } from "@/types/state";
+import type {
+  StateCapability,
+  StateMembership,
+  StateRole,
+} from "@/types/state";
 
 const ACTIVE_MEMBERSHIP_KEY = "wosvs-active-membership";
 
@@ -61,10 +65,17 @@ export function StateProvider({ children }: { children: ReactNode }) {
     }
 
     const accountIds = accounts.map((account) => account.id);
-    const { data: memberRows, error: membershipsError } = await supabase
-      .from("state_members")
-      .select("state_id, wos_account_id, role")
-      .in("wos_account_id", accountIds);
+    const [{ data: memberRows, error: membershipsError }, { data: capabilityRows }] =
+      await Promise.all([
+        supabase
+          .from("state_members")
+          .select("state_id, wos_account_id, role")
+          .in("wos_account_id", accountIds),
+        supabase
+          .from("state_member_capabilities")
+          .select("state_id, wos_account_id, capability")
+          .in("wos_account_id", accountIds),
+      ]);
 
     if (membershipsError || !memberRows || memberRows.length === 0) {
       setMemberships([]);
@@ -118,6 +129,16 @@ export function StateProvider({ children }: { children: ReactNode }) {
           wosId: account.wos_id,
           wosNickname: account.nickname,
           role: row.role as StateRole,
+          capabilities: (capabilityRows ?? [])
+            .filter(
+              (capability) =>
+                capability.state_id === row.state_id &&
+                capability.wos_account_id === row.wos_account_id
+            )
+            .map(
+              (capability) =>
+                capability.capability as StateCapability
+            ),
           battleId: activeBattle?.id ?? null,
           battleName: activeBattle?.name ?? null,
         },

@@ -15,11 +15,13 @@ export default function Home() {
   const canCallRallies =
     battleActive &&
     (activeMembership?.role === "owner" ||
-      activeMembership?.role === "rally_caller");
+      activeMembership?.role === "admin" ||
+      activeMembership?.capabilities.includes("rally_caller"));
   const canUseGarrison =
     battleActive &&
     (activeMembership?.role === "owner" ||
-      activeMembership?.role === "garrison");
+      activeMembership?.role === "admin" ||
+      activeMembership?.capabilities.includes("garrison"));
   const uniqueStateCount = new Set(
     memberships.map((membership) => membership.stateId)
   ).size;
@@ -47,7 +49,7 @@ export default function Home() {
         <AppHeader />
         <section className="public-intro">
           <div>
-            <p className="section-label">WOS Battle Planner</p>
+            <p className="section-label">WOSOverwatch</p>
             <h1>Rally timing for organized SVS states.</h1>
             <p className="intro-text">
               A shared workspace for enemy rally calls, synchronized impact
@@ -181,7 +183,8 @@ export default function Home() {
                   battle period.
                 </p>
               </div>
-              {activeMembership.role === "owner" && (
+              {(activeMembership.role === "owner" ||
+                activeMembership.role === "admin") && (
                 <Link className="primary-link" href="/state/manage">
                   Manage battle period
                 </Link>
@@ -241,7 +244,8 @@ export default function Home() {
             </section>
           )}
 
-          {activeMembership.role === "owner" && (
+          {(activeMembership.role === "owner" ||
+            activeMembership.role === "admin") && (
             <section className="owner-shortcut">
               <div>
                 <p className="section-label">Administration</p>

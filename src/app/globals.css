@@ -186,8 +186,14 @@ article:not(.feature-card) p { margin: 8px 0; }
 ul { padding: 0; margin: 13px 0 0; list-style: none; }
 li { display: flex; min-height: 52px; padding: 10px 12px; margin-top: 7px; flex-wrap: wrap; align-items: center; gap: 11px; background: #14171a; border: 1px solid var(--border); border-radius: 5px; }
 li label { margin: 0; }
-.account-membership-details { display: flex; flex-direction: column; gap: 5px; }
+.account-membership-details { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
 .account-membership-details small { color: var(--muted); font-size: 0.76rem; text-transform: capitalize; }
+.combat-profile-editor { width: 100%; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.combat-profile-editor summary { color: var(--accent-hover); font-size: 0.8rem; font-weight: 750; cursor: pointer; }
+.combat-profile-grid { display: grid; margin-top: 14px; grid-template-columns: repeat(3, minmax(145px, 1fr)); gap: 9px; }
+.combat-profile-grid label { width: 100%; margin: 0; }
+.combat-profile-grid input { width: 100%; }
+.combat-profile-editor > button { margin-top: 12px; }
 li button { min-height: 35px; padding: 6px 11px; margin-left: auto; color: #ffc7ca; background: var(--danger-soft); border-color: rgba(223, 115, 123, 0.38); }
 li button:hover:not(:disabled) { color: white; background: rgba(223, 115, 123, 0.2); border-color: var(--danger); }
 .send-now { color: var(--accent-hover); font-size: 1.18rem; font-weight: 850; }
@@ -200,6 +206,14 @@ li .edit-button:hover:not(:disabled), li .save-button:hover:not(:disabled) { col
 li .cancel-edit-button { color: var(--text); background: var(--surface-raised); border-color: var(--border); }
 .member-actions, .notification-actions { display: flex; margin-left: auto; align-items: end; gap: 8px; }
 .member-actions label, .member-actions button, .notification-actions button { margin: 0; }
+.member-actions .capability-toggle { position: relative; display: inline-flex; min-height: 41px; padding: 8px 12px; align-items: center; justify-content: center; color: var(--muted-strong); font-size: 0.78rem; font-weight: 760; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; transition: color 100ms ease, background 100ms ease, border-color 100ms ease; }
+.member-actions .capability-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+.member-actions .capability-toggle:has(input:checked) { color: #f5d6a7; background: var(--accent-soft); border-color: rgba(228, 168, 83, 0.55); }
+.capability-toggle input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.capability-toggle span { display: inline-flex; align-items: center; gap: 7px; }
+.capability-toggle span::before { width: 8px; height: 8px; content: ""; background: var(--muted); border-radius: 50%; }
+.capability-toggle input:checked + span::before { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.capability-toggle:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Authentication, account, profile, notifications */
 .auth-card { width: min(460px, 100%); margin: 32px auto; padding: 28px; }
@@ -266,5 +280,6 @@ li .cancel-edit-button { color: var(--text); background: var(--surface-raised); 
   .member-actions, .notification-actions { width: 100%; align-items: stretch; flex-direction: column; }
   .member-actions label, .member-actions button, .notification-actions button { width: 100%; }
   .profile-editor { align-items: flex-start; flex-direction: column; }
+  .combat-profile-grid { grid-template-columns: 1fr; }
   .notification-card-heading { flex-direction: column; gap: 4px; }
 }

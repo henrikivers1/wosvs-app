@@ -10,7 +10,8 @@ export default function GarrisonLayout({ children }: { children: ReactNode }) {
   const allowed =
     Boolean(activeMembership?.battleId) &&
     (activeMembership?.role === "owner" ||
-      activeMembership?.role === "garrison");
+      activeMembership?.role === "admin" ||
+      activeMembership?.capabilities.includes("garrison"));
 
   useEffect(() => {
     if (!loadingStates && !allowed) router.replace("/");

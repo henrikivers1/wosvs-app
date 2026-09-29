@@ -11,7 +11,54 @@ type WosAccount = {
   wos_id: string;
   nickname: string | null;
   is_configured: boolean;
+  furnace_level: number | null;
+  infantry_tier: number | null;
+  lancer_tier: number | null;
+  marksman_tier: number | null;
+  infantry_fc_level: number | null;
+  lancer_fc_level: number | null;
+  marksman_fc_level: number | null;
+  infantry_t12_skill: number | null;
+  lancer_t12_skill: number | null;
+  marksman_t12_skill: number | null;
 };
+
+type CombatProfile = Pick<
+  WosAccount,
+  | "furnace_level"
+  | "infantry_tier"
+  | "lancer_tier"
+  | "marksman_tier"
+  | "infantry_fc_level"
+  | "lancer_fc_level"
+  | "marksman_fc_level"
+  | "infantry_t12_skill"
+  | "lancer_t12_skill"
+  | "marksman_t12_skill"
+>;
+
+const COMBAT_FIELDS: Array<{
+  key: keyof CombatProfile;
+  label: string;
+  min: number;
+  max: number;
+}> = [
+  {
+    key: "furnace_level",
+    label: "Fire Crystal Furnace Level",
+    min: 0,
+    max: 10,
+  },
+  { key: "infantry_tier", label: "Infantry troop tier", min: 1, max: 12 },
+  { key: "lancer_tier", label: "Lancer troop tier", min: 1, max: 12 },
+  { key: "marksman_tier", label: "Marksman troop tier", min: 1, max: 12 },
+  { key: "infantry_fc_level", label: "Infantry camp FC", min: 0, max: 10 },
+  { key: "lancer_fc_level", label: "Lancer camp FC", min: 0, max: 10 },
+  { key: "marksman_fc_level", label: "Marksman camp FC", min: 0, max: 10 },
+  { key: "infantry_t12_skill", label: "Infantry T12 skill", min: 0, max: 3 },
+  { key: "lancer_t12_skill", label: "Lancer T12 skill", min: 0, max: 3 },
+  { key: "marksman_t12_skill", label: "Marksman T12 skill", min: 0, max: 3 },
+];
 
 export default function AccountPage() {
   const router = useRouter();
@@ -20,6 +67,9 @@ export default function AccountPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [accounts, setAccounts] = useState<WosAccount[]>([]);
+  const [combatProfiles, setCombatProfiles] = useState<
+    Record<string, CombatProfile>
+  >({});
   const [newWosId, setNewWosId] = useState("");
   const [newNickname, setNewNickname] = useState("");
   const [message, setMessage] = useState("");
@@ -44,7 +94,9 @@ export default function AccountPage() {
           .maybeSingle(),
         supabase
           .from("wos_accounts")
-          .select("id, wos_id, nickname, is_configured")
+          .select(
+            "id, wos_id, nickname, is_configured, furnace_level, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill"
+          )
           .eq("user_id", user.id)
           .eq("is_configured", true)
           .order("created_at"),
@@ -56,7 +108,27 @@ export default function AccountPage() {
     }
 
     setUsername(profile.username);
-    setAccounts(savedAccounts ?? []);
+    const loadedAccounts = (savedAccounts ?? []) as WosAccount[];
+    setAccounts(loadedAccounts);
+    setCombatProfiles(
+      Object.fromEntries(
+        loadedAccounts.map((account) => [
+          account.id,
+          {
+            furnace_level: account.furnace_level,
+            infantry_tier: account.infantry_tier,
+            lancer_tier: account.lancer_tier,
+            marksman_tier: account.marksman_tier,
+            infantry_fc_level: account.infantry_fc_level,
+            lancer_fc_level: account.lancer_fc_level,
+            marksman_fc_level: account.marksman_fc_level,
+            infantry_t12_skill: account.infantry_t12_skill,
+            lancer_t12_skill: account.lancer_t12_skill,
+            marksman_t12_skill: account.marksman_t12_skill,
+          },
+        ])
+      )
+    );
   }, [router, supabase]);
 
   useEffect(() => {
@@ -112,6 +184,40 @@ export default function AccountPage() {
     await loadAccount();
   }
 
+  async function saveCombatProfile(accountId: string) {
+    const profile = combatProfiles[accountId];
+    if (!profile) return;
+
+    const invalidField = COMBAT_FIELDS.find((field) => {
+      const value = profile[field.key];
+      return (
+        value !== null &&
+        (value < field.min || value > field.max)
+      );
+    });
+
+    if (invalidField) {
+      setMessage(
+        `${invalidField.label} must be between ${invalidField.min} and ${invalidField.max}.`
+      );
+      return;
+    }
+
+    setMessage("");
+    const { error } = await supabase
+      .from("wos_accounts")
+      .update(profile)
+      .eq("id", accountId);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage("Combat profile saved.");
+    await loadAccount();
+  }
+
   return (
     <main>
       <AppHeader />
@@ -145,7 +251,7 @@ export default function AccountPage() {
                       {" — WOS ID "}
                       {account.wos_id}
                     </span>
-                    <small>
+                  <small>
                       {loadingStates
                         ? "Loading state memberships..."
                         : accountMemberships.length === 0
@@ -159,8 +265,48 @@ export default function AccountPage() {
                                   )})`
                               )
                               .join(" · ")}
-                    </small>
-                  </div>
+                  </small>
+                  <details className="combat-profile-editor">
+                    <summary>Combat profile</summary>
+                    <div className="combat-profile-grid">
+                      {COMBAT_FIELDS.map((field) => (
+                        <label key={field.key}>
+                          {field.label}
+                          <input
+                            type="number"
+                            min={field.min}
+                            max={field.max}
+                            value={
+                              combatProfiles[account.id]?.[
+                                field.key
+                              ] ?? ""
+                            }
+                            onChange={(event) =>
+                              setCombatProfiles((current) => ({
+                                ...current,
+                                [account.id]: {
+                                  ...current[account.id],
+                                  [field.key]: event.target.value
+                                    ? Number(event.target.value)
+                                    : null,
+                                },
+                              }))
+                            }
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="save-button"
+                      onClick={() =>
+                        void saveCombatProfile(account.id)
+                      }
+                    >
+                      Save combat profile
+                    </button>
+                  </details>
+                </div>
                   <button
                     type="button"
                     onClick={() => void removeWosAccount(account.id)}

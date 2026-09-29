@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
-import type { StateRole } from "@/types/state";
+import type { StateCapability, StateRole } from "@/types/state";
 
 type StateMember = {
   wosAccountId: string;
@@ -12,6 +12,7 @@ type StateMember = {
   nickname: string | null;
   username: string | null;
   role: StateRole;
+  capabilities: StateCapability[];
 };
 
 type PendingApproval = {
@@ -33,13 +34,20 @@ export default function ManageStatePage() {
   const [message, setMessage] = useState("");
 
   const loadStateManagement = useCallback(async () => {
-    if (!activeMembership || activeMembership.role !== "owner") {
+    if (
+      !activeMembership ||
+      !["owner", "admin"].includes(activeMembership.role)
+    ) {
       setMembers([]);
       setPendingApprovals([]);
       return;
     }
 
-    const [{ data: memberRows, error }, { data: inviteRows }] =
+    const [
+      { data: memberRows, error },
+      { data: inviteRows },
+      { data: capabilityRows },
+    ] =
       await Promise.all([
         supabase
           .from("state_members")
@@ -51,6 +59,10 @@ export default function ManageStatePage() {
           .eq("state_id", activeMembership.stateId)
           .eq("status", "pending_owner")
           .order("created_at"),
+        supabase
+          .from("state_member_capabilities")
+          .select("wos_account_id, capability")
+          .eq("state_id", activeMembership.stateId),
       ]);
 
     if (error || !memberRows) {
@@ -102,6 +114,15 @@ export default function ManageStatePage() {
           nickname: account.nickname,
           username: usernameByUserId.get(account.user_id) ?? null,
           role: row.role as StateRole,
+          capabilities: (capabilityRows ?? [])
+            .filter(
+              (capability) =>
+                capability.wos_account_id === account.id
+            )
+            .map(
+              (capability) =>
+                capability.capability as StateCapability
+            ),
         }];
       })
     );
@@ -244,8 +265,46 @@ export default function ManageStatePage() {
     await refreshMemberships();
   }
 
+  async function setCapability(
+    wosAccountId: string,
+    capability: StateCapability,
+    enabled: boolean
+  ) {
+    if (!activeMembership) return;
+    const { error } = await supabase.rpc(
+      "set_state_member_capability",
+      {
+        target_state_id: activeMembership.stateId,
+        target_wos_account_id: wosAccountId,
+        target_capability: capability,
+        capability_enabled: enabled,
+      }
+    );
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    await loadStateManagement();
+    await refreshMemberships();
+  }
+
   async function removeMember(wosAccountId: string) {
     if (!activeMembership) return;
+    const member = members.find(
+      (stateMember) =>
+        stateMember.wosAccountId === wosAccountId
+    );
+    const memberName =
+      member?.nickname || member?.wosId || "this member";
+    const confirmed = window.confirm(
+      `Remove ${memberName} from ${activeMembership.stateName}?\n\nThey will immediately lose state access, their role, capabilities, and tags. They will need a new invitation to join again.`
+    );
+
+    if (!confirmed) return;
+
+    setMessage("");
     const { error } = await supabase.rpc("remove_state_member", {
       target_state_id: activeMembership.stateId,
       target_wos_account_id: wosAccountId,
@@ -256,7 +315,9 @@ export default function ManageStatePage() {
       return;
     }
 
+    setMessage(`${memberName} was removed from the state.`);
     await loadStateManagement();
+    await refreshMemberships();
   }
 
   if (!activeMembership) {
@@ -271,13 +332,13 @@ export default function ManageStatePage() {
     );
   }
 
-  if (activeMembership.role !== "owner") {
+  if (!["owner", "admin"].includes(activeMembership.role)) {
     return (
       <main>
         <AppHeader />
         <section>
           <h2>Manage state</h2>
-          <p>Only the state owner can manage invitations and roles.</p>
+          <p>Only state owners and admins can manage this page.</p>
         </section>
       </main>
     );
@@ -464,34 +525,74 @@ export default function ManageStatePage() {
                   <span className="role-badge">Owner</span>
                 ) : (
                   <div className="member-actions">
-                    <label>
-                      Role
-                      <select
-                        value={member.role}
+                    {activeMembership.role === "owner" ? (
+                      <label>
+                        Permission role
+                        <select
+                          value={member.role}
+                          onChange={(event) =>
+                            void changeRole(
+                              member.wosAccountId,
+                              event.target.value as Exclude<
+                                StateRole,
+                                "owner"
+                              >
+                            )
+                          }
+                        >
+                          <option value="member">Member</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </label>
+                    ) : (
+                      <span className="role-badge">
+                        {member.role}
+                      </span>
+                    )}
+                    <label className="capability-toggle">
+                      <input
+                        type="checkbox"
+                        checked={member.capabilities.includes(
+                          "rally_caller"
+                        )}
                         onChange={(event) =>
-                          void changeRole(
+                          void setCapability(
                             member.wosAccountId,
-                            event.target.value as Exclude<
-                              StateRole,
-                              "owner"
-                            >
+                            "rally_caller",
+                            event.target.checked
                           )
                         }
-                      >
-                        <option value="member">Member</option>
-                        <option value="garrison">Garrison</option>
-                        <option value="rally_caller">Rally caller</option>
-                      </select>
+                      />
+                      <span>Rally caller</span>
                     </label>
-                    <button
-                      type="button"
-                      className="danger-button"
-                      onClick={() =>
-                        void removeMember(member.wosAccountId)
-                      }
-                    >
-                      Remove
-                    </button>
+                    <label className="capability-toggle">
+                      <input
+                        type="checkbox"
+                        checked={member.capabilities.includes(
+                          "garrison"
+                        )}
+                        onChange={(event) =>
+                          void setCapability(
+                            member.wosAccountId,
+                            "garrison",
+                            event.target.checked
+                          )
+                        }
+                      />
+                      <span>Garrison</span>
+                    </label>
+                    {(activeMembership.role === "owner" ||
+                      member.role === "member") && (
+                      <button
+                        type="button"
+                        className="danger-button"
+                        onClick={() =>
+                          void removeMember(member.wosAccountId)
+                        }
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
                 )}
               </li>

@@ -4,8 +4,8 @@ import { StateProvider } from "@/components/StateProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "WOS Battle Planner",
-  description: "SVS castle rally and reinforcement timing",
+  title: "WOSOverwatch",
+  description: "State battle coordination, rally timing, and planning",
 };
 
 export default function RootLayout({

@@ -10,7 +10,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const allowed =
     Boolean(activeMembership?.battleId) &&
     (activeMembership?.role === "owner" ||
-      activeMembership?.role === "rally_caller");
+      activeMembership?.role === "admin" ||
+      activeMembership?.capabilities.includes("rally_caller"));
 
   useEffect(() => {
     if (!loadingStates && !allowed) router.replace("/");
