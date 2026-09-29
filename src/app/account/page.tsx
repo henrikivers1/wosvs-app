@@ -58,7 +58,11 @@ export default function AccountPage() {
   }, [router, supabase]);
 
   useEffect(() => {
-    void loadAccount();
+    const initialLoadId = window.setTimeout(() => {
+      void loadAccount();
+    }, 0);
+
+    return () => window.clearTimeout(initialLoadId);
   }, [loadAccount]);
 
   async function addWosAccount() {

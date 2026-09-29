@@ -48,7 +48,9 @@ export function AppHeader() {
   }, [pathname, router, supabase]);
 
   useEffect(() => {
-    void loadIdentity();
+    const initialLoadId = window.setTimeout(() => {
+      void loadIdentity();
+    }, 0);
 
     const { data } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -61,7 +63,10 @@ export function AppHeader() {
       }
     );
 
-    return () => data.subscription.unsubscribe();
+    return () => {
+      window.clearTimeout(initialLoadId);
+      data.subscription.unsubscribe();
+    };
   }, [loadIdentity, supabase]);
 
   async function signOut() {
