@@ -239,12 +239,20 @@ export function AppHeader() {
             )}
             {(activeMembership?.role === "owner" ||
               activeMembership?.role === "admin") && (
-              <Link
-                className={navClassName("/state/manage")}
-                href="/state/manage"
-              >
-                Manage state
-              </Link>
+              <>
+                <Link
+                  className={navClassName("/state/tags")}
+                  href="/state/tags"
+                >
+                  Tags
+                </Link>
+                <Link
+                  className={navClassName("/state/manage")}
+                  href="/state/manage"
+                >
+                  Manage state
+                </Link>
+              </>
             )}
           </nav>
 

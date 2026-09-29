@@ -250,6 +250,8 @@ li .cancel-edit-button { color: var(--text); background: var(--surface-raised); 
 .poll-option-edit-row { display: flex; align-items: end; gap: 8px; }
 .poll-option-edit-row label { min-width: 0; margin-right: 0; flex: 1; }
 .poll-option-edit-row input { width: 100%; }
+.poll-option-tag-field { max-width: 250px; }
+.poll-option-tag-field select { width: 100%; }
 .poll-option-edit-row button { margin-bottom: 16px; }
 .form-hint { margin: 8px 0 0; color: var(--muted); font-size: 0.76rem; }
 .compact-empty-state { padding: 26px 14px; border: 1px dashed var(--border); border-radius: 5px; }
@@ -269,6 +271,8 @@ label.poll-option:hover { border-color: var(--border-strong); }
 label.poll-option:has(input:checked) { background: var(--accent-soft); border-color: rgba(228, 168, 83, 0.55); }
 .poll-option-choice { display: flex; align-items: center; gap: 10px; }
 .poll-option-choice strong { margin-left: auto; color: var(--muted-strong); font-size: 0.78rem; }
+.auto-tag-badge { display: inline-flex; padding: 4px 7px; align-items: center; gap: 6px; color: var(--muted-strong); font-size: 0.68rem; font-weight: 760; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
+.auto-tag-badge > span { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; }
 .poll-result-track { display: block; height: 4px; overflow: hidden; background: var(--surface); border-radius: 999px; }
 .poll-result-track span { display: block; height: 100%; background: var(--accent); border-radius: inherit; transition: width 160ms ease; }
 .poll-response-details { max-width: 760px; padding-top: 15px; margin-top: 18px; border-top: 1px solid var(--border); }
@@ -278,6 +282,23 @@ label.poll-option:has(input:checked) { background: var(--accent-soft); border-co
 .poll-response-group > span { display: block; margin-top: 7px; color: var(--muted); font-size: 0.77rem; }
 .poll-response-group li { min-height: 42px; }
 .poll-response-group li small { margin-left: auto; color: var(--muted); }
+
+/* State tags */
+.tags-heading h1 { margin-bottom: 8px; }
+.tags-heading p:last-child { margin: 0; color: var(--muted); }
+.tag-create-form { display: flex; flex-wrap: wrap; align-items: end; gap: 9px; }
+.tag-create-form label, .tag-create-form button { margin: 0; }
+.color-input-row { display: flex; align-items: center; gap: 7px; }
+.color-input-row input[type="color"] { width: 48px; min-height: 41px; padding: 4px; cursor: pointer; }
+.color-input-row .hex-color-input { width: 125px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-transform: lowercase; }
+.tag-list { display: grid; gap: 9px; }
+article.tag-row, article.tag-edit-card { margin: 0; }
+article.tag-row { display: flex; min-height: 70px; align-items: center; gap: 13px; border-left-color: var(--border-strong); }
+.tag-swatch { width: 18px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; }
+.tag-row > div:not(.tag-row-actions) { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
+.tag-row small { color: var(--muted); font-size: 0.73rem; }
+.tag-row-actions { display: flex; gap: 7px; }
+.tag-row-actions button { margin: 0; }
 
 @media (max-width: 800px) {
   .header-workspace-row { align-items: stretch; flex-direction: column-reverse; }
@@ -327,10 +348,19 @@ label.poll-option:has(input:checked) { background: var(--accent-soft); border-co
   .poll-form-grid { grid-template-columns: 1fr; }
   .poll-description-field { grid-column: auto; }
   .poll-option-edit-row { align-items: stretch; flex-direction: column; }
+  .poll-option-tag-field { max-width: none; }
   .poll-option-edit-row button { width: 100%; margin-bottom: 16px; }
   .poll-card-heading { flex-direction: column; }
   .poll-card-heading button { width: 100%; }
   .poll-response-group li small { margin-left: 0; }
+  .tag-create-form { align-items: stretch; flex-direction: column; }
+  .tag-create-form label, .tag-create-form button { width: 100%; }
+  .color-input-row { width: 100%; }
+  .color-input-row .hex-color-input { width: 100%; flex: 1; }
+  article.tag-row { align-items: stretch; flex-direction: column; }
+  .tag-swatch { width: 100%; height: 8px; }
+  .tag-row-actions { width: 100%; flex-direction: column; }
+  .tag-row-actions button { width: 100%; }
   .member-actions label, .member-actions button, .notification-actions button { width: 100%; }
   .profile-editor { align-items: flex-start; flex-direction: column; }
   .combat-profile-grid { grid-template-columns: 1fr; }

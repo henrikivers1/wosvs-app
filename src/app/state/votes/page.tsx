@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
@@ -20,6 +21,13 @@ type PollOption = {
   poll_id: string;
   label: string;
   sort_order: number;
+  auto_tag_id: string | null;
+};
+
+type StateTag = {
+  id: string;
+  name: string;
+  color: string;
 };
 
 type Poll = PollRow & {
@@ -66,6 +74,8 @@ export default function VotesPage() {
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
   const [optionLabels, setOptionLabels] = useState(["", ""]);
+  const [optionTagIds, setOptionTagIds] = useState(["", ""]);
+  const [tags, setTags] = useState<StateTag[]>([]);
   const [closesAt, setClosesAt] = useState(defaultClosingTime);
   const [currentTime, setCurrentTime] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -81,6 +91,7 @@ export default function VotesPage() {
       setPolls([]);
       setCounts([]);
       setResponses([]);
+      setTags([]);
       setSelectedOptions({});
       setLoading(false);
       return;
@@ -90,7 +101,7 @@ export default function VotesPage() {
     setMessage("");
     await supabase.rpc("cleanup_expired_state_polls");
 
-    const [pollResult, optionResult, ownVoteResult, countResult] =
+    const [pollResult, optionResult, ownVoteResult, countResult, tagResult] =
       await Promise.all([
         supabase
           .from("state_polls")
@@ -101,7 +112,7 @@ export default function VotesPage() {
           .order("created_at", { ascending: false }),
         supabase
           .from("state_poll_options")
-          .select("id, poll_id, label, sort_order")
+          .select("id, poll_id, label, sort_order, auto_tag_id")
           .order("sort_order"),
         supabase
           .from("state_poll_votes")
@@ -110,13 +121,19 @@ export default function VotesPage() {
         supabase.rpc("get_state_poll_counts", {
           target_state_id: activeMembership.stateId,
         }),
+        supabase
+          .from("state_tags")
+          .select("id, name, color")
+          .eq("state_id", activeMembership.stateId)
+          .order("name"),
       ]);
 
     const firstError =
       pollResult.error ||
       optionResult.error ||
       ownVoteResult.error ||
-      countResult.error;
+      countResult.error ||
+      tagResult.error;
 
     if (firstError) {
       setMessage(firstError.message);
@@ -135,6 +152,7 @@ export default function VotesPage() {
       }))
     );
     setCounts((countResult.data ?? []) as PollCount[]);
+    setTags((tagResult.data ?? []) as StateTag[]);
     setSelectedOptions(
       ownVotes.reduce<Record<string, string>>((selections, vote) => {
         selections[vote.poll_id] = vote.option_id;
@@ -207,6 +225,7 @@ export default function VotesPage() {
       poll_question: question,
       poll_description: description,
       option_labels: optionLabels,
+      option_tag_ids: optionTagIds.map((tagId) => tagId || null),
       poll_closes_at: new Date(closingTimestamp).toISOString(),
     });
 
@@ -219,6 +238,7 @@ export default function VotesPage() {
     setQuestion("");
     setDescription("");
     setOptionLabels(["", ""]);
+    setOptionTagIds(["", ""]);
     setClosesAt(defaultClosingTime());
     await loadPolls();
     setMessage("Vote created. State members have been notified.");
@@ -358,15 +378,44 @@ export default function VotesPage() {
                         placeholder={index === 0 ? "Yes" : index === 1 ? "No" : "Option"}
                       />
                     </label>
+                    <label className="poll-option-tag-field">
+                      Automatic tag
+                      <select
+                        value={optionTagIds[index] ?? ""}
+                        onChange={(event) =>
+                          setOptionTagIds((current) =>
+                            current.map((tagId, optionIndex) =>
+                              optionIndex === index
+                                ? event.target.value
+                                : tagId
+                            )
+                          )
+                        }
+                      >
+                        <option value="">No automatic tag</option>
+                        {tags.map((tag) => (
+                          <option key={tag.id} value={tag.id}>
+                            {tag.name} ({tag.color.toUpperCase()})
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     {optionLabels.length > 2 && (
                       <button
                         type="button"
                         className="danger-button"
-                        onClick={() =>
+                        onClick={() => {
                           setOptionLabels((current) =>
-                            current.filter((_, optionIndex) => optionIndex !== index)
-                          )
-                        }
+                            current.filter(
+                              (_, optionIndex) => optionIndex !== index
+                            )
+                          );
+                          setOptionTagIds((current) =>
+                            current.filter(
+                              (_, optionIndex) => optionIndex !== index
+                            )
+                          );
+                        }}
                       >
                         Remove
                       </button>
@@ -380,7 +429,10 @@ export default function VotesPage() {
                   type="button"
                   className="secondary-link"
                   disabled={optionLabels.length >= 10}
-                  onClick={() => setOptionLabels((current) => [...current, ""])}
+                  onClick={() => {
+                    setOptionLabels((current) => [...current, ""]);
+                    setOptionTagIds((current) => [...current, ""]);
+                  }}
                 >
                   Add option
                 </button>
@@ -396,6 +448,12 @@ export default function VotesPage() {
                 Votes can stay open for up to 30 days and are permanently deleted
                 30 days after creation.
               </p>
+              {tags.length === 0 && (
+                <p className="form-hint">
+                  No tags exist yet. <Link href="/state/tags">Create tags</Link>{" "}
+                  before connecting them to vote options.
+                </p>
+              )}
             </section>
           )}
 
@@ -457,6 +515,9 @@ export default function VotesPage() {
 
                       <div className="poll-options">
                         {poll.options.map((option) => {
+                          const automaticTag = tags.find(
+                            (tag) => tag.id === option.auto_tag_id
+                          );
                           const optionCount = Number(
                             counts.find(
                               (count) =>
@@ -486,6 +547,14 @@ export default function VotesPage() {
                                   }
                                 />
                                 <span>{option.label}</span>
+                                {automaticTag && (
+                                  <span className="auto-tag-badge">
+                                    <span
+                                      style={{ backgroundColor: automaticTag.color }}
+                                    />
+                                    Awards {automaticTag.name}
+                                  </span>
+                                )}
                                 <strong>{optionCount}</strong>
                               </span>
                               <span className="poll-result-track" aria-hidden="true">
