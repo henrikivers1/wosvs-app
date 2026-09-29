@@ -8,8 +8,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { activeMembership, loadingStates } = useStates();
   const allowed =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "rally_caller";
+    Boolean(activeMembership?.battleId) &&
+    (activeMembership?.role === "owner" ||
+      activeMembership?.role === "rally_caller");
 
   useEffect(() => {
     if (!loadingStates && !allowed) router.replace("/");

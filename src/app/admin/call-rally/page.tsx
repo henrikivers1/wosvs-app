@@ -1,16 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { useBattle } from "@/components/BattleProvider";
+import { useReinforcementTiming } from "@/hooks/useReinforcementTiming";
 import {
   formatUtcTime,
   getEnemyPetTimeRemaining,
-  groupRalliesIntoWaves,
   isEnemyPetActive,
 } from "@/lib/battleDisplay";
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
+import { calculateSendTime } from "@/lib/reinforcementTime";
 
 export default function CallRallyPage() {
   const {
@@ -40,9 +41,9 @@ export default function CallRallyPage() {
         petActive
       )
     : 0;
-  const rallyWaves = useMemo(
-    () => groupRalliesIntoWaves(rallies),
-    [rallies]
+  const reinforcement = useReinforcementTiming(
+    rallies,
+    currentTime
   );
 
   async function callRally() {
@@ -148,9 +149,85 @@ export default function CallRallyPage() {
       </section>
 
       <section>
+        <h2>Your reinforcement timing</h2>
+        <p>
+          Enter your own position to see when you must send after calling
+          the enemy rallies.
+        </p>
+        <div className="reinforcement-settings">
+          <label>
+            Your X coordinate
+            <input
+              type="number"
+              min="0"
+              max="1199"
+              value={reinforcement.playerX}
+              onChange={(event) =>
+                reinforcement.setPlayerX(
+                  Number(event.target.value)
+                )
+              }
+            />
+          </label>
+          <label>
+            Your Y coordinate
+            <input
+              type="number"
+              min="0"
+              max="1199"
+              value={reinforcement.playerY}
+              onChange={(event) =>
+                reinforcement.setPlayerY(
+                  Number(event.target.value)
+                )
+              }
+            />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={reinforcement.playerPetActive}
+              onChange={(event) =>
+                reinforcement.setPlayerPetActive(
+                  event.target.checked
+                )
+              }
+            />
+            My pet is active
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={reinforcement.soundEnabled}
+              onChange={(event) =>
+                reinforcement.setSoundEnabled(event.target.checked)
+              }
+            />
+            Sound alerts
+          </label>
+          <button
+            type="button"
+            onClick={reinforcement.enableNotifications}
+          >
+            {reinforcement.notificationsEnabled
+              ? "Notifications enabled"
+              : "Enable notifications"}
+          </button>
+        </div>
+        <p>
+          Your march time:{" "}
+          <strong>
+            {reinforcement.playerMarchTime} seconds
+          </strong>
+        </p>
+      </section>
+
+      <section>
         <h2>Incoming rally schedule</h2>
-        {rallyWaves.length === 0 && <p>No incoming rallies.</p>}
-        {rallyWaves.map((wave, index) => (
+        {reinforcement.rallyWaves.length === 0 && (
+          <p>No incoming rallies.</p>
+        )}
+        {reinforcement.rallyWaves.map((wave, index) => (
           <article key={wave.impactSecond}>
             <h3>
               Wave {index + 1}: {formatUtcTime(
@@ -159,6 +236,27 @@ export default function CallRallyPage() {
               UTC — {wave.rallies.length}{" "}
               {wave.rallies.length === 1 ? "rally" : "rallies"}
             </h3>
+            <p>
+              Your reinforcement send time:{" "}
+              <strong>
+                {formatUtcTime(
+                  calculateSendTime(
+                    new Date(wave.impactSecond * 1000),
+                    reinforcement.playerMarchTime
+                  )
+                )}{" "}
+                UTC
+              </strong>
+            </p>
+            <p
+              className={
+                reinforcement.getSecondsUntilSend(wave) === 0
+                  ? "send-now"
+                  : ""
+              }
+            >
+              {reinforcement.getSendStatus(wave)}
+            </p>
             <ul>
               {wave.rallies.map((rally) => (
                 <li key={rally.id}>

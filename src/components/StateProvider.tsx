@@ -17,6 +17,7 @@ const ACTIVE_MEMBERSHIP_KEY = "wosvs-active-membership";
 type StateContextValue = {
   memberships: StateMembership[];
   activeMembership: StateMembership | null;
+  signedIn: boolean | null;
   loadingStates: boolean;
   setActiveMembership: (key: string) => void;
   refreshMemberships: () => Promise<void>;
@@ -28,20 +29,24 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => createClient(), []);
   const [memberships, setMemberships] = useState<StateMembership[]>([]);
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [loadingStates, setLoadingStates] = useState(true);
 
   const refreshMemberships = useCallback(async () => {
+    setLoadingStates(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      setSignedIn(false);
       setMemberships([]);
       setActiveKey(null);
       setLoadingStates(false);
       return;
     }
 
+    setSignedIn(true);
     const { data: accounts, error: accountsError } = await supabase
       .from("wos_accounts")
       .select("id, wos_id, nickname")
@@ -73,7 +78,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
       supabase.from("states").select("id, name").in("id", stateIds),
       supabase
         .from("battles")
-        .select("id, state_id")
+        .select("id, state_id, name")
         .in("state_id", stateIds)
         .eq("status", "active")
         .order("created_at", { ascending: false }),
@@ -85,10 +90,16 @@ export function StateProvider({ children }: { children: ReactNode }) {
     const stateById = new Map(
       (states ?? []).map((state) => [state.id, state])
     );
-    const battleByStateId = new Map<string, string>();
+    const battleByStateId = new Map<
+      string,
+      { id: string; name: string }
+    >();
     (battles ?? []).forEach((battle) => {
       if (!battleByStateId.has(battle.state_id)) {
-        battleByStateId.set(battle.state_id, battle.id);
+        battleByStateId.set(battle.state_id, {
+          id: battle.id,
+          name: battle.name,
+        });
       }
     });
 
@@ -96,6 +107,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
       const account = accountById.get(row.wos_account_id);
       const state = stateById.get(row.state_id);
       if (!account || !state) return [];
+      const activeBattle = battleByStateId.get(row.state_id);
 
       return [
         {
@@ -106,7 +118,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
           wosId: account.wos_id,
           wosNickname: account.nickname,
           role: row.role as StateRole,
-          battleId: battleByStateId.get(row.state_id) ?? null,
+          battleId: activeBattle?.id ?? null,
+          battleName: activeBattle?.name ?? null,
         },
       ];
     });
@@ -158,6 +171,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
       value={{
         memberships,
         activeMembership,
+        signedIn,
         loadingStates,
         setActiveMembership,
         refreshMemberships,

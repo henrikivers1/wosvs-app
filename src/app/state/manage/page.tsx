@@ -28,6 +28,8 @@ export default function ManageStatePage() {
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const [inviteWosId, setInviteWosId] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [battleName, setBattleName] = useState("");
+  const [battleType, setBattleType] = useState("svs");
   const [message, setMessage] = useState("");
 
   const loadStateManagement = useCallback(async () => {
@@ -124,6 +126,53 @@ export default function ManageStatePage() {
     }, 0);
     return () => window.clearTimeout(loadId);
   }, [loadStateManagement]);
+
+  async function startBattlePeriod() {
+    if (!activeMembership) return;
+    const trimmedBattleName = battleName.trim();
+    if (!trimmedBattleName) {
+      setMessage("Enter a battle period name, for example SVS vs 1501.");
+      return;
+    }
+    setMessage("");
+    const { error } = await supabase.rpc("start_state_battle", {
+      target_state_id: activeMembership.stateId,
+      battle_name: trimmedBattleName,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage("Battle period started. Battle tools are now available.");
+    setBattleName("");
+    await refreshMemberships();
+  }
+
+  async function endBattlePeriod() {
+    if (!activeMembership?.battleId) return;
+    const confirmed = window.confirm(
+      `End this battle period and save it as ${battleType.toUpperCase()}? Battle tools will be hidden for every member.`
+    );
+    if (!confirmed) return;
+
+    setMessage("");
+    const { error } = await supabase.rpc("end_state_battle", {
+      target_battle_id: activeMembership.battleId,
+      selected_battle_type: battleType,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage(
+      "Battle period ended. Empty periods are discarded automatically."
+    );
+    await refreshMemberships();
+  }
 
   async function createInvitation() {
     if (!activeMembership || !inviteWosId.trim()) return;
@@ -237,6 +286,82 @@ export default function ManageStatePage() {
   return (
     <main>
       <AppHeader />
+      {message && <p className="page-message">{message}</p>}
+      <section>
+        <div className="section-title-row">
+          <div>
+            <p className="section-label">Battle access</p>
+            <h2>Battle period</h2>
+          </div>
+          <span
+            className={
+              activeMembership.battleId
+                ? "battle-state battle-state-active"
+                : "battle-state"
+            }
+          >
+            {activeMembership.battleId ? "Active" : "Inactive"}
+          </span>
+        </div>
+        {activeMembership.battleId ? (
+          <div className="battle-control-row">
+            <div>
+              <p>
+                <strong>
+                  {activeMembership.battleName || "Active battle"}
+                </strong>
+                {" — "}battle tools are available to assigned rally
+                callers and garrison players.
+              </p>
+              <label>
+                Save this battle as
+                <select
+                  value={battleType}
+                  onChange={(event) =>
+                    setBattleType(event.target.value)
+                  }
+                >
+                  <option value="svs">SVS</option>
+                  <option value="castle">Castle</option>
+                  <option value="test">Test</option>
+                </select>
+              </label>
+            </div>
+            <button
+              type="button"
+              className="danger-button"
+              onClick={endBattlePeriod}
+            >
+              End and save battle
+            </button>
+          </div>
+        ) : (
+          <>
+            <p>
+              Start a battle period when your state is preparing, testing,
+              or actively coordinating an event.
+            </p>
+            <div className="battle-start-form">
+              <label>
+                Battle name
+                <input
+                  type="text"
+                  value={battleName}
+                  onChange={(event) =>
+                    setBattleName(event.target.value)
+                  }
+                  maxLength={80}
+                  placeholder="e.g. SVS vs 1501"
+                />
+              </label>
+              <button type="button" onClick={startBattlePeriod}>
+                Start battle period
+              </button>
+            </div>
+          </>
+        )}
+      </section>
+
       <section>
         <h2>Manage {activeMembership.stateName}</h2>
         <h3>Invite a WOS account</h3>
@@ -245,19 +370,21 @@ export default function ManageStatePage() {
           invitation and must accept it. You then verify the player before
           they receive state access.
         </p>
-        <label>
-          WOS ID
-          <input
-            type="text"
-            inputMode="numeric"
-            value={inviteWosId}
-            onChange={(event) => setInviteWosId(event.target.value)}
-            placeholder="Player's WOS ID"
-          />
-        </label>
-        <button type="button" onClick={createInvitation}>
-          Send invitation
-        </button>
+        <div className="invite-form">
+          <label>
+            WOS ID
+            <input
+              type="text"
+              inputMode="numeric"
+              value={inviteWosId}
+              onChange={(event) => setInviteWosId(event.target.value)}
+              placeholder="Player's WOS ID"
+            />
+          </label>
+          <button type="button" onClick={createInvitation}>
+            Send invitation
+          </button>
+        </div>
         {inviteLink && (
           <div className="invite-link-box">
             <label className="invite-link-field">
@@ -273,7 +400,6 @@ export default function ManageStatePage() {
             </button>
           </div>
         )}
-        {message && <p className="auth-message">{message}</p>}
       </section>
 
       <section>

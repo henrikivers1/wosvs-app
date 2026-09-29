@@ -8,8 +8,9 @@ export default function GarrisonLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { activeMembership, loadingStates } = useStates();
   const allowed =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "garrison";
+    Boolean(activeMembership?.battleId) &&
+    (activeMembership?.role === "owner" ||
+      activeMembership?.role === "garrison");
 
   useEffect(() => {
     if (!loadingStates && !allowed) router.replace("/");

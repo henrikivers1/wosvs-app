@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
+import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 
 type WosAccount = {
@@ -15,6 +16,7 @@ type WosAccount = {
 export default function AccountPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
+  const { memberships, loadingStates } = useStates();
   const [userId, setUserId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [accounts, setAccounts] = useState<WosAccount[]>([]);
@@ -127,21 +129,47 @@ export default function AccountPage() {
           <p>No WOS accounts added.</p>
         ) : (
           <ul>
-            {accounts.map((account) => (
-              <li key={account.id}>
-                <span>
-                  <strong>{account.nickname || "Unnamed account"}</strong>
-                  {" — WOS ID "}
-                  {account.wos_id}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void removeWosAccount(account.id)}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
+            {accounts.map((account) => {
+              const accountMemberships = memberships.filter(
+                (membership) =>
+                  membership.wosAccountId === account.id
+              );
+
+              return (
+                <li key={account.id}>
+                  <div className="account-membership-details">
+                    <span>
+                      <strong>
+                        {account.nickname || "Unnamed account"}
+                      </strong>
+                      {" — WOS ID "}
+                      {account.wos_id}
+                    </span>
+                    <small>
+                      {loadingStates
+                        ? "Loading state memberships..."
+                        : accountMemberships.length === 0
+                          ? "Not in a state"
+                          : accountMemberships
+                              .map(
+                                (membership) =>
+                                  `${membership.stateName} (${membership.role.replace(
+                                    "_",
+                                    " "
+                                  )})`
+                              )
+                              .join(" · ")}
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void removeWosAccount(account.id)}
+                  >
+                    Remove
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
 

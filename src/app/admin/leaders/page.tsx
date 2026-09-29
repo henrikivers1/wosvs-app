@@ -88,6 +88,10 @@ export default function ManageLeadersPage() {
       <AppHeader />
       <section>
         <h2>Manage enemy rally leaders</h2>
+        <p>
+          These leaders belong only to the current battle period. A new
+          battle period starts with an empty leader list.
+        </p>
         <label>
           Player name
           <input

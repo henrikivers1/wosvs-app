@@ -56,9 +56,6 @@ export function BattleProvider({
   const { activeMembership, loadingStates } = useStates();
   const activeStateId = activeMembership?.stateId ?? null;
   const activeBattleId = activeMembership?.battleId ?? null;
-  const canManageRallies =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "rally_caller";
   const [enemyLeaders, setEnemyLeaders] = useState<
     EnemyLeader[]
   >([]);
@@ -81,7 +78,7 @@ export function BattleProvider({
       supabase
         .from("enemy_leaders")
         .select("id, name, x, y, pet_expires_at")
-        .eq("state_id", activeStateId)
+        .eq("battle_id", activeBattleId)
         .order("name"),
       supabase
         .from("rallies")
@@ -89,6 +86,7 @@ export function BattleProvider({
           "id, enemy_name, x, y, march_time, impact_time, pet_active"
         )
         .eq("battle_id", activeBattleId)
+        .is("cancelled_at", null)
         .order("impact_time"),
     ]);
 
@@ -145,7 +143,7 @@ export function BattleProvider({
           event: "*",
           schema: "public",
           table: "enemy_leaders",
-          filter: `state_id=eq.${activeStateId}`,
+          filter: `battle_id=eq.${activeBattleId}`,
         },
         () => void loadBattleData()
       )
@@ -169,38 +167,13 @@ export function BattleProvider({
 
   useEffect(() => {
     const clockId = window.setInterval(() => {
-      const now = new Date();
-      setCurrentTime(now);
-      setRallies((currentRallies) => {
-        const activeRallies = currentRallies.filter(
-          (rally) =>
-            rally.impactTime.getTime() >= now.getTime() - 15_000
-        );
-        return activeRallies.length === currentRallies.length
-          ? currentRallies
-          : activeRallies;
-      });
+      setCurrentTime(new Date());
     }, 100);
-
-    const cleanupId =
-      canManageRallies && activeBattleId
-        ? window.setInterval(() => {
-            const cutoff = new Date(
-              new Date().getTime() - 15_000
-            ).toISOString();
-            void supabase
-              .from("rallies")
-              .delete()
-              .eq("battle_id", activeBattleId)
-              .lt("impact_time", cutoff);
-          }, 5_000)
-        : null;
 
     return () => {
       window.clearInterval(clockId);
-      if (cleanupId !== null) window.clearInterval(cleanupId);
     };
-  }, [activeBattleId, canManageRallies, supabase]);
+  }, []);
 
   async function addEnemyLeader(
     name: string,
@@ -209,6 +182,7 @@ export function BattleProvider({
     petActive: boolean
   ): Promise<string | null> {
     if (!activeStateId) return "Select a state first.";
+    if (!activeBattleId) return "Start a battle period first.";
     const trimmedName = name.trim();
     if (!trimmedName) return "Enter the enemy leader's name.";
     if (x < 0 || x > 1199 || y < 0 || y > 1199) {
@@ -222,6 +196,7 @@ export function BattleProvider({
       : null;
     const { error } = await supabase.from("enemy_leaders").insert({
       state_id: activeStateId,
+      battle_id: activeBattleId,
       name: trimmedName,
       x,
       y,
@@ -342,7 +317,7 @@ export function BattleProvider({
   ): Promise<string | null> {
     const { error } = await supabase
       .from("rallies")
-      .delete()
+      .update({ cancelled_at: new Date().toISOString() })
       .eq("id", id);
     if (error) return error.message;
     await loadBattleData();

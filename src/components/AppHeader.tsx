@@ -18,10 +18,10 @@ export function AppHeader() {
   const {
     memberships,
     activeMembership,
+    signedIn,
     loadingStates,
     setActiveMembership,
   } = useStates();
-  const [signedIn, setSignedIn] = useState(false);
   const [identityLoaded, setIdentityLoaded] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -33,7 +33,6 @@ export function AppHeader() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setSignedIn(false);
       setIdentityLoaded(true);
       setUsername(null);
       setAvatarUrl(null);
@@ -41,7 +40,6 @@ export function AppHeader() {
       return;
     }
 
-    setSignedIn(true);
     const [{ data: profile }, { count }] = await Promise.all([
       supabase
         .from("profiles")
@@ -87,7 +85,6 @@ export function AppHeader() {
 
     const { data } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setSignedIn(Boolean(session?.user));
         setIdentityLoaded(false);
         if (!session?.user) {
           setUsername(null);
@@ -115,22 +112,30 @@ export function AppHeader() {
   }
 
   const canCallRallies =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "rally_caller";
+    Boolean(activeMembership?.battleId) &&
+    (activeMembership?.role === "owner" ||
+      activeMembership?.role === "rally_caller");
   const canUseGarrison =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "garrison";
+    Boolean(activeMembership?.battleId) &&
+    (activeMembership?.role === "owner" ||
+      activeMembership?.role === "garrison");
   const profileInitial = username?.charAt(0).toUpperCase() || "?";
+  function navClassName(href: string) {
+    return pathname === href ? "nav-link active-nav-link" : "nav-link";
+  }
 
   return (
-    <header>
+    <header className="app-header">
       <div className="header-top">
-        <div>
-          <h1>WOS Battle Planner</h1>
-          <p>SVS castle rally and reinforcement timing.</p>
-        </div>
+        <Link className="brand-link" href="/">
+          <span className="brand-mark">WOS</span>
+          <span className="brand-copy">
+            <strong>Battle Planner</strong>
+            <small>SVS operations</small>
+          </span>
+        </Link>
 
-        {signedIn ? (
+        {signedIn === true ? (
           <div className="account-controls">
             <Link
               className="notification-button"
@@ -175,59 +180,89 @@ export function AppHeader() {
               </div>
             </details>
           </div>
-        ) : (
+        ) : signedIn === false ? (
           <Link className="nav-link header-sign-in" href="/login">
             Sign in
           </Link>
+        ) : (
+          <span className="header-account-placeholder" />
         )}
       </div>
 
-      {signedIn && memberships.length > 0 && (
-        <div className="state-selector-row">
-          <label>
-            Active state and WOS account
-            <select
-              value={activeMembership?.key ?? ""}
-              onChange={(event) =>
-                setActiveMembership(event.target.value)
-              }
-            >
-              {memberships.map((membership) => (
-                <option key={membership.key} value={membership.key}>
-                  {membership.stateName} —{" "}
-                  {membership.wosNickname || membership.wosId}
-                  {` (${membership.role.replace("_", " ")})`}
-                </option>
-              ))}
-            </select>
-          </label>
+      {signedIn === true && (
+        <div className="header-workspace-row">
+          <nav aria-label="Main navigation">
+            <Link className={navClassName("/")} href="/">
+              Dashboard
+            </Link>
+            {canCallRallies && (
+              <>
+                <Link
+                  className={navClassName("/admin/leaders")}
+                  href="/admin/leaders"
+                >
+                  Leaders
+                </Link>
+                <Link
+                  className={navClassName("/admin/call-rally")}
+                  href="/admin/call-rally"
+                >
+                  Call rally
+                </Link>
+              </>
+            )}
+            {canUseGarrison && (
+              <Link
+                className={navClassName("/garrison")}
+                href="/garrison"
+              >
+                Garrison
+              </Link>
+            )}
+            {activeMembership && (
+              <Link
+                className={navClassName("/state/stats")}
+                href="/state/stats"
+              >
+                Stats &amp; history
+              </Link>
+            )}
+            {activeMembership?.role === "owner" && (
+              <Link
+                className={navClassName("/state/manage")}
+                href="/state/manage"
+              >
+                Manage state
+              </Link>
+            )}
+          </nav>
+
+          {memberships.length > 0 && (
+            <label className="state-switcher">
+              <span>Active workspace</span>
+              <select
+                value={activeMembership?.key ?? ""}
+                onChange={(event) =>
+                  setActiveMembership(event.target.value)
+                }
+              >
+                {memberships.map((membership) => (
+                  <option key={membership.key} value={membership.key}>
+                    {membership.stateName} —{" "}
+                    {membership.wosNickname || membership.wosId}
+                    {` (${membership.role.replace("_", " ")})`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       )}
-      {signedIn && !loadingStates && memberships.length === 0 && (
-        <p className="state-status">You have not joined a state yet.</p>
+      {signedIn === true && !loadingStates && memberships.length === 0 && (
+        <p className="state-status">
+          No state selected. Check your notifications for an invitation.
+        </p>
       )}
-      <nav>
-        {canCallRallies && (
-          <>
-            <Link className="nav-link" href="/admin/leaders">
-              Manage leaders
-            </Link>
-            <Link className="nav-link" href="/admin/call-rally">
-              Call rally
-            </Link>
-          </>
-        )}
-        {canUseGarrison && (
-          <Link className="nav-link" href="/garrison">
-            Garrison
-          </Link>
-        )}
-        {activeMembership?.role === "owner" && (
-          <Link className="nav-link" href="/state/manage">
-            Manage state
-          </Link>
-        )}
-      </nav>
     </header>
   );
 }

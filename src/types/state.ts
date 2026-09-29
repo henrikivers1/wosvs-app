@@ -13,4 +13,5 @@ export type StateMembership = {
   wosNickname: string | null;
   role: StateRole;
   battleId: string | null;
+  battleName: string | null;
 };
