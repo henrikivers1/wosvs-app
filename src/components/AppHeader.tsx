@@ -9,13 +9,23 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useStates } from "@/components/StateProvider";
 
 export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
+  const {
+    memberships,
+    activeMembership,
+    loadingStates,
+    setActiveMembership,
+  } = useStates();
   const [signedIn, setSignedIn] = useState(false);
+  const [identityLoaded, setIdentityLoaded] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const loadIdentity = useCallback(async () => {
     const {
@@ -24,19 +34,39 @@ export function AppHeader() {
 
     if (!user) {
       setSignedIn(false);
+      setIdentityLoaded(true);
       setUsername(null);
+      setAvatarUrl(null);
+      setUnreadCount(0);
       return;
     }
 
     setSignedIn(true);
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("id", user.id)
-      .maybeSingle();
+    const [{ data: profile }, { count }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("username, avatar_path")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .is("read_at", null),
+    ]);
 
     const publicUsername = profile?.username ?? null;
     setUsername(publicUsername);
+    setUnreadCount(count ?? 0);
+
+    if (profile?.avatar_path) {
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(profile.avatar_path);
+      setAvatarUrl(data.publicUrl);
+    } else {
+      setAvatarUrl(null);
+    }
+    setIdentityLoaded(true);
 
     if (
       !publicUsername &&
@@ -51,11 +81,19 @@ export function AppHeader() {
     const initialLoadId = window.setTimeout(() => {
       void loadIdentity();
     }, 0);
+    const notificationPollId = window.setInterval(() => {
+      void loadIdentity();
+    }, 15000);
 
     const { data } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSignedIn(Boolean(session?.user));
-        if (!session?.user) setUsername(null);
+        setIdentityLoaded(false);
+        if (!session?.user) {
+          setUsername(null);
+          setAvatarUrl(null);
+          setUnreadCount(0);
+        }
 
         window.setTimeout(() => {
           void loadIdentity();
@@ -65,6 +103,7 @@ export function AppHeader() {
 
     return () => {
       window.clearTimeout(initialLoadId);
+      window.clearInterval(notificationPollId);
       data.subscription.unsubscribe();
     };
   }, [loadIdentity, supabase]);
@@ -75,35 +114,117 @@ export function AppHeader() {
     router.refresh();
   }
 
+  const canCallRallies =
+    activeMembership?.role === "owner" ||
+    activeMembership?.role === "rally_caller";
+  const canUseGarrison =
+    activeMembership?.role === "owner" ||
+    activeMembership?.role === "garrison";
+  const profileInitial = username?.charAt(0).toUpperCase() || "?";
+
   return (
     <header>
-      <h1>WOS Battle Planner</h1>
-      <p>SVS castle rally and reinforcement timing.</p>
-      <nav>
-        <Link className="nav-link" href="/admin/leaders">
-          Manage leaders
-        </Link>
-        <Link className="nav-link" href="/admin/call-rally">
-          Call rally
-        </Link>
-        <Link className="nav-link" href="/garrison">
-          Garrison
-        </Link>
+      <div className="header-top">
+        <div>
+          <h1>WOS Battle Planner</h1>
+          <p>SVS castle rally and reinforcement timing.</p>
+        </div>
+
         {signedIn ? (
-          <>
-            <Link className="nav-link" href="/account">
-              Account
+          <div className="account-controls">
+            <Link
+              className="notification-button"
+              href="/notifications"
+              aria-label={`${unreadCount} unread notifications`}
+              title="Notifications"
+            >
+              <span aria-hidden="true">🔔</span>
+              {unreadCount > 0 && (
+                <span className="notification-count">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </Link>
-            <span className="signed-in-user">
-              {username ? `@${username}` : "Setup required"}
-            </span>
-            <button type="button" onClick={signOut}>
-              Sign out
-            </button>
-          </>
+
+            <details className="profile-menu">
+              <summary aria-label="Open profile menu">
+                <span
+                  className="profile-avatar"
+                  style={
+                    avatarUrl
+                      ? { backgroundImage: `url(${avatarUrl})` }
+                      : undefined
+                  }
+                >
+                  {!avatarUrl && profileInitial}
+                </span>
+              </summary>
+              <div className="profile-dropdown">
+                <span className="profile-username">
+                  {username
+                    ? `@${username}`
+                    : identityLoaded
+                      ? "Setup required"
+                      : "Profile"}
+                </span>
+                <Link href="/profile">Profile</Link>
+                <Link href="/account">WOS accounts</Link>
+                <button type="button" onClick={signOut}>
+                  Sign out
+                </button>
+              </div>
+            </details>
+          </div>
         ) : (
-          <Link className="nav-link" href="/login">
+          <Link className="nav-link header-sign-in" href="/login">
             Sign in
+          </Link>
+        )}
+      </div>
+
+      {signedIn && memberships.length > 0 && (
+        <div className="state-selector-row">
+          <label>
+            Active state and WOS account
+            <select
+              value={activeMembership?.key ?? ""}
+              onChange={(event) =>
+                setActiveMembership(event.target.value)
+              }
+            >
+              {memberships.map((membership) => (
+                <option key={membership.key} value={membership.key}>
+                  {membership.stateName} —{" "}
+                  {membership.wosNickname || membership.wosId}
+                  {` (${membership.role.replace("_", " ")})`}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {signedIn && !loadingStates && memberships.length === 0 && (
+        <p className="state-status">You have not joined a state yet.</p>
+      )}
+      <nav>
+        {canCallRallies && (
+          <>
+            <Link className="nav-link" href="/admin/leaders">
+              Manage leaders
+            </Link>
+            <Link className="nav-link" href="/admin/call-rally">
+              Call rally
+            </Link>
+          </>
+        )}
+        {canUseGarrison && (
+          <Link className="nav-link" href="/garrison">
+            Garrison
+          </Link>
+        )}
+        {activeMembership?.role === "owner" && (
+          <Link className="nav-link" href="/state/manage">
+            Manage state
           </Link>
         )}
       </nav>

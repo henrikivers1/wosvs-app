@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BattleProvider } from "@/components/BattleProvider";
+import { StateProvider } from "@/components/StateProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <BattleProvider>{children}</BattleProvider>
+        <StateProvider>
+          <BattleProvider>{children}</BattleProvider>
+        </StateProvider>
       </body>
     </html>
   );

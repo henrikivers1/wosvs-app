@@ -11,12 +11,8 @@ import {
 } from "react";
 import { PET_DURATION_MS } from "@/lib/battleDisplay";
 import { createClient } from "@/lib/supabase/client";
+import { useStates } from "@/components/StateProvider";
 import type { EnemyLeader, EnemyRally } from "@/types/rally";
-
-const DEVELOPMENT_STATE_ID =
-  "00000000-0000-0000-0000-000000000001";
-const DEVELOPMENT_BATTLE_ID =
-  "00000000-0000-0000-0000-000000000002";
 
 type NewRally = Omit<EnemyRally, "id">;
 
@@ -57,6 +53,12 @@ export function BattleProvider({
   children: ReactNode;
 }) {
   const supabase = useMemo(() => createClient(), []);
+  const { activeMembership, loadingStates } = useStates();
+  const activeStateId = activeMembership?.stateId ?? null;
+  const activeBattleId = activeMembership?.battleId ?? null;
+  const canManageRallies =
+    activeMembership?.role === "owner" ||
+    activeMembership?.role === "rally_caller";
   const [enemyLeaders, setEnemyLeaders] = useState<
     EnemyLeader[]
   >([]);
@@ -65,18 +67,28 @@ export function BattleProvider({
   const [loading, setLoading] = useState(true);
 
   const loadBattleData = useCallback(async () => {
+    if (loadingStates) return;
+
+    if (!activeStateId || !activeBattleId) {
+      setEnemyLeaders([]);
+      setRallies([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     const [leadersResult, ralliesResult] = await Promise.all([
       supabase
         .from("enemy_leaders")
         .select("id, name, x, y, pet_expires_at")
-        .eq("state_id", DEVELOPMENT_STATE_ID)
+        .eq("state_id", activeStateId)
         .order("name"),
       supabase
         .from("rallies")
         .select(
           "id, enemy_name, x, y, march_time, impact_time, pet_active"
         )
-        .eq("battle_id", DEVELOPMENT_BATTLE_ID)
+        .eq("battle_id", activeBattleId)
         .order("impact_time"),
     ]);
 
@@ -114,21 +126,26 @@ export function BattleProvider({
     }
 
     setLoading(false);
-  }, [supabase]);
+  }, [activeBattleId, activeStateId, loadingStates, supabase]);
 
   useEffect(() => {
     const initialLoadId = window.setTimeout(() => {
       void loadBattleData();
     }, 0);
 
+    if (!activeStateId || !activeBattleId) {
+      return () => window.clearTimeout(initialLoadId);
+    }
+
     const channel = supabase
-      .channel("wosvs-battle-data")
+      .channel(`wosvs-battle-data-${activeStateId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "enemy_leaders",
+          filter: `state_id=eq.${activeStateId}`,
         },
         () => void loadBattleData()
       )
@@ -138,6 +155,7 @@ export function BattleProvider({
           event: "*",
           schema: "public",
           table: "rallies",
+          filter: `battle_id=eq.${activeBattleId}`,
         },
         () => void loadBattleData()
       )
@@ -147,7 +165,7 @@ export function BattleProvider({
       window.clearTimeout(initialLoadId);
       void supabase.removeChannel(channel);
     };
-  }, [loadBattleData, supabase]);
+  }, [activeBattleId, activeStateId, loadBattleData, supabase]);
 
   useEffect(() => {
     const clockId = window.setInterval(() => {
@@ -164,22 +182,25 @@ export function BattleProvider({
       });
     }, 100);
 
-    const cleanupId = window.setInterval(() => {
-      const cutoff = new Date(
-        new Date().getTime() - 15_000
-      ).toISOString();
-      void supabase
-        .from("rallies")
-        .delete()
-        .eq("battle_id", DEVELOPMENT_BATTLE_ID)
-        .lt("impact_time", cutoff);
-    }, 5_000);
+    const cleanupId =
+      canManageRallies && activeBattleId
+        ? window.setInterval(() => {
+            const cutoff = new Date(
+              new Date().getTime() - 15_000
+            ).toISOString();
+            void supabase
+              .from("rallies")
+              .delete()
+              .eq("battle_id", activeBattleId)
+              .lt("impact_time", cutoff);
+          }, 5_000)
+        : null;
 
     return () => {
       window.clearInterval(clockId);
-      window.clearInterval(cleanupId);
+      if (cleanupId !== null) window.clearInterval(cleanupId);
     };
-  }, [supabase]);
+  }, [activeBattleId, canManageRallies, supabase]);
 
   async function addEnemyLeader(
     name: string,
@@ -187,6 +208,7 @@ export function BattleProvider({
     y: number,
     petActive: boolean
   ): Promise<string | null> {
+    if (!activeStateId) return "Select a state first.";
     const trimmedName = name.trim();
     if (!trimmedName) return "Enter the enemy leader's name.";
     if (x < 0 || x > 1199 || y < 0 || y > 1199) {
@@ -199,7 +221,7 @@ export function BattleProvider({
         ).toISOString()
       : null;
     const { error } = await supabase.from("enemy_leaders").insert({
-      state_id: DEVELOPMENT_STATE_ID,
+      state_id: activeStateId,
       name: trimmedName,
       x,
       y,
@@ -299,8 +321,9 @@ export function BattleProvider({
     rally: NewRally,
     enemyLeaderId: number
   ): Promise<string | null> {
+    if (!activeBattleId) return "This state has no active battle.";
     const { error } = await supabase.from("rallies").insert({
-      battle_id: DEVELOPMENT_BATTLE_ID,
+      battle_id: activeBattleId,
       enemy_leader_id: enemyLeaderId,
       enemy_name: rally.enemyName,
       x: rally.x,
