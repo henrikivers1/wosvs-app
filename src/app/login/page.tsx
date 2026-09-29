@@ -9,6 +9,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [wosId, setWosId] = useState("");
+  const [wosNickname, setWosNickname] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,11 +26,22 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username: username.trim(),
+            wos_id: wosId.trim(),
+            wos_nickname: wosNickname.trim(),
+          },
+        },
       });
       setLoading(false);
 
       if (error) {
-        setMessage(error.message);
+        setMessage(
+          error.message.includes("Database error")
+            ? "That username or WOS ID may already be registered."
+            : error.message
+        );
         return;
       }
       if (!data.session) {
@@ -43,6 +57,23 @@ export default function LoginPage() {
 
       if (error) {
         setMessage(error.message);
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const { data: profile } = user
+        ? await supabase
+            .from("profiles")
+            .select("username")
+            .eq("id", user.id)
+            .maybeSingle()
+        : { data: null };
+
+      if (!profile?.username) {
+        router.push("/account/setup");
+        router.refresh();
         return;
       }
     }
@@ -82,6 +113,52 @@ export default function LoginPage() {
               }
             />
           </label>
+          {mode === "signup" && (
+            <>
+              <label>
+                Public username
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(event) =>
+                    setUsername(event.target.value)
+                  }
+                  required
+                  minLength={3}
+                  maxLength={24}
+                  pattern="[A-Za-z0-9_]+"
+                  autoComplete="username"
+                  placeholder="Henrik"
+                />
+              </label>
+              <label>
+                WOS ID
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={wosId}
+                  onChange={(event) =>
+                    setWosId(event.target.value)
+                  }
+                  required
+                  pattern="[0-9]+"
+                  placeholder="Your numeric WOS ID"
+                />
+              </label>
+              <label>
+                WOS nickname (optional)
+                <input
+                  type="text"
+                  value={wosNickname}
+                  onChange={(event) =>
+                    setWosNickname(event.target.value)
+                  }
+                  maxLength={40}
+                  placeholder="Your in-game name"
+                />
+              </label>
+            </>
+          )}
           <button type="submit" disabled={loading}>
             {loading
               ? "Please wait..."
