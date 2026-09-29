@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 type NotificationData = {
   invite_id?: string;
+  poll_id?: string;
   state_id?: string;
   token?: string;
 };
@@ -199,6 +200,11 @@ export default function NotificationsPage() {
                   {notification.type === "state_invite_accepted" && (
                     <Link className="nav-link" href="/state/manage">
                       Review request
+                    </Link>
+                  )}
+                  {notification.type === "state_poll_created" && (
+                    <Link className="nav-link" href="/state/votes">
+                      Open vote
                     </Link>
                   )}
                   {inviteStatus &&
