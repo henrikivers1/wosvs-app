@@ -300,6 +300,31 @@ article.tag-row { display: flex; min-height: 70px; align-items: center; gap: 13p
 .tag-row-actions { display: flex; gap: 7px; }
 .tag-row-actions button { margin: 0; }
 
+/* State alliances */
+.alliances-heading h1 { margin-bottom: 8px; }
+.alliances-heading p:last-child { max-width: 760px; margin: 0; color: var(--muted); }
+.bulk-alliance-form { display: flex; flex-wrap: wrap; align-items: end; gap: 9px; }
+.bulk-alliance-form label, .bulk-alliance-form button { margin: 0; }
+.alliance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+article.alliance-card { margin: 0; padding: 18px; border-top: 4px solid var(--border-strong); border-left-width: 1px; }
+.alliance-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.alliance-card-heading > div:first-child { display: flex; align-items: center; gap: 11px; }
+.alliance-card-heading h3 { margin: 0 0 4px; }
+.alliance-card-heading small { color: var(--muted); font-size: 0.74rem; }
+.alliance-swatch { width: 11px; height: 38px; }
+.unassigned-alliance-card { border-top-color: var(--border-strong); }
+.unassigned-swatch { background: var(--muted); }
+.alliance-empty { padding: 15px 0 2px; margin: 0; color: var(--muted); font-size: 0.8rem; }
+.alliance-card ul { margin-top: 14px; }
+li.alliance-member-row { align-items: center; }
+.alliance-member-identity { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 4px; }
+.alliance-member-identity > small { color: var(--muted); font-size: 0.72rem; text-transform: capitalize; }
+.member-tag-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
+.member-tag-pill { display: inline-flex; padding: 3px 6px; align-items: center; gap: 5px; color: var(--muted-strong); font-size: 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
+.member-tag-pill > span { width: 7px; height: 7px; border-radius: 50%; }
+.alliance-move-field { width: 170px; margin: 0; }
+.alliance-move-field select { width: 100%; min-height: 35px; padding-top: 5px; padding-bottom: 5px; font-size: 0.75rem; }
+
 @media (max-width: 800px) {
   .header-workspace-row { align-items: stretch; flex-direction: column-reverse; }
   .state-switcher { width: 100%; }
@@ -361,6 +386,11 @@ article.tag-row { display: flex; min-height: 70px; align-items: center; gap: 13p
   .tag-swatch { width: 100%; height: 8px; }
   .tag-row-actions { width: 100%; flex-direction: column; }
   .tag-row-actions button { width: 100%; }
+  .bulk-alliance-form { align-items: stretch; flex-direction: column; }
+  .bulk-alliance-form label, .bulk-alliance-form button { width: 100%; }
+  .alliance-grid { grid-template-columns: 1fr; }
+  .alliance-card-heading { align-items: stretch; flex-direction: column; }
+  .alliance-move-field { width: 100%; }
   .member-actions label, .member-actions button, .notification-actions button { width: 100%; }
   .profile-editor { align-items: flex-start; flex-direction: column; }
   .combat-profile-grid { grid-template-columns: 1fr; }

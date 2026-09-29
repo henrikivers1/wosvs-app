@@ -10,6 +10,7 @@ type StateTag = {
   id: string;
   name: string;
   color: string;
+  bulk_move_limit: number;
   created_at: string;
 };
 
@@ -29,9 +30,11 @@ export default function TagsPage() {
   >({});
   const [name, setName] = useState("");
   const [color, setColor] = useState("#e4a853");
+  const [bulkMoveLimit, setBulkMoveLimit] = useState(100);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingColor, setEditingColor] = useState("#e4a853");
+  const [editingBulkMoveLimit, setEditingBulkMoveLimit] = useState(100);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -52,7 +55,7 @@ export default function TagsPage() {
     const [tagResult, assignmentResult] = await Promise.all([
       supabase
         .from("state_tags")
-        .select("id, name, color, created_at")
+        .select("id, name, color, bulk_move_limit, created_at")
         .eq("state_id", activeMembership.stateId)
         .order("name"),
       supabase.from("state_member_tags").select("tag_id"),
@@ -94,7 +97,11 @@ export default function TagsPage() {
     return () => window.clearTimeout(loadId);
   }, [loadTags, loadingStates, router, signedIn]);
 
-  function validateTag(tagName: string, tagColor: string) {
+  function validateTag(
+    tagName: string,
+    tagColor: string,
+    tagBulkMoveLimit: number
+  ) {
     if (!tagName.trim()) {
       setMessage("Enter a tag name.");
       return false;
@@ -103,11 +110,23 @@ export default function TagsPage() {
       setMessage("Use a six-digit color code such as #e4a853.");
       return false;
     }
+    if (
+      !Number.isInteger(tagBulkMoveLimit) ||
+      tagBulkMoveLimit < 1 ||
+      tagBulkMoveLimit > 100
+    ) {
+      setMessage("The bulk-move limit must be between 1 and 100.");
+      return false;
+    }
     return true;
   }
 
   async function createTag() {
-    if (!activeMembership || !isAdmin || !validateTag(name, color)) return;
+    if (
+      !activeMembership ||
+      !isAdmin ||
+      !validateTag(name, color, bulkMoveLimit)
+    ) return;
 
     setSaving(true);
     setMessage("");
@@ -115,6 +134,7 @@ export default function TagsPage() {
       target_state_id: activeMembership.stateId,
       tag_name: name,
       tag_color: color,
+      tag_bulk_move_limit: bulkMoveLimit,
     });
 
     if (error) {
@@ -122,6 +142,7 @@ export default function TagsPage() {
     } else {
       setName("");
       setColor("#e4a853");
+      setBulkMoveLimit(100);
       await loadTags();
       setMessage("Tag created.");
     }
@@ -132,11 +153,15 @@ export default function TagsPage() {
     setEditingTagId(tag.id);
     setEditingName(tag.name);
     setEditingColor(tag.color);
+    setEditingBulkMoveLimit(tag.bulk_move_limit);
     setMessage("");
   }
 
   async function saveTag() {
-    if (!editingTagId || !validateTag(editingName, editingColor)) return;
+    if (
+      !editingTagId ||
+      !validateTag(editingName, editingColor, editingBulkMoveLimit)
+    ) return;
 
     setSaving(true);
     setMessage("");
@@ -144,6 +169,7 @@ export default function TagsPage() {
       target_tag_id: editingTagId,
       tag_name: editingName,
       tag_color: editingColor,
+      tag_bulk_move_limit: editingBulkMoveLimit,
     });
 
     if (error) {
@@ -241,6 +267,18 @@ export default function TagsPage() {
                   />
                 </span>
               </label>
+              <label>
+                Bulk-move limit
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={bulkMoveLimit}
+                  onChange={(event) =>
+                    setBulkMoveLimit(Number(event.target.value))
+                  }
+                />
+              </label>
               <button type="button" disabled={saving} onClick={() => void createTag()}>
                 {saving ? "Saving..." : "Create tag"}
               </button>
@@ -298,6 +336,20 @@ export default function TagsPage() {
                             />
                           </span>
                         </label>
+                        <label>
+                          Bulk-move limit
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={editingBulkMoveLimit}
+                            onChange={(event) =>
+                              setEditingBulkMoveLimit(
+                                Number(event.target.value)
+                              )
+                            }
+                          />
+                        </label>
                         <button type="button" disabled={saving} onClick={() => void saveTag()}>
                           Save
                         </button>
@@ -315,7 +367,10 @@ export default function TagsPage() {
                       <span className="tag-swatch" style={{ backgroundColor: tag.color }} />
                       <div>
                         <strong>{tag.name}</strong>
-                        <small>{tag.color.toUpperCase()} · {assignmentCounts[tag.id] ?? 0} assigned</small>
+                        <small>
+                          {tag.color.toUpperCase()} · {assignmentCounts[tag.id] ?? 0} assigned
+                          {" · "}bulk max {tag.bulk_move_limit}
+                        </small>
                       </div>
                       <div className="tag-row-actions">
                         <button type="button" className="secondary-link" onClick={() => beginEditing(tag)}>
