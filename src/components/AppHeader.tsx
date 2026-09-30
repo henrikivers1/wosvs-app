@@ -239,6 +239,14 @@ export function AppHeader() {
             )}
             {activeMembership && (
               <Link
+                className={navClassName("/state/announcements")}
+                href="/state/announcements"
+              >
+                Notices
+              </Link>
+            )}
+            {activeMembership && (
+              <Link
                 className={navClassName("/state/stats")}
                 href="/state/stats"
               >

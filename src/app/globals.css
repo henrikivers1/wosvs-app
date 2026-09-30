@@ -324,6 +324,28 @@ li.alliance-member-row { align-items: center; }
 .member-tag-pill > span { width: 7px; height: 7px; border-radius: 50%; }
 .alliance-move-field { width: 170px; margin: 0; }
 .alliance-move-field select { width: 100%; min-height: 35px; padding-top: 5px; padding-bottom: 5px; font-size: 0.75rem; }
+.alliance-notice-list { display: grid; gap: 8px; margin-top: 15px; }
+.alliance-notice { padding: 12px; background: var(--accent-soft); border: 1px solid rgba(228, 168, 83, 0.3); border-radius: 5px; }
+.alliance-notice strong { color: #f1d3a5; font-size: 0.82rem; }
+.alliance-notice p { margin: 6px 0; color: var(--text); font-size: 0.78rem; white-space: pre-wrap; }
+.alliance-notice small { color: var(--muted); font-size: 0.68rem; }
+
+/* Targeted state announcements */
+.announcements-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.announcements-heading h1 { margin-bottom: 8px; }
+.announcements-heading p:last-child { max-width: 760px; margin: 0; color: var(--muted); }
+.announcement-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 12px; }
+.announcement-form-grid label { width: 100%; margin-right: 0; }
+.announcement-form-grid input, .announcement-form-grid select, .announcement-form-grid textarea { width: 100%; }
+.announcement-body-field { grid-column: 1 / -1; }
+.announcement-list { display: grid; gap: 11px; }
+article.announcement-card { margin: 0; padding: 20px; border-left-color: var(--accent); }
+.announcement-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.announcement-card-heading h3 { margin: 8px 0 0; font-size: 1.08rem; }
+.announcement-card-heading button { flex: 0 0 auto; }
+.announcement-audience { display: inline-flex; padding: 4px 7px; color: #f1d3a5; font-size: 0.65rem; font-weight: 850; letter-spacing: 0.05em; text-transform: uppercase; background: var(--accent-soft); border: 1px solid rgba(228, 168, 83, 0.3); border-radius: 4px; }
+.announcement-message { margin: 17px 0; color: var(--text); line-height: 1.65; white-space: pre-wrap; }
+.announcement-meta { display: flex; padding-top: 12px; flex-wrap: wrap; gap: 7px 16px; color: var(--muted); font-size: 0.72rem; border-top: 1px solid var(--border); }
 
 @media (max-width: 800px) {
   .header-workspace-row { align-items: stretch; flex-direction: column-reverse; }
@@ -391,6 +413,11 @@ li.alliance-member-row { align-items: center; }
   .alliance-grid { grid-template-columns: 1fr; }
   .alliance-card-heading { align-items: stretch; flex-direction: column; }
   .alliance-move-field { width: 100%; }
+  .announcements-heading { align-items: flex-start; flex-direction: column; }
+  .announcement-form-grid { grid-template-columns: 1fr; }
+  .announcement-body-field { grid-column: auto; }
+  .announcement-card-heading { flex-direction: column; }
+  .announcement-card-heading button { width: 100%; }
   .member-actions label, .member-actions button, .notification-actions button { width: 100%; }
   .profile-editor { align-items: flex-start; flex-direction: column; }
   .combat-profile-grid { grid-template-columns: 1fr; }

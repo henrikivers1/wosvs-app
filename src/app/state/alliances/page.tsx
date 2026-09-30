@@ -48,6 +48,15 @@ type TagAssignment = {
   wos_account_id: string;
 };
 
+type AllianceNotice = {
+  id: string;
+  title: string;
+  body: string;
+  audience_id: string;
+  expires_at: string;
+  created_at: string;
+};
+
 type StateMember = MemberRow & AccountRow & {
   username: string | null;
   tags: StateTag[];
@@ -61,6 +70,7 @@ export default function AlliancesPage() {
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, signedIn, loadingStates } = useStates();
   const [alliances, setAlliances] = useState<Alliance[]>([]);
+  const [allianceNotices, setAllianceNotices] = useState<AllianceNotice[]>([]);
   const [members, setMembers] = useState<StateMember[]>([]);
   const [tags, setTags] = useState<StateTag[]>([]);
   const [name, setName] = useState("");
@@ -83,6 +93,7 @@ export default function AlliancesPage() {
   const loadAlliances = useCallback(async () => {
     if (!activeMembership) {
       setAlliances([]);
+      setAllianceNotices([]);
       setMembers([]);
       setTags([]);
       setLoading(false);
@@ -90,7 +101,15 @@ export default function AlliancesPage() {
     }
 
     setLoading(true);
-    const [allianceResult, assignmentResult, memberResult, tagResult] =
+    await supabase.rpc("cleanup_expired_state_announcements");
+
+    const [
+      allianceResult,
+      assignmentResult,
+      memberResult,
+      tagResult,
+      noticeRecipientResult,
+    ] =
       await Promise.all([
         supabase
           .from("state_alliances")
@@ -110,13 +129,24 @@ export default function AlliancesPage() {
           .select("id, name, color, bulk_move_limit")
           .eq("state_id", activeMembership.stateId)
           .order("name"),
+        isAdmin
+          ? supabase
+              .from("state_announcement_recipients")
+              .select("announcement_id")
+              .eq("state_id", activeMembership.stateId)
+          : supabase
+              .from("state_announcement_recipients")
+              .select("announcement_id")
+              .eq("state_id", activeMembership.stateId)
+              .eq("wos_account_id", activeMembership.wosAccountId),
       ]);
 
     const firstError =
       allianceResult.error ||
       assignmentResult.error ||
       memberResult.error ||
-      tagResult.error;
+      tagResult.error ||
+      noticeRecipientResult.error;
     if (firstError) {
       setMessage(firstError.message);
       setLoading(false);
@@ -127,10 +157,40 @@ export default function AlliancesPage() {
     const assignments = (assignmentResult.data ?? []) as AllianceAssignment[];
     const memberRows = (memberResult.data ?? []) as MemberRow[];
     const stateTags = (tagResult.data ?? []) as StateTag[];
+    const visibleNoticeIds = [
+      ...new Set(
+        (noticeRecipientResult.data ?? []).map(
+          (recipient) => recipient.announcement_id
+        )
+      ),
+    ];
+    let stateAllianceNotices: AllianceNotice[] = [];
+
+    if (isAdmin || visibleNoticeIds.length > 0) {
+      let noticeQuery = supabase
+        .from("state_announcements")
+        .select("id, title, body, audience_id, expires_at, created_at")
+        .eq("state_id", activeMembership.stateId)
+        .eq("audience_type", "alliance")
+        .order("created_at", { ascending: false });
+
+      if (!isAdmin) {
+        noticeQuery = noticeQuery.in("id", visibleNoticeIds);
+      }
+
+      const { data: noticeData, error: noticeError } = await noticeQuery;
+      if (noticeError) {
+        setMessage(noticeError.message);
+        setLoading(false);
+        return;
+      }
+      stateAllianceNotices = (noticeData ?? []) as AllianceNotice[];
+    }
     const accountIds = memberRows.map((member) => member.wos_account_id);
 
     if (accountIds.length === 0) {
       setAlliances(stateAlliances);
+      setAllianceNotices(stateAllianceNotices);
       setMembers([]);
       setTags(stateTags);
       setLoading(false);
@@ -212,10 +272,11 @@ export default function AlliancesPage() {
       );
 
     setAlliances(stateAlliances);
+    setAllianceNotices(stateAllianceNotices);
     setMembers(stateMembers);
     setTags(stateTags);
     setLoading(false);
-  }, [activeMembership, supabase]);
+  }, [activeMembership, isAdmin, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -601,6 +662,9 @@ export default function AlliancesPage() {
                   const allianceMembers = members.filter(
                     (member) => member.allianceId === alliance.id
                   );
+                  const notices = allianceNotices
+                    .filter((notice) => notice.audience_id === alliance.id)
+                    .slice(0, 3);
                   return (
                     <article
                       key={alliance.id}
@@ -678,6 +742,21 @@ export default function AlliancesPage() {
                               </button>
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {notices.length > 0 && (
+                        <div className="alliance-notice-list">
+                          {notices.map((notice) => (
+                            <div key={notice.id} className="alliance-notice">
+                              <strong>{notice.title}</strong>
+                              <p>{notice.body}</p>
+                              <small>
+                                Expires{" "}
+                                {new Date(notice.expires_at).toLocaleString()}
+                              </small>
+                            </div>
+                          ))}
                         </div>
                       )}
 

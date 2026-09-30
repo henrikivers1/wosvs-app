@@ -8,6 +8,7 @@ import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 
 type NotificationData = {
+  announcement_id?: string;
   invite_id?: string;
   poll_id?: string;
   state_id?: string;
@@ -205,6 +206,11 @@ export default function NotificationsPage() {
                   {notification.type === "state_poll_created" && (
                     <Link className="nav-link" href="/state/votes">
                       Open vote
+                    </Link>
+                  )}
+                  {notification.type === "state_announcement" && (
+                    <Link className="nav-link" href="/state/announcements">
+                      Open notice
                     </Link>
                   )}
                   {inviteStatus &&
