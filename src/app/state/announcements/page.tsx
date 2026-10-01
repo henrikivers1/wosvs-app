@@ -36,7 +36,7 @@ function defaultExpirationTime() {
 }
 
 function formatAudienceValue(value: string | null) {
-  if (value === "rally_caller") return "Rally callers";
+  if (value === "rally_caller") return "Coordinators";
   if (value === "garrison") return "Garrison";
   if (value === "owner") return "Owners";
   if (value === "admin") return "Admins";
@@ -416,7 +416,7 @@ export default function AnnouncementsPage() {
                       onChange={(event) => setAudienceValue(event.target.value)}
                     >
                       <option value="">Choose battle role</option>
-                      <option value="rally_caller">Rally callers</option>
+                      <option value="rally_caller">Coordinators</option>
                       <option value="garrison">Garrison</option>
                     </select>
                   </label>

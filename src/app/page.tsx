@@ -66,7 +66,7 @@ export default function Home() {
           </div>
           <dl className="product-summary">
             <div>
-              <dt>Rally callers</dt>
+              <dt>Coordinators</dt>
               <dd>Record calls and maintain the shared schedule.</dd>
             </div>
             <div>

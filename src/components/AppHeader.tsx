@@ -231,18 +231,18 @@ export function AppHeader() {
             )}
             {activeMembership && (
               <Link
-                className={navClassName("/state/votes")}
-                href="/state/votes"
+                className={navClassName("/state/alliances")}
+                href="/state/alliances"
               >
-                Votes
+                Alliance overview
               </Link>
             )}
             {activeMembership && (
               <Link
-                className={navClassName("/state/alliances")}
-                href="/state/alliances"
+                className={navClassName("/state/votes")}
+                href="/state/votes"
               >
-                Alliances
+                Votes
               </Link>
             )}
             {activeMembership && (

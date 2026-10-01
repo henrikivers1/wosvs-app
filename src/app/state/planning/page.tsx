@@ -254,7 +254,7 @@ export default function BattlePlanningPage() {
 
   return <main><AppHeader />
     {!activeMembership ? <section className="empty-state"><h2>Choose a state</h2><p>Select a state before opening battle planning.</p></section> : <>
-      <section className="battle-planning-heading"><p className="section-label">{activeMembership.stateName}</p><h1>Battle planning</h1><p>Build rally groups, find suitable players, then publish alliance and tag assignments.</p></section>
+      <section className="battle-planning-heading"><p className="section-label">{activeMembership.stateName}</p><h1>Battle planning</h1><p>Build rally groups, assign every member here, then publish the alliance roster and optional tags.</p></section>
       {isAdmin && <section><h2>Create battle plan</h2><div className="battle-plan-create-grid">
         <label>Plan name<input value={planName} maxLength={100} onChange={(event) => setPlanName(event.target.value)} placeholder="SVS vs 1501" /></label>
         <label>Type<select value={battleType} onChange={(event) => setBattleType(event.target.value as BattleType)}><option value="svs">SVS</option><option value="castle">Castle</option><option value="test">Test</option></select></label>

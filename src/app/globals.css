@@ -329,6 +329,21 @@ li.alliance-member-row { align-items: center; }
 .alliance-notice strong { color: #f1d3a5; font-size: 0.82rem; }
 .alliance-notice p { margin: 6px 0; color: var(--text); font-size: 0.78rem; white-space: pre-wrap; }
 .alliance-notice small { color: var(--muted); font-size: 0.68rem; }
+.alliance-overview-grid { grid-template-columns: 1fr; }
+.alliance-roster-table-wrap { margin-top: 14px; overflow-x: auto; border: 1px solid var(--border); border-radius: 5px; }
+.alliance-roster-table { width: 100%; border-collapse: collapse; text-align: left; }
+.alliance-roster-table th { padding: 9px 12px; color: var(--muted); font-size: 0.67rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--surface); border-bottom: 1px solid var(--border); }
+.alliance-roster-table td { padding: 11px 12px; color: var(--muted-strong); font-size: 0.78rem; border-bottom: 1px solid var(--border); }
+.alliance-roster-table td:first-child { color: var(--text); }
+.alliance-roster-table tbody tr:last-child td { border-bottom: 0; }
+.alliance-management-create { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) 130px auto; align-items: end; gap: 10px; margin-top: 18px; }
+.alliance-management-create label, .alliance-management-create button { width: 100%; margin: 0; }
+.alliance-management-list { display: grid; gap: 9px; margin-top: 18px; }
+article.alliance-management-row { display: flex; min-height: 74px; margin: 0; align-items: center; gap: 13px; border-left-width: 4px; }
+.alliance-management-identity { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 4px; }
+.alliance-management-identity small { color: var(--muted); font-size: 0.72rem; }
+.alliance-management-editor { display: grid; width: 100%; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) 130px auto; align-items: end; gap: 10px; }
+.alliance-management-editor label { width: 100%; margin: 0; }
 
 /* Targeted state announcements */
 .announcements-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -487,6 +502,9 @@ article.battle-plan-card { margin: 0; padding: 20px; border-left-color: var(--bo
   .alliance-grid { grid-template-columns: 1fr; }
   .alliance-card-heading { align-items: stretch; flex-direction: column; }
   .alliance-move-field { width: 100%; }
+  .alliance-management-create, .alliance-management-editor { grid-template-columns: 1fr; align-items: stretch; }
+  article.alliance-management-row { align-items: stretch; flex-direction: column; }
+  .alliance-management-create button { width: 100%; }
   .announcements-heading { align-items: flex-start; flex-direction: column; }
   .announcement-form-grid { grid-template-columns: 1fr; }
   .announcement-body-field { grid-column: auto; }

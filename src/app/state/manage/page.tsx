@@ -23,6 +23,16 @@ type PendingApproval = {
   expiresAt: string;
 };
 
+type StateAlliance = {
+  id: string;
+  name: string;
+  color: string;
+  max_members: number;
+  memberCount: number;
+};
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
 export default function ManageStatePage() {
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, refreshMemberships } = useStates();
@@ -32,6 +42,19 @@ export default function ManageStatePage() {
   const [inviteLink, setInviteLink] = useState("");
   const [battleName, setBattleName] = useState("");
   const [battleType, setBattleType] = useState("svs");
+  const [battleResult, setBattleResult] = useState("win");
+  const [alliances, setAlliances] = useState<StateAlliance[]>([]);
+  const [allianceName, setAllianceName] = useState("");
+  const [allianceColor, setAllianceColor] = useState("#4f8fba");
+  const [allianceCapacity, setAllianceCapacity] = useState(100);
+  const [editingAllianceId, setEditingAllianceId] = useState<string | null>(
+    null
+  );
+  const [editingAllianceName, setEditingAllianceName] = useState("");
+  const [editingAllianceColor, setEditingAllianceColor] =
+    useState("#4f8fba");
+  const [editingAllianceCapacity, setEditingAllianceCapacity] = useState(100);
+  const [savingAlliance, setSavingAlliance] = useState(false);
   const [message, setMessage] = useState("");
 
   const loadStateManagement = useCallback(async () => {
@@ -41,15 +64,18 @@ export default function ManageStatePage() {
     ) {
       setMembers([]);
       setPendingApprovals([]);
+      setAlliances([]);
       return;
     }
 
     const [
-      { data: memberRows, error },
+      { data: memberRows, error: memberError },
       { data: inviteRows },
       { data: capabilityRows },
       { data: tagRows },
       { data: tagAssignmentRows },
+      { data: allianceRows, error: allianceError },
+      { data: allianceAssignmentRows, error: allianceAssignmentError },
     ] =
       await Promise.all([
         supabase
@@ -73,12 +99,37 @@ export default function ManageStatePage() {
         supabase
           .from("state_member_tags")
           .select("tag_id, wos_account_id"),
+        supabase
+          .from("state_alliances")
+          .select("id, name, color, max_members")
+          .eq("state_id", activeMembership.stateId)
+          .order("name"),
+        supabase
+          .from("state_alliance_members")
+          .select("alliance_id")
+          .eq("state_id", activeMembership.stateId),
       ]);
 
-    if (error || !memberRows) {
-      setMessage(error?.message ?? "Could not load state members.");
+    const loadError =
+      memberError || allianceError || allianceAssignmentError;
+    if (loadError || !memberRows) {
+      setMessage(loadError?.message ?? "Could not load state management.");
       return;
     }
+
+    const assignmentCountByAlliance = new Map<string, number>();
+    (allianceAssignmentRows ?? []).forEach((assignment) => {
+      assignmentCountByAlliance.set(
+        assignment.alliance_id,
+        (assignmentCountByAlliance.get(assignment.alliance_id) ?? 0) + 1
+      );
+    });
+    setAlliances(
+      (allianceRows ?? []).map((alliance) => ({
+        ...alliance,
+        memberCount: assignmentCountByAlliance.get(alliance.id) ?? 0,
+      }))
+    );
 
     const memberAccountIds = memberRows.map((row) => row.wos_account_id);
     const pendingAccountIds = (inviteRows ?? []).map(
@@ -193,7 +244,7 @@ export default function ManageStatePage() {
   async function endBattlePeriod() {
     if (!activeMembership?.battleId) return;
     const confirmed = window.confirm(
-      `End this battle period and save it as ${battleType.toUpperCase()}? Battle tools will be hidden for every member.`
+      `End this battle period as a ${battleResult.toUpperCase()} and save it as ${battleType.toUpperCase()}? Battle tools will be hidden for every member.`
     );
     if (!confirmed) return;
 
@@ -201,6 +252,7 @@ export default function ManageStatePage() {
     const { error } = await supabase.rpc("end_state_battle", {
       target_battle_id: activeMembership.battleId,
       selected_battle_type: battleType,
+      selected_result: battleResult,
     });
 
     if (error) {
@@ -208,10 +260,120 @@ export default function ManageStatePage() {
       return;
     }
 
-    setMessage(
-      "Battle period ended. Empty periods are discarded automatically."
-    );
+    setMessage("Battle period ended and its result was saved permanently.");
     await refreshMemberships();
+  }
+
+  function validateAlliance(
+    name: string,
+    color: string,
+    capacity: number
+  ) {
+    if (!name.trim()) {
+      setMessage("Enter an alliance name.");
+      return false;
+    }
+    if (!HEX_COLOR.test(color)) {
+      setMessage("Use a six-digit color code such as #4f8fba.");
+      return false;
+    }
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100) {
+      setMessage("Alliance capacity must be between 1 and 100.");
+      return false;
+    }
+    return true;
+  }
+
+  async function createAlliance() {
+    if (
+      !activeMembership ||
+      !validateAlliance(allianceName, allianceColor, allianceCapacity)
+    ) {
+      return;
+    }
+
+    setSavingAlliance(true);
+    setMessage("");
+    const { error } = await supabase.rpc("create_state_alliance", {
+      target_state_id: activeMembership.stateId,
+      alliance_name: allianceName.trim(),
+      alliance_color: allianceColor,
+      alliance_max_members: allianceCapacity,
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setAllianceName("");
+      setAllianceColor("#4f8fba");
+      setAllianceCapacity(100);
+      await loadStateManagement();
+      setMessage("Alliance created. It can now be selected in Battle Planning.");
+    }
+    setSavingAlliance(false);
+  }
+
+  function beginEditingAlliance(alliance: StateAlliance) {
+    setEditingAllianceId(alliance.id);
+    setEditingAllianceName(alliance.name);
+    setEditingAllianceColor(alliance.color);
+    setEditingAllianceCapacity(alliance.max_members);
+    setMessage("");
+  }
+
+  async function saveAlliance() {
+    if (
+      !editingAllianceId ||
+      !validateAlliance(
+        editingAllianceName,
+        editingAllianceColor,
+        editingAllianceCapacity
+      )
+    ) {
+      return;
+    }
+
+    setSavingAlliance(true);
+    setMessage("");
+    const { error } = await supabase.rpc("update_state_alliance", {
+      target_alliance_id: editingAllianceId,
+      alliance_name: editingAllianceName.trim(),
+      alliance_color: editingAllianceColor,
+      alliance_max_members: editingAllianceCapacity,
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setEditingAllianceId(null);
+      await loadStateManagement();
+      setMessage("Alliance updated.");
+    }
+    setSavingAlliance(false);
+  }
+
+  async function deleteAlliance(alliance: StateAlliance) {
+    const confirmed = window.confirm(
+      `Delete “${alliance.name}”?\n\nIt is currently assigned to ${alliance.memberCount} ${alliance.memberCount === 1 ? "account" : "accounts"}. Those accounts will become unassigned, but no state members will be deleted.`
+    );
+    if (!confirmed) return;
+
+    setSavingAlliance(true);
+    setMessage("");
+    const { error } = await supabase.rpc("delete_state_alliance", {
+      target_alliance_id: alliance.id,
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      if (editingAllianceId === alliance.id) {
+        setEditingAllianceId(null);
+      }
+      await loadStateManagement();
+      setMessage("Alliance deleted. No state members were removed.");
+    }
+    setSavingAlliance(false);
   }
 
   async function createInvitation() {
@@ -408,8 +570,8 @@ export default function ManageStatePage() {
                 <strong>
                   {activeMembership.battleName || "Active battle"}
                 </strong>
-                {" — "}battle tools are available to assigned rally
-                callers and garrison players.
+                {" — "}battle tools are available to assigned coordinators
+                and garrison players.
               </p>
               <label>
                 Save this battle as
@@ -422,6 +584,16 @@ export default function ManageStatePage() {
                   <option value="svs">SVS</option>
                   <option value="castle">Castle</option>
                   <option value="test">Test</option>
+                </select>
+              </label>
+              <label>
+                Battle result
+                <select
+                  value={battleResult}
+                  onChange={(event) => setBattleResult(event.target.value)}
+                >
+                  <option value="win">Win</option>
+                  <option value="loss">Loss</option>
                 </select>
               </label>
             </div>
@@ -457,6 +629,191 @@ export default function ManageStatePage() {
               </button>
             </div>
           </>
+        )}
+      </section>
+
+      <section>
+        <div className="section-title-row">
+          <div>
+            <p className="section-label">Battle structure</p>
+            <h2>Alliance setup</h2>
+          </div>
+          <span className="retention-badge">
+            {alliances.length} {alliances.length === 1 ? "alliance" : "alliances"}
+          </span>
+        </div>
+        <p>
+          Create the alliances available to battle planners. Member
+          assignments are managed only from Battle Planning and become visible
+          in Alliance Overview after publishing.
+        </p>
+
+        <div className="alliance-management-create">
+          <label>
+            Alliance name
+            <input
+              type="text"
+              maxLength={40}
+              value={allianceName}
+              onChange={(event) => setAllianceName(event.target.value)}
+              placeholder="TED"
+            />
+          </label>
+          <label>
+            Color
+            <span className="color-input-row">
+              <input
+                type="color"
+                value={
+                  HEX_COLOR.test(allianceColor) ? allianceColor : "#4f8fba"
+                }
+                onChange={(event) => setAllianceColor(event.target.value)}
+              />
+              <input
+                className="hex-color-input"
+                type="text"
+                maxLength={7}
+                value={allianceColor}
+                onChange={(event) => setAllianceColor(event.target.value)}
+              />
+            </span>
+          </label>
+          <label>
+            Capacity
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={allianceCapacity}
+              onChange={(event) =>
+                setAllianceCapacity(Number(event.target.value))
+              }
+            />
+          </label>
+          <button
+            type="button"
+            disabled={savingAlliance}
+            onClick={() => void createAlliance()}
+          >
+            {savingAlliance ? "Saving..." : "Create alliance"}
+          </button>
+        </div>
+
+        {alliances.length === 0 ? (
+          <div className="empty-state compact-empty-state">
+            <h3>No alliances configured</h3>
+            <p>Create the first destination for your battle plans.</p>
+          </div>
+        ) : (
+          <div className="alliance-management-list">
+            {alliances.map((alliance) => (
+              <article
+                key={alliance.id}
+                className="alliance-management-row"
+                style={{ borderLeftColor: alliance.color }}
+              >
+                {editingAllianceId === alliance.id ? (
+                  <div className="alliance-management-editor">
+                    <label>
+                      Alliance name
+                      <input
+                        type="text"
+                        maxLength={40}
+                        value={editingAllianceName}
+                        onChange={(event) =>
+                          setEditingAllianceName(event.target.value)
+                        }
+                      />
+                    </label>
+                    <label>
+                      Color
+                      <span className="color-input-row">
+                        <input
+                          type="color"
+                          value={
+                            HEX_COLOR.test(editingAllianceColor)
+                              ? editingAllianceColor
+                              : "#4f8fba"
+                          }
+                          onChange={(event) =>
+                            setEditingAllianceColor(event.target.value)
+                          }
+                        />
+                        <input
+                          className="hex-color-input"
+                          type="text"
+                          maxLength={7}
+                          value={editingAllianceColor}
+                          onChange={(event) =>
+                            setEditingAllianceColor(event.target.value)
+                          }
+                        />
+                      </span>
+                    </label>
+                    <label>
+                      Capacity
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={editingAllianceCapacity}
+                        onChange={(event) =>
+                          setEditingAllianceCapacity(Number(event.target.value))
+                        }
+                      />
+                    </label>
+                    <div className="tag-row-actions">
+                      <button
+                        type="button"
+                        disabled={savingAlliance}
+                        onClick={() => void saveAlliance()}
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-link"
+                        onClick={() => setEditingAllianceId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <span
+                      className="tag-swatch alliance-swatch"
+                      style={{ backgroundColor: alliance.color }}
+                    />
+                    <div className="alliance-management-identity">
+                      <strong>{alliance.name}</strong>
+                      <small>
+                        {alliance.memberCount}/{alliance.max_members} published
+                        assignments
+                      </small>
+                    </div>
+                    <div className="tag-row-actions">
+                      <button
+                        type="button"
+                        className="secondary-link"
+                        onClick={() => beginEditingAlliance(alliance)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="danger-button"
+                        disabled={savingAlliance}
+                        onClick={() => void deleteAlliance(alliance)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </article>
+            ))}
+          </div>
         )}
       </section>
 
@@ -600,7 +957,7 @@ export default function ManageStatePage() {
                           )
                         }
                       />
-                      <span>Rally caller</span>
+                      <span>Coordinator</span>
                     </label>
                     <label className="capability-toggle">
                       <input
