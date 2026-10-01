@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 type NotificationData = {
   announcement_id?: string;
   invite_id?: string;
+  plan_id?: string;
   poll_id?: string;
   state_id?: string;
   token?: string;
@@ -211,6 +212,11 @@ export default function NotificationsPage() {
                   {notification.type === "state_announcement" && (
                     <Link className="nav-link" href="/state/announcements">
                       Open notice
+                    </Link>
+                  )}
+                  {notification.type === "battle_plan_assignment" && (
+                    <Link className="nav-link" href="/state/planning">
+                      Open battle plan
                     </Link>
                   )}
                   {inviteStatus &&

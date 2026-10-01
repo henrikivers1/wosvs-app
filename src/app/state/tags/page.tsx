@@ -11,6 +11,7 @@ type StateTag = {
   name: string;
   color: string;
   bulk_move_limit: number;
+  system_key: string | null;
   created_at: string;
 };
 
@@ -55,7 +56,7 @@ export default function TagsPage() {
     const [tagResult, assignmentResult] = await Promise.all([
       supabase
         .from("state_tags")
-        .select("id, name, color, bulk_move_limit, created_at")
+        .select("id, name, color, bulk_move_limit, system_key, created_at")
         .eq("state_id", activeMembership.stateId)
         .order("name"),
       supabase.from("state_member_tags").select("tag_id"),
@@ -150,6 +151,7 @@ export default function TagsPage() {
   }
 
   function beginEditing(tag: StateTag) {
+    if (tag.system_key) return;
     setEditingTagId(tag.id);
     setEditingName(tag.name);
     setEditingColor(tag.color);
@@ -183,6 +185,10 @@ export default function TagsPage() {
   }
 
   async function deleteTag(tag: StateTag) {
+    if (tag.system_key) {
+      setMessage("System tags are permanent and are managed from State members.");
+      return;
+    }
     const assignmentCount = assignmentCounts[tag.id] ?? 0;
     if (
       !window.confirm(
@@ -307,7 +313,7 @@ export default function TagsPage() {
             ) : (
               <div className="tag-list">
                 {tags.map((tag) =>
-                  editingTagId === tag.id ? (
+                  editingTagId === tag.id && !tag.system_key ? (
                     <article key={tag.id} className="tag-edit-card">
                       <div className="tag-create-form">
                         <label>
@@ -369,17 +375,23 @@ export default function TagsPage() {
                         <strong>{tag.name}</strong>
                         <small>
                           {tag.color.toUpperCase()} · {assignmentCounts[tag.id] ?? 0} assigned
-                          {" · "}bulk max {tag.bulk_move_limit}
+                          {tag.system_key
+                            ? " · permanent system tag"
+                            : ` · bulk max ${tag.bulk_move_limit}`}
                         </small>
                       </div>
-                      <div className="tag-row-actions">
-                        <button type="button" className="secondary-link" onClick={() => beginEditing(tag)}>
-                          Edit
-                        </button>
-                        <button type="button" className="danger-button" disabled={saving} onClick={() => void deleteTag(tag)}>
-                          Delete
-                        </button>
-                      </div>
+                      {tag.system_key ? (
+                        <span className="role-badge">Managed in State members</span>
+                      ) : (
+                        <div className="tag-row-actions">
+                          <button type="button" className="secondary-link" onClick={() => beginEditing(tag)}>
+                            Edit
+                          </button>
+                          <button type="button" className="danger-button" disabled={saving} onClick={() => void deleteTag(tag)}>
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </article>
                   )
                 )}

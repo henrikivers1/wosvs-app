@@ -347,6 +347,80 @@ article.announcement-card { margin: 0; padding: 20px; border-left-color: var(--a
 .announcement-message { margin: 17px 0; color: var(--text); line-height: 1.65; white-space: pre-wrap; }
 .announcement-meta { display: flex; padding-top: 12px; flex-wrap: wrap; gap: 7px 16px; color: var(--muted); font-size: 0.72rem; border-top: 1px solid var(--border); }
 
+/* Scheduled battle planning */
+.planning-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.planning-heading h1 { margin-bottom: 8px; }
+.planning-heading p:last-child { max-width: 760px; margin: 0; color: var(--muted); }
+.battle-plan-form-grid, .plan-inline-editor { display: grid; grid-template-columns: minmax(0, 1fr) 170px 220px; gap: 0 12px; }
+.battle-plan-form-grid label, .plan-inline-editor label { width: 100%; margin-right: 0; }
+.battle-plan-form-grid input, .battle-plan-form-grid select, .battle-plan-form-grid textarea, .plan-inline-editor input, .plan-inline-editor select, .plan-inline-editor textarea { width: 100%; }
+.battle-plan-notes-field { grid-column: 1 / -1; }
+.battle-plan-list { display: grid; gap: 16px; }
+article.battle-plan-card { margin: 0; padding: 20px; border-left-color: var(--border-strong); }
+.battle-plan-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.battle-plan-card-heading > div:first-child { min-width: 0; }
+.battle-plan-card-heading h3 { margin: 9px 0 5px; font-size: 1.2rem; }
+.battle-plan-card-heading time { color: var(--muted-strong); font-size: 0.82rem; }
+.battle-plan-card-heading .battle-type-badge { margin-left: 6px; }
+.battle-plan-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.battle-plan-actions button { margin: 0; }
+.battle-plan-notes { padding: 11px 13px; margin: 16px 0; color: var(--muted-strong); white-space: pre-wrap; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+.plan-inline-editor { padding: 16px; margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+.plan-inline-editor .button-row { grid-column: 1 / -1; margin-top: 0; }
+.own-plan-assignment { display: flex; padding: 14px; margin: 16px 0; flex-direction: column; gap: 5px; background: var(--success-soft); border: 1px solid rgba(103, 184, 138, 0.4); border-radius: 5px; }
+.own-plan-assignment span { color: #bfe7ce; font-size: 0.68rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
+.own-plan-assignment strong { font-size: 1rem; }
+.own-plan-assignment small { color: var(--muted-strong); }
+.unassigned-plan-warning { padding: 11px 13px; color: var(--muted-strong); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--danger); border-radius: 4px; }
+.plan-admin-toolbar { display: flex; padding: 14px 0; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--border); }
+.plan-admin-toolbar button { flex: 0 0 auto; }
+.plan-admin-toolbar span { color: var(--muted); font-size: 0.76rem; }
+.plan-group-editor { display: grid; padding: 15px; margin-bottom: 14px; grid-template-columns: minmax(150px, 1fr) minmax(170px, 1fr) 110px minmax(180px, 1.3fr) auto auto; align-items: end; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+.plan-group-editor label, .plan-group-editor button { width: 100%; margin: 0; }
+.plan-group-editor input, .plan-group-editor select { width: 100%; }
+.plan-roster-filters { display: grid; margin-bottom: 12px; grid-template-columns: minmax(220px, 1fr) 190px 190px; gap: 8px; }
+.plan-roster-filters input, .plan-roster-filters select { width: 100%; }
+.plan-roster-filters > .section-title-row,
+.plan-roster-filters > p,
+.plan-roster-filters > .candidate-result-list { grid-column: 1 / -1; }
+.plan-roster-filters > label { width: 100%; margin: 0; }
+.candidate-result-list { max-height: 520px; padding: 10px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+.battle-plan-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); align-items: start; gap: 10px; }
+.plan-group-column { min-width: 0; padding: 13px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 5px; }
+.unassigned-plan-column { border-top-color: var(--border-strong); }
+.plan-group-heading { display: flex; min-height: 42px; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.plan-group-heading h4 { margin: 0 0 4px; font-size: 0.92rem; }
+.plan-group-heading small { color: var(--muted); font-size: 0.7rem; }
+.plan-group-heading > span { display: inline-flex; padding: 4px 7px; color: var(--muted-strong); font-size: 0.68rem; font-weight: 780; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 4px; }
+.plan-group-notes { margin: 9px 0; color: var(--muted-strong); font-size: 0.76rem; white-space: pre-wrap; }
+.plan-group-stats { display: grid; margin: 12px 0; grid-template-columns: repeat(3, 1fr); overflow: hidden; background: #14171a; border: 1px solid var(--border); border-radius: 4px; }
+.plan-group-stats span { display: flex; min-width: 0; padding: 8px 6px; flex-direction: column; gap: 4px; color: var(--muted); font-size: 0.6rem; border-right: 1px solid var(--border); }
+.plan-group-stats span:last-child { border-right: 0; }
+.plan-group-stats strong { color: var(--text); font-size: 0.82rem; }
+.plan-average-grid { display: grid; margin: 12px 0; grid-template-columns: repeat(4, 1fr); overflow: hidden; background: #14171a; border: 1px solid var(--border); border-radius: 4px; }
+.plan-average-grid span { display: flex; min-width: 0; padding: 8px 6px; flex-direction: column; gap: 4px; border-right: 1px solid var(--border); }
+.plan-average-grid span:last-child { border-right: 0; }
+.plan-average-grid small { overflow: hidden; color: var(--muted); font-size: 0.57rem; text-overflow: ellipsis; white-space: nowrap; }
+.plan-average-grid strong { font-size: 0.82rem; }
+.plan-group-actions { display: flex; gap: 6px; margin-bottom: 12px; }
+.plan-group-actions button { min-height: 32px; padding: 5px 9px; margin: 0; font-size: 0.7rem; }
+.plan-group-edit-panel { display: grid; gap: 7px; margin-bottom: 12px; }
+.plan-group-edit-panel label, .plan-group-edit-panel button { width: 100%; margin: 0; }
+.plan-group-edit-panel input, .plan-group-edit-panel select { width: 100%; }
+.plan-member-list { display: grid; gap: 7px; min-height: 48px; }
+.plan-drop-hint { padding: 14px 8px; margin: 0; color: var(--muted); font-size: 0.73rem; text-align: center; border: 1px dashed var(--border); border-radius: 4px; }
+.plan-member-card { display: flex; padding: 10px; flex-direction: column; gap: 7px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 4px; cursor: grab; }
+.plan-member-card:active { cursor: grabbing; }
+.plan-member-card.current-plan-member { border-color: var(--success); box-shadow: inset 3px 0 0 var(--success); }
+.plan-member-main { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.plan-member-main strong { overflow: hidden; font-size: 0.8rem; text-overflow: ellipsis; white-space: nowrap; }
+.plan-member-main small, .plan-member-stats { color: var(--muted); font-size: 0.66rem; }
+.plan-member-context { display: flex; flex-wrap: wrap; gap: 4px; }
+.plan-alliance-pill { display: inline-flex; padding: 3px 6px; align-items: center; gap: 5px; color: var(--muted-strong); font-size: 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
+.plan-alliance-pill i { width: 7px; height: 7px; border-radius: 50%; }
+.plan-assignment-select { width: 100%; margin: 0; }
+.plan-assignment-select select { width: 100%; min-height: 34px; padding-top: 5px; padding-bottom: 5px; font-size: 0.72rem; }
+
 @media (max-width: 800px) {
   .header-workspace-row { align-items: stretch; flex-direction: column-reverse; }
   .state-switcher { width: 100%; }
@@ -418,6 +492,16 @@ article.announcement-card { margin: 0; padding: 20px; border-left-color: var(--a
   .announcement-body-field { grid-column: auto; }
   .announcement-card-heading { flex-direction: column; }
   .announcement-card-heading button { width: 100%; }
+  .planning-heading, .battle-plan-card-heading, .plan-admin-toolbar { align-items: stretch; flex-direction: column; }
+  .battle-plan-form-grid, .plan-inline-editor, .plan-roster-filters { grid-template-columns: 1fr; }
+  .battle-plan-notes-field, .plan-inline-editor .button-row { grid-column: auto; }
+  .battle-plan-actions { width: 100%; flex-direction: column; }
+  .battle-plan-actions button { width: 100%; }
+  .plan-group-editor { grid-template-columns: 1fr; align-items: stretch; }
+  .battle-plan-board { grid-template-columns: 1fr; }
+  .plan-average-grid { grid-template-columns: 1fr 1fr; }
+  .plan-average-grid span:nth-child(2) { border-right: 0; }
+  .plan-average-grid span:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
   .member-actions label, .member-actions button, .notification-actions button { width: 100%; }
   .profile-editor { align-items: flex-start; flex-direction: column; }
   .combat-profile-grid { grid-template-columns: 1fr; }

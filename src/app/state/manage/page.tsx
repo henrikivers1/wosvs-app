@@ -13,6 +13,7 @@ type StateMember = {
   username: string | null;
   role: StateRole;
   capabilities: StateCapability[];
+  isRallyLead: boolean;
 };
 
 type PendingApproval = {
@@ -47,6 +48,8 @@ export default function ManageStatePage() {
       { data: memberRows, error },
       { data: inviteRows },
       { data: capabilityRows },
+      { data: tagRows },
+      { data: tagAssignmentRows },
     ] =
       await Promise.all([
         supabase
@@ -63,6 +66,13 @@ export default function ManageStatePage() {
           .from("state_member_capabilities")
           .select("wos_account_id, capability")
           .eq("state_id", activeMembership.stateId),
+        supabase
+          .from("state_tags")
+          .select("id, system_key")
+          .eq("state_id", activeMembership.stateId),
+        supabase
+          .from("state_member_tags")
+          .select("tag_id, wos_account_id"),
       ]);
 
     if (error || !memberRows) {
@@ -103,6 +113,14 @@ export default function ManageStatePage() {
     const usernameByUserId = new Map(
       (profiles ?? []).map((profile) => [profile.id, profile.username])
     );
+    const rallyLeadTagId = (tagRows ?? []).find(
+      (tag) => tag.system_key === "rally_lead"
+    )?.id;
+    const rallyLeadAccountIds = new Set(
+      (tagAssignmentRows ?? [])
+        .filter((assignment) => assignment.tag_id === rallyLeadTagId)
+        .map((assignment) => assignment.wos_account_id)
+    );
 
     setMembers(
       memberRows.flatMap((row) => {
@@ -123,6 +141,7 @@ export default function ManageStatePage() {
               (capability) =>
                 capability.capability as StateCapability
             ),
+          isRallyLead: rallyLeadAccountIds.has(account.id),
         }];
       })
     );
@@ -288,6 +307,24 @@ export default function ManageStatePage() {
 
     await loadStateManagement();
     await refreshMemberships();
+  }
+
+  async function setRallyLead(wosAccountId: string, enabled: boolean) {
+    if (!activeMembership) return;
+    setMessage("");
+    const { error } = await supabase.rpc("set_state_rally_lead", {
+      target_state_id: activeMembership.stateId,
+      target_wos_account_id: wosAccountId,
+      enabled,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    await loadStateManagement();
+    setMessage(enabled ? "Rally Lead tag assigned." : "Rally Lead tag removed.");
   }
 
   async function removeMember(wosAccountId: string) {
@@ -580,6 +617,19 @@ export default function ManageStatePage() {
                         }
                       />
                       <span>Garrison</span>
+                    </label>
+                    <label className="capability-toggle">
+                      <input
+                        type="checkbox"
+                        checked={member.isRallyLead}
+                        onChange={(event) =>
+                          void setRallyLead(
+                            member.wosAccountId,
+                            event.target.checked
+                          )
+                        }
+                      />
+                      <span>Rally Lead</span>
                     </label>
                     {(activeMembership.role === "owner" ||
                       member.role === "member") && (
