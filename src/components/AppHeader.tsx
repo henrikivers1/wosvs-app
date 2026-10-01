@@ -105,6 +105,25 @@ export function AppHeader() {
     };
   }, [loadIdentity, supabase]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("header-notification-count")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+        },
+        () => void loadIdentity()
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadIdentity, supabase]);
+
   async function signOut() {
     await supabase.auth.signOut();
     router.push("/login");

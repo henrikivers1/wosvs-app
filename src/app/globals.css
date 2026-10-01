@@ -231,10 +231,20 @@ li .cancel-edit-button { color: var(--text); background: var(--surface-raised); 
 .avatar-upload input { width: 100%; padding: 9px; color: var(--muted); }
 .avatar-upload span { color: var(--muted); font-size: 0.74rem; }
 .notification-list { display: grid; gap: 10px; margin-top: 17px; }
-.notification-card { margin: 0; }
+.notification-card { margin: 0; border-left-width: 4px; }
+.notification-membership { border-left-color: #7c9cff; }
+.notification-vote { border-left-color: #54b8e8; }
+.notification-notice { border-left-color: #e4a853; }
+.notification-tag { border-left-color: #67b88a; }
+.notification-comment { border-left-color: #b58cff; }
+.notification-plan { border-left-color: #ff8a5b; }
+.notification-general { border-left-color: var(--border-strong); }
+.notification-unread { background: linear-gradient(90deg, rgba(255, 255, 255, 0.035), transparent 38%), var(--surface-raised); }
 .notification-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.notification-card-heading > div { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
 .notification-card-heading h3 { margin: 0; }
 .notification-card-heading time { color: var(--muted); font-size: 0.73rem; white-space: nowrap; }
+.notification-category { display: inline-flex; padding: 3px 7px; color: var(--muted-strong); font-size: 0.62rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
 
 /* State voting */
 .votes-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -435,6 +445,23 @@ article.battle-plan-card { margin: 0; padding: 20px; border-left-color: var(--bo
 .plan-alliance-pill i { width: 7px; height: 7px; border-radius: 50%; }
 .plan-assignment-select { width: 100%; margin: 0; }
 .plan-assignment-select select { width: 100%; min-height: 34px; padding-top: 5px; padding-bottom: 5px; font-size: 0.72rem; }
+.plan-comments { padding-top: 18px; margin-top: 20px; border-top: 1px solid var(--border); }
+.plan-comments .section-title-row { margin-bottom: 12px; }
+.plan-comments h4 { margin: 0; font-size: 1rem; }
+.plan-comments-empty { color: var(--muted); font-size: 0.78rem; }
+.plan-comment-list { display: grid; gap: 8px; margin-bottom: 14px; }
+article.plan-comment { position: relative; padding: 13px; margin: 0; border-left-width: 3px; }
+article.plan-comment-public { border-left-color: #54b8e8; }
+article.plan-comment-admins { border-left-color: #b58cff; background: rgba(181, 140, 255, 0.04); }
+.plan-comment-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.plan-comment-heading > div { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.plan-comment-heading small, .plan-comment-heading time { color: var(--muted); font-size: 0.68rem; }
+.comment-visibility { display: inline-flex; padding: 3px 6px; color: var(--muted-strong); font-size: 0.59rem; font-weight: 800; text-transform: uppercase; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
+.plan-comment > p { margin: 10px 0 0; color: var(--text); font-size: 0.8rem; line-height: 1.55; white-space: pre-wrap; }
+.comment-delete-button { min-height: 30px; padding: 4px 8px; margin: 10px 0 0; font-size: 0.66rem; }
+.plan-comment-form { display: grid; grid-template-columns: minmax(0, 1fr) 210px auto; align-items: end; gap: 9px; padding: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+.plan-comment-form label, .plan-comment-form button { width: 100%; margin: 0; }
+.plan-comment-form textarea, .plan-comment-form select { width: 100%; }
 
 @media (max-width: 800px) {
   .header-workspace-row { align-items: stretch; flex-direction: column-reverse; }
@@ -517,6 +544,9 @@ article.battle-plan-card { margin: 0; padding: 20px; border-left-color: var(--bo
   .battle-plan-actions button { width: 100%; }
   .plan-group-editor { grid-template-columns: 1fr; align-items: stretch; }
   .battle-plan-board { grid-template-columns: 1fr; }
+  .plan-comment-form { grid-template-columns: 1fr; align-items: stretch; }
+  .plan-comment-heading { flex-direction: column; }
+  .plan-comment-form button { width: 100%; }
   .plan-average-grid { grid-template-columns: 1fr 1fr; }
   .plan-average-grid span:nth-child(2) { border-right: 0; }
   .plan-average-grid span:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }

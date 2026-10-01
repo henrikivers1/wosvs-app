@@ -377,20 +377,26 @@ export default function AnnouncementsPage() {
                 )}
 
                 {audienceType === "tag" && (
-                  <label>
-                    Tag
-                    <select
-                      value={audienceId}
-                      onChange={(event) => setAudienceId(event.target.value)}
-                    >
-                      <option value="">Choose tag</option>
-                      {tags.map((tag) => (
-                        <option key={tag.id} value={tag.id}>
-                          {tag.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <div>
+                    <label>
+                      Tag
+                      <select
+                        value={audienceId}
+                        onChange={(event) => setAudienceId(event.target.value)}
+                      >
+                        <option value="">Choose tag</option>
+                        {tags.map((tag) => (
+                          <option key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <p className="field-hint">
+                      Everyone who currently has this tag receives the message
+                      in their notification inbox.
+                    </p>
+                  </div>
                 )}
 
                 {audienceType === "role" && (

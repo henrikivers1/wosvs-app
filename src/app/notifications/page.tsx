@@ -13,6 +13,9 @@ type NotificationData = {
   plan_id?: string;
   poll_id?: string;
   state_id?: string;
+  comment_id?: string;
+  tag_id?: string;
+  tag_color?: string;
   token?: string;
 };
 
@@ -31,6 +34,34 @@ type InviteStatus = {
   status: string;
 };
 
+function notificationCategory(type: string) {
+  if (type === "state_invite" || type === "state_invite_accepted") {
+    return { label: "Membership", className: "membership" };
+  }
+  if (type === "state_poll_created") {
+    return { label: "Vote", className: "vote" };
+  }
+  if (type === "state_announcement") {
+    return { label: "Notice", className: "notice" };
+  }
+  if (type === "state_tag_awarded") {
+    return { label: "New tag", className: "tag" };
+  }
+  if (
+    type === "battle_plan_comment" ||
+    type === "battle_plan_comment_mention"
+  ) {
+    return { label: "Plan comment", className: "comment" };
+  }
+  if (
+    type === "battle_plan_assignment" ||
+    type === "battle_plan_published"
+  ) {
+    return { label: "Battle plan", className: "plan" };
+  }
+  return { label: "Update", className: "general" };
+}
+
 export default function NotificationsPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -41,6 +72,7 @@ export default function NotificationsPage() {
   >({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
 
   const loadNotifications = useCallback(async () => {
     const {
@@ -51,6 +83,8 @@ export default function NotificationsPage() {
       router.replace("/login");
       return;
     }
+
+    setUserId(user.id);
 
     const { data, error } = await supabase
       .from("notifications")
@@ -112,6 +146,27 @@ export default function NotificationsPage() {
     return () => window.clearTimeout(loadId);
   }, [loadNotifications]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`notification-inbox-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => void loadNotifications()
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadNotifications, supabase, userId]);
+
   async function respondToInvitation(
     inviteId: string,
     acceptInvite: boolean
@@ -142,8 +197,8 @@ export default function NotificationsPage() {
       <section>
         <h2>Notifications</h2>
         <p>
-          State invitations and membership decisions appear here. Friend
-          requests can use this same inbox when that feature is added.
+          Battle plans, comments, mentions, tags, votes, notices, and state
+          membership updates appear here.
         </p>
         {message && <p className="auth-message">{message}</p>}
 
@@ -154,15 +209,30 @@ export default function NotificationsPage() {
         ) : (
           <div className="notification-list">
             {notifications.map((notification) => {
+              const category = notificationCategory(notification.type);
               const inviteId = notification.data?.invite_id;
               const inviteStatus = inviteId
                 ? inviteStatuses[inviteId]
                 : undefined;
 
               return (
-                <article key={notification.id} className="notification-card">
+                <article
+                  key={notification.id}
+                  className={`notification-card notification-${category.className}${notification.read_at ? "" : " notification-unread"}`}
+                  style={
+                    notification.type === "state_tag_awarded" &&
+                    notification.data?.tag_color
+                      ? { borderLeftColor: notification.data.tag_color }
+                      : undefined
+                  }
+                >
                   <div className="notification-card-heading">
-                    <h3>{notification.title}</h3>
+                    <div>
+                      <span className="notification-category">
+                        {category.label}
+                      </span>
+                      <h3>{notification.title}</h3>
+                    </div>
                     <time dateTime={notification.created_at}>
                       {new Date(notification.created_at).toLocaleString()}
                     </time>
@@ -215,8 +285,24 @@ export default function NotificationsPage() {
                     </Link>
                   )}
                   {notification.type === "battle_plan_assignment" && (
-                    <Link className="nav-link" href="/state/planning">
+                    <Link className="nav-link" href={`/state/planning${notification.data?.plan_id ? `#plan-${notification.data.plan_id}` : ""}`}>
                       Open battle plan
+                    </Link>
+                  )}
+                  {notification.type === "battle_plan_published" && (
+                    <Link className="nav-link" href={`/state/planning${notification.data?.plan_id ? `#plan-${notification.data.plan_id}` : ""}`}>
+                      Open battle plan
+                    </Link>
+                  )}
+                  {(notification.type === "battle_plan_comment" ||
+                    notification.type === "battle_plan_comment_mention") && (
+                    <Link className="nav-link" href={`/state/planning${notification.data?.plan_id ? `#plan-${notification.data.plan_id}` : ""}`}>
+                      Open comments
+                    </Link>
+                  )}
+                  {notification.type === "state_tag_awarded" && (
+                    <Link className="nav-link" href="/">
+                      Open dashboard
                     </Link>
                   )}
                   {inviteStatus &&
