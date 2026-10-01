@@ -222,6 +222,7 @@ export default function VotesPage() {
     setMessage("");
     const { error } = await supabase.rpc("create_state_poll", {
       target_state_id: activeMembership.stateId,
+      creator_wos_account_id: activeMembership.wosAccountId,
       poll_question: question,
       poll_description: description,
       option_labels: optionLabels,

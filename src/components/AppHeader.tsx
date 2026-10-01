@@ -213,47 +213,12 @@ export function AppHeader() {
       {signedIn === true && (
         <div className="header-workspace-row">
           <nav aria-label="Main navigation">
-            <Link className={navClassName("/")} href="/">
-              Dashboard
-            </Link>
-            {canCallRallies && (
-              <>
-                <Link
-                  className={navClassName("/admin/leaders")}
-                  href="/admin/leaders"
-                >
-                  Leaders
-                </Link>
-                <Link
-                  className={navClassName("/admin/call-rally")}
-                  href="/admin/call-rally"
-                >
-                  Call rally
-                </Link>
-              </>
-            )}
-            {canUseGarrison && (
-              <Link
-                className={navClassName("/garrison")}
-                href="/garrison"
-              >
-                Garrison
-              </Link>
-            )}
             {activeMembership && (
               <Link
-                className={navClassName("/state/planning")}
-                href="/state/planning"
+                className={navClassName("/state/overwatch")}
+                href="/state/overwatch"
               >
-                Planning
-              </Link>
-            )}
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/alliances")}
-                href="/state/alliances"
-              >
-                Alliance overview
+                Overwatch
               </Link>
             )}
             {activeMembership && (
@@ -264,38 +229,44 @@ export function AppHeader() {
                 Votes
               </Link>
             )}
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/announcements")}
-                href="/state/announcements"
-              >
-                Notices
-              </Link>
-            )}
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/stats")}
-                href="/state/stats"
-              >
-                Stats &amp; history
-              </Link>
-            )}
             {(activeMembership?.role === "owner" ||
               activeMembership?.role === "admin") && (
-              <>
-                <Link
-                  className={navClassName("/state/tags")}
-                  href="/state/tags"
-                >
-                  Tags
-                </Link>
-                <Link
-                  className={navClassName("/state/manage")}
-                  href="/state/manage"
-                >
-                  Manage state
-                </Link>
-              </>
+              <Link
+                className={navClassName("/state/planning")}
+                href="/state/planning"
+              >
+                Planning
+              </Link>
+            )}
+            {activeMembership?.battleId &&
+              (canCallRallies || canUseGarrison) && (
+              <Link
+                className={navClassName("/battle")}
+                href="/battle"
+              >
+                Live Battle
+              </Link>
+            )}
+            {activeMembership && (
+              <Link
+                className={
+                  pathname.startsWith("/state/manage") ||
+                  pathname.startsWith("/state/stats") ||
+                  pathname.startsWith("/state/tags") ||
+                  pathname.startsWith("/state/announcements") ||
+                  pathname.startsWith("/state/alliances")
+                    ? "nav-link active-nav-link"
+                    : "nav-link"
+                }
+                href={
+                  activeMembership.role === "owner" ||
+                  activeMembership.role === "admin"
+                    ? "/state/manage"
+                    : "/state/stats"
+                }
+              >
+                State
+              </Link>
             )}
           </nav>
 

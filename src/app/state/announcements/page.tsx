@@ -29,12 +29,6 @@ type RecipientRow = {
   wos_account_id: string;
 };
 
-function defaultExpirationTime() {
-  const date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
-
 function formatAudienceValue(value: string | null) {
   if (value === "rally_caller") return "Coordinators";
   if (value === "garrison") return "Garrison";
@@ -59,7 +53,6 @@ export default function AnnouncementsPage() {
   const [audienceType, setAudienceType] = useState<AudienceType>("all");
   const [audienceId, setAudienceId] = useState("");
   const [audienceValue, setAudienceValue] = useState("");
-  const [expiresAt, setExpiresAt] = useState(defaultExpirationTime);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -226,22 +219,11 @@ export default function AnnouncementsPage() {
       return;
     }
 
-    const expiration = new Date(expiresAt);
-    const maximumExpiration = new Date();
-    maximumExpiration.setDate(maximumExpiration.getDate() + 30);
-    if (Number.isNaN(expiration.getTime()) || expiration <= new Date()) {
-      setMessage("Choose a future expiration time.");
-      return;
-    }
-    if (expiration > maximumExpiration) {
-      setMessage("Announcements can remain active for at most 30 days.");
-      return;
-    }
-
     setSaving(true);
     setMessage("");
     const { error } = await supabase.rpc("create_state_announcement", {
       target_state_id: activeMembership.stateId,
+      sender_wos_account_id: activeMembership.wosAccountId,
       announcement_title: cleanedTitle,
       announcement_body: cleanedBody,
       target_audience_type: audienceType,
@@ -253,7 +235,6 @@ export default function AnnouncementsPage() {
         audienceType === "role" || audienceType === "capability"
           ? audienceValue
           : null,
-      announcement_expires_at: expiration.toISOString(),
     });
 
     if (error) {
@@ -264,7 +245,6 @@ export default function AnnouncementsPage() {
       setAudienceType("all");
       setAudienceId("");
       setAudienceValue("");
-      setExpiresAt(defaultExpirationTime());
       await loadAnnouncements();
       setMessage("Announcement sent.");
     }
@@ -428,14 +408,6 @@ export default function AnnouncementsPage() {
                   </label>
                 )}
 
-                <label>
-                  Expires
-                  <input
-                    type="datetime-local"
-                    value={expiresAt}
-                    onChange={(event) => setExpiresAt(event.target.value)}
-                  />
-                </label>
                 <label className="announcement-body-field">
                   Message
                   <textarea
@@ -457,7 +429,7 @@ export default function AnnouncementsPage() {
               </button>
               <p className="form-hint">
                 The selected WOS accounts are saved as the recipient list when
-                you send. Notices expire after no more than 30 days.
+                you send. Notices expire automatically Sunday at 23:59 UTC.
               </p>
             </section>
           )}

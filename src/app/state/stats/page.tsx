@@ -9,9 +9,12 @@ type BattleHistoryRow = {
   battle_id: string;
   battle_name: string;
   battle_type: "svs" | "castle" | "test" | null;
-  battle_status: "active" | "completed";
-  started_at: string;
+  battle_status: "scheduled" | "active" | "completed" | "cancelled";
+  battle_result: "win" | "loss" | null;
+  scheduled_at: string | null;
+  started_at: string | null;
   ended_at: string | null;
+  plan_id: string | null;
   rally_count: number;
   cancelled_rally_count: number;
   leader_count: number;
@@ -52,8 +55,9 @@ export default function StateStatsPage() {
     setLoading(true);
     setMessage("");
     const [historyResult, overviewResult] = await Promise.all([
-      supabase.rpc("get_state_battle_history", {
+      supabase.rpc("get_state_battle_history_v2", {
         target_state_id: activeMembership.stateId,
+        viewer_wos_account_id: activeMembership.wosAccountId,
       }),
       supabase.rpc("get_state_overview", {
         target_state_id: activeMembership.stateId,
@@ -170,13 +174,23 @@ export default function StateStatsPage() {
                             : "battle-state"
                         }
                       >
-                        {battle.battle_status}
+                        {battle.battle_result
+                          ? `${battle.battle_status} · ${battle.battle_result}`
+                          : battle.battle_status}
                       </span>
                     </div>
                     <dl className="history-details">
                       <div>
+                        <dt>Scheduled</dt>
+                        <dd>{formatDateTime(battle.scheduled_at)}</dd>
+                      </div>
+                      <div>
                         <dt>Started</dt>
-                        <dd>{formatDateTime(battle.started_at)}</dd>
+                        <dd>
+                          {battle.started_at
+                            ? formatDateTime(battle.started_at)
+                            : "Not started"}
+                        </dd>
                       </div>
                       <div>
                         <dt>Ended</dt>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -40,8 +41,6 @@ export default function ManageStatePage() {
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const [inviteWosId, setInviteWosId] = useState("");
   const [inviteLink, setInviteLink] = useState("");
-  const [battleName, setBattleName] = useState("");
-  const [battleType, setBattleType] = useState("svs");
   const [battleResult, setBattleResult] = useState("win");
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [allianceName, setAllianceName] = useState("");
@@ -218,41 +217,18 @@ export default function ManageStatePage() {
     return () => window.clearTimeout(loadId);
   }, [loadStateManagement]);
 
-  async function startBattlePeriod() {
-    if (!activeMembership) return;
-    const trimmedBattleName = battleName.trim();
-    if (!trimmedBattleName) {
-      setMessage("Enter a battle period name, for example SVS vs 1501.");
-      return;
-    }
-    setMessage("");
-    const { error } = await supabase.rpc("start_state_battle", {
-      target_state_id: activeMembership.stateId,
-      battle_name: trimmedBattleName,
-    });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage("Battle period started. Battle tools are now available.");
-    setBattleName("");
-    await refreshMemberships();
-  }
-
   async function endBattlePeriod() {
     if (!activeMembership?.battleId) return;
     const confirmed = window.confirm(
-      `End this battle period as a ${battleResult.toUpperCase()} and save it as ${battleType.toUpperCase()}? Battle tools will be hidden for every member.`
+      `End this battle period as a ${battleResult.toUpperCase()}? Battle tools will be hidden for every member.`
     );
     if (!confirmed) return;
 
     setMessage("");
-    const { error } = await supabase.rpc("end_state_battle", {
+    const { error } = await supabase.rpc("complete_active_battle", {
       target_battle_id: activeMembership.battleId,
-      selected_battle_type: battleType,
       selected_result: battleResult,
+      actor_wos_account_id: activeMembership.wosAccountId,
     });
 
     if (error) {
@@ -547,6 +523,12 @@ export default function ManageStatePage() {
     <main>
       <AppHeader />
       {message && <p className="page-message">{message}</p>}
+      <nav className="state-section-nav" aria-label="State administration">
+        <span className="nav-link active-nav-link">Members &amp; setup</span>
+        <Link className="nav-link" href="/state/announcements">Send notices</Link>
+        <Link className="nav-link" href="/state/tags">Manage tags</Link>
+        <Link className="nav-link" href="/state/stats">Stats &amp; history</Link>
+      </nav>
       <section>
         <div className="section-title-row">
           <div>
@@ -574,19 +556,6 @@ export default function ManageStatePage() {
                 and garrison players.
               </p>
               <label>
-                Save this battle as
-                <select
-                  value={battleType}
-                  onChange={(event) =>
-                    setBattleType(event.target.value)
-                  }
-                >
-                  <option value="svs">SVS</option>
-                  <option value="castle">Castle</option>
-                  <option value="test">Test</option>
-                </select>
-              </label>
-              <label>
                 Battle result
                 <select
                   value={battleResult}
@@ -606,29 +575,18 @@ export default function ManageStatePage() {
             </button>
           </div>
         ) : (
-          <>
-            <p>
-              Start a battle period when your state is preparing, testing,
-              or actively coordinating an event.
-            </p>
-            <div className="battle-start-form">
-              <label>
-                Battle name
-                <input
-                  type="text"
-                  value={battleName}
-                  onChange={(event) =>
-                    setBattleName(event.target.value)
-                  }
-                  maxLength={80}
-                  placeholder="e.g. SVS vs 1501"
-                />
-              </label>
-              <button type="button" onClick={startBattlePeriod}>
-                Start battle period
-              </button>
+          <div className="battle-control-row">
+            <div>
+              <strong>No live battle</strong>
+              <p>
+                Create and publish a plan to schedule its battle period. Start
+                the live period from that plan when coordination begins.
+              </p>
             </div>
-          </>
+            <Link className="nav-link" href="/state/planning">
+              Open battle planning
+            </Link>
+          </div>
         )}
       </section>
 
@@ -916,7 +874,22 @@ export default function ManageStatePage() {
                   {member.username ? " — @" + member.username : ""}
                 </span>
                 {member.role === "owner" ? (
-                  <span className="role-badge">Owner</span>
+                  <div className="member-actions">
+                    <span className="role-badge">Owner</span>
+                    <label className="capability-toggle">
+                      <input
+                        type="checkbox"
+                        checked={member.isRallyLead}
+                        onChange={(event) =>
+                          void setRallyLead(
+                            member.wosAccountId,
+                            event.target.checked
+                          )
+                        }
+                      />
+                      <span>Rally Lead</span>
+                    </label>
+                  </div>
                 ) : (
                   <div className="member-actions">
                     {activeMembership.role === "owner" ? (

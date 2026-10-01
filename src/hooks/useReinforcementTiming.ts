@@ -62,7 +62,8 @@ export function useReinforcementTiming(
   }
 
   async function enableNotifications() {
-    if (!("Notification" in window)) {
+    const notificationsSupported = "Notification" in window;
+    if (!notificationsSupported) {
       window.alert("This browser does not support notifications.");
       return;
     }

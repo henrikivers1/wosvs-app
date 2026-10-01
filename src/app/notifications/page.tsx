@@ -21,6 +21,9 @@ type NotificationData = {
 
 type NotificationItem = {
   id: number;
+  state_id: string | null;
+  wos_account_id: string | null;
+  category: "state" | "social" | "tag" | "alliance" | "battle";
   type: string;
   title: string;
   body: string;
@@ -29,12 +32,20 @@ type NotificationItem = {
   created_at: string;
 };
 
+type AccountLabel = { id: string; nickname: string | null; wos_id: string };
+type StateLabel = { id: string; name: string };
+
 type InviteStatus = {
   id: string;
   status: string;
 };
 
-function notificationCategory(type: string) {
+function notificationCategory(type: string, storedCategory?: NotificationItem["category"]) {
+  if (storedCategory === "state") return { label: "State", className: "state" };
+  if (storedCategory === "social") return { label: "Social", className: "social" };
+  if (storedCategory === "tag") return { label: "Tag", className: "tag" };
+  if (storedCategory === "alliance") return { label: "Alliance", className: "alliance" };
+  if (storedCategory === "battle") return { label: "Battle", className: "battle" };
   if (type === "state_invite" || type === "state_invite_accepted") {
     return { label: "Membership", className: "membership" };
   }
@@ -73,6 +84,8 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [accountLabels, setAccountLabels] = useState<Record<string, string>>({});
+  const [stateLabels, setStateLabels] = useState<Record<string, string>>({});
 
   const loadNotifications = useCallback(async () => {
     const {
@@ -88,7 +101,7 @@ export default function NotificationsPage() {
 
     const { data, error } = await supabase
       .from("notifications")
-      .select("id, type, title, body, data, read_at, created_at")
+      .select("id, state_id, wos_account_id, category, type, title, body, data, read_at, created_at")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -100,6 +113,20 @@ export default function NotificationsPage() {
 
     const items = (data ?? []) as NotificationItem[];
     setNotifications(items);
+    const accountIds = [...new Set(items.map((item) => item.wos_account_id).filter((id): id is string => Boolean(id)))];
+    const stateIds = [...new Set(items.map((item) => item.state_id).filter((id): id is string => Boolean(id)))];
+    const [accountResult, stateResult] = await Promise.all([
+      accountIds.length ? supabase.from("wos_accounts").select("id, nickname, wos_id").in("id", accountIds) : Promise.resolve({ data: [], error: null }),
+      stateIds.length ? supabase.from("states").select("id, name").in("id", stateIds) : Promise.resolve({ data: [], error: null }),
+    ]);
+    setAccountLabels(((accountResult.data ?? []) as AccountLabel[]).reduce<Record<string, string>>((labels, account) => {
+      labels[account.id] = account.nickname || `WOS ID ${account.wos_id}`;
+      return labels;
+    }, {}));
+    setStateLabels(((stateResult.data ?? []) as StateLabel[]).reduce<Record<string, string>>((labels, state) => {
+      labels[state.id] = state.name;
+      return labels;
+    }, {}));
     const inviteIds = [
       ...new Set(
         items
@@ -209,7 +236,7 @@ export default function NotificationsPage() {
         ) : (
           <div className="notification-list">
             {notifications.map((notification) => {
-              const category = notificationCategory(notification.type);
+              const category = notificationCategory(notification.type, notification.category);
               const inviteId = notification.data?.invite_id;
               const inviteStatus = inviteId
                 ? inviteStatuses[inviteId]
@@ -219,12 +246,6 @@ export default function NotificationsPage() {
                 <article
                   key={notification.id}
                   className={`notification-card notification-${category.className}${notification.read_at ? "" : " notification-unread"}`}
-                  style={
-                    notification.type === "state_tag_awarded" &&
-                    notification.data?.tag_color
-                      ? { borderLeftColor: notification.data.tag_color }
-                      : undefined
-                  }
                 >
                   <div className="notification-card-heading">
                     <div>
@@ -232,6 +253,11 @@ export default function NotificationsPage() {
                         {category.label}
                       </span>
                       <h3>{notification.title}</h3>
+                      {(notification.state_id || notification.wos_account_id) && (
+                        <small className="notification-context">
+                          {[notification.state_id ? stateLabels[notification.state_id] : null, notification.wos_account_id ? accountLabels[notification.wos_account_id] : null].filter(Boolean).join(" · ")}
+                        </small>
+                      )}
                     </div>
                     <time dateTime={notification.created_at}>
                       {new Date(notification.created_at).toLocaleString()}
@@ -280,29 +306,45 @@ export default function NotificationsPage() {
                     </Link>
                   )}
                   {notification.type === "state_announcement" && (
-                    <Link className="nav-link" href="/state/announcements">
-                      Open notice
+                    <Link className="nav-link" href="/state/overwatch">
+                      Open Overwatch
                     </Link>
                   )}
                   {notification.type === "battle_plan_assignment" && (
-                    <Link className="nav-link" href={`/state/planning${notification.data?.plan_id ? `#plan-${notification.data.plan_id}` : ""}`}>
-                      Open battle plan
+                    <Link className="nav-link" href="/state/overwatch">
+                      Open Overwatch
                     </Link>
                   )}
                   {notification.type === "battle_plan_published" && (
-                    <Link className="nav-link" href={`/state/planning${notification.data?.plan_id ? `#plan-${notification.data.plan_id}` : ""}`}>
-                      Open battle plan
+                    <Link className="nav-link" href="/state/overwatch">
+                      Open Overwatch
                     </Link>
                   )}
                   {(notification.type === "battle_plan_comment" ||
                     notification.type === "battle_plan_comment_mention") && (
-                    <Link className="nav-link" href={`/state/planning${notification.data?.plan_id ? `#plan-${notification.data.plan_id}` : ""}`}>
+                    <Link className="nav-link" href="/state/overwatch">
                       Open comments
                     </Link>
                   )}
                   {notification.type === "state_tag_awarded" && (
-                    <Link className="nav-link" href="/">
-                      Open dashboard
+                    <Link className="nav-link" href="/state/overwatch">
+                      Open Overwatch
+                    </Link>
+                  )}
+                  {notification.type === "state_alliance_assigned" && (
+                    <Link className="nav-link" href="/state/overwatch">
+                      Open Overwatch
+                    </Link>
+                  )}
+                  {notification.type === "battle_started" && (
+                    <Link className="nav-link" href="/battle">
+                      Open Live Battle
+                    </Link>
+                  )}
+                  {(notification.type === "battle_completed" ||
+                    notification.type === "battle_cancelled") && (
+                    <Link className="nav-link" href="/state/stats">
+                      Open battle history
                     </Link>
                   )}
                   {inviteStatus &&

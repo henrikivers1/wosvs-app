@@ -239,12 +239,60 @@ li .cancel-edit-button { color: var(--text); background: var(--surface-raised); 
 .notification-comment { border-left-color: #b58cff; }
 .notification-plan { border-left-color: #ff8a5b; }
 .notification-general { border-left-color: var(--border-strong); }
+.notification-state { border-left-color: #e4a853; }
+.notification-social { border-left-color: #a78bfa; }
+.notification-alliance { border-left-color: #45b8c8; }
+.notification-battle { border-left-color: #ff8a5b; }
 .notification-unread { background: linear-gradient(90deg, rgba(255, 255, 255, 0.035), transparent 38%), var(--surface-raised); }
 .notification-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
 .notification-card-heading > div { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
 .notification-card-heading h3 { margin: 0; }
 .notification-card-heading time { color: var(--muted); font-size: 0.73rem; white-space: nowrap; }
 .notification-category { display: inline-flex; padding: 3px 7px; color: var(--muted-strong); font-size: 0.62rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
+.notification-context { color: var(--muted); font-size: 0.74rem; }
+
+/* Member Overwatch and consolidated live operations */
+.overwatch-hero,
+.live-battle-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.overwatch-hero h1,
+.live-battle-heading h1 { margin-bottom: 8px; }
+.overwatch-hero p:last-child,
+.live-battle-heading p:last-child { margin: 0; color: var(--muted); }
+.overwatch-grid,
+.live-battle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.overwatch-card,
+.live-battle-card {
+  min-width: 0;
+  margin: 0;
+  border-left: 4px solid var(--accent);
+}
+.overwatch-card h2,
+.live-battle-card h2 { margin: 5px 0 10px; }
+.overwatch-card p:last-child,
+.live-battle-card p { color: var(--muted); }
+.overwatch-battle-card { grid-column: span 2; }
+.overwatch-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.alliance-title { display: flex; align-items: center; gap: 10px; }
+.alliance-title > span { width: 12px; height: 12px; border-radius: 999px; }
+.state-section-nav { margin-bottom: 20px; }
+
+@media (max-width: 760px) {
+  .overwatch-hero,
+  .live-battle-heading { align-items: flex-start; flex-direction: column; }
+  .overwatch-grid,
+  .live-battle-grid { grid-template-columns: 1fr; }
+  .overwatch-battle-card { grid-column: auto; }
+}
 
 /* State voting */
 .votes-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
