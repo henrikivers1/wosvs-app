@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (accountError) {
+    console.error("[player-sync] Account lookup failed:", accountError);
     return Response.json({ error: accountError.message }, { status: 500 });
   }
   if (!account) {
@@ -88,6 +89,7 @@ export async function POST(request: Request) {
       .eq("user_id", user.id);
 
     if (updateError) {
+      console.error("[player-sync] Account update failed:", updateError);
       return Response.json({ error: updateError.message }, { status: 500 });
     }
 
@@ -103,6 +105,7 @@ export async function POST(request: Request) {
     if (error instanceof OraclePlayerError) {
       return Response.json({ error: error.message }, { status: error.status });
     }
+    console.error("[player-sync] Unexpected failure:", error);
     return Response.json(
       { error: "Player synchronization failed." },
       { status: 500 },

@@ -38,21 +38,70 @@ function record(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+// Accept both a bare player object and common envelopes such as
+// { data: {...} } or { player: {...} }.
+function unwrapPlayer(value: unknown): Record<string, unknown> {
+  let payload = record(value);
+  for (const key of ["data", "player", "result"]) {
+    const inner = payload[key];
+    if (inner && typeof inner === "object" && !Array.isArray(inner)) {
+      payload = inner as Record<string, unknown>;
+    }
+  }
+  return payload;
+}
+
+function pick(payload: Record<string, unknown>, ...keys: string[]) {
+  for (const key of keys) {
+    if (payload[key] !== undefined && payload[key] !== null) {
+      return payload[key];
+    }
+  }
+  return undefined;
+}
+
 function textField(value: unknown, field: string) {
-  if (typeof value !== "string" || !value.trim()) {
+  const text =
+    typeof value === "string"
+      ? value.trim()
+      : typeof value === "number"
+        ? String(value)
+        : "";
+  if (!text) {
     throw new OraclePlayerError(`WOSOracle response is missing ${field}.`, 502);
   }
-  return value.trim();
+  return text;
+}
+
+function optionalText(value: unknown) {
+  if (typeof value === "number") return String(value);
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+// Large numbers such as power are often serialised as strings.
+function toNumber(value: unknown) {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim()
+        ? Number(value.replace(/[,_\s]/g, ""))
+        : NaN;
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.trunc(parsed) : null;
 }
 
 function numberField(value: unknown, field: string) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+  const parsed = toNumber(value);
+  if (parsed === null) {
     throw new OraclePlayerError(
       `WOSOracle response contains an invalid ${field}.`,
       502,
     );
   }
-  return Math.trunc(value);
+  return parsed;
+}
+
+function optionalNumber(value: unknown) {
+  return toNumber(value) ?? 0;
 }
 
 function safeAvatarUrl(value: unknown) {
@@ -66,13 +115,13 @@ function safeAvatarUrl(value: unknown) {
 }
 
 function parseAlliance(value: unknown): OracleAlliance | null {
-  if (value === null || value === undefined) return null;
-  const alliance = record(value);
-  return {
-    id: numberField(alliance.id, "alliance id"),
-    abbr: textField(alliance.abbr, "alliance abbreviation"),
-    name: textField(alliance.name, "alliance name"),
-  };
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const alliance = value as Record<string, unknown>;
+  const id = toNumber(alliance.id);
+  const abbr = optionalText(pick(alliance, "abbr", "tag", "short_name"));
+  const name = optionalText(alliance.name);
+  if (id === null || (!abbr && !name)) return null;
+  return { id, abbr: abbr ?? "", name: name ?? abbr ?? "" };
 }
 
 export function fireCrystalLevel(rawFurnaceLevel: number) {
@@ -109,6 +158,11 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
   }
 
   if (!response.ok) {
+    const detail = (await response.text().catch(() => "")).slice(0, 500);
+    console.error(
+      `[wosOracle] GET ${baseUrl}/players/${wosId} -> ${response.status}`,
+      detail,
+    );
     const message =
       response.status === 404
         ? "That WOS player was not found."
@@ -118,48 +172,75 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
     throw new OraclePlayerError(message, response.status);
   }
 
+  const rawBody = await response.text();
   let responseBody: unknown;
   try {
-    responseBody = await response.json();
+    responseBody = JSON.parse(rawBody);
   } catch {
+    console.error(
+      "[wosOracle] Non-JSON response:",
+      response.headers.get("content-type"),
+      rawBody.slice(0, 500),
+    );
     throw new OraclePlayerError("WOSOracle returned a non-JSON response.", 502);
   }
 
-  const payload = record(responseBody);
-  const returnedId = textField(String(payload.id ?? ""), "player id");
+  try {
+    return parsePlayer(unwrapPlayer(responseBody), wosId);
+  } catch (error) {
+    console.error(
+      "[wosOracle] Unexpected response shape:",
+      rawBody.slice(0, 1000),
+    );
+    throw error;
+  }
+}
+
+function parsePlayer(
+  payload: Record<string, unknown>,
+  wosId: string,
+): OraclePlayer {
+  const returnedId = textField(
+    pick(payload, "id", "fid", "player_id"),
+    "player id",
+  );
   if (returnedId !== wosId) {
     throw new OraclePlayerError("WOSOracle returned a different player.", 502);
   }
 
-  const furnaceLevel = numberField(payload.furnace_level, "furnace level");
-  if (furnaceLevel < 1 || furnaceLevel > 40) {
+  const furnaceLevel = numberField(
+    pick(payload, "furnace_level", "stove_lv", "furnace"),
+    "furnace level",
+  );
+  if (furnaceLevel < 1) {
     throw new OraclePlayerError(
       "WOSOracle returned an unsupported furnace level.",
       502,
     );
   }
 
-  const updatedAt = textField(payload.updated_at, "update time");
-  if (Number.isNaN(Date.parse(updatedAt))) {
-    throw new OraclePlayerError(
-      "WOSOracle returned an invalid update time.",
-      502,
-    );
-  }
+  const reportedUpdate = optionalText(pick(payload, "updated_at", "updatedAt"));
+  const updatedAt =
+    reportedUpdate && !Number.isNaN(Date.parse(reportedUpdate))
+      ? reportedUpdate
+      : new Date().toISOString();
 
   return {
     id: returnedId,
-    name: textField(payload.name, "player name").slice(0, 100),
-    avatarUrl: safeAvatarUrl(payload.avatar_url),
-    state: numberField(payload.state, "state"),
+    name: textField(pick(payload, "name", "nickname"), "player name").slice(
+      0,
+      100,
+    ),
+    avatarUrl: safeAvatarUrl(pick(payload, "avatar_url", "avatar_image")),
+    state: numberField(pick(payload, "state", "kid", "state_id"), "state"),
     furnaceLevel,
-    power: numberField(payload.power, "power"),
-    chiefLevel: numberField(payload.level, "chief level"),
-    vipLevel: numberField(payload.vip, "VIP level"),
-    kills: numberField(payload.kills, "kills"),
-    labyrinthScore: numberField(payload.labyrinth_score, "Labyrinth score"),
+    power: optionalNumber(payload.power),
+    chiefLevel: optionalNumber(pick(payload, "level", "chief_level")),
+    vipLevel: optionalNumber(pick(payload, "vip", "vip_level")),
+    kills: optionalNumber(payload.kills),
+    labyrinthScore: optionalNumber(payload.labyrinth_score),
     alliance: parseAlliance(payload.alliance),
-    active: payload.active === true,
+    active: payload.active !== false,
     updatedAt,
   };
 }
