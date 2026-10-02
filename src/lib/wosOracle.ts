@@ -137,7 +137,11 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
     process.env.WOS_ORACLE_API_BASE_URL ?? DEFAULT_ORACLE_API_BASE_URL
   ).replace(/\/$/, "");
   const headers = new Headers({ Accept: "application/json" });
-  const apiKey = process.env.WOS_ORACLE_API_KEY;
+  // Strip whitespace and accidental surrounding quotes from .env values.
+  const apiKey = process.env.WOS_ORACLE_API_KEY?.trim().replace(
+    /^(["'])(.*)\1$/,
+    "$2",
+  );
 
   if (apiKey) {
     const headerName =
@@ -167,7 +171,7 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
       response.status === 404
         ? "That WOS player was not found."
         : response.status === 401 || response.status === 403
-          ? "WOSOracle authentication failed."
+          ? `WOSOracle authentication failed${apiKey ? " (API key rejected)" : " (no API key configured)"}.`
           : `WOSOracle returned ${response.status}.`;
     throw new OraclePlayerError(message, response.status);
   }
