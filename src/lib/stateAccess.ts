@@ -34,30 +34,56 @@ export async function requireStateMember(
   }
 
   const admin = createAdminClient();
-  const [{ data: memberships }, { data: state }] = await Promise.all([
-    admin
-      .from("state_members")
-      .select("wos_account_id, wos_accounts!inner(user_id)")
-      .eq("state_id", stateId)
-      .eq("wos_accounts.user_id", user.id)
-      .limit(1),
-    admin
-      .from("states")
-      .select("game_state_number")
-      .eq("id", stateId)
-      .maybeSingle(),
-  ]);
+  const { data: ownAccounts, error: accountsError } = await admin
+    .from("wos_accounts")
+    .select("id")
+    .eq("user_id", user.id);
+  if (accountsError) {
+    console.error("[state-access] Account lookup failed:", accountsError);
+    return Response.json({ error: accountsError.message }, { status: 500 });
+  }
 
-  if (!memberships || memberships.length === 0 || !state) {
+  const accountIds = (ownAccounts ?? []).map((account) => account.id);
+  const { data: memberships, error: membershipError } = accountIds.length
+    ? await admin
+        .from("state_members")
+        .select("wos_account_id")
+        .eq("state_id", stateId)
+        .in("wos_account_id", accountIds)
+        .limit(1)
+    : { data: [], error: null };
+  if (membershipError) {
+    console.error("[state-access] Membership lookup failed:", membershipError);
+    return Response.json({ error: membershipError.message }, { status: 500 });
+  }
+  if (!memberships || memberships.length === 0) {
     return Response.json(
       { error: "You are not a member of this state." },
       { status: 403 },
     );
   }
 
+  const { data: state, error: stateError } = await admin
+    .from("states")
+    .select("game_state_number")
+    .eq("id", stateId)
+    .maybeSingle();
+  if (stateError) {
+    console.error("[state-access] State lookup failed:", stateError);
+    return Response.json(
+      {
+        error:
+          stateError.code === "42703"
+            ? "Database is missing the WOSOracle columns. Run the latest migration in Supabase."
+            : stateError.message,
+      },
+      { status: 500 },
+    );
+  }
+
   return {
     userId: user.id,
     admin,
-    gameStateNumber: state.game_state_number ?? null,
+    gameStateNumber: state?.game_state_number ?? null,
   };
 }
