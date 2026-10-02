@@ -1,3 +1,4 @@
+import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
   fetchOraclePlayer,
@@ -13,6 +14,14 @@ type SyncRequest = {
 };
 
 export async function POST(request: Request) {
+  if (!hasAdminCredentials()) {
+    console.error("[player-sync] SUPABASE_SERVICE_ROLE_KEY is not configured.");
+    return Response.json(
+      { error: "Player synchronization is not configured on the server." },
+      { status: 500 },
+    );
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -64,7 +73,9 @@ export async function POST(request: Request) {
   try {
     const player = await fetchOraclePlayer(account.wos_id);
     const syncedAt = new Date().toISOString();
-    const { error: updateError } = await supabase
+    // Players cannot write these columns themselves; save with the service
+    // role after ownership was verified above.
+    const { error: updateError } = await createAdminClient()
       .from("wos_accounts")
       .update({
         nickname: player.name,

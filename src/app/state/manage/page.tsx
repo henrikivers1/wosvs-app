@@ -45,6 +45,8 @@ export default function ManageStatePage() {
   );
   const [inviteWosId, setInviteWosId] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [releaseWosId, setReleaseWosId] = useState("");
+  const [releasingClaim, setReleasingClaim] = useState(false);
   const [battleResult, setBattleResult] = useState("win");
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [allianceName, setAllianceName] = useState("");
@@ -370,6 +372,50 @@ export default function ManageStatePage() {
         "Invitation delivered in the player's notification inbox. The link below is an optional backup.",
       ),
     );
+  }
+
+  async function releaseClaim() {
+    const wosId = releaseWosId.trim();
+    if (!activeMembership || !/^[0-9]+$/.test(wosId)) {
+      setMessage(t("Enter a numeric WOS ID."));
+      return;
+    }
+    if (
+      !window.confirm(
+        t(
+          "Release WOS ID {wosId}? It is removed from the login that claimed it, including all state memberships, so the real player can register it.",
+          { wosId },
+        ),
+      )
+    ) {
+      return;
+    }
+
+    setReleasingClaim(true);
+    setMessage(t(""));
+    try {
+      const response = await fetch("/api/accounts/release-claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stateId: activeMembership.stateId,
+          actorAccountId: activeMembership.wosAccountId,
+          wosId,
+        }),
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setMessage(result.error || t("The WOS ID could not be released."));
+        return;
+      }
+      setReleaseWosId("");
+      setMessage(t("WOS ID {wosId} was released.", { wosId }));
+      await loadStateManagement();
+    } catch {
+      setMessage(t("The WOS ID could not be released."));
+    } finally {
+      setReleasingClaim(false);
+    }
   }
 
   async function copyInviteLink() {
@@ -820,6 +866,34 @@ export default function ManageStatePage() {
             </button>
           </div>
         )}
+      </section>
+
+      <section>
+        <h2>{t("Release a claimed WOS ID")}</h2>
+        <p>
+          {t(
+            "If someone registered a WOS ID that is not theirs, release it so the real player can add it. Works for members of this state and for players WOSOracle lists in your in-game state.",
+          )}
+        </p>
+        <div className="invite-form">
+          <label>
+            {t("WOS ID")}
+            <input
+              type="text"
+              inputMode="numeric"
+              value={releaseWosId}
+              onChange={(event) => setReleaseWosId(event.target.value)}
+              placeholder={t("Claimed WOS ID")}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void releaseClaim()}
+            disabled={releasingClaim}
+          >
+            {releasingClaim ? t("Releasing...") : t("Release WOS ID")}
+          </button>
+        </div>
       </section>
 
       <section>

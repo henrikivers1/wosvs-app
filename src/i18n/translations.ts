@@ -82,6 +82,18 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Claimed WOS ID": "WOS ID reclamado",
+  "If someone registered a WOS ID that is not theirs, release it so the real player can add it. Works for members of this state and for players WOSOracle lists in your in-game state.":
+    "Si alguien registró un WOS ID que no es suyo, libéralo para que el jugador real pueda añadirlo. Funciona para miembros de este estado y para jugadores que WOSOracle muestra en tu estado del juego.",
+  "Release WOS ID": "Liberar WOS ID",
+  "Release WOS ID {wosId}? It is removed from the login that claimed it, including all state memberships, so the real player can register it.":
+    "¿Liberar el WOS ID {wosId}? Se eliminará de la cuenta que lo reclamó, incluidas todas sus membresías de estado, para que el jugador real pueda registrarlo.",
+  "Release a claimed WOS ID": "Liberar un WOS ID reclamado",
+  "Releasing...": "Liberando...",
+  "That WOS ID is already registered. If it is yours, ask an admin of your state to release it.":
+    "Ese WOS ID ya está registrado. Si es tuyo, pide a un administrador de tu estado que lo libere.",
+  "The WOS ID could not be released.": "No se pudo liberar el WOS ID.",
+  "WOS ID {wosId} was released.": "El WOS ID {wosId} fue liberado.",
   "— March:": "— Marcha:",
   "· Troops": "· Tropas",
   "/2000 characters": "/2000 caracteres",
@@ -190,8 +202,6 @@ const spanishInterface: Record<string, string> = {
   Castle: "Castillo",
   "Check your email to confirm your account.":
     "Revisa tu correo para confirmar la cuenta.",
-  "Choose a JPG, PNG, WebP, or GIF image.":
-    "Elige una imagen JPG, PNG, WebP o GIF.",
   "Choose a state": "Elegir un estado",
   "Choose alliance": "Elegir alianza",
   "Choose battle role": "Elegir rol de batalla",
@@ -293,7 +303,6 @@ const spanishInterface: Record<string, string> = {
   "Join a state to view battle assignments":
     "Únete a un estado para ver las asignaciones de batalla",
   "Join a state to view notices": "Únete a un estado para ver los avisos",
-  "JPG, PNG, WebP, or GIF. Maximum 2 MB.": "JPG, PNG, WebP o GIF. Máximo 2 MB.",
   "Loading alliance overview...": "Cargando resumen de alianzas...",
   "Loading battle history...": "Cargando historial de batallas...",
   "Loading battle planning...": "Cargando planificación de batalla...",
@@ -411,8 +420,6 @@ const spanishInterface: Record<string, string> = {
   "Player's WOS ID": "ID de WOS del jugador",
   Players: "Jugadores",
   "Position:": "Posición:",
-  "Profile picture": "Foto de perfil",
-  "Profile picture updated.": "Foto de perfil actualizada.",
   "Public — all state members": "Público: todos los miembros del estado",
   "Public comments": "Comentarios públicos",
   "Public username": "Nombre de usuario público",
@@ -520,8 +527,6 @@ const spanishInterface: Record<string, string> = {
   "That rally group is full.": "Ese grupo de rally está lleno.",
   "The bulk-move limit must be between 1 and 100.":
     "El límite de movimiento masivo debe estar entre 1 y 100.",
-  "The profile picture must be 2 MB or smaller.":
-    "La foto de perfil debe pesar 2 MB o menos.",
   "The selected WOS accounts are saved as the recipient list when you send. Notices expire automatically Sunday at 23:59 UTC.":
     "Las cuentas de WOS seleccionadas se guardan como destinatarios al enviar. Los avisos caducan automáticamente el domingo a las 23:59 UTC.",
   "These leaders belong only to the current battle period. A new battle period starts with an empty leader list.":
@@ -541,7 +546,6 @@ const spanishInterface: Record<string, string> = {
   Unassigned: "Sin asignar",
   "Unassigned accounts": "Cuentas sin asignar",
   "Until Sunday 23:59 UTC": "Hasta el domingo a las 23:59 UTC",
-  "Uploading profile picture...": "Subiendo foto de perfil...",
   "Use a six-digit color code such as #4f8fba.":
     "Usa un código de color de seis dígitos, como #4f8fba.",
   "Use a six-digit color code such as #e4a853.":
@@ -578,6 +582,8 @@ const spanishInterface: Record<string, string> = {
   "Your battle notices": "Tus avisos de batalla",
   "Your email is private and is never shown to other players.":
     "Tu correo es privado y nunca se muestra a otros jugadores.",
+  "Your profile picture is the in-game avatar of your highest-power WOS account.":
+    "Tu foto de perfil es el avatar del juego de tu cuenta WOS con más poder.",
   "Your email remains private. Your username and profile picture may be shown to players who share a state with you.":
     "Tu correo permanece privado. Tu nombre de usuario y foto de perfil pueden mostrarse a jugadores que compartan estado contigo.",
   "Your in-game name": "Tu nombre en el juego",

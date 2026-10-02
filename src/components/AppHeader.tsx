@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
 import { isAppLocale, LANGUAGE_OPTIONS, type AppLocale } from "@/i18n/config";
+import { fetchProfileAvatarUrl } from "@/lib/profileAvatar";
 
 export function AppHeader() {
   const router = useRouter();
@@ -38,16 +39,17 @@ export function AppHeader() {
       return;
     }
 
-    const [{ data: profile }, { count }] = await Promise.all([
+    const [{ data: profile }, { count }, gameAvatarUrl] = await Promise.all([
       supabase
         .from("profiles")
-        .select("username, avatar_path, preferred_language")
+        .select("username, preferred_language")
         .eq("id", user.id)
         .maybeSingle(),
       supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .is("read_at", null),
+      fetchProfileAvatarUrl(supabase, user.id),
     ]);
 
     const publicUsername = profile?.username ?? null;
@@ -57,14 +59,7 @@ export function AppHeader() {
       setLocale(profile.preferred_language);
     }
 
-    if (profile?.avatar_path) {
-      const { data } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(profile.avatar_path);
-      setAvatarUrl(data.publicUrl);
-    } else {
-      setAvatarUrl(null);
-    }
+    setAvatarUrl(gameAvatarUrl);
     setIdentityLoaded(true);
 
     if (
