@@ -1233,19 +1233,6 @@ li .cancel-edit-button {
   flex: 0 0 auto;
   font-size: 2rem;
 }
-.avatar-upload {
-  display: flex;
-  width: 100%;
-}
-.avatar-upload input {
-  width: 100%;
-  padding: 9px;
-  color: var(--muted);
-}
-.avatar-upload span {
-  color: var(--muted);
-  font-size: 0.74rem;
-}
 .notification-list {
   display: grid;
   gap: 10px;

@@ -1,34 +1,19 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ChangeEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
-
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
-const ACCEPTED_AVATAR_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-];
+import { fetchProfileAvatarUrl } from "@/lib/profileAvatar";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const [userId, setUserId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
 
   const loadProfile = useCallback(async () => {
@@ -41,12 +26,14 @@ export default function ProfilePage() {
       return;
     }
 
-    setUserId(user.id);
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("username, avatar_path")
-      .eq("id", user.id)
-      .maybeSingle();
+    const [{ data: profile, error }, gameAvatarUrl] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .maybeSingle(),
+      fetchProfileAvatarUrl(supabase, user.id),
+    ]);
 
     if (error) {
       setMessage(error.message);
@@ -54,14 +41,7 @@ export default function ProfilePage() {
     }
 
     setUsername(profile?.username ?? "");
-    if (profile?.avatar_path) {
-      const { data } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(profile.avatar_path);
-      setAvatarUrl(data.publicUrl + "?v=" + new Date().getTime().toString());
-    } else {
-      setAvatarUrl(null);
-    }
+    setAvatarUrl(gameAvatarUrl);
   }, [router, supabase]);
 
   useEffect(() => {
@@ -70,56 +50,6 @@ export default function ProfilePage() {
     }, 0);
     return () => window.clearTimeout(loadId);
   }, [loadProfile]);
-
-  async function uploadAvatar(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !userId) return;
-
-    if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
-      setMessage(t("Choose a JPG, PNG, WebP, or GIF image."));
-      event.target.value = "";
-      return;
-    }
-
-    if (file.size > MAX_AVATAR_SIZE) {
-      setMessage(t("The profile picture must be 2 MB or smaller."));
-      event.target.value = "";
-      return;
-    }
-
-    setUploading(true);
-    setMessage(t(""));
-    const avatarPath = `${userId}/avatar`;
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(avatarPath, file, {
-        upsert: true,
-        contentType: file.type,
-        cacheControl: "3600",
-      });
-
-    if (uploadError) {
-      setUploading(false);
-      setMessage(uploadError.message);
-      return;
-    }
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ avatar_path: avatarPath })
-      .eq("id", userId);
-
-    setUploading(false);
-    event.target.value = "";
-    if (profileError) {
-      setMessage(profileError.message);
-      return;
-    }
-
-    setMessage(t("Profile picture updated."));
-    await loadProfile();
-    router.refresh();
-  }
 
   return (
     <main>
@@ -151,17 +81,11 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <label className="avatar-upload">
-          {t("Profile picture")}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={(event) => void uploadAvatar(event)}
-            disabled={uploading}
-          />
-          <span>{t("JPG, PNG, WebP, or GIF. Maximum 2 MB.")}</span>
-        </label>
-        {uploading && <p>{t("Uploading profile picture...")}</p>}
+        <p>
+          {t(
+            "Your profile picture is the in-game avatar of your highest-power WOS account.",
+          )}
+        </p>
         {message && <p className="auth-message">{message}</p>}
 
         <Link className="nav-link" href="/account">
