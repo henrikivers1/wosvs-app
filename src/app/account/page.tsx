@@ -67,7 +67,6 @@ const COMBAT_FIELDS: Array<{
   { key: "marksman_t12_skill", label: "Marksman T12 skill", min: 0, max: 3 },
 ];
 
-const AUTOMATIC_REFRESH_MS = 6 * 60 * 60 * 1000;
 
 function furnaceLabel(rawLevel: number | null) {
   if (rawLevel === null) return "—";
@@ -180,7 +179,15 @@ export default function AccountPage() {
           throw new Error(result.error || "Player synchronization failed.");
         }
 
-        if (!result.cached) {
+        if (result.cached) {
+          if (force) {
+            setMessage(
+              t(
+                "Player data was refreshed in the last 24 hours. It also updates automatically every week.",
+              ),
+            );
+          }
+        } else {
           setMessage(t("Player data synchronized from WOSOracle."));
           await loadAccount();
         }
@@ -201,11 +208,9 @@ export default function AccountPage() {
 
   useEffect(() => {
     accounts.forEach((account) => {
-      const syncedAt = account.player_data_synced_at
-        ? new Date(account.player_data_synced_at).getTime()
-        : 0;
-      const stale = Date.now() - syncedAt >= AUTOMATIC_REFRESH_MS;
-
+      // Synced accounts refresh weekly on the server; only brand-new
+      // accounts are pulled from WOSOracle when the page opens.
+      const stale = !account.player_data_synced_at;
       if (stale && !automaticSyncAttempts.current.has(account.id)) {
         automaticSyncAttempts.current.add(account.id);
         void syncPlayer(account.id, false);

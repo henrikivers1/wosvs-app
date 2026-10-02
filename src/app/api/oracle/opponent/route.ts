@@ -1,9 +1,9 @@
 import { oracleErrorResponse, positiveInteger } from "@/lib/oracleRouteError";
 import { requireStateMember, type StateAccess } from "@/lib/stateAccess";
-import { fetchStateAlliances, fetchSvsMatchup } from "@/lib/wosOracleState";
+import { fetchStateAlliances } from "@/lib/wosOracleState";
 
 // Opponent of the active (or next scheduled) battle: the number set on its
-// plan, falling back to this season's SvS draw.
+// plan, falling back to the stored SvS draw.
 async function resolveOpponent(access: StateAccess, stateId: string) {
   const { data: battles } = await access.admin
     .from("battles")
@@ -23,11 +23,14 @@ async function resolveOpponent(access: StateAccess, stateId: string) {
     }
   }
 
-  if (access.gameStateNumber) {
-    const matchup = await fetchSvsMatchup(access.gameStateNumber);
-    if (matchup?.opponent) {
-      return { opponent: matchup.opponent, source: "draw" };
-    }
+  // The draw stored by the automation job; no WOSOracle request needed.
+  const { data: state } = await access.admin
+    .from("states")
+    .select("svs_opponent")
+    .eq("id", stateId)
+    .maybeSingle();
+  if (state?.svs_opponent) {
+    return { opponent: state.svs_opponent as number, source: "draw" };
   }
   return null;
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
+import { SvsStatus } from "@/components/SvsStatus";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -386,6 +387,7 @@ export default function OverwatchPage() {
           </span>
         )}
       </section>
+      <SvsStatus stateId={activeMembership.stateId} />
 
       {message && <p className="page-message">{message}</p>}
       {loading ? (

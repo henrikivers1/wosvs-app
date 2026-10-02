@@ -129,3 +129,52 @@ export async function fetchAllianceRoster(
     .filter((member) => member.name)
     .sort((first, second) => second.power - first.power);
 }
+
+export type SvsForecast = {
+  drawExpectedAt: string | null;
+  nextBattleAt: string | null;
+};
+
+function isoFromUnix(value: unknown) {
+  const seconds = toNumber(value);
+  return seconds ? new Date(seconds * 1000).toISOString() : null;
+}
+
+// When the next draw and battle are expected (free, stored data).
+export async function fetchSvsForecast(
+  stateNumber: number,
+): Promise<SvsForecast> {
+  const body = objectOf(
+    await oracleRequest(`/states/${stateNumber}/svs/forecast`),
+  );
+  return {
+    drawExpectedAt: isoFromUnix(body.draw_expected_at),
+    nextBattleAt: isoFromUnix(body.next_battle_at),
+  };
+}
+
+export type SvsResult = {
+  battleAt: string;
+  opponent: number | null;
+  // null until WOSOracle has decided the battle.
+  won: boolean | null;
+};
+
+// This state's SvS record, newest first (free, stored data).
+export async function fetchSvsResults(
+  stateNumber: number,
+): Promise<SvsResult[]> {
+  const body = objectOf(await oracleRequest(`/states/${stateNumber}/svs`));
+  return listOf(body.matches).flatMap((match) => {
+    const battleAt = isoFromUnix(match.ts);
+    if (!battleAt) return [];
+    const winner = toNumber(match.battle_winner);
+    return [
+      {
+        battleAt,
+        opponent: toNumber(match.opponent_state_id),
+        won: winner === null ? null : winner === stateNumber,
+      },
+    ];
+  });
+}

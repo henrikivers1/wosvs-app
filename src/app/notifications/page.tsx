@@ -352,9 +352,9 @@ export default function NotificationsPage() {
                       {t("Review request")}
                     </Link>
                   )}
-                  {notification.type === "state_poll_created" && (
-                    <Link className="nav-link" href="/state/votes">
-                      {t("Open vote")}
+                  {notification.type === "svs_drawn" && (
+                    <Link className="nav-link" href="/state/overwatch">
+                      {t("Open Overwatch")}
                     </Link>
                   )}
                   {notification.type === "state_announcement" && (

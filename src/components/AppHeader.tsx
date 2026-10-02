@@ -271,14 +271,6 @@ export function AppHeader() {
                 {t("overwatch")}
               </Link>
             )}
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/votes")}
-                href="/state/votes"
-              >
-                {t("votes")}
-              </Link>
-            )}
             {(activeMembership?.role === "owner" ||
               activeMembership?.role === "admin") && (
               <Link

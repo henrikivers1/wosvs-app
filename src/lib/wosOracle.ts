@@ -1,3 +1,5 @@
+import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
+
 const DEFAULT_ORACLE_API_BASE_URL = "https://wosoracle.com/api/v1";
 
 type OracleAlliance = {
@@ -128,6 +130,33 @@ export function fireCrystalLevel(rawFurnaceLevel: number) {
   return Math.max(0, Math.min(10, rawFurnaceLevel - 30));
 }
 
+const DEFAULT_DAILY_BUDGET = 950;
+
+export function oracleDailyBudget() {
+  const configured = Number(process.env.WOS_ORACLE_DAILY_BUDGET);
+  return Number.isFinite(configured) && configured > 0
+    ? configured
+    : DEFAULT_DAILY_BUDGET;
+}
+
+// Counts every request against today's WOSOracle quota (stored in Supabase so
+// it is shared by all server instances) and refuses once the budget is used.
+async function reserveOracleRequest() {
+  if (!hasAdminCredentials()) return;
+  const { data, error } = await createAdminClient().rpc("count_oracle_request");
+  if (error) {
+    // Counting must never block a request (e.g. before the migration ran).
+    console.error("[wosOracle] Could not count request:", error.message);
+    return;
+  }
+  if (typeof data === "number" && data > oracleDailyBudget()) {
+    throw new OraclePlayerError(
+      "Today's WOSOracle request budget is used up. Try again after 00:00 UTC.",
+      429,
+    );
+  }
+}
+
 // Performs an authenticated GET against the WOSOracle public API and returns
 // the parsed JSON body. `revalidateSeconds` lets Next cache responses that do
 // not need to be live (matchups, rosters) to save API quota.
@@ -151,6 +180,8 @@ export async function oracleRequest(
     const scheme = process.env.WOS_ORACLE_API_AUTH_SCHEME ?? "Bearer";
     headers.set(headerName, scheme ? `${scheme} ${apiKey}` : apiKey);
   }
+
+  await reserveOracleRequest();
 
   let response: Response;
   try {

@@ -5,6 +5,7 @@ export type StateAccess = {
   userId: string;
   admin: ReturnType<typeof createAdminClient>;
   gameStateNumber: number | null;
+  isAdmin: boolean;
 };
 
 // Confirms the signed-in user has a WOS account in the given app state.
@@ -46,10 +47,9 @@ export async function requireStateMember(
   const { data: memberships, error: membershipError } = accountIds.length
     ? await admin
         .from("state_members")
-        .select("wos_account_id")
+        .select("wos_account_id, role")
         .eq("state_id", stateId)
         .in("wos_account_id", accountIds)
-        .limit(1)
     : { data: [], error: null };
   if (membershipError) {
     console.error("[state-access] Membership lookup failed:", membershipError);
@@ -84,5 +84,8 @@ export async function requireStateMember(
     userId: user.id,
     admin,
     gameStateNumber: state?.game_state_number ?? null,
+    isAdmin: memberships.some((membership) =>
+      ["owner", "admin"].includes(membership.role),
+    ),
   };
 }

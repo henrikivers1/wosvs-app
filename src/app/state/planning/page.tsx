@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
+import { SvsStatus } from "@/components/SvsStatus";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -137,8 +138,7 @@ export default function BattlePlanningPage() {
   const { t, formatDateTime, formatNumber } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { activeMembership, signedIn, loadingStates, refreshMemberships } =
-    useStates();
+  const { activeMembership, signedIn, loadingStates } = useStates();
   const [plans, setPlans] = useState<BattlePlan[]>([]);
   const [groups, setGroups] = useState<PlanGroup[]>([]);
   const [assignments, setAssignments] = useState<PlanAssignment[]>([]);
@@ -159,14 +159,11 @@ export default function BattlePlanningPage() {
     Record<string, "public" | "admins">
   >({});
   const [planName, setPlanName] = useState("");
-  const [battleType, setBattleType] = useState<BattleType>("svs");
   const [scheduledAt, setScheduledAt] = useState(defaultScheduledTime);
   const [planNotes, setPlanNotes] = useState("");
   const [planOpponent, setPlanOpponent] = useState("");
-  const [fillingFromOracle, setFillingFromOracle] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [editingPlanName, setEditingPlanName] = useState("");
-  const [editingBattleType, setEditingBattleType] = useState<BattleType>("svs");
   const [editingScheduledAt, setEditingScheduledAt] = useState("");
   const [editingPlanNotes, setEditingPlanNotes] = useState("");
   const [editingPlanOpponent, setEditingPlanOpponent] = useState("");
@@ -514,7 +511,7 @@ export default function BattlePlanningPage() {
       {
         target_state_id: activeMembership.stateId,
         plan_name: planName.trim(),
-        selected_battle_type: battleType,
+        selected_battle_type: "svs",
         plan_scheduled_at: date.toISOString(),
         plan_notes: planNotes.trim() || null,
       },
@@ -534,7 +531,6 @@ export default function BattlePlanningPage() {
       if (!error) await loadPlanning();
     } else {
       setPlanName("");
-      setBattleType("svs");
       setScheduledAt(defaultScheduledTime());
       setPlanNotes("");
       setPlanOpponent("");
@@ -544,47 +540,9 @@ export default function BattlePlanningPage() {
     setSaving(false);
   }
 
-  async function fillFromOracle() {
-    if (!activeMembership) return;
-    setFillingFromOracle(true);
-    setMessage(t(""));
-    try {
-      const response = await fetch(
-        `/api/oracle/matchup?stateId=${activeMembership.stateId}`,
-      );
-      const result = (await response.json()) as {
-        error?: string;
-        opponent?: number | null;
-        battleAt?: string | null;
-      };
-      if (!response.ok) {
-        setMessage(result.error || t("The SvS draw could not be loaded."));
-        return;
-      }
-      setBattleType("svs");
-      if (result.battleAt) setScheduledAt(toLocalDateTime(result.battleAt));
-      if (result.opponent) {
-        setPlanOpponent(String(result.opponent));
-        if (!planName.trim()) setPlanName(`SVS vs ${result.opponent}`);
-        setMessage(
-          t("Filled in from WOSOracle: state {opponent}.", {
-            opponent: result.opponent,
-          }),
-        );
-      } else {
-        setMessage(t("Your state sits this SvS season out."));
-      }
-    } catch {
-      setMessage(t("The SvS draw could not be loaded."));
-    } finally {
-      setFillingFromOracle(false);
-    }
-  }
-
   function beginEditingPlan(plan: BattlePlan) {
     setEditingPlanId(plan.id);
     setEditingPlanName(plan.name);
-    setEditingBattleType(plan.battle_type);
     setEditingScheduledAt(toLocalDateTime(plan.scheduled_at));
     setEditingPlanNotes(plan.notes ?? "");
     setEditingPlanOpponent(
@@ -602,7 +560,7 @@ export default function BattlePlanningPage() {
     const { error } = await supabase.rpc("update_battle_plan", {
       target_plan_id: editingPlanId,
       plan_name: editingPlanName.trim(),
-      selected_battle_type: editingBattleType,
+      selected_battle_type: "svs",
       plan_scheduled_at: date.toISOString(),
       plan_notes: editingPlanNotes.trim() || null,
     });
@@ -797,33 +755,6 @@ export default function BattlePlanningPage() {
       await loadPlanning();
       setMessage(
         `Plan published and battle scheduled. ${Number(data ?? 0)} accounts notified.`,
-      );
-    }
-    setSaving(false);
-  }
-
-  async function startScheduledBattle(battle: ScheduledBattle) {
-    if (!activeMembership) return;
-    if (
-      !window.confirm(
-        t(
-          "Start this battle period now? Live Battle tools will become available to assigned accounts.",
-        ),
-      )
-    )
-      return;
-    setSaving(true);
-    setMessage(t(""));
-    const { error } = await supabase.rpc("activate_scheduled_battle", {
-      target_battle_id: battle.id,
-      actor_wos_account_id: activeMembership.wosAccountId,
-    });
-    if (error) setMessage(error.message);
-    else {
-      await loadPlanning();
-      await refreshMemberships();
-      setMessage(
-        t("Battle period started. Live Battle tools are now available."),
       );
     }
     setSaving(false);
@@ -1057,6 +988,7 @@ export default function BattlePlanningPage() {
               )}
             </p>
           </section>
+          <SvsStatus stateId={activeMembership.stateId} />
           {isAdmin && (
             <section>
               <h2>{t("Create battle plan")}</h2>
@@ -1069,19 +1001,6 @@ export default function BattlePlanningPage() {
                     onChange={(event) => setPlanName(event.target.value)}
                     placeholder={t("SVS vs 1501")}
                   />
-                </label>
-                <label>
-                  {t("Type")}
-                  <select
-                    value={battleType}
-                    onChange={(event) =>
-                      setBattleType(event.target.value as BattleType)
-                    }
-                  >
-                    <option value="svs">{t("SVS")}</option>
-                    <option value="castle">{t("Castle")}</option>
-                    <option value="test">{t("Test")}</option>
-                  </select>
                 </label>
                 <label>
                   {t("Scheduled start")}
@@ -1117,16 +1036,6 @@ export default function BattlePlanningPage() {
                 onClick={() => void createPlan()}
               >
                 {t("Create draft plan")}
-              </button>{" "}
-              <button
-                type="button"
-                className="secondary-link"
-                disabled={fillingFromOracle}
-                onClick={() => void fillFromOracle()}
-              >
-                {fillingFromOracle
-                  ? t("Loading SvS draw...")
-                  : t("Fill from SvS draw (WOSOracle)")}
               </button>
             </section>
           )}
@@ -1227,16 +1136,6 @@ export default function BattlePlanningPage() {
                                 ? t("Republish")
                                 : t("Publish & schedule")}
                             </button>
-                            {scheduledBattle?.status === "scheduled" && (
-                              <button
-                                disabled={saving}
-                                onClick={() =>
-                                  void startScheduledBattle(scheduledBattle)
-                                }
-                              >
-                                {t("Start battle")}
-                              </button>
-                            )}
                             {plan.status === "draft" && (
                               <button
                                 className="danger-button"
@@ -1279,21 +1178,6 @@ export default function BattlePlanningPage() {
                                 setEditingPlanName(event.target.value)
                               }
                             />
-                          </label>
-                          <label>
-                            {t("Type")}
-                            <select
-                              value={editingBattleType}
-                              onChange={(event) =>
-                                setEditingBattleType(
-                                  event.target.value as BattleType,
-                                )
-                              }
-                            >
-                              <option value="svs">{t("SVS")}</option>
-                              <option value="castle">{t("Castle")}</option>
-                              <option value="test">{t("Test")}</option>
-                            </select>
                           </label>
                           <label>
                             {t("Start")}
@@ -1901,7 +1785,8 @@ export default function BattlePlanningPage() {
                                   setCommentVisibility((visibility) => ({
                                     ...visibility,
                                     [plan.id]: event.target.value as
-                                      "public" | "admins",
+                                      | "public"
+                                      | "admins",
                                   }))
                                 }
                               >

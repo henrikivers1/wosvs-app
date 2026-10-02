@@ -82,6 +82,28 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Battle starts {date}.": "La batalla empieza {date}.",
+  "Check WOSOracle now": "Comprobar WOSOracle ahora",
+  "Checking...": "Comprobando...",
+  "Expected draw {draw}.": "Sorteo previsto {draw}.",
+  "Expected draw {draw}; next battle {battle}.":
+    "Sorteo previsto {draw}; próxima batalla {battle}.",
+  "Last checked {date}.": "Última comprobación {date}.",
+  "Not checked with WOSOracle yet.": "Aún no se ha comprobado con WOSOracle.",
+  "Plans and battles are created, started and ended automatically from the WOSOracle draw.":
+    "Los planes y batallas se crean, empiezan y terminan automáticamente según el sorteo de WOSOracle.",
+  "Player data was refreshed in the last 24 hours. It also updates automatically every week.":
+    "Los datos del jugador se actualizaron en las últimas 24 horas. También se actualizan automáticamente cada semana.",
+  "Set the in-game state number on State management.":
+    "Configura el número de estado del juego en Gestión del estado.",
+  "SvS battle vs state {opponent} is live":
+    "La batalla SvS contra el estado {opponent} está en curso",
+  "SvS draw in {days} days": "Sorteo de SvS en {days} días",
+  "SvS status unknown": "Estado de SvS desconocido",
+  "SvS vs state {opponent} in {days} days":
+    "SvS contra el estado {opponent} en {days} días",
+  "The check failed.": "La comprobación falló.",
+  "WOSOracle checked.": "WOSOracle comprobado.",
   " — from the SvS draw": " — del sorteo de SvS",
   " — from the battle plan": " — del plan de batalla",
   "(Leader)": "(Líder)",
