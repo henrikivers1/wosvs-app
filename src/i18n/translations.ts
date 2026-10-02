@@ -82,6 +82,18 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Claimed WOS ID": "WOS ID reclamado",
+  "If someone registered a WOS ID that is not theirs, release it so the real player can add it. Works for members of this state and for players WOSOracle lists in your in-game state.":
+    "Si alguien registró un WOS ID que no es suyo, libéralo para que el jugador real pueda añadirlo. Funciona para miembros de este estado y para jugadores que WOSOracle muestra en tu estado del juego.",
+  "Release WOS ID": "Liberar WOS ID",
+  "Release WOS ID {wosId}? It is removed from the login that claimed it, including all state memberships, so the real player can register it.":
+    "¿Liberar el WOS ID {wosId}? Se eliminará de la cuenta que lo reclamó, incluidas todas sus membresías de estado, para que el jugador real pueda registrarlo.",
+  "Release a claimed WOS ID": "Liberar un WOS ID reclamado",
+  "Releasing...": "Liberando...",
+  "That WOS ID is already registered. If it is yours, ask an admin of your state to release it.":
+    "Ese WOS ID ya está registrado. Si es tuyo, pide a un administrador de tu estado que lo libere.",
+  "The WOS ID could not be released.": "No se pudo liberar el WOS ID.",
+  "WOS ID {wosId} was released.": "El WOS ID {wosId} fue liberado.",
   "— March:": "— Marcha:",
   "· Troops": "· Tropas",
   "/2000 characters": "/2000 caracteres",

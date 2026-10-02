@@ -233,7 +233,9 @@ export default function AccountPage() {
     if (error) {
       setMessage(
         error.code === "23505"
-          ? "That WOS ID is already registered."
+          ? t(
+              "That WOS ID is already registered. If it is yours, ask an admin of your state to release it.",
+            )
           : error.message,
       );
       return;

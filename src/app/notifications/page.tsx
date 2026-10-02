@@ -53,7 +53,11 @@ function notificationCategory(
     return { label: "Alliance", className: "alliance" };
   if (storedCategory === "battle")
     return { label: "Battle", className: "battle" };
-  if (type === "state_invite" || type === "state_invite_accepted") {
+  if (
+    type === "state_invite" ||
+    type === "state_invite_accepted" ||
+    type === "wos_account_released"
+  ) {
     return { label: "Membership", className: "membership" };
   }
   if (type === "state_poll_created") {
