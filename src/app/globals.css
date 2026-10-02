@@ -2861,3 +2861,37 @@ article.plan-comment-admins {
   justify-content: space-between;
   gap: 9px;
 }
+.attendance-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 9px;
+  margin: 12px 0;
+}
+.attendance-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+.attendance-option small {
+  font-weight: 400;
+  opacity: 0.8;
+}
+.attendance-pill {
+  font-weight: 600;
+}
+.intel-table-wrap {
+  overflow-x: auto;
+}
+.intel-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.intel-table th,
+.intel-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}

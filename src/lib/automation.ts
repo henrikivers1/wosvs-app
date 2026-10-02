@@ -2,8 +2,10 @@ import { syncWosAccount } from "@/lib/playerSync";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { OraclePlayerError, oracleDailyBudget } from "@/lib/wosOracle";
 import {
+  fetchStateSummary,
   fetchSvsForecast,
   fetchSvsMatchup,
+  fetchSvsRecord,
   fetchSvsResults,
 } from "@/lib/wosOracleState";
 
@@ -15,6 +17,8 @@ const BATTLE_DURATION_MS = 5 * HOUR_MS;
 const DRAW_CHECK_INTERVAL_MS = 6 * HOUR_MS;
 const DRAW_CHECK_INTERVAL_NEAR_DRAW_MS = HOUR_MS;
 const RESULT_CHECK_INTERVAL_MS = 6 * HOUR_MS;
+// Opponent intel is refreshed daily until the battle starts.
+const INTEL_REFRESH_INTERVAL_MS = 24 * HOUR_MS;
 // Weekly player refresh on Mondays (UTC), spread over hourly runs.
 const WEEKLY_SYNC_DAY = 1;
 const WEEKLY_SYNC_MAX_AGE_MS = 6 * 24 * HOUR_MS;
@@ -27,6 +31,7 @@ const INTERACTIVE_RESERVE = 100;
 export type AutomationReport = {
   statesChecked: number;
   drawsFound: number;
+  intelSaved: number;
   battlesAdvanced: number;
   resultsSaved: number;
   playersSynced: number;
@@ -76,13 +81,31 @@ async function refreshDraw(
     battleAt.getTime() + BATTLE_DURATION_MS > now;
 
   if (upcoming) {
-    const { error } = await admin.rpc("automation_ensure_svs_plan", {
-      target_state_id: state.id,
-      opponent_number: matchup.opponent,
-      battle_at: battleAt.toISOString(),
-    });
+    const { data: planId, error } = await admin.rpc(
+      "automation_ensure_svs_plan",
+      {
+        target_state_id: state.id,
+        opponent_number: matchup.opponent,
+        battle_at: battleAt.toISOString(),
+      },
+    );
     if (error) throw new Error(error.message);
     report.drawsFound += 1;
+
+    if (planId && battleAt.getTime() > now) {
+      try {
+        await refreshIntel(admin, {
+          planId: planId as string,
+          stateId: state.id,
+          stateNumber,
+          opponent: matchup.opponent!,
+        });
+        report.intelSaved += 1;
+      } catch (intelError) {
+        // Intel is a nice-to-have; the draw itself is already saved.
+        report.errors.push(`${state.name} intel: ${errorText(intelError)}`);
+      }
+    }
 
     await admin
       .from("states")
@@ -110,6 +133,48 @@ async function refreshDraw(
       oracle_checked_at: new Date().toISOString(),
     })
     .eq("id", state.id);
+}
+
+// Stores the opponent's state summary and SvS record next to our own
+// summary for the Intel page. Three WOSOracle requests, at most daily.
+async function refreshIntel(
+  admin: AdminClient,
+  target: {
+    planId: string;
+    stateId: string;
+    stateNumber: number;
+    opponent: number;
+  },
+) {
+  const { data: existing } = await admin
+    .from("battle_intel")
+    .select("opponent_state, fetched_at")
+    .eq("plan_id", target.planId)
+    .maybeSingle();
+  if (
+    existing &&
+    existing.opponent_state === target.opponent &&
+    Date.now() - new Date(existing.fetched_at).getTime() <
+      INTEL_REFRESH_INTERVAL_MS
+  ) {
+    return;
+  }
+
+  const [opponent, opponentSvs, own] = await Promise.all([
+    fetchStateSummary(target.opponent),
+    fetchSvsRecord(target.opponent),
+    fetchStateSummary(target.stateNumber),
+  ]);
+  const { error } = await admin.from("battle_intel").upsert({
+    plan_id: target.planId,
+    state_id: target.stateId,
+    opponent_state: target.opponent,
+    opponent,
+    opponent_svs: opponentSvs,
+    own,
+    fetched_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(error.message);
 }
 
 // Fills in Win/Loss for finished SvS battles from the state's SvS record.
@@ -219,6 +284,7 @@ export async function runAutomation(
   const report: AutomationReport = {
     statesChecked: 0,
     drawsFound: 0,
+    intelSaved: 0,
     battlesAdvanced: 0,
     resultsSaved: 0,
     playersSynced: 0,

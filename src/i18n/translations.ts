@@ -11,6 +11,7 @@ const english = {
   signOut: "Sign out",
   signIn: "Sign in",
   overwatch: "Overwatch",
+  intel: "Intel",
   votes: "Votes",
   planning: "Planning",
   liveBattle: "Live Battle",
@@ -82,6 +83,54 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  intel: "Inteligencia",
+  "Any availability": "Cualquier disponibilidad",
+  Attendance: "Asistencia",
+  "Battle losses": "Batallas perdidas",
+  "Battle wins": "Batallas ganadas",
+  "Can't join": "No puedo",
+  "Castles lost": "Castillos perdidos",
+  "Castles taken": "Castillos tomados",
+  "Combined power of the top alliances: them {them}, us {us}.":
+    "Poder combinado de las mejores alianzas: ellos {them}, nosotros {us}.",
+  "Data from WOSOracle, updated {date}.":
+    "Datos de WOSOracle, actualizados {date}.",
+  "First half": "Primera mitad",
+  "I can join voice call": "Puedo unirme al chat de voz",
+  "Intel appears automatically once the SvS opponent is drawn.":
+    "La información aparece automáticamente cuando se sortea el rival de SvS.",
+  "Loading intel...": "Cargando información...",
+  "No player data yet.": "Aún no hay datos de jugadores.",
+  "Not answered": "Sin responder",
+  "Opponent intel": "Información del rival",
+  "Our state": "Nuestro estado",
+  "Pick an option to answer.": "Elige una opción para responder.",
+  Prep: "Preparación",
+  "Prep losses": "Preparaciones perdidas",
+  "Prep wins": "Preparaciones ganadas",
+  "Second half": "Segunda mitad",
+  "State rankings": "Clasificaciones del estado",
+  "Thanks — your availability is saved.":
+    "Gracias: tu disponibilidad se guardó.",
+  "The opponent is drawn but intel has not been collected yet. It appears after the next automatic WOSOracle check.":
+    "El rival está sorteado pero aún no se ha recopilado información. Aparecerá tras la próxima comprobación automática de WOSOracle.",
+  "Their SvS record": "Su historial de SvS",
+  "Their strongest players": "Sus jugadores más fuertes",
+  "Top alliances": "Mejores alianzas",
+  Voice: "Voz",
+  "Voice call only": "Solo chat de voz",
+  "When can you play SvS vs state {opponent}?":
+    "¿Cuándo puedes jugar el SvS contra el estado {opponent}?",
+  "When can you play the next SvS?": "¿Cuándo puedes jugar el próximo SvS?",
+  "Whole battle": "Toda la batalla",
+  "You answered. Tap another option to change it.":
+    "Ya respondiste. Toca otra opción para cambiarla.",
+  "rank {rank} of {total}": "puesto {rank} de {total}",
+  lost: "perdida",
+  won: "ganada",
+  "{count} of your state answered, {voice} can join voice.":
+    "{count} de tu estado respondieron, {voice} pueden unirse a voz.",
+  "{count} players": "{count} jugadores",
   "Battle starts {date}.": "La batalla empieza {date}.",
   "Check WOSOracle now": "Comprobar WOSOracle ahora",
   "Checking...": "Comprobando...",

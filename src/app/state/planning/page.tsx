@@ -5,6 +5,12 @@ import type { DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { SvsStatus } from "@/components/SvsStatus";
+import {
+  AVAILABILITY_OPTIONS,
+  availabilityLabel,
+  type AttendanceRow,
+  type Availability,
+} from "@/lib/attendance";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -70,18 +76,6 @@ type StateMember = AccountRow & {
   username: string | null;
   tags: StateTag[];
 };
-type StatePoll = { id: string; question: string; closes_at: string };
-type PollOption = {
-  id: string;
-  poll_id: string;
-  label: string;
-  sort_order: number;
-};
-type PollResponse = {
-  poll_id: string;
-  option_id: string;
-  wos_account_id: string;
-};
 type PlanComment = {
   id: string;
   plan_id: string;
@@ -145,9 +139,7 @@ export default function BattlePlanningPage() {
   const [members, setMembers] = useState<StateMember[]>([]);
   const [tags, setTags] = useState<StateTag[]>([]);
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
-  const [polls, setPolls] = useState<StatePoll[]>([]);
-  const [pollOptions, setPollOptions] = useState<PollOption[]>([]);
-  const [pollResponses, setPollResponses] = useState<PollResponse[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [planComments, setPlanComments] = useState<PlanComment[]>([]);
   const [scheduledBattles, setScheduledBattles] = useState<ScheduledBattle[]>(
     [],
@@ -185,8 +177,10 @@ export default function BattlePlanningPage() {
   const [editingGroupNotes, setEditingGroupNotes] = useState("");
   const [memberSearch, setMemberSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
-  const [pollFilter, setPollFilter] = useState("");
-  const [pollOptionFilter, setPollOptionFilter] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState<
+    Availability | "unanswered" | ""
+  >("");
+  const [voiceOnly, setVoiceOnly] = useState(false);
   const [minimumFurnace, setMinimumFurnace] = useState(0);
   const [minimumTroopTier, setMinimumTroopTier] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -203,7 +197,8 @@ export default function BattlePlanningPage() {
   const filtersActive = Boolean(
     memberSearch.trim() ||
     tagFilter ||
-    pollOptionFilter ||
+    availabilityFilter ||
+    voiceOnly ||
     minimumFurnace > 0 ||
     minimumTroopTier > 0,
   );
@@ -216,9 +211,7 @@ export default function BattlePlanningPage() {
       setMembers([]);
       setTags([]);
       setAlliances([]);
-      setPolls([]);
-      setPollOptions([]);
-      setPollResponses([]);
+      setAttendance([]);
       setPlanComments([]);
       setScheduledBattles([]);
       setLoading(false);
@@ -232,7 +225,7 @@ export default function BattlePlanningPage() {
       memberResult,
       tagResult,
       allianceResult,
-      pollResult,
+      attendanceResult,
       battleResult,
     ] = await Promise.all([
       supabase
@@ -256,13 +249,10 @@ export default function BattlePlanningPage() {
         .select("id, name, color, max_members")
         .eq("state_id", stateId)
         .order("name"),
-      isAdmin
-        ? supabase
-            .from("state_polls")
-            .select("id, question, closes_at")
-            .eq("state_id", stateId)
-            .order("created_at", { ascending: false })
-        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("battle_attendance")
+        .select("plan_id, wos_account_id, availability, voice_call")
+        .eq("state_id", stateId),
       supabase
         .from("battles")
         .select("id, plan_id, status, scheduled_at")
@@ -274,7 +264,7 @@ export default function BattlePlanningPage() {
       memberResult.error ||
       tagResult.error ||
       allianceResult.error ||
-      pollResult.error ||
+      attendanceResult.error ||
       battleResult.error;
     if (firstError) {
       setMessage(firstError.message);
@@ -288,17 +278,13 @@ export default function BattlePlanningPage() {
       role: string;
     }>;
     const stateTags = (tagResult.data ?? []) as StateTag[];
-    const pollRows = (pollResult.data ?? []) as StatePoll[];
     const planIds = planRows.map((plan) => plan.id);
     const accountIds = memberRows.map((member) => member.wos_account_id);
-    const pollIds = pollRows.map((poll) => poll.id);
     const [
       groupResult,
       assignmentResult,
       accountResult,
       tagAssignmentResult,
-      optionResult,
-      responseResult,
       commentResult,
     ] = await Promise.all([
       planIds.length
@@ -330,18 +316,6 @@ export default function BattlePlanningPage() {
             .select("tag_id, wos_account_id")
             .in("wos_account_id", accountIds)
         : Promise.resolve({ data: [], error: null }),
-      pollIds.length
-        ? supabase
-            .from("state_poll_options")
-            .select("id, poll_id, label, sort_order")
-            .in("poll_id", pollIds)
-            .order("sort_order")
-        : Promise.resolve({ data: [], error: null }),
-      isAdmin
-        ? supabase.rpc("get_state_poll_admin_responses", {
-            target_state_id: stateId,
-          })
-        : Promise.resolve({ data: [], error: null }),
       planIds.length
         ? supabase.rpc("get_battle_plan_comments", {
             target_state_id: stateId,
@@ -354,8 +328,6 @@ export default function BattlePlanningPage() {
       assignmentResult.error ||
       accountResult.error ||
       tagAssignmentResult.error ||
-      optionResult.error ||
-      responseResult.error ||
       commentResult.error;
     if (secondError) {
       setMessage(secondError.message);
@@ -416,13 +388,11 @@ export default function BattlePlanningPage() {
     setMembers(loadedMembers);
     setTags(stateTags);
     setAlliances((allianceResult.data ?? []) as StateAlliance[]);
-    setPolls(pollRows);
-    setPollOptions((optionResult.data ?? []) as PollOption[]);
-    setPollResponses((responseResult.data ?? []) as PollResponse[]);
+    setAttendance((attendanceResult.data ?? []) as AttendanceRow[]);
     setPlanComments((commentResult.data ?? []) as PlanComment[]);
     setScheduledBattles((battleResult.data ?? []) as ScheduledBattle[]);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase, t]);
+  }, [activeMembership, supabase, t]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -821,13 +791,11 @@ export default function BattlePlanningPage() {
         .map((item) => item.wos_account_id),
     );
     const search = memberSearch.trim().toLowerCase();
-    const votedIds = pollOptionFilter
-      ? new Set(
-          pollResponses
-            .filter((response) => response.option_id === pollOptionFilter)
-            .map((response) => response.wos_account_id),
-        )
-      : null;
+    const answers = new Map(
+      attendance
+        .filter((row) => row.plan_id === planId)
+        .map((row) => [row.wos_account_id, row]),
+    );
     return members.filter((member) => {
       if (assigned.has(member.id)) return false;
       if (
@@ -839,7 +807,15 @@ export default function BattlePlanningPage() {
         return false;
       if (tagFilter && !member.tags.some((tag) => tag.id === tagFilter))
         return false;
-      if (votedIds && !votedIds.has(member.id)) return false;
+      const answer = answers.get(member.id);
+      if (availabilityFilter === "unanswered" && answer) return false;
+      if (
+        availabilityFilter &&
+        availabilityFilter !== "unanswered" &&
+        answer?.availability !== availabilityFilter
+      )
+        return false;
+      if (voiceOnly && !answer?.voice_call) return false;
       if ((member.furnace_level ?? 0) < minimumFurnace) return false;
       if (
         minimumTroopTier > 0 &&
@@ -925,6 +901,18 @@ export default function BattlePlanningPage() {
           {member.marksman_tier ?? "—"}
         </small>
         <div className="plan-member-context">
+          {(() => {
+            const answer = attendance.find(
+              (row) =>
+                row.plan_id === planId && row.wos_account_id === member.id,
+            );
+            return answer ? (
+              <span className="member-tag-pill attendance-pill">
+                {t(availabilityLabel(answer.availability))}
+                {answer.voice_call ? ` · ${t("Voice")}` : ""}
+              </span>
+            ) : null;
+          })()}
           {member.tags.map((tag) => (
             <span key={tag.id} className="member-tag-pill">
               <span style={{ backgroundColor: tag.color }} />
@@ -1381,35 +1369,36 @@ export default function BattlePlanningPage() {
                             ))}
                           </select>
                           <select
-                            value={pollFilter}
-                            onChange={(event) => {
-                              setPollFilter(event.target.value);
-                              setPollOptionFilter("");
-                            }}
-                          >
-                            <option value="">{t("Any vote")}</option>
-                            {polls.map((poll) => (
-                              <option key={poll.id} value={poll.id}>
-                                {poll.question}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={pollOptionFilter}
-                            disabled={!pollFilter}
+                            value={availabilityFilter}
                             onChange={(event) =>
-                              setPollOptionFilter(event.target.value)
+                              setAvailabilityFilter(
+                                event.target.value as
+                                  | Availability
+                                  | "unanswered"
+                                  | "",
+                              )
                             }
                           >
-                            <option value="">{t("Any answer")}</option>
-                            {pollOptions
-                              .filter((option) => option.poll_id === pollFilter)
-                              .map((option) => (
-                                <option key={option.id} value={option.id}>
-                                  {option.label}
-                                </option>
-                              ))}
+                            <option value="">{t("Any availability")}</option>
+                            {AVAILABILITY_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {t(option.label)}
+                              </option>
+                            ))}
+                            <option value="unanswered">
+                              {t("Not answered")}
+                            </option>
                           </select>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={voiceOnly}
+                              onChange={(event) =>
+                                setVoiceOnly(event.target.checked)
+                              }
+                            />
+                            {t("Voice call only")}
+                          </label>
                           <label>
                             {t("Minimum Fire Crystal Furnace")}
                             <input
@@ -1439,8 +1428,8 @@ export default function BattlePlanningPage() {
                             onClick={() => {
                               setMemberSearch("");
                               setTagFilter("");
-                              setPollFilter("");
-                              setPollOptionFilter("");
+                              setAvailabilityFilter("");
+                              setVoiceOnly(false);
                               setMinimumFurnace(0);
                               setMinimumTroopTier(0);
                             }}

@@ -178,3 +178,120 @@ export async function fetchSvsResults(
     ];
   });
 }
+
+export type StateSummary = {
+  stateNumber: number;
+  trackedPlayers: number;
+  topPlayers: {
+    wosId: string | null;
+    name: string;
+    power: number;
+    furnaceLevel: number;
+    allianceAbbr: string;
+  }[];
+  alliances: OpponentAlliance[];
+  stats: {
+    key: string;
+    label: string;
+    value: number;
+    rank: number;
+    outOf: number;
+  }[];
+};
+
+// State summary: top players, top alliances and stat rankings.
+export async function fetchStateSummary(
+  stateNumber: number,
+): Promise<StateSummary> {
+  const body = objectOf(
+    await oracleRequest(`/states/${stateNumber}`, {
+      notFoundMessage: `WOSOracle does not track state ${stateNumber}.`,
+    }),
+  );
+  return {
+    stateNumber,
+    trackedPlayers: toNumber(body.tracked_players) ?? 0,
+    topPlayers: listOf(body.top_players).map((player) => ({
+      wosId: optionalText(player.id),
+      name: optionalText(player.name) ?? "",
+      power: toNumber(player.power) ?? 0,
+      furnaceLevel: toNumber(player.furnace_level) ?? 0,
+      allianceAbbr: optionalText(player.alliance_abbr) ?? "",
+    })),
+    alliances: listOf(body.alliances).flatMap((alliance) => {
+      const id = toNumber(alliance.id);
+      if (!id) return [];
+      return [
+        {
+          id,
+          abbr: optionalText(alliance.abbr) ?? "",
+          name: optionalText(alliance.name) ?? "",
+          power: toNumber(alliance.power) ?? 0,
+          memberCount: toNumber(alliance.member_count) ?? 0,
+        },
+      ];
+    }),
+    stats: listOf(body.stats).flatMap((stat) => {
+      const label = optionalText(stat.label) ?? optionalText(stat.key);
+      if (!label) return [];
+      return [
+        {
+          key: optionalText(stat.key) ?? label,
+          label,
+          value: toNumber(stat.value) ?? 0,
+          rank: toNumber(stat.rank) ?? 0,
+          outOf: toNumber(stat.out_of) ?? 0,
+        },
+      ];
+    }),
+  };
+}
+
+export type SvsRecord = {
+  record: Record<string, number>;
+  recent: {
+    battleAt: string;
+    opponent: number | null;
+    outcome: string;
+    prepWon: boolean | null;
+    battleWon: boolean | null;
+  }[];
+};
+
+// A state's SvS history: totals plus the most recent engagements.
+export async function fetchSvsRecord(stateNumber: number): Promise<SvsRecord> {
+  const body = objectOf(await oracleRequest(`/states/${stateNumber}/svs`));
+  const rawRecord =
+    body.record &&
+    typeof body.record === "object" &&
+    !Array.isArray(body.record)
+      ? (body.record as Record<string, unknown>)
+      : {};
+  const record = Object.fromEntries(
+    Object.entries(rawRecord).flatMap(([key, value]) => {
+      const number = toNumber(value);
+      return number === null ? [] : [[key, number]];
+    }),
+  );
+  const outcomeFor = (winner: unknown) => {
+    const number = toNumber(winner);
+    return number === null ? null : number === stateNumber;
+  };
+  const recent = listOf(body.matches)
+    .flatMap((match) => {
+      const battleAt = isoFromUnix(match.ts);
+      if (!battleAt) return [];
+      return [
+        {
+          battleAt,
+          opponent: toNumber(match.opponent_state_id),
+          outcome: optionalText(match.outcome) ?? "",
+          prepWon: outcomeFor(match.prep_winner),
+          battleWon: outcomeFor(match.battle_winner),
+        },
+      ];
+    })
+    .sort((first, second) => second.battleAt.localeCompare(first.battleAt))
+    .slice(0, 10);
+  return { record, recent };
+}

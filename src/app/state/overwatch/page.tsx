@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { SvsStatus } from "@/components/SvsStatus";
+import { AttendanceVote } from "@/components/AttendanceVote";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -388,6 +389,10 @@ export default function OverwatchPage() {
         )}
       </section>
       <SvsStatus stateId={activeMembership.stateId} />
+      <AttendanceVote
+        stateId={activeMembership.stateId}
+        wosAccountId={activeMembership.wosAccountId}
+      />
 
       {message && <p className="page-message">{message}</p>}
       {loading ? (
