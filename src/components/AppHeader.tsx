@@ -1,20 +1,18 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
+import { isAppLocale, LANGUAGE_OPTIONS, type AppLocale } from "@/i18n/config";
 
 export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
+  const { locale, setLocale, t } = useLanguage();
   const {
     memberships,
     activeMembership,
@@ -43,7 +41,7 @@ export function AppHeader() {
     const [{ data: profile }, { count }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("username, avatar_path")
+        .select("username, avatar_path, preferred_language")
         .eq("id", user.id)
         .maybeSingle(),
       supabase
@@ -55,6 +53,9 @@ export function AppHeader() {
     const publicUsername = profile?.username ?? null;
     setUsername(publicUsername);
     setUnreadCount(count ?? 0);
+    if (isAppLocale(profile?.preferred_language)) {
+      setLocale(profile.preferred_language);
+    }
 
     if (profile?.avatar_path) {
       const { data } = supabase.storage
@@ -73,7 +74,7 @@ export function AppHeader() {
     ) {
       router.replace("/account/setup");
     }
-  }, [pathname, router, supabase]);
+  }, [pathname, router, setLocale, supabase]);
 
   useEffect(() => {
     const initialLoadId = window.setTimeout(() => {
@@ -83,20 +84,18 @@ export function AppHeader() {
       void loadIdentity();
     }, 15000);
 
-    const { data } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setIdentityLoaded(false);
-        if (!session?.user) {
-          setUsername(null);
-          setAvatarUrl(null);
-          setUnreadCount(0);
-        }
-
-        window.setTimeout(() => {
-          void loadIdentity();
-        }, 0);
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIdentityLoaded(false);
+      if (!session?.user) {
+        setUsername(null);
+        setAvatarUrl(null);
+        setUnreadCount(0);
       }
-    );
+
+      window.setTimeout(() => {
+        void loadIdentity();
+      }, 0);
+    });
 
     return () => {
       window.clearTimeout(initialLoadId);
@@ -115,7 +114,7 @@ export function AppHeader() {
           schema: "public",
           table: "notifications",
         },
-        () => void loadIdentity()
+        () => void loadIdentity(),
       )
       .subscribe();
 
@@ -128,6 +127,20 @@ export function AppHeader() {
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
+  }
+
+  async function changeLanguage(nextLocale: AppLocale) {
+    setLocale(nextLocale);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({ preferred_language: nextLocale })
+        .eq("id", user.id);
+    }
   }
 
   const canCallRallies =
@@ -145,6 +158,13 @@ export function AppHeader() {
     return pathname === href ? "nav-link active-nav-link" : "nav-link";
   }
 
+  function translatedRole(role: string) {
+    if (role === "owner") return t("roleOwner");
+    if (role === "admin") return t("roleAdmin");
+    if (role === "member") return t("roleMember");
+    return role.replaceAll("_", " ");
+  }
+
   return (
     <header className="app-header">
       <div className="header-top">
@@ -152,7 +172,7 @@ export function AppHeader() {
           <span className="brand-mark">WOS</span>
           <span className="brand-copy">
             <strong>WOSOverwatch</strong>
-            <small>Battle coordination</small>
+            <small>{t("battleCoordination")}</small>
           </span>
         </Link>
 
@@ -161,8 +181,8 @@ export function AppHeader() {
             <Link
               className="notification-button"
               href="/notifications"
-              aria-label={`${unreadCount} unread notifications`}
-              title="Notifications"
+              aria-label={`${unreadCount} ${t("unreadNotifications")}`}
+              title={t("notifications")}
             >
               <span aria-hidden="true">🔔</span>
               {unreadCount > 0 && (
@@ -173,7 +193,7 @@ export function AppHeader() {
             </Link>
 
             <details className="profile-menu">
-              <summary aria-label="Open profile menu">
+              <summary aria-label={t("openProfileMenu")}>
                 <span
                   className="profile-avatar"
                   style={
@@ -190,20 +210,35 @@ export function AppHeader() {
                   {username
                     ? `@${username}`
                     : identityLoaded
-                      ? "Setup required"
-                      : "Profile"}
+                      ? t("setupRequired")
+                      : t("profile")}
                 </span>
-                <Link href="/profile">Profile</Link>
-                <Link href="/account">WOS accounts</Link>
+                <label className="profile-language-field">
+                  <span>{t("language")}</span>
+                  <select
+                    value={locale}
+                    onChange={(event) =>
+                      void changeLanguage(event.target.value as AppLocale)
+                    }
+                  >
+                    {LANGUAGE_OPTIONS.map((language) => (
+                      <option key={language.code} value={language.code}>
+                        {language.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Link href="/profile">{t("profile")}</Link>
+                <Link href="/account">{t("wosAccounts")}</Link>
                 <button type="button" onClick={signOut}>
-                  Sign out
+                  {t("signOut")}
                 </button>
               </div>
             </details>
           </div>
         ) : signedIn === false ? (
           <Link className="nav-link header-sign-in" href="/login">
-            Sign in
+            {t("signIn")}
           </Link>
         ) : (
           <span className="header-account-placeholder" />
@@ -212,13 +247,13 @@ export function AppHeader() {
 
       {signedIn === true && (
         <div className="header-workspace-row">
-          <nav aria-label="Main navigation">
+          <nav aria-label={t("mainNavigation")}>
             {activeMembership && (
               <Link
                 className={navClassName("/state/overwatch")}
                 href="/state/overwatch"
               >
-                Overwatch
+                {t("overwatch")}
               </Link>
             )}
             {activeMembership && (
@@ -226,7 +261,7 @@ export function AppHeader() {
                 className={navClassName("/state/votes")}
                 href="/state/votes"
               >
-                Votes
+                {t("votes")}
               </Link>
             )}
             {(activeMembership?.role === "owner" ||
@@ -235,18 +270,15 @@ export function AppHeader() {
                 className={navClassName("/state/planning")}
                 href="/state/planning"
               >
-                Planning
+                {t("planning")}
               </Link>
             )}
             {activeMembership?.battleId &&
               (canCallRallies || canUseGarrison) && (
-              <Link
-                className={navClassName("/battle")}
-                href="/battle"
-              >
-                Live Battle
-              </Link>
-            )}
+                <Link className={navClassName("/battle")} href="/battle">
+                  {t("liveBattle")}
+                </Link>
+              )}
             {activeMembership && (
               <Link
                 className={
@@ -265,25 +297,23 @@ export function AppHeader() {
                     : "/state/stats"
                 }
               >
-                State
+                {t("state")}
               </Link>
             )}
           </nav>
 
           {memberships.length > 0 && (
             <label className="state-switcher">
-              <span>Active workspace</span>
+              <span>{t("activeWorkspace")}</span>
               <select
                 value={activeMembership?.key ?? ""}
-                onChange={(event) =>
-                  setActiveMembership(event.target.value)
-                }
+                onChange={(event) => setActiveMembership(event.target.value)}
               >
                 {memberships.map((membership) => (
                   <option key={membership.key} value={membership.key}>
                     {membership.stateName} —{" "}
                     {membership.wosNickname || membership.wosId}
-                    {` (${membership.role.replace("_", " ")})`}
+                    {` (${translatedRole(membership.role)})`}
                   </option>
                 ))}
               </select>
@@ -292,9 +322,7 @@ export function AppHeader() {
         </div>
       )}
       {signedIn === true && !loadingStates && memberships.length === 0 && (
-        <p className="state-status">
-          No state selected. Check your notifications for an invitation.
-        </p>
+        <p className="state-status">{t("noStateSelected")}</p>
       )}
     </header>
   );

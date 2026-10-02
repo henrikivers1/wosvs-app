@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { StateCapability, StateRole } from "@/types/state";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type StateMember = {
   wosAccountId: string;
@@ -35,10 +36,13 @@ type StateAlliance = {
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 export default function ManageStatePage() {
+  const { t, formatDateTime } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, refreshMemberships } = useStates();
   const [members, setMembers] = useState<StateMember[]>([]);
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>(
+    [],
+  );
   const [inviteWosId, setInviteWosId] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [battleResult, setBattleResult] = useState("win");
@@ -47,11 +51,10 @@ export default function ManageStatePage() {
   const [allianceColor, setAllianceColor] = useState("#4f8fba");
   const [allianceCapacity, setAllianceCapacity] = useState(100);
   const [editingAllianceId, setEditingAllianceId] = useState<string | null>(
-    null
+    null,
   );
   const [editingAllianceName, setEditingAllianceName] = useState("");
-  const [editingAllianceColor, setEditingAllianceColor] =
-    useState("#4f8fba");
+  const [editingAllianceColor, setEditingAllianceColor] = useState("#4f8fba");
   const [editingAllianceCapacity, setEditingAllianceCapacity] = useState(100);
   const [savingAlliance, setSavingAlliance] = useState(false);
   const [message, setMessage] = useState("");
@@ -75,42 +78,38 @@ export default function ManageStatePage() {
       { data: tagAssignmentRows },
       { data: allianceRows, error: allianceError },
       { data: allianceAssignmentRows, error: allianceAssignmentError },
-    ] =
-      await Promise.all([
-        supabase
-          .from("state_members")
-          .select("wos_account_id, role")
-          .eq("state_id", activeMembership.stateId),
-        supabase
-          .from("state_invites")
-          .select("id, invited_wos_account_id, expires_at")
-          .eq("state_id", activeMembership.stateId)
-          .eq("status", "pending_owner")
-          .order("created_at"),
-        supabase
-          .from("state_member_capabilities")
-          .select("wos_account_id, capability")
-          .eq("state_id", activeMembership.stateId),
-        supabase
-          .from("state_tags")
-          .select("id, system_key")
-          .eq("state_id", activeMembership.stateId),
-        supabase
-          .from("state_member_tags")
-          .select("tag_id, wos_account_id"),
-        supabase
-          .from("state_alliances")
-          .select("id, name, color, max_members")
-          .eq("state_id", activeMembership.stateId)
-          .order("name"),
-        supabase
-          .from("state_alliance_members")
-          .select("alliance_id")
-          .eq("state_id", activeMembership.stateId),
-      ]);
+    ] = await Promise.all([
+      supabase
+        .from("state_members")
+        .select("wos_account_id, role")
+        .eq("state_id", activeMembership.stateId),
+      supabase
+        .from("state_invites")
+        .select("id, invited_wos_account_id, expires_at")
+        .eq("state_id", activeMembership.stateId)
+        .eq("status", "pending_owner")
+        .order("created_at"),
+      supabase
+        .from("state_member_capabilities")
+        .select("wos_account_id, capability")
+        .eq("state_id", activeMembership.stateId),
+      supabase
+        .from("state_tags")
+        .select("id, system_key")
+        .eq("state_id", activeMembership.stateId),
+      supabase.from("state_member_tags").select("tag_id, wos_account_id"),
+      supabase
+        .from("state_alliances")
+        .select("id, name, color, max_members")
+        .eq("state_id", activeMembership.stateId)
+        .order("name"),
+      supabase
+        .from("state_alliance_members")
+        .select("alliance_id")
+        .eq("state_id", activeMembership.stateId),
+    ]);
 
-    const loadError =
-      memberError || allianceError || allianceAssignmentError;
+    const loadError = memberError || allianceError || allianceAssignmentError;
     if (loadError || !memberRows) {
       setMessage(loadError?.message ?? "Could not load state management.");
       return;
@@ -120,19 +119,19 @@ export default function ManageStatePage() {
     (allianceAssignmentRows ?? []).forEach((assignment) => {
       assignmentCountByAlliance.set(
         assignment.alliance_id,
-        (assignmentCountByAlliance.get(assignment.alliance_id) ?? 0) + 1
+        (assignmentCountByAlliance.get(assignment.alliance_id) ?? 0) + 1,
       );
     });
     setAlliances(
       (allianceRows ?? []).map((alliance) => ({
         ...alliance,
         memberCount: assignmentCountByAlliance.get(alliance.id) ?? 0,
-      }))
+      })),
     );
 
     const memberAccountIds = memberRows.map((row) => row.wos_account_id);
     const pendingAccountIds = (inviteRows ?? []).map(
-      (row) => row.invited_wos_account_id
+      (row) => row.invited_wos_account_id,
     );
     const accountIds = [
       ...new Set([...memberAccountIds, ...pendingAccountIds]),
@@ -147,7 +146,7 @@ export default function ManageStatePage() {
       ...new Set(
         (accounts ?? [])
           .filter((account) => memberAccountIds.includes(account.id))
-          .map((account) => account.user_id)
+          .map((account) => account.user_id),
       ),
     ];
     const { data: profiles } = memberUserIds.length
@@ -158,55 +157,53 @@ export default function ManageStatePage() {
       : { data: [] };
 
     const accountById = new Map(
-      (accounts ?? []).map((account) => [account.id, account])
+      (accounts ?? []).map((account) => [account.id, account]),
     );
     const usernameByUserId = new Map(
-      (profiles ?? []).map((profile) => [profile.id, profile.username])
+      (profiles ?? []).map((profile) => [profile.id, profile.username]),
     );
     const rallyLeadTagId = (tagRows ?? []).find(
-      (tag) => tag.system_key === "rally_lead"
+      (tag) => tag.system_key === "rally_lead",
     )?.id;
     const rallyLeadAccountIds = new Set(
       (tagAssignmentRows ?? [])
         .filter((assignment) => assignment.tag_id === rallyLeadTagId)
-        .map((assignment) => assignment.wos_account_id)
+        .map((assignment) => assignment.wos_account_id),
     );
 
     setMembers(
       memberRows.flatMap((row) => {
         const account = accountById.get(row.wos_account_id);
         if (!account) return [];
-        return [{
-          wosAccountId: account.id,
-          wosId: account.wos_id,
-          nickname: account.nickname,
-          username: usernameByUserId.get(account.user_id) ?? null,
-          role: row.role as StateRole,
-          capabilities: (capabilityRows ?? [])
-            .filter(
-              (capability) =>
-                capability.wos_account_id === account.id
-            )
-            .map(
-              (capability) =>
-                capability.capability as StateCapability
-            ),
-          isRallyLead: rallyLeadAccountIds.has(account.id),
-        }];
-      })
+        return [
+          {
+            wosAccountId: account.id,
+            wosId: account.wos_id,
+            nickname: account.nickname,
+            username: usernameByUserId.get(account.user_id) ?? null,
+            role: row.role as StateRole,
+            capabilities: (capabilityRows ?? [])
+              .filter((capability) => capability.wos_account_id === account.id)
+              .map((capability) => capability.capability as StateCapability),
+            isRallyLead: rallyLeadAccountIds.has(account.id),
+          },
+        ];
+      }),
     );
 
     setPendingApprovals(
       (inviteRows ?? []).flatMap((invite) => {
         const account = accountById.get(invite.invited_wos_account_id);
         if (!account) return [];
-        return [{
-          inviteId: invite.id,
-          wosId: account.wos_id,
-          nickname: account.nickname,
-          expiresAt: invite.expires_at,
-        }];
-      })
+        return [
+          {
+            inviteId: invite.id,
+            wosId: account.wos_id,
+            nickname: account.nickname,
+            expiresAt: invite.expires_at,
+          },
+        ];
+      }),
     );
   }, [activeMembership, supabase]);
 
@@ -220,11 +217,11 @@ export default function ManageStatePage() {
   async function endBattlePeriod() {
     if (!activeMembership?.battleId) return;
     const confirmed = window.confirm(
-      `End this battle period as a ${battleResult.toUpperCase()}? Battle tools will be hidden for every member.`
+      `End this battle period as a ${battleResult.toUpperCase()}? Battle tools will be hidden for every member.`,
     );
     if (!confirmed) return;
 
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("complete_active_battle", {
       target_battle_id: activeMembership.battleId,
       selected_result: battleResult,
@@ -236,25 +233,21 @@ export default function ManageStatePage() {
       return;
     }
 
-    setMessage("Battle period ended and its result was saved permanently.");
+    setMessage(t("Battle period ended and its result was saved permanently."));
     await refreshMemberships();
   }
 
-  function validateAlliance(
-    name: string,
-    color: string,
-    capacity: number
-  ) {
+  function validateAlliance(name: string, color: string, capacity: number) {
     if (!name.trim()) {
-      setMessage("Enter an alliance name.");
+      setMessage(t("Enter an alliance name."));
       return false;
     }
     if (!HEX_COLOR.test(color)) {
-      setMessage("Use a six-digit color code such as #4f8fba.");
+      setMessage(t("Use a six-digit color code such as #4f8fba."));
       return false;
     }
     if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100) {
-      setMessage("Alliance capacity must be between 1 and 100.");
+      setMessage(t("Alliance capacity must be between 1 and 100."));
       return false;
     }
     return true;
@@ -269,7 +262,7 @@ export default function ManageStatePage() {
     }
 
     setSavingAlliance(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("create_state_alliance", {
       target_state_id: activeMembership.stateId,
       alliance_name: allianceName.trim(),
@@ -284,7 +277,9 @@ export default function ManageStatePage() {
       setAllianceColor("#4f8fba");
       setAllianceCapacity(100);
       await loadStateManagement();
-      setMessage("Alliance created. It can now be selected in Battle Planning.");
+      setMessage(
+        t("Alliance created. It can now be selected in Battle Planning."),
+      );
     }
     setSavingAlliance(false);
   }
@@ -294,7 +289,7 @@ export default function ManageStatePage() {
     setEditingAllianceName(alliance.name);
     setEditingAllianceColor(alliance.color);
     setEditingAllianceCapacity(alliance.max_members);
-    setMessage("");
+    setMessage(t(""));
   }
 
   async function saveAlliance() {
@@ -303,14 +298,14 @@ export default function ManageStatePage() {
       !validateAlliance(
         editingAllianceName,
         editingAllianceColor,
-        editingAllianceCapacity
+        editingAllianceCapacity,
       )
     ) {
       return;
     }
 
     setSavingAlliance(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("update_state_alliance", {
       target_alliance_id: editingAllianceId,
       alliance_name: editingAllianceName.trim(),
@@ -323,19 +318,19 @@ export default function ManageStatePage() {
     } else {
       setEditingAllianceId(null);
       await loadStateManagement();
-      setMessage("Alliance updated.");
+      setMessage(t("Alliance updated."));
     }
     setSavingAlliance(false);
   }
 
   async function deleteAlliance(alliance: StateAlliance) {
     const confirmed = window.confirm(
-      `Delete “${alliance.name}”?\n\nIt is currently assigned to ${alliance.memberCount} ${alliance.memberCount === 1 ? "account" : "accounts"}. Those accounts will become unassigned, but no state members will be deleted.`
+      `Delete “${alliance.name}”?\n\nIt is currently assigned to ${alliance.memberCount} ${alliance.memberCount === 1 ? "account" : "accounts"}. Those accounts will become unassigned, but no state members will be deleted.`,
     );
     if (!confirmed) return;
 
     setSavingAlliance(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("delete_state_alliance", {
       target_alliance_id: alliance.id,
     });
@@ -347,14 +342,14 @@ export default function ManageStatePage() {
         setEditingAllianceId(null);
       }
       await loadStateManagement();
-      setMessage("Alliance deleted. No state members were removed.");
+      setMessage(t("Alliance deleted. No state members were removed."));
     }
     setSavingAlliance(false);
   }
 
   async function createInvitation() {
     if (!activeMembership || !inviteWosId.trim()) return;
-    setMessage("");
+    setMessage(t(""));
     setInviteLink("");
 
     const { data, error } = await supabase.rpc("create_state_join_invite", {
@@ -371,18 +366,20 @@ export default function ManageStatePage() {
     setInviteLink(window.location.origin + "/invite/" + data);
     setInviteWosId("");
     setMessage(
-      "Invitation delivered in the player's notification inbox. The link below is an optional backup."
+      t(
+        "Invitation delivered in the player's notification inbox. The link below is an optional backup.",
+      ),
     );
   }
 
   async function copyInviteLink() {
     if (!inviteLink) return;
     await navigator.clipboard.writeText(inviteLink);
-    setMessage("Backup invitation link copied.");
+    setMessage(t("Backup invitation link copied."));
   }
 
   async function reviewInvitation(inviteId: string, approveInvite: boolean) {
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("review_state_invite", {
       target_invite_id: inviteId,
       approve_invite: approveInvite,
@@ -396,7 +393,7 @@ export default function ManageStatePage() {
     setMessage(
       approveInvite
         ? "Player verified and added as a regular member."
-        : "Membership request rejected."
+        : "Membership request rejected.",
     );
     await loadStateManagement();
     await refreshMemberships();
@@ -404,7 +401,7 @@ export default function ManageStatePage() {
 
   async function changeRole(
     wosAccountId: string,
-    role: Exclude<StateRole, "owner">
+    role: Exclude<StateRole, "owner">,
   ) {
     if (!activeMembership) return;
     const { error } = await supabase.rpc("set_state_member_role", {
@@ -425,18 +422,15 @@ export default function ManageStatePage() {
   async function setCapability(
     wosAccountId: string,
     capability: StateCapability,
-    enabled: boolean
+    enabled: boolean,
   ) {
     if (!activeMembership) return;
-    const { error } = await supabase.rpc(
-      "set_state_member_capability",
-      {
-        target_state_id: activeMembership.stateId,
-        target_wos_account_id: wosAccountId,
-        target_capability: capability,
-        capability_enabled: enabled,
-      }
-    );
+    const { error } = await supabase.rpc("set_state_member_capability", {
+      target_state_id: activeMembership.stateId,
+      target_wos_account_id: wosAccountId,
+      target_capability: capability,
+      capability_enabled: enabled,
+    });
 
     if (error) {
       setMessage(error.message);
@@ -449,7 +443,7 @@ export default function ManageStatePage() {
 
   async function setRallyLead(wosAccountId: string, enabled: boolean) {
     if (!activeMembership) return;
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("set_state_rally_lead", {
       target_state_id: activeMembership.stateId,
       target_wos_account_id: wosAccountId,
@@ -462,24 +456,24 @@ export default function ManageStatePage() {
     }
 
     await loadStateManagement();
-    setMessage(enabled ? "Rally Lead tag assigned." : "Rally Lead tag removed.");
+    setMessage(
+      enabled ? "Rally Lead tag assigned." : "Rally Lead tag removed.",
+    );
   }
 
   async function removeMember(wosAccountId: string) {
     if (!activeMembership) return;
     const member = members.find(
-      (stateMember) =>
-        stateMember.wosAccountId === wosAccountId
+      (stateMember) => stateMember.wosAccountId === wosAccountId,
     );
-    const memberName =
-      member?.nickname || member?.wosId || "this member";
+    const memberName = member?.nickname || member?.wosId || "this member";
     const confirmed = window.confirm(
-      `Remove ${memberName} from ${activeMembership.stateName}?\n\nThey will immediately lose state access, their role, capabilities, and tags. They will need a new invitation to join again.`
+      `Remove ${memberName} from ${activeMembership.stateName}?\n\nThey will immediately lose state access, their role, capabilities, and tags. They will need a new invitation to join again.`,
     );
 
     if (!confirmed) return;
 
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("remove_state_member", {
       target_state_id: activeMembership.stateId,
       target_wos_account_id: wosAccountId,
@@ -500,8 +494,8 @@ export default function ManageStatePage() {
       <main>
         <AppHeader />
         <section>
-          <h2>Manage state</h2>
-          <p>Select or join a state first.</p>
+          <h2>{t("Manage state")}</h2>
+          <p>{t("Select or join a state first.")}</p>
         </section>
       </main>
     );
@@ -512,8 +506,8 @@ export default function ManageStatePage() {
       <main>
         <AppHeader />
         <section>
-          <h2>Manage state</h2>
-          <p>Only state owners and admins can manage this page.</p>
+          <h2>{t("Manage state")}</h2>
+          <p>{t("Only state owners and admins can manage this page.")}</p>
         </section>
       </main>
     );
@@ -523,17 +517,23 @@ export default function ManageStatePage() {
     <main>
       <AppHeader />
       {message && <p className="page-message">{message}</p>}
-      <nav className="state-section-nav" aria-label="State administration">
-        <span className="nav-link active-nav-link">Members &amp; setup</span>
-        <Link className="nav-link" href="/state/announcements">Send notices</Link>
-        <Link className="nav-link" href="/state/tags">Manage tags</Link>
-        <Link className="nav-link" href="/state/stats">Stats &amp; history</Link>
+      <nav className="state-section-nav" aria-label={t("State administration")}>
+        <span className="nav-link active-nav-link">{t("Members & setup")}</span>
+        <Link className="nav-link" href="/state/announcements">
+          {t("Send notices")}
+        </Link>
+        <Link className="nav-link" href="/state/tags">
+          {t("Manage tags")}
+        </Link>
+        <Link className="nav-link" href="/state/stats">
+          {t("Stats & history")}
+        </Link>
       </nav>
       <section>
         <div className="section-title-row">
           <div>
-            <p className="section-label">Battle access</p>
-            <h2>Battle period</h2>
+            <p className="section-label">{t("Battle access")}</p>
+            <h2>{t("Battle period")}</h2>
           </div>
           <span
             className={
@@ -542,7 +542,7 @@ export default function ManageStatePage() {
                 : "battle-state"
             }
           >
-            {activeMembership.battleId ? "Active" : "Inactive"}
+            {activeMembership.battleId ? t("Active") : t("Inactive")}
           </span>
         </div>
         {activeMembership.battleId ? (
@@ -550,19 +550,21 @@ export default function ManageStatePage() {
             <div>
               <p>
                 <strong>
-                  {activeMembership.battleName || "Active battle"}
+                  {activeMembership.battleName || t("Active battle")}
                 </strong>
-                {" — "}battle tools are available to assigned coordinators
-                and garrison players.
+                {" — "}
+                {t(
+                  "battle tools are available to assigned coordinators and garrison players.",
+                )}
               </p>
               <label>
-                Battle result
+                {t("Battle result")}
                 <select
                   value={battleResult}
                   onChange={(event) => setBattleResult(event.target.value)}
                 >
-                  <option value="win">Win</option>
-                  <option value="loss">Loss</option>
+                  <option value="win">{t("Win")}</option>
+                  <option value="loss">{t("Loss")}</option>
                 </select>
               </label>
             </div>
@@ -571,20 +573,21 @@ export default function ManageStatePage() {
               className="danger-button"
               onClick={endBattlePeriod}
             >
-              End and save battle
+              {t("End and save battle")}
             </button>
           </div>
         ) : (
           <div className="battle-control-row">
             <div>
-              <strong>No live battle</strong>
+              <strong>{t("No live battle")}</strong>
               <p>
-                Create and publish a plan to schedule its battle period. Start
-                the live period from that plan when coordination begins.
+                {t(
+                  "Create and publish a plan to schedule its battle period. Start the live period from that plan when coordination begins.",
+                )}
               </p>
             </div>
             <Link className="nav-link" href="/state/planning">
-              Open battle planning
+              {t("Open battle planning")}
             </Link>
           </div>
         )}
@@ -593,32 +596,33 @@ export default function ManageStatePage() {
       <section>
         <div className="section-title-row">
           <div>
-            <p className="section-label">Battle structure</p>
-            <h2>Alliance setup</h2>
+            <p className="section-label">{t("Battle structure")}</p>
+            <h2>{t("Alliance setup")}</h2>
           </div>
           <span className="retention-badge">
-            {alliances.length} {alliances.length === 1 ? "alliance" : "alliances"}
+            {alliances.length}{" "}
+            {alliances.length === 1 ? t("alliance") : t("alliances")}
           </span>
         </div>
         <p>
-          Create the alliances available to battle planners. Member
-          assignments are managed only from Battle Planning and become visible
-          in Alliance Overview after publishing.
+          {t(
+            "Create the alliances available to battle planners. Member assignments are managed only from Battle Planning and become visible in Alliance Overview after publishing.",
+          )}
         </p>
 
         <div className="alliance-management-create">
           <label>
-            Alliance name
+            {t("Alliance name")}
             <input
               type="text"
               maxLength={40}
               value={allianceName}
               onChange={(event) => setAllianceName(event.target.value)}
-              placeholder="TED"
+              placeholder={t("TED")}
             />
           </label>
           <label>
-            Color
+            {t("Color")}
             <span className="color-input-row">
               <input
                 type="color"
@@ -637,7 +641,7 @@ export default function ManageStatePage() {
             </span>
           </label>
           <label>
-            Capacity
+            {t("Capacity")}
             <input
               type="number"
               min="1"
@@ -653,14 +657,14 @@ export default function ManageStatePage() {
             disabled={savingAlliance}
             onClick={() => void createAlliance()}
           >
-            {savingAlliance ? "Saving..." : "Create alliance"}
+            {savingAlliance ? t("Saving...") : t("Create alliance")}
           </button>
         </div>
 
         {alliances.length === 0 ? (
           <div className="empty-state compact-empty-state">
-            <h3>No alliances configured</h3>
-            <p>Create the first destination for your battle plans.</p>
+            <h3>{t("No alliances configured")}</h3>
+            <p>{t("Create the first destination for your battle plans.")}</p>
           </div>
         ) : (
           <div className="alliance-management-list">
@@ -673,7 +677,7 @@ export default function ManageStatePage() {
                 {editingAllianceId === alliance.id ? (
                   <div className="alliance-management-editor">
                     <label>
-                      Alliance name
+                      {t("Alliance name")}
                       <input
                         type="text"
                         maxLength={40}
@@ -684,7 +688,7 @@ export default function ManageStatePage() {
                       />
                     </label>
                     <label>
-                      Color
+                      {t("Color")}
                       <span className="color-input-row">
                         <input
                           type="color"
@@ -709,7 +713,7 @@ export default function ManageStatePage() {
                       </span>
                     </label>
                     <label>
-                      Capacity
+                      {t("Capacity")}
                       <input
                         type="number"
                         min="1"
@@ -726,14 +730,14 @@ export default function ManageStatePage() {
                         disabled={savingAlliance}
                         onClick={() => void saveAlliance()}
                       >
-                        Save
+                        {t("Save")}
                       </button>
                       <button
                         type="button"
                         className="secondary-link"
                         onClick={() => setEditingAllianceId(null)}
                       >
-                        Cancel
+                        {t("Cancel")}
                       </button>
                     </div>
                   </div>
@@ -746,8 +750,9 @@ export default function ManageStatePage() {
                     <div className="alliance-management-identity">
                       <strong>{alliance.name}</strong>
                       <small>
-                        {alliance.memberCount}/{alliance.max_members} published
-                        assignments
+                        {alliance.memberCount}
+                        {t("/")}
+                        {alliance.max_members} {t("published assignments")}
                       </small>
                     </div>
                     <div className="tag-row-actions">
@@ -756,7 +761,7 @@ export default function ManageStatePage() {
                         className="secondary-link"
                         onClick={() => beginEditingAlliance(alliance)}
                       >
-                        Edit
+                        {t("Edit")}
                       </button>
                       <button
                         type="button"
@@ -764,7 +769,7 @@ export default function ManageStatePage() {
                         disabled={savingAlliance}
                         onClick={() => void deleteAlliance(alliance)}
                       >
-                        Delete
+                        {t("Delete")}
                       </button>
                     </div>
                   </>
@@ -776,32 +781,34 @@ export default function ManageStatePage() {
       </section>
 
       <section>
-        <h2>Manage {activeMembership.stateName}</h2>
-        <h3>Invite a WOS account</h3>
+        <h2>
+          {t("Manage")} {activeMembership.stateName}
+        </h2>
+        <h3>{t("Invite a WOS account")}</h3>
         <p>
-          Enter the player&apos;s registered WOS ID. They receive an in-app
-          invitation and must accept it. You then verify the player before
-          they receive state access.
+          {t(
+            "Enter the player's registered WOS ID. They receive an in-app invitation and must accept it. You then verify the player before they receive state access.",
+          )}
         </p>
         <div className="invite-form">
           <label>
-            WOS ID
+            {t("WOS ID")}
             <input
               type="text"
               inputMode="numeric"
               value={inviteWosId}
               onChange={(event) => setInviteWosId(event.target.value)}
-              placeholder="Player's WOS ID"
+              placeholder={t("Player's WOS ID")}
             />
           </label>
           <button type="button" onClick={createInvitation}>
-            Send invitation
+            {t("Send invitation")}
           </button>
         </div>
         {inviteLink && (
           <div className="invite-link-box">
             <label className="invite-link-field">
-              Optional backup link
+              {t("Optional backup link")}
               <input
                 value={inviteLink}
                 readOnly
@@ -809,30 +816,34 @@ export default function ManageStatePage() {
               />
             </label>
             <button type="button" onClick={copyInviteLink}>
-              Copy link
+              {t("Copy link")}
             </button>
           </div>
         )}
       </section>
 
       <section>
-        <h2>Waiting for your verification</h2>
+        <h2>{t("Waiting for your verification")}</h2>
         <p>
-          These players accepted an invitation. Confirm their identity
-          outside the app before approving them.
+          {t(
+            "These players accepted an invitation. Confirm their identity outside the app before approving them.",
+          )}
         </p>
         {pendingApprovals.length === 0 ? (
-          <p>No players are waiting for approval.</p>
+          <p>{t("No players are waiting for approval.")}</p>
         ) : (
           <ul>
             {pendingApprovals.map((approval) => (
               <li key={approval.inviteId}>
                 <span>
-                  <strong>{approval.nickname || "Unnamed WOS account"}</strong>
+                  <strong>
+                    {approval.nickname || t("Unnamed WOS account")}
+                  </strong>
                   {" — WOS ID " + approval.wosId}
                   <small>
-                    {" — expires " +
-                      new Date(approval.expiresAt).toLocaleString()}
+                    {t(" — expires {date}", {
+                      date: formatDateTime(approval.expiresAt),
+                    })}
                   </small>
                 </span>
                 <div className="member-actions">
@@ -842,7 +853,7 @@ export default function ManageStatePage() {
                       void reviewInvitation(approval.inviteId, true)
                     }
                   >
-                    Verify and approve
+                    {t("Verify and approve")}
                   </button>
                   <button
                     type="button"
@@ -851,7 +862,7 @@ export default function ManageStatePage() {
                       void reviewInvitation(approval.inviteId, false)
                     }
                   >
-                    Reject
+                    {t("Reject")}
                   </button>
                 </div>
               </li>
@@ -861,9 +872,9 @@ export default function ManageStatePage() {
       </section>
 
       <section>
-        <h2>State members</h2>
+        <h2>{t("State members")}</h2>
         {members.length === 0 ? (
-          <p>No members found.</p>
+          <p>{t("No members found.")}</p>
         ) : (
           <ul>
             {members.map((member) => (
@@ -875,7 +886,7 @@ export default function ManageStatePage() {
                 </span>
                 {member.role === "owner" ? (
                   <div className="member-actions">
-                    <span className="role-badge">Owner</span>
+                    <span className="role-badge">{t("Owner")}</span>
                     <label className="capability-toggle">
                       <input
                         type="checkbox"
@@ -883,70 +894,61 @@ export default function ManageStatePage() {
                         onChange={(event) =>
                           void setRallyLead(
                             member.wosAccountId,
-                            event.target.checked
+                            event.target.checked,
                           )
                         }
                       />
-                      <span>Rally Lead</span>
+                      <span>{t("Rally Lead")}</span>
                     </label>
                   </div>
                 ) : (
                   <div className="member-actions">
                     {activeMembership.role === "owner" ? (
                       <label>
-                        Permission role
+                        {t("Permission role")}
                         <select
                           value={member.role}
                           onChange={(event) =>
                             void changeRole(
                               member.wosAccountId,
-                              event.target.value as Exclude<
-                                StateRole,
-                                "owner"
-                              >
+                              event.target.value as Exclude<StateRole, "owner">,
                             )
                           }
                         >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
+                          <option value="member">{t("Member")}</option>
+                          <option value="admin">{t("Admin")}</option>
                         </select>
                       </label>
                     ) : (
-                      <span className="role-badge">
-                        {member.role}
-                      </span>
+                      <span className="role-badge">{member.role}</span>
                     )}
                     <label className="capability-toggle">
                       <input
                         type="checkbox"
-                        checked={member.capabilities.includes(
-                          "rally_caller"
-                        )}
+                        checked={member.capabilities.includes("rally_caller")}
                         onChange={(event) =>
                           void setCapability(
                             member.wosAccountId,
                             "rally_caller",
-                            event.target.checked
+                            event.target.checked,
                           )
                         }
                       />
-                      <span>Coordinator</span>
+                      <span>{t("Coordinator")}</span>
                     </label>
                     <label className="capability-toggle">
                       <input
                         type="checkbox"
-                        checked={member.capabilities.includes(
-                          "garrison"
-                        )}
+                        checked={member.capabilities.includes("garrison")}
                         onChange={(event) =>
                           void setCapability(
                             member.wosAccountId,
                             "garrison",
-                            event.target.checked
+                            event.target.checked,
                           )
                         }
                       />
-                      <span>Garrison</span>
+                      <span>{t("Garrison")}</span>
                     </label>
                     <label className="capability-toggle">
                       <input
@@ -955,22 +957,20 @@ export default function ManageStatePage() {
                         onChange={(event) =>
                           void setRallyLead(
                             member.wosAccountId,
-                            event.target.checked
+                            event.target.checked,
                           )
                         }
                       />
-                      <span>Rally Lead</span>
+                      <span>{t("Rally Lead")}</span>
                     </label>
                     {(activeMembership.role === "owner" ||
                       member.role === "member") && (
                       <button
                         type="button"
                         className="danger-button"
-                        onClick={() =>
-                          void removeMember(member.wosAccountId)
-                        }
+                        onClick={() => void removeMember(member.wosAccountId)}
                       >
-                        Remove
+                        {t("Remove")}
                       </button>
                     )}
                   </div>

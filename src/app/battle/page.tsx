@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function LiveBattlePage() {
+  const { t } = useLanguage();
   const { activeMembership, loadingStates } = useStates();
 
   if (loadingStates) {
     return (
       <main>
         <AppHeader />
-        <section className="loading-panel"><p>Loading Live Battle...</p></section>
+        <section className="loading-panel">
+          <p>{t("Loading Live Battle...")}</p>
+        </section>
       </main>
     );
   }
@@ -21,9 +25,15 @@ export default function LiveBattlePage() {
       <main>
         <AppHeader />
         <section className="empty-state">
-          <h2>No active battle</h2>
-          <p>A published plan must be started before live tools become available.</p>
-          <Link className="nav-link" href="/state/overwatch">Open Overwatch</Link>
+          <h2>{t("No active battle")}</h2>
+          <p>
+            {t(
+              "A published plan must be started before live tools become available.",
+            )}
+          </p>
+          <Link className="nav-link" href="/state/overwatch">
+            {t("Open Overwatch")}
+          </Link>
         </section>
       </main>
     );
@@ -43,38 +53,52 @@ export default function LiveBattlePage() {
       <AppHeader />
       <section className="live-battle-heading">
         <p className="section-label">{activeMembership.stateName}</p>
-        <h1>{activeMembership.battleName || "Live Battle"}</h1>
-        <p>Open the operational tool needed by this WOS account.</p>
+        <h1>{activeMembership.battleName || t("Live Battle")}</h1>
+        <p>{t("Open the operational tool needed by this WOS account.")}</p>
       </section>
 
       <section className="live-battle-grid">
         {canCoordinate && (
           <article className="live-battle-card">
-            <p className="section-label">Coordinator</p>
-            <h2>Enemy leaders</h2>
-            <p>Add and maintain the enemy Rally Leads for this battle period.</p>
-            <Link className="nav-link" href="/admin/leaders">Manage leaders</Link>
+            <p className="section-label">{t("Coordinator")}</p>
+            <h2>{t("Enemy leaders")}</h2>
+            <p>
+              {t(
+                "Add and maintain the enemy Rally Leads for this battle period.",
+              )}
+            </p>
+            <Link className="nav-link" href="/admin/leaders">
+              {t("Manage leaders")}
+            </Link>
           </article>
         )}
         {canCoordinate && (
           <article className="live-battle-card">
-            <p className="section-label">Coordinator</p>
-            <h2>Call rally</h2>
-            <p>Record an incoming rally and synchronize its impact time.</p>
-            <Link className="nav-link" href="/admin/call-rally">Call a rally</Link>
+            <p className="section-label">{t("Coordinator")}</p>
+            <h2>{t("Call rally")}</h2>
+            <p>
+              {t("Record an incoming rally and synchronize its impact time.")}
+            </p>
+            <Link className="nav-link" href="/admin/call-rally">
+              {t("Call a rally")}
+            </Link>
           </article>
         )}
         {canGarrison && (
           <article className="live-battle-card">
-            <p className="section-label">Garrison</p>
-            <h2>Reinforcement timing</h2>
-            <p>See your personal send times, alerts and incoming waves.</p>
-            <Link className="nav-link" href="/garrison">Open garrison</Link>
+            <p className="section-label">{t("Garrison")}</p>
+            <h2>{t("Reinforcement timing")}</h2>
+            <p>
+              {t("See your personal send times, alerts and incoming waves.")}
+            </p>
+            <Link className="nav-link" href="/garrison">
+              {t("Open garrison")}
+            </Link>
           </article>
         )}
         {!canCoordinate && !canGarrison && (
           <div className="empty-state compact-empty-state">
-            <p>This WOS account does not have a live battle role.</p>
+            <p>{t("This WOS account does not have a live battle role.")}</p>
           </div>
         )}
       </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 import { groupRalliesIntoWaves } from "@/lib/battleDisplay";
 import { calculateMarchTime } from "@/lib/marchTime";
 import {
@@ -13,41 +14,34 @@ const HIDE_AFTER_SEND_MS = 3_000;
 
 export function useReinforcementTiming(
   rallies: EnemyRally[],
-  currentTime: Date
+  currentTime: Date,
 ) {
+  const { t } = useLanguage();
   const [playerX, setPlayerX] = useState(600);
   const [playerY, setPlayerY] = useState(606);
   const [playerPetActive, setPlayerPetActive] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] =
-    useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const alertedWaves = useRef<Set<number>>(new Set());
 
-  const playerMarchTime = calculateMarchTime(
-    playerX,
-    playerY,
-    playerPetActive
-  );
+  const playerMarchTime = calculateMarchTime(playerX, playerY, playerPetActive);
   const rallyWaves = useMemo(
     () =>
       groupRalliesIntoWaves(rallies).filter((wave) => {
         const sendTime = calculateSendTime(
           new Date(wave.impactSecond * 1000),
-          playerMarchTime
+          playerMarchTime,
         );
 
-        return (
-          currentTime.getTime() <
-          sendTime.getTime() + HIDE_AFTER_SEND_MS
-        );
+        return currentTime.getTime() < sendTime.getTime() + HIDE_AFTER_SEND_MS;
       }),
-    [currentTime, playerMarchTime, rallies]
+    [currentTime, playerMarchTime, rallies],
   );
 
   function getSecondsUntilSend(wave: RallyWave): number {
     const sendTime = calculateSendTime(
       new Date(wave.impactSecond * 1000),
-      playerMarchTime
+      playerMarchTime,
     );
     return calculateSecondsUntil(sendTime, currentTime);
   }
@@ -55,16 +49,16 @@ export function useReinforcementTiming(
   function getSendStatus(wave: RallyWave): string {
     const secondsRemaining = getSecondsUntilSend(wave);
     if (secondsRemaining > 0) {
-      return `Send in ${secondsRemaining} seconds`;
+      return t("Send in {seconds} seconds", { seconds: secondsRemaining });
     }
-    if (secondsRemaining === 0) return "SEND NOW";
-    return "Send time passed";
+    if (secondsRemaining === 0) return t("SEND NOW");
+    return t("Send time passed");
   }
 
   async function enableNotifications() {
     const notificationsSupported = "Notification" in window;
     if (!notificationsSupported) {
-      window.alert("This browser does not support notifications.");
+      window.alert(t("This browser does not support notifications."));
       return;
     }
     const permission = await Notification.requestPermission();
@@ -75,25 +69,16 @@ export function useReinforcementTiming(
     rallyWaves.forEach((wave) => {
       const sendTime = calculateSendTime(
         new Date(wave.impactSecond * 1000),
-        playerMarchTime
+        playerMarchTime,
       );
-      const secondsRemaining = calculateSecondsUntil(
-        sendTime,
-        currentTime
-      );
-      const alreadyAlerted = alertedWaves.current.has(
-        wave.impactSecond
-      );
+      const secondsRemaining = calculateSecondsUntil(sendTime, currentTime);
+      const alreadyAlerted = alertedWaves.current.has(wave.impactSecond);
 
-      if (
-        secondsRemaining >= 0 &&
-        secondsRemaining <= 1 &&
-        !alreadyAlerted
-      ) {
+      if (secondsRemaining >= 0 && secondsRemaining <= 1 && !alreadyAlerted) {
         alertedWaves.current.add(wave.impactSecond);
 
         if (soundEnabled) {
-          const speechAlert = new SpeechSynthesisUtterance("Send now");
+          const speechAlert = new SpeechSynthesisUtterance(t("Send now"));
           window.speechSynthesis.speak(speechAlert);
         }
 
@@ -102,8 +87,10 @@ export function useReinforcementTiming(
           "Notification" in window &&
           Notification.permission === "granted"
         ) {
-          new Notification("SEND REINFORCEMENTS NOW", {
-            body: `${wave.rallies.length} enemy rallies are incoming.`,
+          new Notification(t("SEND REINFORCEMENTS NOW"), {
+            body: t("{count} enemy rallies are incoming.", {
+              count: wave.rallies.length,
+            }),
             tag: `wave-${wave.impactSecond}`,
           });
         }
@@ -115,6 +102,7 @@ export function useReinforcementTiming(
     playerMarchTime,
     rallyWaves,
     soundEnabled,
+    t,
   ]);
 
   return {

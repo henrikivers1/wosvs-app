@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function AcceptStateInvitePage() {
+  const { t } = useLanguage();
   const params = useParams<{ token: string }>();
   const supabase = useMemo(() => createClient(), []);
   const [message, setMessage] = useState("");
@@ -15,7 +17,7 @@ export default function AcceptStateInvitePage() {
 
   async function acceptInvitation() {
     setAccepting(true);
-    setMessage("");
+    setMessage(t(""));
 
     const {
       data: { user },
@@ -23,7 +25,7 @@ export default function AcceptStateInvitePage() {
 
     if (!user) {
       setAccepting(false);
-      setMessage("Sign in first, then reopen this invitation link.");
+      setMessage(t("Sign in first, then reopen this invitation link."));
       return;
     }
 
@@ -39,7 +41,9 @@ export default function AcceptStateInvitePage() {
 
     setAccepted(true);
     setMessage(
-      "Invitation accepted. The state owner must now verify and approve you before you receive access."
+      t(
+        "Invitation accepted. The state owner must now verify and approve you before you receive access.",
+      ),
     );
   }
 
@@ -47,29 +51,25 @@ export default function AcceptStateInvitePage() {
     <main>
       <AppHeader />
       <section className="auth-card">
-        <h2>State invitation</h2>
+        <h2>{t("State invitation")}</h2>
         <p>
-          Accepting sends a membership request to the state owner. You do
-          not receive state access until the owner verifies and approves
-          your WOS account.
+          {t(
+            "Accepting sends a membership request to the state owner. You do not receive state access until the owner verifies and approves your WOS account.",
+          )}
         </p>
         {!accepted && (
-          <button
-            type="button"
-            onClick={acceptInvitation}
-            disabled={accepting}
-          >
-            {accepting ? "Accepting..." : "Accept invitation"}
+          <button type="button" onClick={acceptInvitation} disabled={accepting}>
+            {accepting ? t("Accepting...") : t("Accept invitation")}
           </button>
         )}
         {message && <p className="auth-message">{message}</p>}
         {accepted ? (
           <Link className="nav-link" href="/notifications">
-            View notifications
+            {t("View notifications")}
           </Link>
         ) : (
           <Link className="nav-link" href="/login">
-            Sign in
+            {t("Sign in")}
           </Link>
         )}
       </section>

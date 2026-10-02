@@ -12,43 +12,29 @@ import {
 import { calculateMarchTime } from "@/lib/marchTime";
 import { calculateImpactTime } from "@/lib/rallyTime";
 import { calculateSendTime } from "@/lib/reinforcementTime";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function CallRallyPage() {
-  const {
-    enemyLeaders,
-    rallies,
-    currentTime,
-    addRally,
-    removeRally,
-  } = useBattle();
-  const [selectedLeaderId, setSelectedLeaderId] = useState<
-    number | null
-  >(null);
+  const { t } = useLanguage();
+  const { enemyLeaders, rallies, currentTime, addRally, removeRally } =
+    useBattle();
+  const [selectedLeaderId, setSelectedLeaderId] = useState<number | null>(null);
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
 
   const selectedLeader =
-    enemyLeaders.find(
-      (leader) => leader.id === selectedLeaderId
-    ) ?? null;
+    enemyLeaders.find((leader) => leader.id === selectedLeaderId) ?? null;
   const petActive = selectedLeader
     ? isEnemyPetActive(selectedLeader, currentTime)
     : false;
   const marchTime = selectedLeader
-    ? calculateMarchTime(
-        selectedLeader.x,
-        selectedLeader.y,
-        petActive
-      )
+    ? calculateMarchTime(selectedLeader.x, selectedLeader.y, petActive)
     : 0;
-  const reinforcement = useReinforcementTiming(
-    rallies,
-    currentTime
-  );
+  const reinforcement = useReinforcementTiming(rallies, currentTime);
 
   async function callRally() {
     if (!selectedLeader) {
-      window.alert("Select an enemy rally leader.");
+      window.alert(t("Select an enemy rally leader."));
       return;
     }
 
@@ -56,7 +42,7 @@ export default function CallRallyPage() {
       currentTime,
       minutes,
       seconds,
-      marchTime
+      marchTime,
     );
     const error = await addRally(
       {
@@ -67,7 +53,7 @@ export default function CallRallyPage() {
         impactTime,
         petActive,
       },
-      selectedLeader.id
+      selectedLeader.id,
     );
     if (error) window.alert(error);
   }
@@ -76,20 +62,18 @@ export default function CallRallyPage() {
     <main>
       <AppHeader />
       <section>
-        <h2>Call enemy rally</h2>
+        <h2>{t("Call enemy rally")}</h2>
         <label>
-          Rally leader
+          {t("Rally leader")}
           <select
             value={selectedLeaderId ?? ""}
             onChange={(event) =>
               setSelectedLeaderId(
-                event.target.value
-                  ? Number(event.target.value)
-                  : null
+                event.target.value ? Number(event.target.value) : null,
               )
             }
           >
-            <option value="">Select rally leader</option>
+            <option value="">{t("Select rally leader")}</option>
             {enemyLeaders.map((leader) => (
               <option key={leader.id} value={leader.id}>
                 {leader.name}
@@ -100,86 +84,76 @@ export default function CallRallyPage() {
 
         {selectedLeader && (
           <p>
-            Position: {selectedLeader.x}:{selectedLeader.y} — March:{" "}
-            {marchTime} seconds
+            {t("Position:")} {selectedLeader.x}
+            {t(":")}
+            {selectedLeader.y} {t("— March:")} {marchTime} {t("seconds")}
             {petActive
-              ? ` — Pet remaining: ${getEnemyPetTimeRemaining(
-                  selectedLeader,
-                  currentTime
-                )}`
-              : " — Pet inactive"}
+              ? t(" — Pet remaining: {time}", {
+                  time: getEnemyPetTimeRemaining(selectedLeader, currentTime),
+                })
+              : t(" — Pet inactive")}
           </p>
         )}
 
         <label>
-          Rally minutes remaining
+          {t("Rally minutes remaining")}
           <input
             type="number"
             min="0"
             max="5"
             value={minutes}
-            onChange={(event) =>
-              setMinutes(Number(event.target.value))
-            }
+            onChange={(event) => setMinutes(Number(event.target.value))}
           />
         </label>
         <label>
-          Rally seconds remaining
+          {t("Rally seconds remaining")}
           <input
             type="number"
             min="0"
             max="59"
             value={seconds}
-            onChange={(event) =>
-              setSeconds(Number(event.target.value))
-            }
+            onChange={(event) => setSeconds(Number(event.target.value))}
           />
         </label>
-        <button
-          type="button"
-          onClick={callRally}
-          disabled={!selectedLeader}
-        >
-          Call rally
+        <button type="button" onClick={callRally} disabled={!selectedLeader}>
+          {t("Call rally")}
         </button>
         <p>
-          Rally timer: {minutes}:
+          {t("Rally timer:")} {minutes}
+          {t(":")}
           {seconds.toString().padStart(2, "0")}
         </p>
       </section>
 
       <section>
-        <h2>Your reinforcement timing</h2>
+        <h2>{t("Your reinforcement timing")}</h2>
         <p>
-          Enter your own position to see when you must send after calling
-          the enemy rallies.
+          {t(
+            "Enter your own position to see when you must send after calling the enemy rallies.",
+          )}
         </p>
         <div className="reinforcement-settings">
           <label>
-            Your X coordinate
+            {t("Your X coordinate")}
             <input
               type="number"
               min="0"
               max="1199"
               value={reinforcement.playerX}
               onChange={(event) =>
-                reinforcement.setPlayerX(
-                  Number(event.target.value)
-                )
+                reinforcement.setPlayerX(Number(event.target.value))
               }
             />
           </label>
           <label>
-            Your Y coordinate
+            {t("Your Y coordinate")}
             <input
               type="number"
               min="0"
               max="1199"
               value={reinforcement.playerY}
               onChange={(event) =>
-                reinforcement.setPlayerY(
-                  Number(event.target.value)
-                )
+                reinforcement.setPlayerY(Number(event.target.value))
               }
             />
           </label>
@@ -188,12 +162,10 @@ export default function CallRallyPage() {
               type="checkbox"
               checked={reinforcement.playerPetActive}
               onChange={(event) =>
-                reinforcement.setPlayerPetActive(
-                  event.target.checked
-                )
+                reinforcement.setPlayerPetActive(event.target.checked)
               }
             />
-            My pet is active
+            {t("My pet is active")}
           </label>
           <label>
             <input
@@ -203,56 +175,50 @@ export default function CallRallyPage() {
                 reinforcement.setSoundEnabled(event.target.checked)
               }
             />
-            Sound alerts
+            {t("Sound alerts")}
           </label>
-          <button
-            type="button"
-            onClick={reinforcement.enableNotifications}
-          >
+          <button type="button" onClick={reinforcement.enableNotifications}>
             {reinforcement.notificationsEnabled
-              ? "Notifications enabled"
-              : "Enable notifications"}
+              ? t("Notifications enabled")
+              : t("Enable notifications")}
           </button>
         </div>
         <p>
-          Your march time:{" "}
+          {t("Your march time:")}{" "}
           <strong>
-            {reinforcement.playerMarchTime} seconds
+            {reinforcement.playerMarchTime} {t("seconds")}
           </strong>
         </p>
       </section>
 
       <section>
-        <h2>Incoming rally schedule</h2>
+        <h2>{t("Incoming rally schedule")}</h2>
         {reinforcement.rallyWaves.length === 0 && (
-          <p>No incoming rallies.</p>
+          <p>{t("No incoming rallies.")}</p>
         )}
         {reinforcement.rallyWaves.map((wave, index) => (
           <article key={wave.impactSecond}>
             <h3>
-              Wave {index + 1}: {formatUtcTime(
-                new Date(wave.impactSecond * 1000)
-              )}{" "}
-              UTC — {wave.rallies.length}{" "}
-              {wave.rallies.length === 1 ? "rally" : "rallies"}
+              {t("Wave")} {index + 1}
+              {t(":")} {formatUtcTime(new Date(wave.impactSecond * 1000))}{" "}
+              {t("UTC —")} {wave.rallies.length}{" "}
+              {wave.rallies.length === 1 ? t("rally") : t("rallies")}
             </h3>
             <p>
-              Your reinforcement send time:{" "}
+              {t("Your reinforcement send time:")}{" "}
               <strong>
                 {formatUtcTime(
                   calculateSendTime(
                     new Date(wave.impactSecond * 1000),
-                    reinforcement.playerMarchTime
-                  )
+                    reinforcement.playerMarchTime,
+                  ),
                 )}{" "}
-                UTC
+                {t("UTC")}
               </strong>
             </p>
             <p
               className={
-                reinforcement.getSecondsUntilSend(wave) === 0
-                  ? "send-now"
-                  : ""
+                reinforcement.getSecondsUntilSend(wave) === 0 ? "send-now" : ""
               }
             >
               {reinforcement.getSendStatus(wave)}
@@ -262,7 +228,7 @@ export default function CallRallyPage() {
                 <li key={rally.id}>
                   <span>
                     {rally.enemyName}
-                    {rally.petActive ? " — Pet active" : ""}
+                    {rally.petActive ? t(" — Pet active") : ""}
                   </span>
                   <button
                     type="button"
@@ -271,7 +237,7 @@ export default function CallRallyPage() {
                       if (error) window.alert(error);
                     }}
                   >
-                    Cancel rally
+                    {t("Cancel rally")}
                   </button>
                 </li>
               ))}

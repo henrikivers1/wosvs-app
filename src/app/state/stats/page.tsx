@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type BattleHistoryRow = {
   battle_id: string;
@@ -25,15 +26,8 @@ type StateOverviewRow = {
   wos_account_count: number;
 };
 
-function formatDateTime(value: string | null): string {
-  if (!value) return "In progress";
-  return new Date(value).toLocaleString("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
 export default function StateStatsPage() {
+  const { t, formatDateTime } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, loadingStates } = useStates();
   const [history, setHistory] = useState<BattleHistoryRow[]>([]);
@@ -53,7 +47,7 @@ export default function StateStatsPage() {
     }
 
     setLoading(true);
-    setMessage("");
+    setMessage(t(""));
     const [historyResult, overviewResult] = await Promise.all([
       supabase.rpc("get_state_battle_history_v2", {
         target_state_id: activeMembership.stateId,
@@ -76,14 +70,13 @@ export default function StateStatsPage() {
       setPlayerCount(0);
       setWosAccountCount(0);
     } else {
-      const overview = (overviewResult.data?.[0] ?? null) as
-        | StateOverviewRow
-        | null;
+      const overview = (overviewResult.data?.[0] ??
+        null) as StateOverviewRow | null;
       setPlayerCount(Number(overview?.player_count ?? 0));
       setWosAccountCount(Number(overview?.wos_account_count ?? 0));
     }
     setLoading(false);
-  }, [activeMembership, loadingStates, supabase]);
+  }, [activeMembership, loadingStates, supabase, t]);
 
   useEffect(() => {
     const loadId = window.setTimeout(() => {
@@ -94,10 +87,10 @@ export default function StateStatsPage() {
 
   const totalRallies = history.reduce(
     (total, battle) => total + Number(battle.rally_count),
-    0
+    0,
   );
   const completedBattles = history.filter(
-    (battle) => battle.battle_status === "completed"
+    (battle) => battle.battle_status === "completed",
   ).length;
 
   return (
@@ -105,16 +98,16 @@ export default function StateStatsPage() {
       <AppHeader />
       {!activeMembership ? (
         <section>
-          <h2>State stats</h2>
-          <p>Select or join a state first.</p>
+          <h2>{t("State stats")}</h2>
+          <p>{t("Select or join a state first.")}</p>
         </section>
       ) : (
         <>
           <section className="stats-heading">
             <div>
-              <p className="section-label">State record</p>
+              <p className="section-label">{t("State record")}</p>
               <h1>{activeMembership.stateName}</h1>
-              <p>Battle activity retained across every battle period.</p>
+              <p>{t("Battle activity retained across every battle period.")}</p>
             </div>
           </section>
 
@@ -122,19 +115,19 @@ export default function StateStatsPage() {
 
           <section className="stat-grid">
             <div>
-              <span>Players</span>
+              <span>{t("Players")}</span>
               <strong>{loading ? "—" : playerCount}</strong>
             </div>
             <div>
-              <span>WOS accounts</span>
+              <span>{t("WOS accounts")}</span>
               <strong>{loading ? "—" : wosAccountCount}</strong>
             </div>
             <div>
-              <span>Rallies called</span>
+              <span>{t("Rallies called")}</span>
               <strong>{loading ? "—" : totalRallies}</strong>
             </div>
             <div>
-              <span>Completed battles</span>
+              <span>{t("Completed battles")}</span>
               <strong>{loading ? "—" : completedBattles}</strong>
             </div>
           </section>
@@ -142,28 +135,25 @@ export default function StateStatsPage() {
           <section>
             <div className="section-title-row">
               <div>
-                <p className="section-label">Archive</p>
-                <h2>Battle history</h2>
+                <p className="section-label">{t("Archive")}</p>
+                <h2>{t("Battle history")}</h2>
               </div>
             </div>
 
             {loading ? (
-              <p>Loading battle history...</p>
+              <p>{t("Loading battle history...")}</p>
             ) : history.length === 0 ? (
-              <p>No battle periods have been recorded yet.</p>
+              <p>{t("No battle periods have been recorded yet.")}</p>
             ) : (
               <div className="history-list">
                 {history.map((battle) => (
-                  <article
-                    className="history-row"
-                    key={battle.battle_id}
-                  >
+                  <article className="history-row" key={battle.battle_id}>
                     <div className="history-main">
                       <div>
                         <span className="battle-type-badge">
                           {battle.battle_type
                             ? battle.battle_type.toUpperCase()
-                            : "UNCLASSIFIED"}
+                            : t("UNCLASSIFIED")}
                         </span>
                         <h3>{battle.battle_name}</h3>
                       </div>
@@ -174,38 +164,52 @@ export default function StateStatsPage() {
                             : "battle-state"
                         }
                       >
-                        {battle.battle_result
-                          ? `${battle.battle_status} · ${battle.battle_result}`
-                          : battle.battle_status}
+                        {t(
+                          battle.battle_status.charAt(0).toUpperCase() +
+                            battle.battle_status.slice(1),
+                        )}
+                        {battle.battle_result &&
+                          ` · ${t(
+                            battle.battle_result.charAt(0).toUpperCase() +
+                              battle.battle_result.slice(1),
+                          )}`}
                       </span>
                     </div>
                     <dl className="history-details">
                       <div>
-                        <dt>Scheduled</dt>
-                        <dd>{formatDateTime(battle.scheduled_at)}</dd>
-                      </div>
-                      <div>
-                        <dt>Started</dt>
+                        <dt>{t("Scheduled")}</dt>
                         <dd>
-                          {battle.started_at
-                            ? formatDateTime(battle.started_at)
-                            : "Not started"}
+                          {battle.scheduled_at
+                            ? formatDateTime(battle.scheduled_at)
+                            : t("Not scheduled")}
                         </dd>
                       </div>
                       <div>
-                        <dt>Ended</dt>
-                        <dd>{formatDateTime(battle.ended_at)}</dd>
+                        <dt>{t("Started")}</dt>
+                        <dd>
+                          {battle.started_at
+                            ? formatDateTime(battle.started_at)
+                            : t("Not started")}
+                        </dd>
                       </div>
                       <div>
-                        <dt>Rallies</dt>
+                        <dt>{t("Ended")}</dt>
+                        <dd>
+                          {battle.ended_at
+                            ? formatDateTime(battle.ended_at)
+                            : t("In progress")}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>{t("Rallies")}</dt>
                         <dd>{battle.rally_count}</dd>
                       </div>
                       <div>
-                        <dt>Cancelled</dt>
+                        <dt>{t("Cancelled")}</dt>
                         <dd>{battle.cancelled_rally_count}</dd>
                       </div>
                       <div>
-                        <dt>Leaders</dt>
+                        <dt>{t("Leaders")}</dt>
                         <dd>{battle.leader_count}</dd>
                       </div>
                     </dl>

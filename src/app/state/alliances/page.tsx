@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type Alliance = {
   id: string;
@@ -49,6 +50,7 @@ type StateMember = AccountRow & {
 };
 
 export default function AlliancesPage() {
+  const { t, formatDateTime } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, signedIn, loadingStates } = useStates();
@@ -59,8 +61,7 @@ export default function AlliancesPage() {
   const [message, setMessage] = useState("");
 
   const isAdmin =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "admin";
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const loadAllianceOverview = useCallback(async () => {
     if (!activeMembership) {
@@ -72,7 +73,7 @@ export default function AlliancesPage() {
     }
 
     setLoading(true);
-    setMessage("");
+    setMessage(t(""));
     await supabase.rpc("cleanup_expired_state_announcements");
 
     const [allianceResult, assignmentResult, memberResult, recipientResult] =
@@ -115,14 +116,13 @@ export default function AlliancesPage() {
     }
 
     const stateAlliances = (allianceResult.data ?? []) as Alliance[];
-    const assignments =
-      (assignmentResult.data ?? []) as AllianceAssignment[];
+    const assignments = (assignmentResult.data ?? []) as AllianceAssignment[];
     const memberRows = (memberResult.data ?? []) as MemberRow[];
     const visibleNoticeIds = [
       ...new Set(
         (recipientResult.data ?? []).map(
-          (recipient) => recipient.announcement_id
-        )
+          (recipient) => recipient.announcement_id,
+        ),
       ),
     ];
     let notices: AllianceNotice[] = [];
@@ -171,10 +171,7 @@ export default function AlliancesPage() {
     const accounts = (accountResult.data ?? []) as AccountRow[];
     const userIds = [...new Set(accounts.map((account) => account.user_id))];
     const profileResult = userIds.length
-      ? await supabase
-          .from("profiles")
-          .select("id, username")
-          .in("id", userIds)
+      ? await supabase.from("profiles").select("id, username").in("id", userIds)
       : { data: [], error: null };
 
     if (profileResult.error) {
@@ -185,13 +182,13 @@ export default function AlliancesPage() {
 
     const profiles = (profileResult.data ?? []) as ProfileRow[];
     const usernameByUserId = new Map(
-      profiles.map((profile) => [profile.id, profile.username])
+      profiles.map((profile) => [profile.id, profile.username]),
     );
     const allianceByAccountId = new Map(
       assignments.map((assignment) => [
         assignment.wos_account_id,
         assignment.alliance_id,
-      ])
+      ]),
     );
 
     const stateMembers = accounts
@@ -202,15 +199,15 @@ export default function AlliancesPage() {
       }))
       .sort((first, second) =>
         (first.nickname || first.wos_id).localeCompare(
-          second.nickname || second.wos_id
-        )
+          second.nickname || second.wos_id,
+        ),
       );
 
     setAlliances(stateAlliances);
     setAllianceNotices(notices);
     setMembers(stateMembers);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase]);
+  }, [activeMembership, isAdmin, supabase, t]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -238,7 +235,7 @@ export default function AlliancesPage() {
           table: "state_alliance_members",
           filter: `state_id=eq.${stateId}`,
         },
-        () => void loadAllianceOverview()
+        () => void loadAllianceOverview(),
       )
       .on(
         "postgres_changes",
@@ -248,7 +245,7 @@ export default function AlliancesPage() {
           table: "state_alliances",
           filter: `state_id=eq.${stateId}`,
         },
-        () => void loadAllianceOverview()
+        () => void loadAllianceOverview(),
       )
       .subscribe();
 
@@ -263,16 +260,16 @@ export default function AlliancesPage() {
         <table className="alliance-roster-table">
           <thead>
             <tr>
-              <th>Member</th>
-              <th>WOS ID</th>
-              <th>Username</th>
+              <th>{t("Member")}</th>
+              <th>{t("WOS ID")}</th>
+              <th>{t("Username")}</th>
             </tr>
           </thead>
           <tbody>
             {allianceMembers.map((member) => (
               <tr key={member.id}>
                 <td>
-                  <strong>{member.nickname || "Unnamed account"}</strong>
+                  <strong>{member.nickname || t("Unnamed account")}</strong>
                 </td>
                 <td>{member.wos_id}</td>
                 <td>{member.username ? `@${member.username}` : "—"}</td>
@@ -289,7 +286,7 @@ export default function AlliancesPage() {
       <main>
         <AppHeader />
         <section className="loading-panel">
-          <p>Loading alliance overview...</p>
+          <p>{t("Loading alliance overview...")}</p>
         </section>
       </main>
     );
@@ -301,47 +298,53 @@ export default function AlliancesPage() {
 
       {!activeMembership ? (
         <section className="empty-state">
-          <h2>Join a state to view battle assignments</h2>
-          <p>Alliance rosters become visible after membership approval.</p>
+          <h2>{t("Join a state to view battle assignments")}</h2>
+          <p>
+            {t("Alliance rosters become visible after membership approval.")}
+          </p>
         </section>
       ) : (
         <>
           <section className="alliances-heading">
             <p className="section-label">{activeMembership.stateName}</p>
-            <h1>Alliance overview</h1>
+            <h1>{t("Alliance overview")}</h1>
             <p>
-              This is the current published battle-day roster. Member
-              assignments can only be changed from Battle Planning.
+              {t(
+                "This is the current published battle-day roster. Member assignments can only be changed from Battle Planning.",
+              )}
             </p>
           </section>
 
           <section>
             <div className="section-title-row">
               <div>
-                <p className="section-label">Published assignments</p>
-                <h2>Battle-day alliances</h2>
+                <p className="section-label">{t("Published assignments")}</p>
+                <h2>{t("Battle-day alliances")}</h2>
               </div>
               <span className="retention-badge">
-                {members.filter((member) => member.allianceId).length} assigned
+                {members.filter((member) => member.allianceId).length}{" "}
+                {t("assigned")}
               </span>
             </div>
 
             {message && <p className="page-message">{message}</p>}
 
             {loading ? (
-              <p>Loading alliance overview...</p>
+              <p>{t("Loading alliance overview...")}</p>
             ) : alliances.length === 0 ? (
               <div className="empty-state compact-empty-state">
-                <h3>No alliances configured</h3>
+                <h3>{t("No alliances configured")}</h3>
                 <p>
-                  An Owner or Admin can create alliances from Manage State.
+                  {t(
+                    "An Owner or Admin can create alliances from Manage State.",
+                  )}
                 </p>
               </div>
             ) : (
               <div className="alliance-grid alliance-overview-grid">
                 {alliances.map((alliance) => {
                   const allianceMembers = members.filter(
-                    (member) => member.allianceId === alliance.id
+                    (member) => member.allianceId === alliance.id,
                   );
                   const notices = allianceNotices
                     .filter((notice) => notice.audience_id === alliance.id)
@@ -362,8 +365,9 @@ export default function AlliancesPage() {
                           <div>
                             <h3>{alliance.name}</h3>
                             <small>
-                              {allianceMembers.length}/{alliance.max_members}{" "}
-                              members
+                              {allianceMembers.length}
+                              {t("/")}
+                              {alliance.max_members} {t("members")}
                             </small>
                           </div>
                         </div>
@@ -376,8 +380,8 @@ export default function AlliancesPage() {
                               <strong>{notice.title}</strong>
                               <p>{notice.body}</p>
                               <small>
-                                Expires{" "}
-                                {new Date(notice.expires_at).toLocaleString()}
+                                {t("Expires")}{" "}
+                                {formatDateTime(notice.expires_at)}
                               </small>
                             </div>
                           ))}
@@ -386,7 +390,7 @@ export default function AlliancesPage() {
 
                       {allianceMembers.length === 0 ? (
                         <p className="alliance-empty">
-                          No members assigned in the published plan.
+                          {t("No members assigned in the published plan.")}
                         </p>
                       ) : (
                         renderRosterTable(allianceMembers)
@@ -402,19 +406,22 @@ export default function AlliancesPage() {
             <section>
               <div className="section-title-row">
                 <div>
-                  <p className="section-label">Not on the battle roster</p>
-                  <h2>Unassigned accounts</h2>
+                  <p className="section-label">
+                    {t("Not on the battle roster")}
+                  </p>
+                  <h2>{t("Unassigned accounts")}</h2>
                 </div>
                 <span className="retention-badge">
                   {members.filter((member) => !member.allianceId).length}
                 </span>
               </div>
               <p>
-                Assign these accounts to a rally group in Battle Planning,
-                then publish the plan.
+                {t(
+                  "Assign these accounts to a rally group in Battle Planning, then publish the plan.",
+                )}
               </p>
               {renderRosterTable(
-                members.filter((member) => !member.allianceId)
+                members.filter((member) => !member.allianceId),
               )}
             </section>
           )}

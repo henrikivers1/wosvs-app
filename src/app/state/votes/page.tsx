@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
+import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 
@@ -64,6 +65,7 @@ function defaultClosingTime() {
 export default function VotesPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
+  const { t, formatDateTime, formatNumber } = useLanguage();
   const { activeMembership, signedIn, loadingStates } = useStates();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [counts, setCounts] = useState<PollCount[]>([]);
@@ -83,8 +85,7 @@ export default function VotesPage() {
   const [message, setMessage] = useState("");
 
   const isAdmin =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "admin";
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const loadPolls = useCallback(async () => {
     if (!activeMembership) {
@@ -105,9 +106,7 @@ export default function VotesPage() {
       await Promise.all([
         supabase
           .from("state_polls")
-          .select(
-            "id, question, description, closes_at, delete_at, created_at"
-          )
+          .select("id, question, description, closes_at, delete_at, created_at")
           .eq("state_id", activeMembership.stateId)
           .order("created_at", { ascending: false }),
         supabase
@@ -149,7 +148,7 @@ export default function VotesPage() {
       pollRows.map((poll) => ({
         ...poll,
         options: optionRows.filter((option) => option.poll_id === poll.id),
-      }))
+      })),
     );
     setCounts((countResult.data ?? []) as PollCount[]);
     setTags((tagResult.data ?? []) as StateTag[]);
@@ -157,13 +156,13 @@ export default function VotesPage() {
       ownVotes.reduce<Record<string, string>>((selections, vote) => {
         selections[vote.poll_id] = vote.option_id;
         return selections;
-      }, {})
+      }, {}),
     );
 
     if (isAdmin) {
       const { data, error } = await supabase.rpc(
         "get_state_poll_admin_responses",
-        { target_state_id: activeMembership.stateId }
+        { target_state_id: activeMembership.stateId },
       );
       if (error) {
         setMessage(error.message);
@@ -193,7 +192,7 @@ export default function VotesPage() {
     const updateId = window.setTimeout(() => setCurrentTime(Date.now()), 0);
     const intervalId = window.setInterval(
       () => setCurrentTime(Date.now()),
-      15_000
+      15_000,
     );
     return () => {
       window.clearTimeout(updateId);
@@ -204,8 +203,8 @@ export default function VotesPage() {
   function updateOption(index: number, value: string) {
     setOptionLabels((current) =>
       current.map((option, optionIndex) =>
-        optionIndex === index ? value : option
-      )
+        optionIndex === index ? value : option,
+      ),
     );
   }
 
@@ -214,7 +213,7 @@ export default function VotesPage() {
 
     const closingTimestamp = Date.parse(closesAt);
     if (!closesAt || Number.isNaN(closingTimestamp)) {
-      setMessage("Choose a valid closing date and time.");
+      setMessage(t("votesChooseClosing"));
       return;
     }
 
@@ -242,7 +241,7 @@ export default function VotesPage() {
     setOptionTagIds(["", ""]);
     setClosesAt(defaultClosingTime());
     await loadPolls();
-    setMessage("Vote created. State members have been notified.");
+    setMessage(t("votesCreated"));
     setSaving(false);
   }
 
@@ -250,7 +249,7 @@ export default function VotesPage() {
     if (!activeMembership) return;
     const optionId = selectedOptions[pollId];
     if (!optionId) {
-      setMessage("Choose an option before submitting your vote.");
+      setMessage(t("votesChooseOption"));
       return;
     }
 
@@ -266,19 +265,13 @@ export default function VotesPage() {
       setMessage(error.message);
     } else {
       await loadPolls();
-      setMessage(
-        "Your vote has been saved. You may change it until voting closes."
-      );
+      setMessage(t("votesSaved"));
     }
     setSaving(false);
   }
 
   async function deletePoll(poll: Poll) {
-    if (
-      !window.confirm(
-        `Delete “${poll.question}”? All options and responses will be permanently removed.`
-      )
-    ) {
+    if (!window.confirm(t("votesDeleteConfirm", { question: poll.question }))) {
       return;
     }
 
@@ -292,7 +285,7 @@ export default function VotesPage() {
       setMessage(error.message);
     } else {
       await loadPolls();
-      setMessage("Vote deleted.");
+      setMessage(t("votesDeleted"));
     }
     setSaving(false);
   }
@@ -301,7 +294,9 @@ export default function VotesPage() {
     return (
       <main>
         <AppHeader />
-        <section className="loading-panel"><p>Loading votes...</p></section>
+        <section className="loading-panel">
+          <p>{t("votesLoading")}</p>
+        </section>
       </main>
     );
   }
@@ -312,40 +307,42 @@ export default function VotesPage() {
 
       <section className="votes-heading">
         <div>
-          <p className="section-label">State coordination</p>
-          <h1>Votes</h1>
+          <p className="section-label">{t("votesStateCoordination")}</p>
+          <h1>{t("votesTitle")}</h1>
           <p>
-            Voting as {activeMembership?.wosNickname || activeMembership?.wosId}.
-            Each WOS account has its own response.
+            {t("votesVotingAs", {
+              account:
+                activeMembership?.wosNickname || activeMembership?.wosId || "—",
+            })}
           </p>
         </div>
-        <span className="retention-badge">30-day retention</span>
+        <span className="retention-badge">{t("votesRetention")}</span>
       </section>
 
       {!activeMembership ? (
         <section className="empty-state">
-          <h2>Join a state to vote</h2>
-          <p>Your state votes will appear here after your membership is approved.</p>
+          <h2>{t("votesJoinState")}</h2>
+          <p>{t("votesJoinStateDescription")}</p>
         </section>
       ) : (
         <>
           {isAdmin && (
             <section>
-              <p className="section-label">Owner and admin tools</p>
-              <h2>Create a vote</h2>
+              <p className="section-label">{t("votesAdminTools")}</p>
+              <h2>{t("votesCreate")}</h2>
               <div className="poll-form-grid">
                 <label className="poll-question-field">
-                  Question
+                  {t("votesQuestion")}
                   <input
                     type="text"
                     maxLength={140}
                     value={question}
                     onChange={(event) => setQuestion(event.target.value)}
-                    placeholder="Who can attend the full battle?"
+                    placeholder={t("votesQuestionPlaceholder")}
                   />
                 </label>
                 <label>
-                  Closing time
+                  {t("votesClosingTime")}
                   <input
                     type="datetime-local"
                     value={closesAt}
@@ -353,22 +350,22 @@ export default function VotesPage() {
                   />
                 </label>
                 <label className="poll-description-field">
-                  Description (optional)
+                  {t("votesDescriptionOptional")}
                   <textarea
                     maxLength={1000}
                     value={description}
                     onChange={(event) => setDescription(event.target.value)}
-                    placeholder="Add any instructions members should know."
+                    placeholder={t("votesDescriptionPlaceholder")}
                   />
                 </label>
               </div>
 
               <div className="poll-option-editor">
-                <h3>Options</h3>
+                <h3>{t("votesOptions")}</h3>
                 {optionLabels.map((option, index) => (
                   <div key={index} className="poll-option-edit-row">
                     <label>
-                      Option {index + 1}
+                      {t("votesOptionNumber", { number: index + 1 })}
                       <input
                         type="text"
                         maxLength={100}
@@ -376,11 +373,17 @@ export default function VotesPage() {
                         onChange={(event) =>
                           updateOption(index, event.target.value)
                         }
-                        placeholder={index === 0 ? "Yes" : index === 1 ? "No" : "Option"}
+                        placeholder={
+                          index === 0
+                            ? t("votesYes")
+                            : index === 1
+                              ? t("votesNo")
+                              : t("votesOption")
+                        }
                       />
                     </label>
                     <label className="poll-option-tag-field">
-                      Automatic tag
+                      {t("votesAutomaticTag")}
                       <select
                         value={optionTagIds[index] ?? ""}
                         onChange={(event) =>
@@ -388,12 +391,12 @@ export default function VotesPage() {
                             current.map((tagId, optionIndex) =>
                               optionIndex === index
                                 ? event.target.value
-                                : tagId
-                            )
+                                : tagId,
+                            ),
                           )
                         }
                       >
-                        <option value="">No automatic tag</option>
+                        <option value="">{t("votesNoAutomaticTag")}</option>
                         {tags.map((tag) => (
                           <option key={tag.id} value={tag.id}>
                             {tag.name} ({tag.color.toUpperCase()})
@@ -408,17 +411,17 @@ export default function VotesPage() {
                         onClick={() => {
                           setOptionLabels((current) =>
                             current.filter(
-                              (_, optionIndex) => optionIndex !== index
-                            )
+                              (_, optionIndex) => optionIndex !== index,
+                            ),
                           );
                           setOptionTagIds((current) =>
                             current.filter(
-                              (_, optionIndex) => optionIndex !== index
-                            )
+                              (_, optionIndex) => optionIndex !== index,
+                            ),
                           );
                         }}
                       >
-                        Remove
+                        {t("remove")}
                       </button>
                     )}
                   </div>
@@ -435,24 +438,22 @@ export default function VotesPage() {
                     setOptionTagIds((current) => [...current, ""]);
                   }}
                 >
-                  Add option
+                  {t("votesAddOption")}
                 </button>
                 <button
                   type="button"
                   disabled={saving}
                   onClick={() => void createPoll()}
                 >
-                  {saving ? "Creating..." : "Create vote"}
+                  {saving ? t("votesCreating") : t("votesCreateButton")}
                 </button>
               </div>
-              <p className="form-hint">
-                Votes can stay open for up to 30 days and are permanently deleted
-                30 days after creation.
-              </p>
+              <p className="form-hint">{t("votesRetentionExplanation")}</p>
               {tags.length === 0 && (
                 <p className="form-hint">
-                  No tags exist yet. <Link href="/state/tags">Create tags</Link>{" "}
-                  before connecting them to vote options.
+                  {t("votesNoTagsPrefix")}{" "}
+                  <Link href="/state/tags">{t("votesCreateTags")}</Link>{" "}
+                  {t("votesNoTagsSuffix")}
                 </p>
               )}
             </section>
@@ -462,17 +463,17 @@ export default function VotesPage() {
             <div className="section-title-row">
               <div>
                 <p className="section-label">{activeMembership.stateName}</p>
-                <h2>Current and recent votes</h2>
+                <h2>{t("votesCurrentAndRecent")}</h2>
               </div>
             </div>
             {message && <p className="page-message">{message}</p>}
 
             {loading ? (
-              <p>Loading votes...</p>
+              <p>{t("votesLoading")}</p>
             ) : polls.length === 0 ? (
               <div className="empty-state compact-empty-state">
-                <h3>No votes yet</h3>
-                <p>An Owner or Admin can create the first state vote above.</p>
+                <h3>{t("votesNoneTitle")}</h3>
+                <p>{t("votesNoneDescription")}</p>
               </div>
             ) : (
               <div className="poll-list">
@@ -481,18 +482,25 @@ export default function VotesPage() {
                     currentTime > 0 &&
                     new Date(poll.closes_at).getTime() <= currentTime;
                   const pollResponses = responses.filter(
-                    (response) => response.poll_id === poll.id
+                    (response) => response.poll_id === poll.id,
                   );
                   const totalVotes = counts
                     .filter((count) => count.poll_id === poll.id)
-                    .reduce((total, count) => total + Number(count.vote_count), 0);
+                    .reduce(
+                      (total, count) => total + Number(count.vote_count),
+                      0,
+                    );
 
                   return (
                     <article key={poll.id} className="poll-card">
                       <div className="poll-card-heading">
                         <div>
-                          <span className={closed ? "poll-status closed" : "poll-status open"}>
-                            {closed ? "Closed" : "Open"}
+                          <span
+                            className={
+                              closed ? "poll-status closed" : "poll-status open"
+                            }
+                          >
+                            {closed ? t("closed") : t("open")}
                           </span>
                           <h3>{poll.question}</h3>
                         </div>
@@ -503,28 +511,31 @@ export default function VotesPage() {
                             disabled={saving}
                             onClick={() => void deletePoll(poll)}
                           >
-                            Delete
+                            {t("delete")}
                           </button>
                         )}
                       </div>
 
                       {poll.description && <p>{poll.description}</p>}
                       <p className="poll-deadline">
-                        {closed ? "Closed" : "Closes"} {new Date(poll.closes_at).toLocaleString()}
-                        {" · "}{totalVotes} {totalVotes === 1 ? "response" : "responses"}
+                        {closed ? t("closed") : t("closes")}{" "}
+                        {formatDateTime(poll.closes_at)}
+                        {" · "}
+                        {formatNumber(totalVotes)}{" "}
+                        {totalVotes === 1 ? t("response") : t("responses")}
                       </p>
 
                       <div className="poll-options">
                         {poll.options.map((option) => {
                           const automaticTag = tags.find(
-                            (tag) => tag.id === option.auto_tag_id
+                            (tag) => tag.id === option.auto_tag_id,
                           );
                           const optionCount = Number(
                             counts.find(
                               (count) =>
                                 count.poll_id === poll.id &&
-                                count.option_id === option.id
-                            )?.vote_count ?? 0
+                                count.option_id === option.id,
+                            )?.vote_count ?? 0,
                           );
                           const percentage =
                             totalVotes === 0
@@ -539,7 +550,9 @@ export default function VotesPage() {
                                   name={`poll-${poll.id}`}
                                   value={option.id}
                                   disabled={closed}
-                                  checked={selectedOptions[poll.id] === option.id}
+                                  checked={
+                                    selectedOptions[poll.id] === option.id
+                                  }
                                   onChange={() =>
                                     setSelectedOptions((current) => ({
                                       ...current,
@@ -551,14 +564,21 @@ export default function VotesPage() {
                                 {automaticTag && (
                                   <span className="auto-tag-badge">
                                     <span
-                                      style={{ backgroundColor: automaticTag.color }}
+                                      style={{
+                                        backgroundColor: automaticTag.color,
+                                      }}
                                     />
-                                    Awards {automaticTag.name}
+                                    {t("votesAwardsTag", {
+                                      tag: automaticTag.name,
+                                    })}
                                   </span>
                                 )}
                                 <strong>{optionCount}</strong>
                               </span>
-                              <span className="poll-result-track" aria-hidden="true">
+                              <span
+                                className="poll-result-track"
+                                aria-hidden="true"
+                              >
                                 <span style={{ width: `${percentage}%` }} />
                               </span>
                             </label>
@@ -572,31 +592,42 @@ export default function VotesPage() {
                           disabled={saving || !selectedOptions[poll.id]}
                           onClick={() => void submitVote(poll.id)}
                         >
-                          {saving ? "Saving..." : "Save my vote"}
+                          {saving ? t("votesSaving") : t("votesSaveMine")}
                         </button>
                       )}
 
                       {isAdmin && pollResponses.length > 0 && (
                         <details className="poll-response-details">
-                          <summary>Review individual responses</summary>
+                          <summary>{t("votesReviewResponses")}</summary>
                           {poll.options.map((option) => {
                             const optionResponses = pollResponses.filter(
-                              (response) => response.option_id === option.id
+                              (response) => response.option_id === option.id,
                             );
                             return (
-                              <div key={option.id} className="poll-response-group">
+                              <div
+                                key={option.id}
+                                className="poll-response-group"
+                              >
                                 <strong>{option.label}</strong>
                                 {optionResponses.length === 0 ? (
-                                  <span>No responses</span>
+                                  <span>{t("votesNoResponses")}</span>
                                 ) : (
                                   <ul>
                                     {optionResponses.map((response) => (
                                       <li key={response.wos_account_id}>
                                         <span>
-                                          {response.nickname || `WOS ID ${response.wos_id}`}
-                                          {response.username && ` · @${response.username}`}
+                                          {response.nickname ||
+                                            t("votesWosId", {
+                                              id: response.wos_id,
+                                            })}
+                                          {response.username &&
+                                            ` · @${response.username}`}
                                         </span>
-                                        <small>WOS ID {response.wos_id}</small>
+                                        <small>
+                                          {t("votesWosId", {
+                                            id: response.wos_id,
+                                          })}
+                                        </small>
                                       </li>
                                     ))}
                                   </ul>

@@ -5,8 +5,10 @@ import { useBattle } from "@/components/BattleProvider";
 import { useReinforcementTiming } from "@/hooks/useReinforcementTiming";
 import { formatUtcTime } from "@/lib/battleDisplay";
 import { calculateSendTime } from "@/lib/reinforcementTime";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function GarrisonPage() {
+  const { t } = useLanguage();
   const { rallies, currentTime } = useBattle();
   const timing = useReinforcementTiming(rallies, currentTime);
 
@@ -14,10 +16,10 @@ export default function GarrisonPage() {
     <main>
       <AppHeader />
       <section>
-        <h2>Your reinforcement setup</h2>
+        <h2>{t("Your reinforcement setup")}</h2>
         <div className="reinforcement-settings">
           <label>
-            Your X coordinate
+            {t("Your X coordinate")}
             <input
               type="number"
               min="0"
@@ -29,7 +31,7 @@ export default function GarrisonPage() {
             />
           </label>
           <label>
-            Your Y coordinate
+            {t("Your Y coordinate")}
             <input
               type="number"
               min="0"
@@ -48,61 +50,58 @@ export default function GarrisonPage() {
                 timing.setPlayerPetActive(event.target.checked)
               }
             />
-            My pet is active
+            {t("My pet is active")}
           </label>
           <label>
             <input
               type="checkbox"
               checked={timing.soundEnabled}
-              onChange={(event) =>
-                timing.setSoundEnabled(event.target.checked)
-              }
+              onChange={(event) => timing.setSoundEnabled(event.target.checked)}
             />
-            Sound alerts
+            {t("Sound alerts")}
           </label>
           <button type="button" onClick={timing.enableNotifications}>
             {timing.notificationsEnabled
-              ? "Notifications enabled"
-              : "Enable notifications"}
+              ? t("Notifications enabled")
+              : t("Enable notifications")}
           </button>
         </div>
         <p>
-          Your march time:{" "}
-          <strong>{timing.playerMarchTime} seconds</strong>
+          {t("Your march time:")}{" "}
+          <strong>
+            {timing.playerMarchTime} {t("seconds")}
+          </strong>
         </p>
       </section>
 
       <section>
-        <h2>Incoming rally schedule</h2>
-        {timing.rallyWaves.length === 0 && (
-          <p>No incoming rallies.</p>
-        )}
+        <h2>{t("Incoming rally schedule")}</h2>
+        {timing.rallyWaves.length === 0 && <p>{t("No incoming rallies.")}</p>}
         {timing.rallyWaves.map((wave, index) => (
           <article key={wave.impactSecond}>
             <h3>
-              Wave {index + 1}:{" "}
-              {formatUtcTime(new Date(wave.impactSecond * 1000))} UTC
+              {t("Wave")} {index + 1}
+              {t(":")} {formatUtcTime(new Date(wave.impactSecond * 1000))}{" "}
+              {t("UTC")}
               {" — "}
               {wave.rallies.length}{" "}
-              {wave.rallies.length === 1 ? "rally" : "rallies"}
+              {wave.rallies.length === 1 ? t("rally") : t("rallies")}
             </h3>
             <p>
-              Send reinforcement at:{" "}
+              {t("Send reinforcement at:")}{" "}
               <strong>
                 {formatUtcTime(
                   calculateSendTime(
                     new Date(wave.impactSecond * 1000),
-                    timing.playerMarchTime
-                  )
+                    timing.playerMarchTime,
+                  ),
                 )}{" "}
-                UTC
+                {t("UTC")}
               </strong>
             </p>
             <p
               className={
-                timing.getSecondsUntilSend(wave) === 0
-                  ? "send-now"
-                  : ""
+                timing.getSecondsUntilSend(wave) === 0 ? "send-now" : ""
               }
             >
               {timing.getSendStatus(wave)}
@@ -112,7 +111,7 @@ export default function GarrisonPage() {
                 <li key={rally.id}>
                   <span>
                     {rally.enemyName}
-                    {rally.petActive ? " — Pet active" : ""}
+                    {rally.petActive ? t(" — Pet active") : ""}
                   </span>
                 </li>
               ))}

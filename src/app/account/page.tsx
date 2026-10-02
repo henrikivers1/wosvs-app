@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type WosAccount = {
   id: string;
@@ -61,11 +62,18 @@ const COMBAT_FIELDS: Array<{
 ];
 
 export default function AccountPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { memberships, loadingStates } = useStates();
   const [userId, setUserId] = useState<string | null>(null);
   const [username, setUsername] = useState("");
+
+  function roleLabel(role: string) {
+    if (role === "owner") return t("Owner");
+    if (role === "admin") return t("Admin");
+    return t("Member");
+  }
   const [accounts, setAccounts] = useState<WosAccount[]>([]);
   const [combatProfiles, setCombatProfiles] = useState<
     Record<string, CombatProfile>
@@ -85,22 +93,21 @@ export default function AccountPage() {
     }
 
     setUserId(user.id);
-    const [{ data: profile }, { data: savedAccounts }] =
-      await Promise.all([
-        supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("wos_accounts")
-          .select(
-            "id, wos_id, nickname, is_configured, furnace_level, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill"
-          )
-          .eq("user_id", user.id)
-          .eq("is_configured", true)
-          .order("created_at"),
-      ]);
+    const [{ data: profile }, { data: savedAccounts }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("wos_accounts")
+        .select(
+          "id, wos_id, nickname, is_configured, furnace_level, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
+        )
+        .eq("user_id", user.id)
+        .eq("is_configured", true)
+        .order("created_at"),
+    ]);
 
     if (!profile?.username) {
       router.replace("/account/setup");
@@ -126,8 +133,8 @@ export default function AccountPage() {
             lancer_t12_skill: account.lancer_t12_skill,
             marksman_t12_skill: account.marksman_t12_skill,
           },
-        ])
-      )
+        ]),
+      ),
     );
   }, [router, supabase]);
 
@@ -141,11 +148,11 @@ export default function AccountPage() {
 
   async function addWosAccount() {
     if (!userId || !/^[0-9]+$/.test(newWosId.trim())) {
-      setMessage("Enter a numeric WOS ID.");
+      setMessage(t("Enter a numeric WOS ID."));
       return;
     }
 
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.from("wos_accounts").insert({
       user_id: userId,
       wos_id: newWosId.trim(),
@@ -157,7 +164,7 @@ export default function AccountPage() {
       setMessage(
         error.code === "23505"
           ? "That WOS ID is already registered."
-          : error.message
+          : error.message,
       );
       return;
     }
@@ -176,7 +183,7 @@ export default function AccountPage() {
 
     if (error || !data || data.length === 0) {
       setMessage(
-        "This WOS account cannot be removed while it belongs to a state."
+        t("This WOS account cannot be removed while it belongs to a state."),
       );
       return;
     }
@@ -190,20 +197,17 @@ export default function AccountPage() {
 
     const invalidField = COMBAT_FIELDS.find((field) => {
       const value = profile[field.key];
-      return (
-        value !== null &&
-        (value < field.min || value > field.max)
-      );
+      return value !== null && (value < field.min || value > field.max);
     });
 
     if (invalidField) {
       setMessage(
-        `${invalidField.label} must be between ${invalidField.min} and ${invalidField.max}.`
+        `${invalidField.label} must be between ${invalidField.min} and ${invalidField.max}.`,
       );
       return;
     }
 
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase
       .from("wos_accounts")
       .update(profile)
@@ -214,7 +218,7 @@ export default function AccountPage() {
       return;
     }
 
-    setMessage("Combat profile saved.");
+    setMessage(t("Combat profile saved."));
     await loadAccount();
   }
 
@@ -222,23 +226,26 @@ export default function AccountPage() {
     <main>
       <AppHeader />
       <section>
-        <h2>Account</h2>
+        <h2>{t("Account")}</h2>
         <p>
-          Public username: <strong>@{username}</strong>
+          {t("Public username:")}{" "}
+          <strong>
+            {t("@")}
+            {username}
+          </strong>
         </p>
-        <p>Your email is private and is never shown to other players.</p>
+        <p>{t("Your email is private and is never shown to other players.")}</p>
       </section>
 
       <section>
-        <h2>Your WOS accounts</h2>
+        <h2>{t("Your WOS accounts")}</h2>
         {accounts.length === 0 ? (
-          <p>No WOS accounts added.</p>
+          <p>{t("No WOS accounts added.")}</p>
         ) : (
           <ul>
             {accounts.map((account) => {
               const accountMemberships = memberships.filter(
-                (membership) =>
-                  membership.wosAccountId === account.id
+                (membership) => membership.wosAccountId === account.id,
               );
 
               return (
@@ -246,72 +253,65 @@ export default function AccountPage() {
                   <div className="account-membership-details">
                     <span>
                       <strong>
-                        {account.nickname || "Unnamed account"}
+                        {account.nickname || t("Unnamed account")}
                       </strong>
                       {" — WOS ID "}
                       {account.wos_id}
                     </span>
-                  <small>
+                    <small>
                       {loadingStates
-                        ? "Loading state memberships..."
+                        ? t("Loading state memberships...")
                         : accountMemberships.length === 0
-                          ? "Not in a state"
+                          ? t("Not in a state")
                           : accountMemberships
                               .map(
                                 (membership) =>
-                                  `${membership.stateName} (${membership.role.replace(
-                                    "_",
-                                    " "
-                                  )})`
+                                  `${membership.stateName} (${roleLabel(membership.role)})`,
                               )
                               .join(" · ")}
-                  </small>
-                  <details className="combat-profile-editor">
-                    <summary>Combat profile</summary>
-                    <div className="combat-profile-grid">
-                      {COMBAT_FIELDS.map((field) => (
-                        <label key={field.key}>
-                          {field.label}
-                          <input
-                            type="number"
-                            min={field.min}
-                            max={field.max}
-                            value={
-                              combatProfiles[account.id]?.[
-                                field.key
-                              ] ?? ""
-                            }
-                            onChange={(event) =>
-                              setCombatProfiles((current) => ({
-                                ...current,
-                                [account.id]: {
-                                  ...current[account.id],
-                                  [field.key]: event.target.value
-                                    ? Number(event.target.value)
-                                    : null,
-                                },
-                              }))
-                            }
-                          />
-                        </label>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="save-button"
-                      onClick={() =>
-                        void saveCombatProfile(account.id)
-                      }
-                    >
-                      Save combat profile
-                    </button>
-                  </details>
-                </div>
+                    </small>
+                    <details className="combat-profile-editor">
+                      <summary>{t("Combat profile")}</summary>
+                      <div className="combat-profile-grid">
+                        {COMBAT_FIELDS.map((field) => (
+                          <label key={field.key}>
+                            {t(field.label)}
+                            <input
+                              type="number"
+                              min={field.min}
+                              max={field.max}
+                              value={
+                                combatProfiles[account.id]?.[field.key] ?? ""
+                              }
+                              onChange={(event) =>
+                                setCombatProfiles((current) => ({
+                                  ...current,
+                                  [account.id]: {
+                                    ...current[account.id],
+                                    [field.key]: event.target.value
+                                      ? Number(event.target.value)
+                                      : null,
+                                  },
+                                }))
+                              }
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        className="save-button"
+                        onClick={() => void saveCombatProfile(account.id)}
+                      >
+                        {t("Save combat profile")}
+                      </button>
+                    </details>
+                  </div>
                   <button
                     type="button"
                     onClick={() => void removeWosAccount(account.id)}
                   >
-                    Remove
+                    {t("Remove")}
                   </button>
                 </li>
               );
@@ -319,29 +319,29 @@ export default function AccountPage() {
           </ul>
         )}
 
-        <h3>Add another WOS account</h3>
+        <h3>{t("Add another WOS account")}</h3>
         <label>
-          WOS ID
+          {t("WOS ID")}
           <input
             type="text"
             inputMode="numeric"
             value={newWosId}
             onChange={(event) => setNewWosId(event.target.value)}
-            placeholder="Numeric WOS ID"
+            placeholder={t("Numeric WOS ID")}
           />
         </label>
         <label>
-          WOS nickname (optional)
+          {t("WOS nickname (optional)")}
           <input
             type="text"
             value={newNickname}
             onChange={(event) => setNewNickname(event.target.value)}
             maxLength={40}
-            placeholder="In-game name"
+            placeholder={t("In-game name")}
           />
         </label>
         <button type="button" onClick={addWosAccount}>
-          Add WOS account
+          {t("Add WOS account")}
         </button>
         {message && <p className="auth-message">{message}</p>}
       </section>

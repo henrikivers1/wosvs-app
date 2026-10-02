@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type AudienceType = "all" | "alliance" | "tag" | "role" | "capability";
 
@@ -39,6 +40,7 @@ function formatAudienceValue(value: string | null) {
 }
 
 export default function AnnouncementsPage() {
+  const { t, formatDateTime } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, signedIn, loadingStates } = useStates();
@@ -58,8 +60,7 @@ export default function AnnouncementsPage() {
   const [message, setMessage] = useState("");
 
   const isAdmin =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "admin";
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const loadAnnouncements = useCallback(async () => {
     if (!activeMembership) {
@@ -72,7 +73,7 @@ export default function AnnouncementsPage() {
     }
 
     setLoading(true);
-    setMessage("");
+    setMessage(t(""));
     await supabase.rpc("cleanup_expired_state_announcements");
 
     const [allianceResult, tagResult, recipientResult] = await Promise.all([
@@ -114,7 +115,7 @@ export default function AnnouncementsPage() {
     let announcementQuery = supabase
       .from("state_announcements")
       .select(
-        "id, title, body, audience_type, audience_id, audience_value, expires_at, created_at"
+        "id, title, body, audience_type, audience_id, audience_value, expires_at, created_at",
       )
       .eq("state_id", activeMembership.stateId)
       .order("created_at", { ascending: false });
@@ -146,7 +147,7 @@ export default function AnnouncementsPage() {
           (currentCounts[recipient.announcement_id] ?? 0) + 1;
         return currentCounts;
       },
-      {}
+      {},
     );
 
     setAnnouncements((announcementData ?? []) as Announcement[]);
@@ -154,7 +155,7 @@ export default function AnnouncementsPage() {
     setTags((tagResult.data ?? []) as NamedAudience[]);
     setRecipientCounts(counts);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase]);
+  }, [activeMembership, isAdmin, supabase, t]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -197,18 +198,20 @@ export default function AnnouncementsPage() {
     const cleanedTitle = title.trim();
     const cleanedBody = body.trim();
     if (cleanedTitle.length < 3) {
-      setMessage("Enter a title containing at least 3 characters.");
+      setMessage(t("Enter a title containing at least 3 characters."));
       return;
     }
     if (!cleanedBody) {
-      setMessage("Enter an announcement message.");
+      setMessage(t("Enter an announcement message."));
       return;
     }
     if (
       (audienceType === "alliance" || audienceType === "tag") &&
       !audienceId
     ) {
-      setMessage(`Choose a${audienceType === "alliance" ? "n" : ""} ${audienceType}.`);
+      setMessage(
+        `Choose a${audienceType === "alliance" ? "n" : ""} ${audienceType}.`,
+      );
       return;
     }
     if (
@@ -220,7 +223,7 @@ export default function AnnouncementsPage() {
     }
 
     setSaving(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("create_state_announcement", {
       target_state_id: activeMembership.stateId,
       sender_wos_account_id: activeMembership.wosAccountId,
@@ -246,7 +249,7 @@ export default function AnnouncementsPage() {
       setAudienceId("");
       setAudienceValue("");
       await loadAnnouncements();
-      setMessage("Announcement sent.");
+      setMessage(t("Announcement sent."));
     }
     setSaving(false);
   }
@@ -254,14 +257,14 @@ export default function AnnouncementsPage() {
   async function deleteAnnouncement(announcement: Announcement) {
     if (
       !window.confirm(
-        `Delete “${announcement.title}”? It will also disappear from recipient notification inboxes.`
+        `Delete “${announcement.title}”? It will also disappear from recipient notification inboxes.`,
       )
     ) {
       return;
     }
 
     setSaving(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("delete_state_announcement", {
       target_announcement_id: announcement.id,
     });
@@ -270,7 +273,7 @@ export default function AnnouncementsPage() {
       setMessage(error.message);
     } else {
       await loadAnnouncements();
-      setMessage("Announcement deleted.");
+      setMessage(t("Announcement deleted."));
     }
     setSaving(false);
   }
@@ -279,7 +282,9 @@ export default function AnnouncementsPage() {
     return (
       <main>
         <AppHeader />
-        <section className="loading-panel"><p>Loading notices...</p></section>
+        <section className="loading-panel">
+          <p>{t("Loading notices...")}</p>
+        </section>
       </main>
     );
   }
@@ -290,63 +295,70 @@ export default function AnnouncementsPage() {
 
       {!activeMembership ? (
         <section className="empty-state">
-          <h2>Join a state to view notices</h2>
-          <p>State announcements become available after membership approval.</p>
+          <h2>{t("Join a state to view notices")}</h2>
+          <p>
+            {t(
+              "State announcements become available after membership approval.",
+            )}
+          </p>
         </section>
       ) : (
         <>
           <section className="announcements-heading">
             <div>
               <p className="section-label">{activeMembership.stateName}</p>
-              <h1>Notices</h1>
+              <h1>{t("Notices")}</h1>
               <p>
-                Operational updates for your state, alliance, tags, role, and
-                battle responsibilities.
+                {t(
+                  "Operational updates for your state, alliance, tags, role, and battle responsibilities.",
+                )}
               </p>
             </div>
-            <span className="retention-badge">Expires automatically</span>
+            <span className="retention-badge">
+              {t("Expires automatically")}
+            </span>
           </section>
 
           {isAdmin && (
             <section>
-              <p className="section-label">Owner and admin tools</p>
-              <h2>Send announcement</h2>
+              <p className="section-label">{t("Owner and admin tools")}</p>
+              <h2>{t("Send announcement")}</h2>
               <div className="announcement-form-grid">
                 <label>
-                  Title
+                  {t("Title")}
                   <input
                     type="text"
                     minLength={3}
                     maxLength={100}
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
-                    placeholder="Formation update"
+                    placeholder={t("Formation update")}
                   />
                 </label>
                 <label>
-                  Audience
+                  {t("Audience")}
                   <select
                     value={audienceType}
                     onChange={(event) =>
                       changeAudience(event.target.value as AudienceType)
                     }
                   >
-                    <option value="all">Entire state</option>
-                    <option value="alliance">Alliance</option>
-                    <option value="tag">Tag</option>
-                    <option value="role">State role</option>
-                    <option value="capability">Battle role</option>
+                    <option value="all">{t("Entire state")}</option>
+                    <option value="alliance">{t("Alliance")}</option>
+                    <option value="tag">{t("Tag")}</option>
+                    <option value="role">{t("State role")}</option>
+                    <option value="capability">{t("Battle role")}</option>
                   </select>
                 </label>
 
                 {audienceType === "alliance" && (
                   <label>
-                    Alliance
+                    {t("Alliance")}
                     <select
                       value={audienceId}
                       onChange={(event) => setAudienceId(event.target.value)}
                     >
-                      <option value="">Choose alliance</option>
+                      <option value="">{t("Choose alliance")}</option>
                       {alliances.map((alliance) => (
                         <option key={alliance.id} value={alliance.id}>
                           {alliance.name}
@@ -359,12 +371,12 @@ export default function AnnouncementsPage() {
                 {audienceType === "tag" && (
                   <div>
                     <label>
-                      Tag
+                      {t("Tag")}
                       <select
                         value={audienceId}
                         onChange={(event) => setAudienceId(event.target.value)}
                       >
-                        <option value="">Choose tag</option>
+                        <option value="">{t("Choose tag")}</option>
                         {tags.map((tag) => (
                           <option key={tag.id} value={tag.id}>
                             {tag.name}
@@ -373,51 +385,57 @@ export default function AnnouncementsPage() {
                       </select>
                     </label>
                     <p className="field-hint">
-                      Everyone who currently has this tag receives the message
-                      in their notification inbox.
+                      {t(
+                        "Everyone who currently has this tag receives the message in their notification inbox.",
+                      )}
                     </p>
                   </div>
                 )}
 
                 {audienceType === "role" && (
                   <label>
-                    State role
+                    {t("State role")}
                     <select
                       value={audienceValue}
                       onChange={(event) => setAudienceValue(event.target.value)}
                     >
-                      <option value="">Choose role</option>
-                      <option value="owner">Owners</option>
-                      <option value="admin">Admins</option>
-                      <option value="member">Members</option>
+                      <option value="">{t("Choose role")}</option>
+                      <option value="owner">{t("Owners")}</option>
+                      <option value="admin">{t("Admins")}</option>
+                      <option value="member">{t("Members")}</option>
                     </select>
                   </label>
                 )}
 
                 {audienceType === "capability" && (
                   <label>
-                    Battle role
+                    {t("Battle role")}
                     <select
                       value={audienceValue}
                       onChange={(event) => setAudienceValue(event.target.value)}
                     >
-                      <option value="">Choose battle role</option>
-                      <option value="rally_caller">Coordinators</option>
-                      <option value="garrison">Garrison</option>
+                      <option value="">{t("Choose battle role")}</option>
+                      <option value="rally_caller">{t("Coordinators")}</option>
+                      <option value="garrison">{t("Garrison")}</option>
                     </select>
                   </label>
                 )}
 
                 <label className="announcement-body-field">
-                  Message
+                  {t("Message")}
                   <textarea
                     rows={5}
                     maxLength={2000}
                     value={body}
                     onChange={(event) => setBody(event.target.value)}
-                    placeholder="Tell the selected members what they need to know."
+                    placeholder={t(
+                      "Tell the selected members what they need to know.",
+                    )}
                   />
-                  <span className="form-hint">{body.length}/2000 characters</span>
+                  <span className="form-hint">
+                    {body.length}
+                    {t("/2000 characters")}
+                  </span>
                 </label>
               </div>
               <button
@@ -425,11 +443,12 @@ export default function AnnouncementsPage() {
                 disabled={saving}
                 onClick={() => void createAnnouncement()}
               >
-                {saving ? "Sending..." : "Send announcement"}
+                {saving ? t("Sending...") : t("Send announcement")}
               </button>
               <p className="form-hint">
-                The selected WOS accounts are saved as the recipient list when
-                you send. Notices expire automatically Sunday at 23:59 UTC.
+                {t(
+                  "The selected WOS accounts are saved as the recipient list when you send. Notices expire automatically Sunday at 23:59 UTC.",
+                )}
               </p>
             </section>
           )}
@@ -437,21 +456,23 @@ export default function AnnouncementsPage() {
           <section>
             <div className="section-title-row">
               <div>
-                <p className="section-label">Active announcements</p>
-                <h2>Your notices</h2>
+                <p className="section-label">{t("Active announcements")}</p>
+                <h2>{t("Your notices")}</h2>
               </div>
               <span className="retention-badge">
-                {announcements.length} active
+                {announcements.length} {t("active")}
               </span>
             </div>
             {message && <p className="page-message">{message}</p>}
 
             {loading ? (
-              <p>Loading notices...</p>
+              <p>{t("Loading notices...")}</p>
             ) : announcements.length === 0 ? (
               <div className="empty-state compact-empty-state">
-                <h3>No active notices</h3>
-                <p>Announcements sent to this account will appear here.</p>
+                <h3>{t("No active notices")}</h3>
+                <p>
+                  {t("Announcements sent to this account will appear here.")}
+                </p>
               </div>
             ) : (
               <div className="announcement-list">
@@ -471,24 +492,24 @@ export default function AnnouncementsPage() {
                           disabled={saving}
                           onClick={() => void deleteAnnouncement(announcement)}
                         >
-                          Delete
+                          {t("Delete")}
                         </button>
                       )}
                     </div>
                     <p className="announcement-message">{announcement.body}</p>
                     <div className="announcement-meta">
                       <span>
-                        Sent {new Date(announcement.created_at).toLocaleString()}
+                        {t("Sent")} {formatDateTime(announcement.created_at)}
                       </span>
                       <span>
-                        Expires {new Date(announcement.expires_at).toLocaleString()}
+                        {t("Expires")} {formatDateTime(announcement.expires_at)}
                       </span>
                       {isAdmin && (
                         <span>
                           {recipientCounts[announcement.id] ?? 0}{" "}
                           {(recipientCounts[announcement.id] ?? 0) === 1
-                            ? "account"
-                            : "accounts"}
+                            ? t("account")
+                            : t("accounts")}
                         </span>
                       )}
                     </div>

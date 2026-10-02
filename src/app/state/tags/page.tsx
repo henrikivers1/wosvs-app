@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type StateTag = {
   id: string;
@@ -22,6 +23,7 @@ type TagAssignment = {
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 export default function TagsPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, signedIn, loadingStates } = useStates();
@@ -41,8 +43,7 @@ export default function TagsPage() {
   const [message, setMessage] = useState("");
 
   const isAdmin =
-    activeMembership?.role === "owner" ||
-    activeMembership?.role === "admin";
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const loadTags = useCallback(async () => {
     if (!activeMembership || !isAdmin) {
@@ -101,14 +102,14 @@ export default function TagsPage() {
   function validateTag(
     tagName: string,
     tagColor: string,
-    tagBulkMoveLimit: number
+    tagBulkMoveLimit: number,
   ) {
     if (!tagName.trim()) {
-      setMessage("Enter a tag name.");
+      setMessage(t("Enter a tag name."));
       return false;
     }
     if (!HEX_COLOR.test(tagColor)) {
-      setMessage("Use a six-digit color code such as #e4a853.");
+      setMessage(t("Use a six-digit color code such as #e4a853."));
       return false;
     }
     if (
@@ -116,7 +117,7 @@ export default function TagsPage() {
       tagBulkMoveLimit < 1 ||
       tagBulkMoveLimit > 100
     ) {
-      setMessage("The bulk-move limit must be between 1 and 100.");
+      setMessage(t("The bulk-move limit must be between 1 and 100."));
       return false;
     }
     return true;
@@ -127,10 +128,11 @@ export default function TagsPage() {
       !activeMembership ||
       !isAdmin ||
       !validateTag(name, color, bulkMoveLimit)
-    ) return;
+    )
+      return;
 
     setSaving(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("create_state_tag", {
       target_state_id: activeMembership.stateId,
       tag_name: name,
@@ -145,7 +147,7 @@ export default function TagsPage() {
       setColor("#e4a853");
       setBulkMoveLimit(100);
       await loadTags();
-      setMessage("Tag created.");
+      setMessage(t("Tag created."));
     }
     setSaving(false);
   }
@@ -156,17 +158,18 @@ export default function TagsPage() {
     setEditingName(tag.name);
     setEditingColor(tag.color);
     setEditingBulkMoveLimit(tag.bulk_move_limit);
-    setMessage("");
+    setMessage(t(""));
   }
 
   async function saveTag() {
     if (
       !editingTagId ||
       !validateTag(editingName, editingColor, editingBulkMoveLimit)
-    ) return;
+    )
+      return;
 
     setSaving(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("update_state_tag", {
       target_tag_id: editingTagId,
       tag_name: editingName,
@@ -179,27 +182,29 @@ export default function TagsPage() {
     } else {
       setEditingTagId(null);
       await loadTags();
-      setMessage("Tag updated.");
+      setMessage(t("Tag updated."));
     }
     setSaving(false);
   }
 
   async function deleteTag(tag: StateTag) {
     if (tag.system_key) {
-      setMessage("System tags are permanent and are managed from State members.");
+      setMessage(
+        t("System tags are permanent and are managed from State members."),
+      );
       return;
     }
     const assignmentCount = assignmentCounts[tag.id] ?? 0;
     if (
       !window.confirm(
-        `Delete the “${tag.name}” tag? It will be removed from ${assignmentCount} WOS ${assignmentCount === 1 ? "account" : "accounts"} and from any connected vote options.`
+        `Delete the “${tag.name}” tag? It will be removed from ${assignmentCount} WOS ${assignmentCount === 1 ? "account" : "accounts"} and from any connected vote options.`,
       )
     ) {
       return;
     }
 
     setSaving(true);
-    setMessage("");
+    setMessage(t(""));
     const { error } = await supabase.rpc("delete_state_tag", {
       target_tag_id: tag.id,
     });
@@ -209,7 +214,7 @@ export default function TagsPage() {
     } else {
       if (editingTagId === tag.id) setEditingTagId(null);
       await loadTags();
-      setMessage("Tag deleted.");
+      setMessage(t("Tag deleted."));
     }
     setSaving(false);
   }
@@ -218,7 +223,9 @@ export default function TagsPage() {
     return (
       <main>
         <AppHeader />
-        <section className="loading-panel"><p>Loading tags...</p></section>
+        <section className="loading-panel">
+          <p>{t("Loading tags...")}</p>
+        </section>
       </main>
     );
   }
@@ -229,34 +236,38 @@ export default function TagsPage() {
 
       {!activeMembership || !isAdmin ? (
         <section className="empty-state">
-          <h2>Admin access required</h2>
-          <p>Only state Owners and Admins can manage tags.</p>
+          <h2>{t("Admin access required")}</h2>
+          <p>{t("Only state Owners and Admins can manage tags.")}</p>
         </section>
       ) : (
         <>
           <section className="tags-heading">
             <div>
               <p className="section-label">{activeMembership.stateName}</p>
-              <h1>Tags</h1>
-              <p>Create reusable labels for votes, alliances, and battle plans.</p>
+              <h1>{t("Tags")}</h1>
+              <p>
+                {t(
+                  "Create reusable labels for votes, alliances, and battle plans.",
+                )}
+              </p>
             </div>
           </section>
 
           <section>
-            <h2>Create tag</h2>
+            <h2>{t("Create tag")}</h2>
             <div className="tag-create-form">
               <label>
-                Tag name
+                {t("Tag name")}
                 <input
                   type="text"
                   maxLength={32}
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Full Battle"
+                  placeholder={t("Full Battle")}
                 />
               </label>
               <label>
-                Color
+                {t("Color")}
                 <span className="color-input-row">
                   <input
                     type="color"
@@ -269,12 +280,12 @@ export default function TagsPage() {
                     maxLength={7}
                     value={color}
                     onChange={(event) => setColor(event.target.value)}
-                    placeholder="#e4a853"
+                    placeholder={t("#e4a853")}
                   />
                 </span>
               </label>
               <label>
-                Bulk-move limit
+                {t("Bulk-move limit")}
                 <input
                   type="number"
                   min="1"
@@ -285,8 +296,12 @@ export default function TagsPage() {
                   }
                 />
               </label>
-              <button type="button" disabled={saving} onClick={() => void createTag()}>
-                {saving ? "Saving..." : "Create tag"}
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void createTag()}
+              >
+                {saving ? t("Saving...") : t("Create tag")}
               </button>
             </div>
             {message && <p className="page-message">{message}</p>}
@@ -295,20 +310,22 @@ export default function TagsPage() {
           <section>
             <div className="section-title-row">
               <div>
-                <p className="section-label">Reusable labels</p>
-                <h2>State tags</h2>
+                <p className="section-label">{t("Reusable labels")}</p>
+                <h2>{t("State tags")}</h2>
               </div>
               <span className="retention-badge">
-                {tags.length} {tags.length === 1 ? "tag" : "tags"}
+                {tags.length} {tags.length === 1 ? t("tag") : t("tags")}
               </span>
             </div>
 
             {loading ? (
-              <p>Loading tags...</p>
+              <p>{t("Loading tags...")}</p>
             ) : tags.length === 0 ? (
               <div className="empty-state compact-empty-state">
-                <h3>No tags yet</h3>
-                <p>Create a tag above, then connect it to a voting option.</p>
+                <h3>{t("No tags yet")}</h3>
+                <p>
+                  {t("Create a tag above, then connect it to a voting option.")}
+                </p>
               </div>
             ) : (
               <div className="tag-list">
@@ -317,33 +334,43 @@ export default function TagsPage() {
                     <article key={tag.id} className="tag-edit-card">
                       <div className="tag-create-form">
                         <label>
-                          Tag name
+                          {t("Tag name")}
                           <input
                             type="text"
                             maxLength={32}
                             value={editingName}
-                            onChange={(event) => setEditingName(event.target.value)}
+                            onChange={(event) =>
+                              setEditingName(event.target.value)
+                            }
                           />
                         </label>
                         <label>
-                          Color
+                          {t("Color")}
                           <span className="color-input-row">
                             <input
                               type="color"
-                              value={HEX_COLOR.test(editingColor) ? editingColor : "#e4a853"}
-                              onChange={(event) => setEditingColor(event.target.value)}
+                              value={
+                                HEX_COLOR.test(editingColor)
+                                  ? editingColor
+                                  : "#e4a853"
+                              }
+                              onChange={(event) =>
+                                setEditingColor(event.target.value)
+                              }
                             />
                             <input
                               className="hex-color-input"
                               type="text"
                               maxLength={7}
                               value={editingColor}
-                              onChange={(event) => setEditingColor(event.target.value)}
+                              onChange={(event) =>
+                                setEditingColor(event.target.value)
+                              }
                             />
                           </span>
                         </label>
                         <label>
-                          Bulk-move limit
+                          {t("Bulk-move limit")}
                           <input
                             type="number"
                             min="1"
@@ -351,49 +378,68 @@ export default function TagsPage() {
                             value={editingBulkMoveLimit}
                             onChange={(event) =>
                               setEditingBulkMoveLimit(
-                                Number(event.target.value)
+                                Number(event.target.value),
                               )
                             }
                           />
                         </label>
-                        <button type="button" disabled={saving} onClick={() => void saveTag()}>
-                          Save
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={() => void saveTag()}
+                        >
+                          {t("Save")}
                         </button>
                         <button
                           type="button"
                           className="secondary-link"
                           onClick={() => setEditingTagId(null)}
                         >
-                          Cancel
+                          {t("Cancel")}
                         </button>
                       </div>
                     </article>
                   ) : (
                     <article key={tag.id} className="tag-row">
-                      <span className="tag-swatch" style={{ backgroundColor: tag.color }} />
+                      <span
+                        className="tag-swatch"
+                        style={{ backgroundColor: tag.color }}
+                      />
                       <div>
                         <strong>{tag.name}</strong>
                         <small>
-                          {tag.color.toUpperCase()} · {assignmentCounts[tag.id] ?? 0} assigned
+                          {tag.color.toUpperCase()} {t("·")}{" "}
+                          {assignmentCounts[tag.id] ?? 0} {t("assigned")}
                           {tag.system_key
-                            ? " · permanent system tag"
+                            ? t(" · permanent system tag")
                             : ` · bulk max ${tag.bulk_move_limit}`}
                         </small>
                       </div>
                       {tag.system_key ? (
-                        <span className="role-badge">Managed in State members</span>
+                        <span className="role-badge">
+                          {t("Managed in State members")}
+                        </span>
                       ) : (
                         <div className="tag-row-actions">
-                          <button type="button" className="secondary-link" onClick={() => beginEditing(tag)}>
-                            Edit
+                          <button
+                            type="button"
+                            className="secondary-link"
+                            onClick={() => beginEditing(tag)}
+                          >
+                            {t("Edit")}
                           </button>
-                          <button type="button" className="danger-button" disabled={saving} onClick={() => void deleteTag(tag)}>
-                            Delete
+                          <button
+                            type="button"
+                            className="danger-button"
+                            disabled={saving}
+                            onClick={() => void deleteTag(tag)}
+                          >
+                            {t("Delete")}
                           </button>
                         </div>
                       )}
                     </article>
-                  )
+                  ),
                 )}
               </div>
             )}

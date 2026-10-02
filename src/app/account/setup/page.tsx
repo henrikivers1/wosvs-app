@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function AccountSetupPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [username, setUsername] = useState("");
@@ -50,7 +52,7 @@ export default function AccountSetupPage() {
   async function completeSetup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    setMessage("");
+    setMessage(t(""));
 
     const { error } = await supabase.rpc("complete_account_setup", {
       chosen_username: username.trim(),
@@ -64,7 +66,7 @@ export default function AccountSetupPage() {
       setMessage(
         error.code === "23505"
           ? "That username or WOS ID is already registered."
-          : error.message
+          : error.message,
       );
       return;
     }
@@ -77,14 +79,15 @@ export default function AccountSetupPage() {
     <main>
       <AppHeader />
       <section className="auth-card">
-        <h2>Complete your account</h2>
+        <h2>{t("Complete your account")}</h2>
         <p>
-          Your username is public. Your email remains private and is only
-          used to sign in.
+          {t(
+            "Your username is public. Your email remains private and is only used to sign in.",
+          )}
         </p>
         <form className="auth-form" onSubmit={completeSetup}>
           <label>
-            Public username
+            {t("Public username")}
             <input
               type="text"
               value={username}
@@ -93,11 +96,11 @@ export default function AccountSetupPage() {
               minLength={3}
               maxLength={24}
               pattern="[A-Za-z0-9_]+"
-              placeholder="Henrik"
+              placeholder={t("Henrik")}
             />
           </label>
           <label>
-            WOS ID
+            {t("WOS ID")}
             <input
               type="text"
               inputMode="numeric"
@@ -105,21 +108,21 @@ export default function AccountSetupPage() {
               onChange={(event) => setWosId(event.target.value)}
               required
               pattern="[0-9]+"
-              placeholder="Your numeric WOS ID"
+              placeholder={t("Your numeric WOS ID")}
             />
           </label>
           <label>
-            WOS nickname (optional)
+            {t("WOS nickname (optional)")}
             <input
               type="text"
               value={wosNickname}
               onChange={(event) => setWosNickname(event.target.value)}
               maxLength={40}
-              placeholder="Your in-game name"
+              placeholder={t("Your in-game name")}
             />
           </label>
           <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Complete setup"}
+            {saving ? t("Saving...") : t("Complete setup")}
           </button>
         </form>
         {message && <p className="auth-message">{message}</p>}

@@ -7,8 +7,10 @@ import {
   getEnemyPetTimeRemaining,
   isEnemyPetActive,
 } from "@/lib/battleDisplay";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function ManageLeadersPage() {
+  const { t } = useLanguage();
   const {
     enemyLeaders,
     currentTime,
@@ -21,21 +23,14 @@ export default function ManageLeadersPage() {
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
   const [enemyPetActive, setEnemyPetActive] = useState(false);
-  const [editingLeaderId, setEditingLeaderId] = useState<
-    number | null
-  >(null);
+  const [editingLeaderId, setEditingLeaderId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editX, setEditX] = useState(0);
   const [editY, setEditY] = useState(0);
   const [editPetActive, setEditPetActive] = useState(false);
 
   async function handleAddLeader() {
-    const error = await addEnemyLeader(
-      enemyName,
-      x,
-      y,
-      enemyPetActive
-    );
+    const error = await addEnemyLeader(enemyName, x, y, enemyPetActive);
     if (error) {
       window.alert(error);
       return;
@@ -48,18 +43,14 @@ export default function ManageLeadersPage() {
     id: number,
     name: string,
     leaderX: number,
-    leaderY: number
+    leaderY: number,
   ) {
     setEditingLeaderId(id);
     setEditName(name);
     setEditX(leaderX);
     setEditY(leaderY);
-    const leader = enemyLeaders.find(
-      (savedLeader) => savedLeader.id === id
-    );
-    setEditPetActive(
-      leader ? isEnemyPetActive(leader, currentTime) : false
-    );
+    const leader = enemyLeaders.find((savedLeader) => savedLeader.id === id);
+    setEditPetActive(leader ? isEnemyPetActive(leader, currentTime) : false);
   }
 
   function cancelEditing() {
@@ -74,7 +65,7 @@ export default function ManageLeadersPage() {
       editName,
       editX,
       editY,
-      editPetActive
+      editPetActive,
     );
     if (error) {
       window.alert(error);
@@ -87,13 +78,14 @@ export default function ManageLeadersPage() {
     <main>
       <AppHeader />
       <section>
-        <h2>Manage enemy rally leaders</h2>
+        <h2>{t("Manage enemy rally leaders")}</h2>
         <p>
-          These leaders belong only to the current battle period. A new
-          battle period starts with an empty leader list.
+          {t(
+            "These leaders belong only to the current battle period. A new battle period starts with an empty leader list.",
+          )}
         </p>
         <label>
-          Player name
+          {t("Player name")}
           <input
             type="text"
             value={enemyName}
@@ -101,7 +93,7 @@ export default function ManageLeadersPage() {
           />
         </label>
         <label>
-          X coordinate
+          {t("X coordinate")}
           <input
             type="number"
             min="0"
@@ -111,7 +103,7 @@ export default function ManageLeadersPage() {
           />
         </label>
         <label>
-          Y coordinate
+          {t("Y coordinate")}
           <input
             type="number"
             min="0"
@@ -124,19 +116,17 @@ export default function ManageLeadersPage() {
           <input
             type="checkbox"
             checked={enemyPetActive}
-            onChange={(event) =>
-              setEnemyPetActive(event.target.checked)
-            }
+            onChange={(event) => setEnemyPetActive(event.target.checked)}
           />
-          Pet active now
+          {t("Pet active now")}
         </label>
         <button type="button" onClick={handleAddLeader}>
-          Add leader
+          {t("Add leader")}
         </button>
 
-        <h3>Saved leaders</h3>
+        <h3>{t("Saved leaders")}</h3>
         {enemyLeaders.length === 0 ? (
-          <p>No enemy leaders added.</p>
+          <p>{t("No enemy leaders added.")}</p>
         ) : (
           <ul>
             {enemyLeaders.map((leader) => (
@@ -144,17 +134,15 @@ export default function ManageLeadersPage() {
                 {editingLeaderId === leader.id ? (
                   <div className="edit-leader-form">
                     <label>
-                      Player name
+                      {t("Player name")}
                       <input
                         type="text"
                         value={editName}
-                        onChange={(event) =>
-                          setEditName(event.target.value)
-                        }
+                        onChange={(event) => setEditName(event.target.value)}
                       />
                     </label>
                     <label>
-                      X coordinate
+                      {t("X coordinate")}
                       <input
                         type="number"
                         min="0"
@@ -166,7 +154,7 @@ export default function ManageLeadersPage() {
                       />
                     </label>
                     <label>
-                      Y coordinate
+                      {t("Y coordinate")}
                       <input
                         type="number"
                         min="0"
@@ -185,74 +173,62 @@ export default function ManageLeadersPage() {
                           setEditPetActive(event.target.checked)
                         }
                       />
-                      Pet active
+                      {t("Pet active")}
                     </label>
                     <button
                       className="save-button"
                       type="button"
                       onClick={saveLeader}
                     >
-                      Save
+                      {t("Save")}
                     </button>
                     <button
                       className="cancel-edit-button"
                       type="button"
                       onClick={cancelEditing}
                     >
-                      Cancel
+                      {t("Cancel")}
                     </button>
                   </div>
                 ) : (
                   <>
                     <span>
-                      {leader.name} — {leader.x}:{leader.y}
+                      {leader.name} {t("—")} {leader.x}
+                      {t(":")}
+                      {leader.y}
                     </span>
                     <label>
                       <input
                         type="checkbox"
-                        checked={isEnemyPetActive(
-                          leader,
-                          currentTime
-                        )}
+                        checked={isEnemyPetActive(leader, currentTime)}
                         onChange={async () => {
-                          const error =
-                            await toggleEnemyLeaderPet(leader.id);
+                          const error = await toggleEnemyLeaderPet(leader.id);
                           if (error) window.alert(error);
                         }}
                       />
-                      Pet active
+                      {t("Pet active")}
                     </label>
                     <span>
-                      Pet remaining:{" "}
-                      {getEnemyPetTimeRemaining(
-                        leader,
-                        currentTime
-                      )}
+                      {t("Pet remaining:")}{" "}
+                      {t(getEnemyPetTimeRemaining(leader, currentTime))}
                     </span>
                     <button
                       className="edit-button"
                       type="button"
                       onClick={() =>
-                        startEditing(
-                          leader.id,
-                          leader.name,
-                          leader.x,
-                          leader.y
-                        )
+                        startEditing(leader.id, leader.name, leader.x, leader.y)
                       }
                     >
-                      Edit
+                      {t("Edit")}
                     </button>
                     <button
                       type="button"
                       onClick={async () => {
-                        const error = await removeEnemyLeader(
-                          leader.id
-                        );
+                        const error = await removeEnemyLeader(leader.id);
                         if (error) window.alert(error);
                       }}
                     >
-                      Remove leader
+                      {t("Remove leader")}
                     </button>
                   </>
                 )}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type NotificationData = {
   announcement_id?: string;
@@ -40,12 +41,18 @@ type InviteStatus = {
   status: string;
 };
 
-function notificationCategory(type: string, storedCategory?: NotificationItem["category"]) {
+function notificationCategory(
+  type: string,
+  storedCategory?: NotificationItem["category"],
+) {
   if (storedCategory === "state") return { label: "State", className: "state" };
-  if (storedCategory === "social") return { label: "Social", className: "social" };
+  if (storedCategory === "social")
+    return { label: "Social", className: "social" };
   if (storedCategory === "tag") return { label: "Tag", className: "tag" };
-  if (storedCategory === "alliance") return { label: "Alliance", className: "alliance" };
-  if (storedCategory === "battle") return { label: "Battle", className: "battle" };
+  if (storedCategory === "alliance")
+    return { label: "Alliance", className: "alliance" };
+  if (storedCategory === "battle")
+    return { label: "Battle", className: "battle" };
   if (type === "state_invite" || type === "state_invite_accepted") {
     return { label: "Membership", className: "membership" };
   }
@@ -64,27 +71,27 @@ function notificationCategory(type: string, storedCategory?: NotificationItem["c
   ) {
     return { label: "Plan comment", className: "comment" };
   }
-  if (
-    type === "battle_plan_assignment" ||
-    type === "battle_plan_published"
-  ) {
+  if (type === "battle_plan_assignment" || type === "battle_plan_published") {
     return { label: "Battle plan", className: "plan" };
   }
   return { label: "Update", className: "general" };
 }
 
 export default function NotificationsPage() {
+  const { t, formatDateTime } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { refreshMemberships } = useStates();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [inviteStatuses, setInviteStatuses] = useState<
-    Record<string, string>
-  >({});
+  const [inviteStatuses, setInviteStatuses] = useState<Record<string, string>>(
+    {},
+  );
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
-  const [accountLabels, setAccountLabels] = useState<Record<string, string>>({});
+  const [accountLabels, setAccountLabels] = useState<Record<string, string>>(
+    {},
+  );
   const [stateLabels, setStateLabels] = useState<Record<string, string>>({});
 
   const loadNotifications = useCallback(async () => {
@@ -101,7 +108,9 @@ export default function NotificationsPage() {
 
     const { data, error } = await supabase
       .from("notifications")
-      .select("id, state_id, wos_account_id, category, type, title, body, data, read_at, created_at")
+      .select(
+        "id, state_id, wos_account_id, category, type, title, body, data, read_at, created_at",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -113,25 +122,53 @@ export default function NotificationsPage() {
 
     const items = (data ?? []) as NotificationItem[];
     setNotifications(items);
-    const accountIds = [...new Set(items.map((item) => item.wos_account_id).filter((id): id is string => Boolean(id)))];
-    const stateIds = [...new Set(items.map((item) => item.state_id).filter((id): id is string => Boolean(id)))];
+    const accountIds = [
+      ...new Set(
+        items
+          .map((item) => item.wos_account_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const stateIds = [
+      ...new Set(
+        items
+          .map((item) => item.state_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
     const [accountResult, stateResult] = await Promise.all([
-      accountIds.length ? supabase.from("wos_accounts").select("id, nickname, wos_id").in("id", accountIds) : Promise.resolve({ data: [], error: null }),
-      stateIds.length ? supabase.from("states").select("id, name").in("id", stateIds) : Promise.resolve({ data: [], error: null }),
+      accountIds.length
+        ? supabase
+            .from("wos_accounts")
+            .select("id, nickname, wos_id")
+            .in("id", accountIds)
+        : Promise.resolve({ data: [], error: null }),
+      stateIds.length
+        ? supabase.from("states").select("id, name").in("id", stateIds)
+        : Promise.resolve({ data: [], error: null }),
     ]);
-    setAccountLabels(((accountResult.data ?? []) as AccountLabel[]).reduce<Record<string, string>>((labels, account) => {
-      labels[account.id] = account.nickname || `WOS ID ${account.wos_id}`;
-      return labels;
-    }, {}));
-    setStateLabels(((stateResult.data ?? []) as StateLabel[]).reduce<Record<string, string>>((labels, state) => {
-      labels[state.id] = state.name;
-      return labels;
-    }, {}));
+    setAccountLabels(
+      ((accountResult.data ?? []) as AccountLabel[]).reduce<
+        Record<string, string>
+      >((labels, account) => {
+        labels[account.id] = account.nickname || `WOS ID ${account.wos_id}`;
+        return labels;
+      }, {}),
+    );
+    setStateLabels(
+      ((stateResult.data ?? []) as StateLabel[]).reduce<Record<string, string>>(
+        (labels, state) => {
+          labels[state.id] = state.name;
+          return labels;
+        },
+        {},
+      ),
+    );
     const inviteIds = [
       ...new Set(
         items
           .map((item) => item.data?.invite_id)
-          .filter((id): id is string => Boolean(id))
+          .filter((id): id is string => Boolean(id)),
       ),
     ];
 
@@ -146,8 +183,8 @@ export default function NotificationsPage() {
             statuses[invite.id] = invite.status;
             return statuses;
           },
-          {}
-        )
+          {},
+        ),
       );
     } else {
       setInviteStatuses({});
@@ -185,7 +222,7 @@ export default function NotificationsPage() {
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        () => void loadNotifications()
+        () => void loadNotifications(),
       )
       .subscribe();
 
@@ -194,11 +231,8 @@ export default function NotificationsPage() {
     };
   }, [loadNotifications, supabase, userId]);
 
-  async function respondToInvitation(
-    inviteId: string,
-    acceptInvite: boolean
-  ) {
-    setMessage("");
+  async function respondToInvitation(inviteId: string, acceptInvite: boolean) {
+    setMessage(t(""));
     const { error } = await supabase.rpc("respond_to_state_invite", {
       target_invite_id: inviteId,
       accept_invite: acceptInvite,
@@ -212,7 +246,7 @@ export default function NotificationsPage() {
     setMessage(
       acceptInvite
         ? "Invitation accepted. The state owner must now verify and approve you."
-        : "Invitation declined."
+        : "Invitation declined.",
     );
     await loadNotifications();
     await refreshMemberships();
@@ -222,21 +256,25 @@ export default function NotificationsPage() {
     <main>
       <AppHeader />
       <section>
-        <h2>Notifications</h2>
+        <h2>{t("Notifications")}</h2>
         <p>
-          Battle plans, comments, mentions, tags, votes, notices, and state
-          membership updates appear here.
+          {t(
+            "Battle plans, comments, mentions, tags, votes, notices, and state membership updates appear here.",
+          )}
         </p>
         {message && <p className="auth-message">{message}</p>}
 
         {loading ? (
-          <p>Loading notifications...</p>
+          <p>{t("Loading notifications...")}</p>
         ) : notifications.length === 0 ? (
-          <p>You do not have any notifications yet.</p>
+          <p>{t("You do not have any notifications yet.")}</p>
         ) : (
           <div className="notification-list">
             {notifications.map((notification) => {
-              const category = notificationCategory(notification.type, notification.category);
+              const category = notificationCategory(
+                notification.type,
+                notification.category,
+              );
               const inviteId = notification.data?.invite_id;
               const inviteStatus = inviteId
                 ? inviteStatuses[inviteId]
@@ -250,17 +288,27 @@ export default function NotificationsPage() {
                   <div className="notification-card-heading">
                     <div>
                       <span className="notification-category">
-                        {category.label}
+                        {t(category.label)}
                       </span>
-                      <h3>{notification.title}</h3>
-                      {(notification.state_id || notification.wos_account_id) && (
+                      <h3>{t(notification.title)}</h3>
+                      {(notification.state_id ||
+                        notification.wos_account_id) && (
                         <small className="notification-context">
-                          {[notification.state_id ? stateLabels[notification.state_id] : null, notification.wos_account_id ? accountLabels[notification.wos_account_id] : null].filter(Boolean).join(" · ")}
+                          {[
+                            notification.state_id
+                              ? stateLabels[notification.state_id]
+                              : null,
+                            notification.wos_account_id
+                              ? accountLabels[notification.wos_account_id]
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </small>
                       )}
                     </div>
                     <time dateTime={notification.created_at}>
-                      {new Date(notification.created_at).toLocaleString()}
+                      {formatDateTime(notification.created_at)}
                     </time>
                   </div>
                   <p>{notification.body}</p>
@@ -275,7 +323,7 @@ export default function NotificationsPage() {
                             void respondToInvitation(inviteId, true)
                           }
                         >
-                          Accept
+                          {t("Accept")}
                         </button>
                         <button
                           type="button"
@@ -284,7 +332,7 @@ export default function NotificationsPage() {
                             void respondToInvitation(inviteId, false)
                           }
                         >
-                          Decline
+                          {t("Decline")}
                         </button>
                       </div>
                     )}
@@ -292,64 +340,64 @@ export default function NotificationsPage() {
                   {notification.type === "state_invite" &&
                     inviteStatus === "pending_owner" && (
                       <p className="status-badge">
-                        Waiting for owner verification
+                        {t("Waiting for owner verification")}
                       </p>
                     )}
                   {notification.type === "state_invite_accepted" && (
                     <Link className="nav-link" href="/state/manage">
-                      Review request
+                      {t("Review request")}
                     </Link>
                   )}
                   {notification.type === "state_poll_created" && (
                     <Link className="nav-link" href="/state/votes">
-                      Open vote
+                      {t("Open vote")}
                     </Link>
                   )}
                   {notification.type === "state_announcement" && (
                     <Link className="nav-link" href="/state/overwatch">
-                      Open Overwatch
+                      {t("Open Overwatch")}
                     </Link>
                   )}
                   {notification.type === "battle_plan_assignment" && (
                     <Link className="nav-link" href="/state/overwatch">
-                      Open Overwatch
+                      {t("Open Overwatch")}
                     </Link>
                   )}
                   {notification.type === "battle_plan_published" && (
                     <Link className="nav-link" href="/state/overwatch">
-                      Open Overwatch
+                      {t("Open Overwatch")}
                     </Link>
                   )}
                   {(notification.type === "battle_plan_comment" ||
                     notification.type === "battle_plan_comment_mention") && (
                     <Link className="nav-link" href="/state/overwatch">
-                      Open comments
+                      {t("Open comments")}
                     </Link>
                   )}
                   {notification.type === "state_tag_awarded" && (
                     <Link className="nav-link" href="/state/overwatch">
-                      Open Overwatch
+                      {t("Open Overwatch")}
                     </Link>
                   )}
                   {notification.type === "state_alliance_assigned" && (
                     <Link className="nav-link" href="/state/overwatch">
-                      Open Overwatch
+                      {t("Open Overwatch")}
                     </Link>
                   )}
                   {notification.type === "battle_started" && (
                     <Link className="nav-link" href="/battle">
-                      Open Live Battle
+                      {t("Open Live Battle")}
                     </Link>
                   )}
                   {(notification.type === "battle_completed" ||
                     notification.type === "battle_cancelled") && (
                     <Link className="nav-link" href="/state/stats">
-                      Open battle history
+                      {t("Open battle history")}
                     </Link>
                   )}
                   {inviteStatus &&
                     !["pending_recipient", "pending_owner"].includes(
-                      inviteStatus
+                      inviteStatus,
                     ) && (
                       <p className="status-badge">
                         {inviteStatus.replace("_", " ")}

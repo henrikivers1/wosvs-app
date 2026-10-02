@@ -4,8 +4,10 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +21,7 @@ export default function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    setMessage("");
+    setMessage(t(""));
     const supabase = createClient();
 
     if (mode === "signup") {
@@ -40,12 +42,12 @@ export default function LoginPage() {
         setMessage(
           error.message.includes("Database error")
             ? "That username or WOS ID may already be registered."
-            : error.message
+            : error.message,
         );
         return;
       }
       if (!data.session) {
-        setMessage("Check your email to confirm your account.");
+        setMessage(t("Check your email to confirm your account."));
         return;
       }
     } else {
@@ -86,10 +88,10 @@ export default function LoginPage() {
     <main>
       <AppHeader />
       <section className="auth-card">
-        <h2>{mode === "login" ? "Sign in" : "Create account"}</h2>
+        <h2>{mode === "login" ? t("Sign in") : t("Create account")}</h2>
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
-            Email
+            {t("Email")}
             <input
               type="email"
               value={email}
@@ -99,7 +101,7 @@ export default function LoginPage() {
             />
           </label>
           <label>
-            Password
+            {t("Password")}
             <input
               type="password"
               value={password}
@@ -107,64 +109,56 @@ export default function LoginPage() {
               required
               minLength={6}
               autoComplete={
-                mode === "login"
-                  ? "current-password"
-                  : "new-password"
+                mode === "login" ? "current-password" : "new-password"
               }
             />
           </label>
           {mode === "signup" && (
             <>
               <label>
-                Public username
+                {t("Public username")}
                 <input
                   type="text"
                   value={username}
-                  onChange={(event) =>
-                    setUsername(event.target.value)
-                  }
+                  onChange={(event) => setUsername(event.target.value)}
                   required
                   minLength={3}
                   maxLength={24}
                   pattern="[A-Za-z0-9_]+"
                   autoComplete="username"
-                  placeholder="Henrik"
+                  placeholder={t("Henrik")}
                 />
               </label>
               <label>
-                WOS ID
+                {t("WOS ID")}
                 <input
                   type="text"
                   inputMode="numeric"
                   value={wosId}
-                  onChange={(event) =>
-                    setWosId(event.target.value)
-                  }
+                  onChange={(event) => setWosId(event.target.value)}
                   required
                   pattern="[0-9]+"
-                  placeholder="Your numeric WOS ID"
+                  placeholder={t("Your numeric WOS ID")}
                 />
               </label>
               <label>
-                WOS nickname (optional)
+                {t("WOS nickname (optional)")}
                 <input
                   type="text"
                   value={wosNickname}
-                  onChange={(event) =>
-                    setWosNickname(event.target.value)
-                  }
+                  onChange={(event) => setWosNickname(event.target.value)}
                   maxLength={40}
-                  placeholder="Your in-game name"
+                  placeholder={t("Your in-game name")}
                 />
               </label>
             </>
           )}
           <button type="submit" disabled={loading}>
             {loading
-              ? "Please wait..."
+              ? t("Please wait...")
               : mode === "login"
-                ? "Sign in"
-                : "Create account"}
+                ? t("Sign in")
+                : t("Create account")}
           </button>
         </form>
 
@@ -175,12 +169,12 @@ export default function LoginPage() {
           type="button"
           onClick={() => {
             setMode(mode === "login" ? "signup" : "login");
-            setMessage("");
+            setMessage(t(""));
           }}
         >
           {mode === "login"
-            ? "Need an account? Sign up"
-            : "Already have an account? Sign in"}
+            ? t("Need an account? Sign up")
+            : t("Already have an account? Sign in")}
         </button>
       </section>
     </main>

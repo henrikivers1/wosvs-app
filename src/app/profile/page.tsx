@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 const ACCEPTED_AVATAR_TYPES = [
@@ -21,6 +22,7 @@ const ACCEPTED_AVATAR_TYPES = [
 ];
 
 export default function ProfilePage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [userId, setUserId] = useState<string | null>(null);
@@ -56,9 +58,7 @@ export default function ProfilePage() {
       const { data } = supabase.storage
         .from("avatars")
         .getPublicUrl(profile.avatar_path);
-      setAvatarUrl(
-        data.publicUrl + "?v=" + new Date().getTime().toString()
-      );
+      setAvatarUrl(data.publicUrl + "?v=" + new Date().getTime().toString());
     } else {
       setAvatarUrl(null);
     }
@@ -76,19 +76,19 @@ export default function ProfilePage() {
     if (!file || !userId) return;
 
     if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
-      setMessage("Choose a JPG, PNG, WebP, or GIF image.");
+      setMessage(t("Choose a JPG, PNG, WebP, or GIF image."));
       event.target.value = "";
       return;
     }
 
     if (file.size > MAX_AVATAR_SIZE) {
-      setMessage("The profile picture must be 2 MB or smaller.");
+      setMessage(t("The profile picture must be 2 MB or smaller."));
       event.target.value = "";
       return;
     }
 
     setUploading(true);
-    setMessage("");
+    setMessage(t(""));
     const avatarPath = `${userId}/avatar`;
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -116,7 +116,7 @@ export default function ProfilePage() {
       return;
     }
 
-    setMessage("Profile picture updated.");
+    setMessage(t("Profile picture updated."));
     await loadProfile();
     router.refresh();
   }
@@ -125,44 +125,47 @@ export default function ProfilePage() {
     <main>
       <AppHeader />
       <section className="profile-card">
-        <h2>Your profile</h2>
+        <h2>{t("Your profile")}</h2>
         <div className="profile-editor">
           <span
             className="avatar-preview"
             style={
-              avatarUrl
-                ? { backgroundImage: `url(${avatarUrl})` }
-                : undefined
+              avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : undefined
             }
           >
             {!avatarUrl && (username.charAt(0).toUpperCase() || "?")}
           </span>
           <div>
             <p>
-              Public username: <strong>@{username}</strong>
+              {t("Public username:")}{" "}
+              <strong>
+                {t("@")}
+                {username}
+              </strong>
             </p>
             <p>
-              Your email remains private. Your username and profile picture
-              may be shown to players who share a state with you.
+              {t(
+                "Your email remains private. Your username and profile picture may be shown to players who share a state with you.",
+              )}
             </p>
           </div>
         </div>
 
         <label className="avatar-upload">
-          Profile picture
+          {t("Profile picture")}
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
             onChange={(event) => void uploadAvatar(event)}
             disabled={uploading}
           />
-          <span>JPG, PNG, WebP, or GIF. Maximum 2 MB.</span>
+          <span>{t("JPG, PNG, WebP, or GIF. Maximum 2 MB.")}</span>
         </label>
-        {uploading && <p>Uploading profile picture...</p>}
+        {uploading && <p>{t("Uploading profile picture...")}</p>}
         {message && <p className="auth-message">{message}</p>}
 
         <Link className="nav-link" href="/account">
-          Manage WOS accounts
+          {t("Manage WOS accounts")}
         </Link>
       </section>
     </main>
