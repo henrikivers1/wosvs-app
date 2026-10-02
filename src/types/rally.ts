@@ -15,8 +15,3 @@ export type EnemyRally = {
   impactTime: Date;
   petActive: boolean;
 };
-
-export type RallyWave = {
-  impactSecond: number;
-  rallies: EnemyRally[];
-};

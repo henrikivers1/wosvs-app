@@ -2,15 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { groupRalliesIntoWaves } from "@/lib/battleDisplay";
 import { calculateMarchTime } from "@/lib/marchTime";
 import {
-  calculateSecondsUntil,
-  calculateSendTime,
-} from "@/lib/reinforcementTime";
-import type { EnemyRally, RallyWave } from "@/types/rally";
+  buildLandingWindows,
+  windowSendTime,
+  type LandingWindow,
+} from "@/lib/reinforcementWindows";
+import type { EnemyRally } from "@/types/rally";
 
 const HIDE_AFTER_SEND_MS = 3_000;
+const SETTINGS_KEY = "wosoverwatch-reinforcement-settings";
+
+type StoredSettings = { x: number; y: number; sendEarlyMs: number };
+
+function readStoredSettings(): StoredSettings | null {
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    return raw ? (JSON.parse(raw) as StoredSettings) : null;
+  } catch {
+    return null;
+  }
+}
 
 export function useReinforcementTiming(
   rallies: EnemyRally[],
@@ -19,39 +31,73 @@ export function useReinforcementTiming(
   const { t } = useLanguage();
   const [playerX, setPlayerX] = useState(600);
   const [playerY, setPlayerY] = useState(606);
+  const [sendEarlyMs, setSendEarlyMs] = useState(0);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [playerPetActive, setPlayerPetActive] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const alertedWaves = useRef<Set<number>>(new Set());
+  const alertedWindows = useRef<Set<string>>(new Set());
+
+  // Keep coordinates and ping compensation across reloads during a battle.
+  useEffect(() => {
+    const loadId = window.setTimeout(() => {
+      const stored = readStoredSettings();
+      if (stored) {
+        if (Number.isFinite(stored.x)) setPlayerX(stored.x);
+        if (Number.isFinite(stored.y)) setPlayerY(stored.y);
+        if (Number.isFinite(stored.sendEarlyMs)) {
+          setSendEarlyMs(stored.sendEarlyMs);
+        }
+      }
+      setSettingsLoaded(true);
+    }, 0);
+    return () => window.clearTimeout(loadId);
+  }, []);
+
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    try {
+      window.localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({ x: playerX, y: playerY, sendEarlyMs }),
+      );
+    } catch {
+      // Storage can be unavailable (private mode); settings stay in memory.
+    }
+  }, [playerX, playerY, sendEarlyMs, settingsLoaded]);
 
   const playerMarchTime = calculateMarchTime(playerX, playerY, playerPetActive);
-  const rallyWaves = useMemo(
-    () =>
-      groupRalliesIntoWaves(rallies).filter((wave) => {
-        const sendTime = calculateSendTime(
-          new Date(wave.impactSecond * 1000),
-          playerMarchTime,
-        );
 
-        return currentTime.getTime() < sendTime.getTime() + HIDE_AFTER_SEND_MS;
-      }),
-    [currentTime, playerMarchTime, rallies],
+  const getSendTime = (landingWindow: LandingWindow) =>
+    windowSendTime(landingWindow, playerMarchTime, sendEarlyMs);
+
+  const landingWindows = useMemo(
+    () =>
+      buildLandingWindows(rallies).filter(
+        (landingWindow) =>
+          currentTime.getTime() <
+          windowSendTime(
+            landingWindow,
+            playerMarchTime,
+            sendEarlyMs,
+          ).getTime() +
+            HIDE_AFTER_SEND_MS,
+      ),
+    [currentTime, playerMarchTime, rallies, sendEarlyMs],
   );
 
-  function getSecondsUntilSend(wave: RallyWave): number {
-    const sendTime = calculateSendTime(
-      new Date(wave.impactSecond * 1000),
-      playerMarchTime,
-    );
-    return calculateSecondsUntil(sendTime, currentTime);
+  function getMsUntilSend(landingWindow: LandingWindow): number {
+    return getSendTime(landingWindow).getTime() - currentTime.getTime();
   }
 
-  function getSendStatus(wave: RallyWave): string {
-    const secondsRemaining = getSecondsUntilSend(wave);
-    if (secondsRemaining > 0) {
-      return t("Send in {seconds} seconds", { seconds: secondsRemaining });
+  function getSendStatus(landingWindow: LandingWindow): string {
+    const msRemaining = getMsUntilSend(landingWindow);
+    if (msRemaining > 0) {
+      return t("Send in {seconds} seconds", {
+        seconds: (msRemaining / 1000).toFixed(1),
+      });
     }
-    if (secondsRemaining === 0) return t("SEND NOW");
+    if (msRemaining > -1500) return t("SEND NOW");
     return t("Send time passed");
   }
 
@@ -66,41 +112,45 @@ export function useReinforcementTiming(
   }
 
   useEffect(() => {
-    rallyWaves.forEach((wave) => {
-      const sendTime = calculateSendTime(
-        new Date(wave.impactSecond * 1000),
-        playerMarchTime,
-      );
-      const secondsRemaining = calculateSecondsUntil(sendTime, currentTime);
-      const alreadyAlerted = alertedWaves.current.has(wave.impactSecond);
+    landingWindows.forEach((landingWindow) => {
+      const msRemaining =
+        windowSendTime(landingWindow, playerMarchTime, sendEarlyMs).getTime() -
+        currentTime.getTime();
+      if (
+        msRemaining > 0 ||
+        msRemaining < -1000 ||
+        alertedWindows.current.has(landingWindow.id)
+      ) {
+        return;
+      }
+      alertedWindows.current.add(landingWindow.id);
 
-      if (secondsRemaining >= 0 && secondsRemaining <= 1 && !alreadyAlerted) {
-        alertedWaves.current.add(wave.impactSecond);
+      if (soundEnabled) {
+        window.speechSynthesis.speak(
+          new SpeechSynthesisUtterance(t("Send now")),
+        );
+      }
 
-        if (soundEnabled) {
-          const speechAlert = new SpeechSynthesisUtterance(t("Send now"));
-          window.speechSynthesis.speak(speechAlert);
-        }
-
-        if (
-          notificationsEnabled &&
-          "Notification" in window &&
-          Notification.permission === "granted"
-        ) {
-          new Notification(t("SEND REINFORCEMENTS NOW"), {
-            body: t("{count} enemy rallies are incoming.", {
-              count: wave.rallies.length,
-            }),
-            tag: `wave-${wave.impactSecond}`,
-          });
-        }
+      if (
+        notificationsEnabled &&
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
+        new Notification(t("SEND REINFORCEMENTS NOW"), {
+          body: t("Land between {first} and {second}.", {
+            first: landingWindow.after.enemyName,
+            second: landingWindow.before.enemyName,
+          }),
+          tag: `window-${landingWindow.id}`,
+        });
       }
     });
   }, [
     currentTime,
+    landingWindows,
     notificationsEnabled,
     playerMarchTime,
-    rallyWaves,
+    sendEarlyMs,
     soundEnabled,
     t,
   ]);
@@ -110,6 +160,8 @@ export function useReinforcementTiming(
     setPlayerX,
     playerY,
     setPlayerY,
+    sendEarlyMs,
+    setSendEarlyMs,
     playerPetActive,
     setPlayerPetActive,
     soundEnabled,
@@ -117,8 +169,11 @@ export function useReinforcementTiming(
     notificationsEnabled,
     enableNotifications,
     playerMarchTime,
-    rallyWaves,
-    getSecondsUntilSend,
+    landingWindows,
+    getSendTime,
+    getMsUntilSend,
     getSendStatus,
   };
 }
+
+export type ReinforcementTiming = ReturnType<typeof useReinforcementTiming>;

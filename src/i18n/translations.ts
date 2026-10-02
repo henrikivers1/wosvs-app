@@ -82,6 +82,26 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Battle clock not synchronized yet — using this device's clock.":
+    "Reloj de batalla aún no sincronizado: se usa el reloj de este dispositivo.",
+  "Battle clock synchronized (±{accuracy} ms).":
+    "Reloj de batalla sincronizado (±{accuracy} ms).",
+  "Enter the time shown in game, then press Call rally the moment the in-game timer changes to that value. Every second of delay shifts the whole schedule.":
+    "Introduce el tiempo que muestra el juego y pulsa Llamar rally justo cuando el temporizador del juego cambie a ese valor. Cada segundo de retraso desplaza todo el horario.",
+  "Land between {first} and {second}.": "Llega entre {first} y {second}.",
+  "Land between {opens} and {closes} UTC ({seconds} s gap).":
+    "Llega entre {opens} y {closes} UTC (margen de {seconds} s).",
+  "No landing windows yet. A window appears once two enemy rallies are called.":
+    "Aún no hay ventanas de llegada. Aparece una cuando se llaman dos rallies enemigos.",
+  "Resync clock": "Resincronizar reloj",
+  "Send early (ms)": "Enviar antes (ms)",
+  "Send early compensates for your game ping: if the game lags on your connection, add your ping here.":
+    "Enviar antes compensa tu ping en el juego: si el juego va con retraso en tu conexión, añade tu ping aquí.",
+  "Under one second between these rallies — very hard to hit.":
+    "Menos de un segundo entre estos rallies: muy difícil de acertar.",
+  "When to send": "Cuándo enviar",
+  "Window {number}": "Ventana {number}",
+  impact: "impacto",
   "Claimed WOS ID": "WOS ID reclamado",
   "If someone registered a WOS ID that is not theirs, release it so the real player can add it. Works for members of this state and for players WOSOracle lists in your in-game state.":
     "Si alguien registró un WOS ID que no es suyo, libéralo para que el jugador real pueda añadirlo. Funciona para miembros de este estado y para jugadores que WOSOracle muestra en tu estado del juego.",

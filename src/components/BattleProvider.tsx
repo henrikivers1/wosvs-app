@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { PET_DURATION_MS } from "@/lib/battleDisplay";
+import { syncServerClock, type ClockSync } from "@/lib/serverClock";
 import { createClient } from "@/lib/supabase/client";
 import { useStates } from "@/components/StateProvider";
 import type { EnemyLeader, EnemyRally } from "@/types/rally";
@@ -20,6 +21,8 @@ type BattleContextValue = {
   enemyLeaders: EnemyLeader[];
   rallies: EnemyRally[];
   currentTime: Date;
+  clockSync: ClockSync | null;
+  resyncClock: () => Promise<void>;
   loading: boolean;
   addEnemyLeader: (
     name: string,
@@ -61,6 +64,8 @@ export function BattleProvider({
   >([]);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [clockSync, setClockSync] = useState<ClockSync | null>(null);
+  const clockOffsetMs = clockSync?.offsetMs ?? 0;
   const [loading, setLoading] = useState(true);
 
   const loadBattleData = useCallback(async () => {
@@ -165,15 +170,42 @@ export function BattleProvider({
     };
   }, [activeBattleId, activeStateId, loadBattleData, supabase]);
 
+  const resyncClock = useCallback(async () => {
+    const result = await syncServerClock();
+    if (result) setClockSync(result);
+  }, []);
+
+  // Every device times against the same server clock instead of its own,
+  // so a phone that is a few seconds off still sends at the right moment.
+  useEffect(() => {
+    const initialSyncId = window.setTimeout(() => void resyncClock(), 0);
+    const resyncId = window.setInterval(
+      () => void resyncClock(),
+      10 * 60 * 1000,
+    );
+    const resyncWhenVisible = () => {
+      if (document.visibilityState === "visible") void resyncClock();
+    };
+    document.addEventListener("visibilitychange", resyncWhenVisible);
+    window.addEventListener("online", resyncWhenVisible);
+
+    return () => {
+      window.clearTimeout(initialSyncId);
+      window.clearInterval(resyncId);
+      document.removeEventListener("visibilitychange", resyncWhenVisible);
+      window.removeEventListener("online", resyncWhenVisible);
+    };
+  }, [resyncClock]);
+
   useEffect(() => {
     const clockId = window.setInterval(() => {
-      setCurrentTime(new Date());
+      setCurrentTime(new Date(Date.now() + clockOffsetMs));
     }, 100);
 
     return () => {
       window.clearInterval(clockId);
     };
-  }, []);
+  }, [clockOffsetMs]);
 
   async function addEnemyLeader(
     name: string,
@@ -317,7 +349,7 @@ export function BattleProvider({
   ): Promise<string | null> {
     const { error } = await supabase
       .from("rallies")
-      .update({ cancelled_at: new Date().toISOString() })
+      .update({ cancelled_at: currentTime.toISOString() })
       .eq("id", id);
     if (error) return error.message;
     await loadBattleData();
@@ -330,6 +362,8 @@ export function BattleProvider({
         enemyLeaders,
         rallies,
         currentTime,
+        clockSync,
+        resyncClock,
         loading,
         addEnemyLeader,
         toggleEnemyLeaderPet,
