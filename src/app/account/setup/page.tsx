@@ -12,7 +12,6 @@ export default function AccountSetupPage() {
   const supabase = useMemo(() => createClient(), []);
   const [username, setUsername] = useState("");
   const [wosId, setWosId] = useState("");
-  const [wosNickname, setWosNickname] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -57,7 +56,7 @@ export default function AccountSetupPage() {
     const { error } = await supabase.rpc("complete_account_setup", {
       chosen_username: username.trim(),
       chosen_wos_id: wosId.trim(),
-      chosen_wos_nickname: wosNickname.trim() || null,
+      chosen_wos_nickname: null,
     });
 
     setSaving(false);
@@ -111,16 +110,11 @@ export default function AccountSetupPage() {
               placeholder={t("Your numeric WOS ID")}
             />
           </label>
-          <label>
-            {t("WOS nickname (optional)")}
-            <input
-              type="text"
-              value={wosNickname}
-              onChange={(event) => setWosNickname(event.target.value)}
-              maxLength={40}
-              placeholder={t("Your in-game name")}
-            />
-          </label>
+          <p className="form-hint">
+            {t(
+              "Your in-game name and public game data will be synchronized automatically from your WOS ID.",
+            )}
+          </p>
           <button type="submit" disabled={saving}>
             {saving ? t("Saving...") : t("Complete setup")}
           </button>

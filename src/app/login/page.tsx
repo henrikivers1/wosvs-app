@@ -13,7 +13,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [wosId, setWosId] = useState("");
-  const [wosNickname, setWosNickname] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +31,7 @@ export default function LoginPage() {
           data: {
             username: username.trim(),
             wos_id: wosId.trim(),
-            wos_nickname: wosNickname.trim(),
+            wos_nickname: "",
           },
         },
       });
@@ -141,16 +140,11 @@ export default function LoginPage() {
                   placeholder={t("Your numeric WOS ID")}
                 />
               </label>
-              <label>
-                {t("WOS nickname (optional)")}
-                <input
-                  type="text"
-                  value={wosNickname}
-                  onChange={(event) => setWosNickname(event.target.value)}
-                  maxLength={40}
-                  placeholder={t("Your in-game name")}
-                />
-              </label>
+              <p className="form-hint">
+                {t(
+                  "Your in-game name and public game data will be synchronized automatically from your WOS ID.",
+                )}
+              </p>
             </>
           )}
           <button type="submit" disabled={loading}>

@@ -178,6 +178,41 @@ export function AppHeader() {
 
         {signedIn === true ? (
           <div className="account-controls">
+            <details className="header-language-menu">
+              <summary
+                className="language-button"
+                aria-label={t("language")}
+                title={t("language")}
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  width="19"
+                  height="19"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M3 12h18M12 3c2.3 2.5 3.5 5.5 3.5 9s-1.2 6.5-3.5 9c-2.3-2.5-3.5-5.5-3.5-9S9.7 5.5 12 3Z" />
+                </svg>
+              </summary>
+              <div className="header-language-dropdown">
+                <label className="profile-language-field">
+                  <span>{t("language")}</span>
+                  <select
+                    value={locale}
+                    onChange={(event) =>
+                      void changeLanguage(event.target.value as AppLocale)
+                    }
+                  >
+                    {LANGUAGE_OPTIONS.map((language) => (
+                      <option key={language.code} value={language.code}>
+                        {language.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </details>
+
             <Link
               className="notification-button"
               href="/notifications"
@@ -213,21 +248,6 @@ export function AppHeader() {
                       ? t("setupRequired")
                       : t("profile")}
                 </span>
-                <label className="profile-language-field">
-                  <span>{t("language")}</span>
-                  <select
-                    value={locale}
-                    onChange={(event) =>
-                      void changeLanguage(event.target.value as AppLocale)
-                    }
-                  >
-                    {LANGUAGE_OPTIONS.map((language) => (
-                      <option key={language.code} value={language.code}>
-                        {language.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <Link href="/profile">{t("profile")}</Link>
                 <Link href="/account">{t("wosAccounts")}</Link>
                 <button type="button" onClick={signOut}>

@@ -39,6 +39,8 @@ type AccountRow = {
   wos_id: string;
   nickname: string | null;
   furnace_level: number | null;
+  furnace_level_raw: number | null;
+  power: number | null;
   infantry_tier: number | null;
   lancer_tier: number | null;
   marksman_tier: number | null;
@@ -118,8 +120,13 @@ function formatAverage(value: number | null) {
   return value === null ? "—" : value.toFixed(1);
 }
 
+function furnaceLabel(rawLevel: number | null) {
+  if (rawLevel === null) return "—";
+  return rawLevel <= 30 ? `Furnace ${rawLevel}` : `FC${rawLevel - 30}`;
+}
+
 export default function BattlePlanningPage() {
-  const { t, formatDateTime } = useLanguage();
+  const { t, formatDateTime, formatNumber } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, signedIn, loadingStates, refreshMemberships } =
@@ -303,7 +310,7 @@ export default function BattlePlanningPage() {
         ? supabase
             .from("wos_accounts")
             .select(
-              "id, user_id, wos_id, nickname, furnace_level, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
+              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
             )
             .in("id", accountIds)
         : Promise.resolve({ data: [], error: null }),
@@ -850,6 +857,15 @@ export default function BattlePlanningPage() {
     return (
       <div className="plan-group-stats">
         <span>
+          {t("Avg power")}{" "}
+          <strong>
+            {(() => {
+              const value = average(groupMembers.map((member) => member.power));
+              return value === null ? "—" : formatNumber(Math.round(value));
+            })()}
+          </strong>
+        </span>
+        <span>
           {t("Avg furnace")}{" "}
           <strong>
             {formatAverage(
@@ -892,8 +908,9 @@ export default function BattlePlanningPage() {
           </small>
         </div>
         <small className="plan-member-stats">
-          {t("FC")} {member.furnace_level ?? "—"} {t("· Troops")}{" "}
-          {member.infantry_tier ?? "—"}
+          {furnaceLabel(member.furnace_level_raw)} {t("· Power")}{" "}
+          {member.power === null ? "—" : formatNumber(member.power)}{" "}
+          {t("· Troops")} {member.infantry_tier ?? "—"}
           {t("/")}
           {member.lancer_tier ?? "—"}
           {t("/")}

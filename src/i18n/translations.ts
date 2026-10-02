@@ -107,6 +107,8 @@ const spanishInterface: Record<string, string> = {
   "Add matching": "Añadir coincidencias",
   "Add rally group": "Añadir grupo de rally",
   "Add WOS account": "Añadir cuenta de WOS",
+  "Automatic player data has not been synchronized yet.":
+    "Los datos automáticos del jugador aún no se han sincronizado.",
   Admin: "Administrador",
   "Admin access required": "Se necesita acceso de administrador",
   Administration: "Administración",
@@ -146,6 +148,7 @@ const spanishInterface: Record<string, string> = {
   Audience: "Destinatarios",
   "Available tools": "Herramientas disponibles",
   "Avg furnace": "Promedio de horno",
+  "Avg power": "Potencia media",
   "Avg T12 skill": "Promedio de habilidad T12",
   "Avg troop": "Promedio de tropas",
   "Backup invitation link copied.": "Enlace de invitación de respaldo copiado.",
@@ -195,6 +198,7 @@ const spanishInterface: Record<string, string> = {
   "Choose role": "Elegir rol",
   "Choose tag": "Elegir etiqueta",
   "Choose tagged leader": "Elegir líder etiquetado",
+  "Chief level": "Nivel de jefe",
   "Clear filters": "Borrar filtros",
   Color: "Color",
   "Combat profile": "Perfil de combate",
@@ -247,6 +251,8 @@ const spanishInterface: Record<string, string> = {
   "Enter a name, Rally Lead, and destination alliance.":
     "Introduce un nombre, un líder de rally y una alianza de destino.",
   "Enter a numeric WOS ID.": "Introduce un ID de WOS numérico.",
+  "Enter only the WOS ID. Name, avatar, state, Furnace and statistics are synchronized automatically.":
+    "Introduce solo el ID de WOS. El nombre, avatar, estado, Horno y estadísticas se sincronizan automáticamente.",
   "Enter a plan name and choose a future battle time.":
     "Introduce un nombre de plan y elige una hora futura para la batalla.",
   "Enter a tag name.": "Introduce un nombre de etiqueta.",
@@ -261,6 +267,7 @@ const spanishInterface: Record<string, string> = {
   "Enter your own position to see when you must send after calling the enemy rallies.":
     "Introduce tu posición para saber cuándo debes enviar después de registrar los rallies enemigos.",
   "Entire state": "Todo el estado",
+  Furnace: "Horno",
   "Everyone who currently has this tag receives the message in their notification inbox.":
     "Todas las personas que tengan actualmente esta etiqueta recibirán el mensaje en sus notificaciones.",
   Expires: "Caduca",
@@ -274,6 +281,9 @@ const spanishInterface: Record<string, string> = {
   "Group name": "Nombre del grupo",
   "In-game name": "Nombre en el juego",
   "Incoming rally schedule": "Programa de rallies entrantes",
+  Kills: "Bajas",
+  "Labyrinth score": "Puntuación de Laberinto",
+  "Last synchronized: {date}": "Última sincronización: {date}",
   Instructions: "Instrucciones",
   "Invitation accepted. The state owner must now verify and approve you before you receive access.":
     "Invitación aceptada. El propietario debe verificarte y aprobarte antes de que recibas acceso.",
@@ -350,6 +360,7 @@ const spanishInterface: Record<string, string> = {
   "No unassigned accounts match the current filters.":
     "Ninguna cuenta sin asignar coincide con los filtros actuales.",
   "No WOS accounts added.": "No se han añadido cuentas de WOS.",
+  "No alliance": "Sin alianza",
   "Not on the battle roster": "Fuera de la lista de batalla",
   Notes: "Notas",
   Notices: "Avisos",
@@ -393,6 +404,10 @@ const spanishInterface: Record<string, string> = {
   "Plan discussion": "Discusión del plan",
   "Plan name": "Nombre del plan",
   "Player name": "Nombre del jugador",
+  "Player data could not be synchronized: {reason}":
+    "No se pudieron sincronizar los datos del jugador: {reason}",
+  "Player data synchronized from WOSOracle.":
+    "Datos del jugador sincronizados desde WOSOracle.",
   "Player's WOS ID": "ID de WOS del jugador",
   Players: "Jugadores",
   "Position:": "Posición:",
@@ -402,6 +417,8 @@ const spanishInterface: Record<string, string> = {
   "Public comments": "Comentarios públicos",
   "Public username": "Nombre de usuario público",
   "Public username:": "Nombre de usuario público:",
+  "Pending synchronization": "Sincronización pendiente",
+  Power: "Potencia",
   "Published assignments": "Asignaciones publicadas",
   "published assignments": "asignaciones publicadas",
   Rallies: "Rallies",
@@ -435,6 +452,7 @@ const spanishInterface: Record<string, string> = {
   "Request a trial or state setup":
     "Solicitar prueba o configuración de estado",
   "Request state access": "Solicitar acceso al estado",
+  "Refresh player data": "Actualizar datos del jugador",
   "Reusable labels": "Etiquetas reutilizables",
   "Review request": "Revisar solicitud",
   "Run the Battle Planning V2 SQL upgrade before using this page.":
@@ -448,6 +466,7 @@ const spanishInterface: Record<string, string> = {
   "Scheduled operations": "Operaciones programadas",
   "Scheduled start": "Inicio programado",
   seconds: "segundos",
+  "Synchronizing...": "Sincronizando...",
   "See your personal send times, alerts and incoming waves.":
     "Consulta tus horarios personales de envío, alertas y oleadas entrantes.",
   "Select a state before opening battle planning.":
@@ -531,12 +550,16 @@ const spanishInterface: Record<string, string> = {
   "Verify and approve": "Verificar y aprobar",
   "View notifications": "Ver notificaciones",
   Visibility: "Visibilidad",
+  VIP: "VIP",
   active: "activo",
   "Waiting for owner verification": "Esperando verificación del propietario",
   "Waiting for your verification": "Esperando tu verificación",
   Wave: "Oleada",
   Win: "Victoria",
   "WOS accounts": "Cuentas de WOS",
+  "Troop details (manual)": "Detalles de tropas (manual)",
+  "WOSOracle does not provide troop tiers, camp FC levels or T12 skills, so these fields remain manual.":
+    "WOSOracle no proporciona los niveles de tropas, niveles FC de campamento ni habilidades T12, por lo que estos campos siguen siendo manuales.",
   "WOS ID": "ID de WOS",
   "WOS nickname (optional)": "Nombre en WOS (opcional)",
   "Write a comment before posting.":
@@ -558,6 +581,8 @@ const spanishInterface: Record<string, string> = {
   "Your email remains private. Your username and profile picture may be shown to players who share a state with you.":
     "Tu correo permanece privado. Tu nombre de usuario y foto de perfil pueden mostrarse a jugadores que compartan estado contigo.",
   "Your in-game name": "Tu nombre en el juego",
+  "Your in-game name and public game data will be synchronized automatically from your WOS ID.":
+    "Tu nombre en el juego y tus datos públicos se sincronizarán automáticamente desde tu ID de WOS.",
   "Your march time:": "Tu tiempo de marcha:",
   "Your notices": "Tus avisos",
   "Your numeric WOS ID": "Tu ID de WOS numérico",
@@ -574,6 +599,7 @@ const spanishInterface: Record<string, string> = {
   "Your Y coordinate": "Tu coordenada Y",
   " — Pet active": " — Mascota activa",
   " — Pet inactive": " — Mascota inactiva",
+  "· Power": "· Potencia",
   " — Pet remaining: {time}": " — Mascota restante: {time}",
   "{count} enemy rallies are incoming.":
     "Hay {count} rallies enemigos en camino.",

@@ -185,7 +185,8 @@ nav {
   gap: 7px;
   margin-left: auto;
 }
-.notification-button {
+.notification-button,
+.language-button {
   position: relative;
   display: grid;
   width: 40px;
@@ -198,9 +199,45 @@ nav {
   border: 1px solid var(--border);
   border-radius: 5px;
 }
-.notification-button:hover {
+.notification-button:hover,
+.language-button:hover {
   background: var(--surface-hover);
   border-color: var(--border-strong);
+}
+.header-language-menu {
+  position: relative;
+}
+.header-language-menu summary {
+  list-style: none;
+  cursor: pointer;
+}
+.header-language-menu summary::-webkit-details-marker {
+  display: none;
+}
+.language-button svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+.header-language-menu[open] .language-button {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.header-language-dropdown {
+  position: absolute;
+  z-index: 31;
+  top: 47px;
+  right: 0;
+  width: 220px;
+  padding: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+}
+.header-language-dropdown .profile-language-field {
+  padding: 8px;
+  border-bottom: 0;
 }
 .notification-count {
   position: absolute;
@@ -311,6 +348,10 @@ nav {
 }
 
 [dir="rtl"] .profile-dropdown {
+  right: auto;
+  left: 0;
+}
+[dir="rtl"] .header-language-dropdown {
   right: auto;
   left: 0;
 }
@@ -898,6 +939,89 @@ li label {
   color: var(--muted);
   font-size: 0.76rem;
   text-transform: capitalize;
+}
+.wos-account-card {
+  align-items: flex-start;
+}
+.game-avatar {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  overflow: hidden;
+  place-items: center;
+  color: var(--accent-hover);
+  font-size: 1.25rem;
+  font-weight: 800;
+  background-color: var(--surface-raised);
+  background-position: center;
+  background-size: cover;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+.account-player-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.player-data-badge {
+  padding: 3px 7px;
+  color: var(--accent-hover);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  background: var(--accent-soft);
+  border: 1px solid rgba(214, 174, 90, 0.32);
+  border-radius: 999px;
+}
+.player-data-inactive {
+  color: #ffc7ca;
+  background: var(--danger-soft);
+  border-color: rgba(223, 115, 123, 0.38);
+}
+.player-data-grid {
+  display: grid;
+  margin-top: 8px;
+  grid-template-columns: repeat(4, minmax(105px, 1fr));
+  gap: 7px;
+}
+.player-data-grid > span {
+  min-width: 0;
+  padding: 8px 9px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.player-data-grid strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--text);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-top: 8px;
+}
+.player-data-actions button {
+  min-height: 34px;
+  margin: 0;
+  padding: 6px 10px;
+}
+.player-data-empty {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 .combat-profile-editor {
   width: 100%;
@@ -2035,10 +2159,9 @@ article.battle-plan-card {
   display: grid;
   padding: 15px;
   margin-bottom: 14px;
-  grid-template-columns: minmax(150px, 1fr) minmax(170px, 1fr) 110px minmax(
-      180px,
-      1.3fr
-    ) auto auto;
+  grid-template-columns:
+    minmax(150px, 1fr) minmax(170px, 1fr) 110px minmax(180px, 1.3fr)
+    auto auto;
   align-items: end;
   gap: 8px;
   background: var(--surface);
@@ -2431,9 +2554,19 @@ article.plan-comment-admins {
     grid-template-columns: repeat(2, 1fr);
   }
   .notification-button,
+  .language-button,
   .profile-avatar {
     width: 37px;
     height: 37px;
+  }
+  .header-language-dropdown {
+    position: fixed;
+    top: 60px;
+    right: 58px;
+  }
+  [dir="rtl"] .header-language-dropdown {
+    right: auto;
+    left: 58px;
   }
   .profile-dropdown {
     position: fixed;
@@ -2713,6 +2846,13 @@ article.plan-comment-admins {
   }
   .combat-profile-grid {
     grid-template-columns: 1fr;
+  }
+  .player-data-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .wos-account-card > .danger-button {
+    width: 100%;
+    margin-left: 0;
   }
   .notification-card-heading {
     flex-direction: column;
