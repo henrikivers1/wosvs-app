@@ -25,6 +25,7 @@ type BattlePlan = {
   notes: string | null;
   status: "draft" | "published";
   opponent_state_number: number | null;
+  auto_created: boolean;
 };
 type PlanGroup = {
   id: string;
@@ -50,6 +51,7 @@ type AccountRow = {
   furnace_level: number | null;
   furnace_level_raw: number | null;
   power: number | null;
+  labyrinth_score: number | null;
   infantry_tier: number | null;
   lancer_tier: number | null;
   marksman_tier: number | null;
@@ -131,6 +133,8 @@ export default function BattlePlanningPage() {
   const [tags, setTags] = useState<StateTag[]>([]);
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
+  // The automatic SvS plan that is upcoming or live, for the Labyrinth panel.
+  const [upcomingPlanId, setUpcomingPlanId] = useState<string | null>(null);
   const [planComments, setPlanComments] = useState<PlanComment[]>([]);
   const [scheduledBattles, setScheduledBattles] = useState<ScheduledBattle[]>(
     [],
@@ -218,7 +222,7 @@ export default function BattlePlanningPage() {
       supabase
         .from("battle_plans")
         .select(
-          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number",
+          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created",
         )
         .eq("state_id", stateId)
         .order("scheduled_at", { ascending: true }),
@@ -293,7 +297,7 @@ export default function BattlePlanningPage() {
         ? supabase
             .from("wos_accounts")
             .select(
-              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
+              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, labyrinth_score, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
             )
             .in("id", accountIds)
         : Promise.resolve({ data: [], error: null }),
@@ -376,6 +380,14 @@ export default function BattlePlanningPage() {
     setTags(stateTags);
     setAlliances((allianceResult.data ?? []) as StateAlliance[]);
     setAttendance((attendanceResult.data ?? []) as AttendanceRow[]);
+    const stillRelevantAfter = Date.now() - 5 * 60 * 60 * 1000;
+    setUpcomingPlanId(
+      planRows.find(
+        (plan) =>
+          plan.auto_created &&
+          new Date(plan.scheduled_at).getTime() > stillRelevantAfter,
+      )?.id ?? null,
+    );
     setPlanComments((commentResult.data ?? []) as PlanComment[]);
     setScheduledBattles((battleResult.data ?? []) as ScheduledBattle[]);
     setLoading(false);
@@ -491,7 +503,15 @@ export default function BattlePlanningPage() {
     setSaving(false);
   }
   async function deletePlan(plan: BattlePlan) {
-    if (!window.confirm(`Delete “${plan.name}” and every group in it?`)) return;
+    if (
+      !window.confirm(
+        t(
+          "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.",
+          { name: plan.name },
+        ),
+      )
+    )
+      return;
     setSaving(true);
     const { error } = await supabase.rpc("delete_battle_plan", {
       target_plan_id: plan.id,
@@ -767,6 +787,85 @@ export default function BattlePlanningPage() {
       return true;
     });
   }
+  async function toggleRallyLead(member: StateMember, enabled: boolean) {
+    if (!activeMembership) return;
+    setSaving(true);
+    setMessage(t(""));
+    const { error } = await supabase.rpc("set_state_rally_lead", {
+      target_state_id: activeMembership.stateId,
+      target_wos_account_id: member.id,
+      enabled,
+    });
+    if (error) setMessage(error.message);
+    else await loadPlanning();
+    setSaving(false);
+  }
+  // Labyrinth score is the best strength signal WOSOracle offers, so the
+  // strongest Labyrinth players are the natural rally lead candidates.
+  function renderLabyrinthLeaders() {
+    const ranked = members
+      .filter((member) => (member.labyrinth_score ?? 0) > 0)
+      .sort(
+        (first, second) =>
+          (second.labyrinth_score ?? 0) - (first.labyrinth_score ?? 0),
+      )
+      .slice(0, 20);
+    return (
+      <section>
+        <p className="section-label">{t("Rally leads")}</p>
+        <h2>{t("Top 20 Labyrinth in your state")}</h2>
+        <p>
+          {t(
+            "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.",
+          )}
+        </p>
+        {ranked.length === 0 ? (
+          <p>
+            {t(
+              "No Labyrinth scores yet. They appear after members' accounts are synced.",
+            )}
+          </p>
+        ) : (
+          <ol className="labyrinth-leaders">
+            {ranked.map((member) => {
+              const isLead = member.tags.some(
+                (tag) => tag.system_key === "rally_lead",
+              );
+              const answer = upcomingPlanId
+                ? attendance.find(
+                    (row) =>
+                      row.plan_id === upcomingPlanId &&
+                      row.wos_account_id === member.id,
+                  )
+                : undefined;
+              return (
+                <li key={member.id}>
+                  <span>
+                    <strong>{member.nickname || member.wos_id}</strong>{" "}
+                    {t("Lab")} {formatNumber(member.labyrinth_score ?? 0)} ·{" "}
+                    {furnaceLabel(member.furnace_level_raw)} ·{" "}
+                    {member.power === null ? "—" : formatNumber(member.power)}
+                    {answer &&
+                      ` · ${t(availabilityLabel(answer.availability))}${
+                        answer.voice_call ? ` · ${t("Voice")}` : ""
+                      }`}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    className={isLead ? "secondary-link" : undefined}
+                    onClick={() => void toggleRallyLead(member, !isLead)}
+                  >
+                    {isLead ? t("Remove Rally Lead") : t("Make Rally Lead")}
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </section>
+    );
+  }
   function renderStats(groupMembers: StateMember[]) {
     const troopValues = groupMembers.flatMap((member) => [
       member.infantry_tier,
@@ -834,6 +933,10 @@ export default function BattlePlanningPage() {
         <small className="plan-member-stats">
           {furnaceLabel(member.furnace_level_raw)} {t("· Power")}{" "}
           {member.power === null ? "—" : formatNumber(member.power)}{" "}
+          {t("· Lab")}{" "}
+          {member.labyrinth_score === null || member.labyrinth_score === 0
+            ? "—"
+            : formatNumber(member.labyrinth_score)}{" "}
           {t("· Troops")} {member.infantry_tier ?? "—"}
           {t("/")}
           {member.lancer_tier ?? "—"}
@@ -917,6 +1020,7 @@ export default function BattlePlanningPage() {
             </p>
           </section>
           <SvsStatus stateId={activeMembership.stateId} />
+          {isAdmin && renderLabyrinthLeaders()}
           <section>
             <div className="section-title-row">
               <div>
@@ -1014,13 +1118,13 @@ export default function BattlePlanningPage() {
                                 ? t("Republish")
                                 : t("Publish & schedule")}
                             </button>
-                            {plan.status === "draft" && (
+                            {scheduledBattle?.status !== "active" && (
                               <button
                                 className="danger-button"
                                 disabled={saving}
                                 onClick={() => void deletePlan(plan)}
                               >
-                                {t("Delete draft")}
+                                {t("Delete plan")}
                               </button>
                             )}
                           </div>

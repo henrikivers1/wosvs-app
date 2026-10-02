@@ -83,6 +83,19 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "· Lab": "· Lab",
+  "Delete plan": "Eliminar plan",
+  "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
+    "¿Eliminar «{name}», todos sus grupos y su próxima batalla? Las batallas terminadas se quedan en el historial.",
+  Lab: "Lab",
+  "Make Rally Lead": "Hacer líder de rally",
+  "No Labyrinth scores yet. They appear after members' accounts are synced.":
+    "Aún no hay puntuaciones de Laberinto. Aparecen cuando se sincronizan las cuentas de los miembros.",
+  "Rally leads": "Líderes de rally",
+  "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.":
+    "Clasificado con los datos sincronizados de WOSOracle de tus miembros. Marca a quienes lideran rallies; solo los líderes de rally pueden liderar un grupo.",
+  "Remove Rally Lead": "Quitar líder de rally",
+  "Top 20 Labyrinth in your state": "Top 20 del Laberinto en tu estado",
   "Expected draw {date}.": "Sorteo previsto {date}.",
   "Next battle {date}.": "Próxima batalla {date}.",
   "Start (UTC)": "Inicio (UTC)",

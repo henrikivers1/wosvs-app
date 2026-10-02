@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
-import type { OpponentAlliance, RosterMember } from "@/lib/wosOracleState";
+import type {
+  OpponentAlliance,
+  RosterMember,
+  StateSummary,
+} from "@/lib/wosOracleState";
 
 export type PickedEnemy = {
   member: RosterMember;
@@ -14,6 +18,7 @@ type OpponentResponse = {
   opponent?: number;
   source?: "plan" | "draw" | "manual";
   alliances?: OpponentAlliance[];
+  topPlayers?: StateSummary["topPlayers"];
 };
 
 // Lets rally callers choose enemy leaders from the opponent state's alliance
@@ -30,6 +35,7 @@ export function OpponentRosterPicker({
   const [opponent, setOpponent] = useState<number | null>(null);
   const [source, setSource] = useState<OpponentResponse["source"]>();
   const [alliances, setAlliances] = useState<OpponentAlliance[]>([]);
+  const [topPlayers, setTopPlayers] = useState<StateSummary["topPlayers"]>([]);
   const [selectedAlliance, setSelectedAlliance] =
     useState<OpponentAlliance | null>(null);
   const [members, setMembers] = useState<RosterMember[]>([]);
@@ -57,6 +63,7 @@ export function OpponentRosterPicker({
       setOpponentInput(String(result.opponent));
       setSource(result.source);
       setAlliances(result.alliances ?? []);
+      setTopPlayers(result.topPlayers ?? []);
     } catch {
       setError(t("The opponent could not be loaded."));
     } finally {
@@ -131,6 +138,50 @@ export function OpponentRosterPicker({
         </p>
       )}
       {error && <p className="auth-message">{error}</p>}
+
+      {topPlayers.length > 0 && (
+        <>
+          <p>{t("Their strongest players")}</p>
+          <ul className="roster-list">
+            {topPlayers.map((player) => (
+              <li key={player.wosId ?? player.name}>
+                <span>
+                  {player.allianceAbbr && `[${player.allianceAbbr}] `}
+                  <strong>{player.name}</strong> — {formatNumber(player.power)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onPick({
+                      member: {
+                        wosId:
+                          player.wosId && /^[0-9]+$/.test(player.wosId)
+                            ? player.wosId
+                            : null,
+                        name: player.name,
+                        power: player.power,
+                        furnaceLevel: player.furnaceLevel,
+                        rank: 0,
+                      },
+                      alliance: alliances.find(
+                        (alliance) => alliance.abbr === player.allianceAbbr,
+                      ) ?? {
+                        id: 0,
+                        abbr: player.allianceAbbr,
+                        name: player.allianceAbbr,
+                        power: 0,
+                        memberCount: 0,
+                      },
+                    })
+                  }
+                >
+                  {t("Use")}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {alliances.length > 0 && (
         <label>
