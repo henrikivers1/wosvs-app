@@ -7,6 +7,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // api/time is excluded so the session refresh (a Supabase round trip)
+    // does not distort battle clock measurements.
+    "/((?!_next/static|_next/image|favicon.ico|api/time|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

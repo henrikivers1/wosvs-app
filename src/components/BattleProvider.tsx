@@ -10,9 +10,14 @@ import {
   type ReactNode,
 } from "react";
 import { PET_DURATION_MS } from "@/lib/battleDisplay";
+import { syncServerClock, type ClockSync } from "@/lib/serverClock";
 import { createClient } from "@/lib/supabase/client";
 import { useStates } from "@/components/StateProvider";
-import type { EnemyLeader, EnemyRally } from "@/types/rally";
+import type {
+  EnemyLeader,
+  EnemyLeaderDetails,
+  EnemyRally,
+} from "@/types/rally";
 
 type NewRally = Omit<EnemyRally, "id">;
 
@@ -20,12 +25,15 @@ type BattleContextValue = {
   enemyLeaders: EnemyLeader[];
   rallies: EnemyRally[];
   currentTime: Date;
+  clockSync: ClockSync | null;
+  resyncClock: () => Promise<void>;
   loading: boolean;
   addEnemyLeader: (
     name: string,
     x: number,
     y: number,
-    petActive: boolean
+    petActive: boolean,
+    details?: EnemyLeaderDetails
   ) => Promise<string | null>;
   toggleEnemyLeaderPet: (id: number) => Promise<string | null>;
   updateEnemyLeader: (
@@ -61,6 +69,8 @@ export function BattleProvider({
   >([]);
   const [rallies, setRallies] = useState<EnemyRally[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [clockSync, setClockSync] = useState<ClockSync | null>(null);
+  const clockOffsetMs = clockSync?.offsetMs ?? 0;
   const [loading, setLoading] = useState(true);
 
   const loadBattleData = useCallback(async () => {
@@ -77,7 +87,9 @@ export function BattleProvider({
     const [leadersResult, ralliesResult] = await Promise.all([
       supabase
         .from("enemy_leaders")
-        .select("id, name, x, y, pet_expires_at")
+        .select(
+          "id, name, x, y, pet_expires_at, wos_id, power, alliance_abbr"
+        )
         .eq("battle_id", activeBattleId)
         .order("name"),
       supabase
@@ -102,6 +114,9 @@ export function BattleProvider({
           petExpiresAt: leader.pet_expires_at
             ? new Date(leader.pet_expires_at).getTime()
             : null,
+          wosId: leader.wos_id ?? null,
+          power: leader.power ?? null,
+          allianceAbbr: leader.alliance_abbr ?? null,
         }))
       );
     }
@@ -165,21 +180,49 @@ export function BattleProvider({
     };
   }, [activeBattleId, activeStateId, loadBattleData, supabase]);
 
+  const resyncClock = useCallback(async () => {
+    const result = await syncServerClock();
+    if (result) setClockSync(result);
+  }, []);
+
+  // Every device times against the same server clock instead of its own,
+  // so a phone that is a few seconds off still sends at the right moment.
+  useEffect(() => {
+    const initialSyncId = window.setTimeout(() => void resyncClock(), 0);
+    const resyncId = window.setInterval(
+      () => void resyncClock(),
+      10 * 60 * 1000,
+    );
+    const resyncWhenVisible = () => {
+      if (document.visibilityState === "visible") void resyncClock();
+    };
+    document.addEventListener("visibilitychange", resyncWhenVisible);
+    window.addEventListener("online", resyncWhenVisible);
+
+    return () => {
+      window.clearTimeout(initialSyncId);
+      window.clearInterval(resyncId);
+      document.removeEventListener("visibilitychange", resyncWhenVisible);
+      window.removeEventListener("online", resyncWhenVisible);
+    };
+  }, [resyncClock]);
+
   useEffect(() => {
     const clockId = window.setInterval(() => {
-      setCurrentTime(new Date());
+      setCurrentTime(new Date(Date.now() + clockOffsetMs));
     }, 100);
 
     return () => {
       window.clearInterval(clockId);
     };
-  }, []);
+  }, [clockOffsetMs]);
 
   async function addEnemyLeader(
     name: string,
     x: number,
     y: number,
-    petActive: boolean
+    petActive: boolean,
+    details?: EnemyLeaderDetails
   ): Promise<string | null> {
     if (!activeStateId) return "Select a state first.";
     if (!activeBattleId) return "Start a battle period first.";
@@ -201,6 +244,9 @@ export function BattleProvider({
       x,
       y,
       pet_expires_at: petExpiresAt,
+      wos_id: details?.wosId ?? null,
+      power: details?.power ?? null,
+      alliance_abbr: details?.allianceAbbr ?? null,
     });
 
     if (error) {
@@ -317,7 +363,7 @@ export function BattleProvider({
   ): Promise<string | null> {
     const { error } = await supabase
       .from("rallies")
-      .update({ cancelled_at: new Date().toISOString() })
+      .update({ cancelled_at: currentTime.toISOString() })
       .eq("id", id);
     if (error) return error.message;
     await loadBattleData();
@@ -330,6 +376,8 @@ export function BattleProvider({
         enemyLeaders,
         rallies,
         currentTime,
+        clockSync,
+        resyncClock,
         loading,
         addEnemyLeader,
         toggleEnemyLeaderPet,

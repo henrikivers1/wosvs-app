@@ -1,8 +1,4 @@
-import type {
-  EnemyLeader,
-  EnemyRally,
-  RallyWave,
-} from "@/types/rally";
+import type { EnemyLeader } from "@/types/rally";
 
 export const PET_DURATION_MS = 2 * 60 * 60 * 1000;
 
@@ -14,6 +10,11 @@ export function formatUtcTime(date: Date): string {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+// HH:MM:SS.t — tenths matter when landing between rallies.
+export function formatUtcTimePrecise(date: Date): string {
+  return `${formatUtcTime(date)}.${Math.floor(date.getUTCMilliseconds() / 100)}`;
 }
 
 export function isEnemyPetActive(
@@ -46,25 +47,4 @@ export function getEnemyPetTimeRemaining(
     .padStart(2, "0")}:${seconds
     .toString()
     .padStart(2, "0")}`;
-}
-
-export function groupRalliesIntoWaves(
-  rallies: EnemyRally[]
-): RallyWave[] {
-  return rallies.reduce<RallyWave[]>((waves, rally) => {
-    const impactSecond = Math.floor(
-      rally.impactTime.getTime() / 1000
-    );
-    const existingWave = waves.find(
-      (wave) => wave.impactSecond === impactSecond
-    );
-
-    if (existingWave) {
-      existingWave.rallies.push(rally);
-    } else {
-      waves.push({ impactSecond, rallies: [rally] });
-    }
-
-    return waves;
-  }, []);
 }

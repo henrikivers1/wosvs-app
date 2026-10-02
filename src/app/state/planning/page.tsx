@@ -16,6 +16,7 @@ type BattlePlan = {
   scheduled_at: string;
   notes: string | null;
   status: "draft" | "published";
+  opponent_state_number: number | null;
 };
 type PlanGroup = {
   id: string;
@@ -103,6 +104,13 @@ function defaultScheduledTime() {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
+function parseOpponent(value: string) {
+  const trimmed = value.trim();
+  return /^[0-9]+$/.test(trimmed) && Number(trimmed) > 0
+    ? Number(trimmed)
+    : null;
+}
+
 function toLocalDateTime(value: string) {
   const date = new Date(value);
   const offset = date.getTimezoneOffset() * 60_000;
@@ -154,11 +162,14 @@ export default function BattlePlanningPage() {
   const [battleType, setBattleType] = useState<BattleType>("svs");
   const [scheduledAt, setScheduledAt] = useState(defaultScheduledTime);
   const [planNotes, setPlanNotes] = useState("");
+  const [planOpponent, setPlanOpponent] = useState("");
+  const [fillingFromOracle, setFillingFromOracle] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [editingPlanName, setEditingPlanName] = useState("");
   const [editingBattleType, setEditingBattleType] = useState<BattleType>("svs");
   const [editingScheduledAt, setEditingScheduledAt] = useState("");
   const [editingPlanNotes, setEditingPlanNotes] = useState("");
+  const [editingPlanOpponent, setEditingPlanOpponent] = useState("");
   const [addingGroupToPlanId, setAddingGroupToPlanId] = useState<string | null>(
     null,
   );
@@ -229,7 +240,9 @@ export default function BattlePlanningPage() {
     ] = await Promise.all([
       supabase
         .from("battle_plans")
-        .select("id, name, battle_type, scheduled_at, notes, status")
+        .select(
+          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number",
+        )
         .eq("state_id", stateId)
         .order("scheduled_at", { ascending: true }),
       supabase
@@ -496,23 +509,76 @@ export default function BattlePlanningPage() {
     }
     setSaving(true);
     setMessage(t(""));
-    const { error } = await supabase.rpc("create_battle_plan", {
-      target_state_id: activeMembership.stateId,
-      plan_name: planName.trim(),
-      selected_battle_type: battleType,
-      plan_scheduled_at: date.toISOString(),
-      plan_notes: planNotes.trim() || null,
-    });
-    if (error) setMessage(error.message);
-    else {
+    const { data: newPlanId, error } = await supabase.rpc(
+      "create_battle_plan",
+      {
+        target_state_id: activeMembership.stateId,
+        plan_name: planName.trim(),
+        selected_battle_type: battleType,
+        plan_scheduled_at: date.toISOString(),
+        plan_notes: planNotes.trim() || null,
+      },
+    );
+    const opponentNumber = parseOpponent(planOpponent);
+    const opponentError =
+      !error && opponentNumber
+        ? (
+            await supabase.rpc("set_battle_plan_opponent", {
+              target_plan_id: newPlanId,
+              opponent_number: opponentNumber,
+            })
+          ).error
+        : null;
+    if (error || opponentError) {
+      setMessage((error ?? opponentError)!.message);
+      if (!error) await loadPlanning();
+    } else {
       setPlanName("");
       setBattleType("svs");
       setScheduledAt(defaultScheduledTime());
       setPlanNotes("");
+      setPlanOpponent("");
       await loadPlanning();
       setMessage(t("Battle plan created as a draft."));
     }
     setSaving(false);
+  }
+
+  async function fillFromOracle() {
+    if (!activeMembership) return;
+    setFillingFromOracle(true);
+    setMessage(t(""));
+    try {
+      const response = await fetch(
+        `/api/oracle/matchup?stateId=${activeMembership.stateId}`,
+      );
+      const result = (await response.json()) as {
+        error?: string;
+        opponent?: number | null;
+        battleAt?: string | null;
+      };
+      if (!response.ok) {
+        setMessage(result.error || t("The SvS draw could not be loaded."));
+        return;
+      }
+      setBattleType("svs");
+      if (result.battleAt) setScheduledAt(toLocalDateTime(result.battleAt));
+      if (result.opponent) {
+        setPlanOpponent(String(result.opponent));
+        if (!planName.trim()) setPlanName(`SVS vs ${result.opponent}`);
+        setMessage(
+          t("Filled in from WOSOracle: state {opponent}.", {
+            opponent: result.opponent,
+          }),
+        );
+      } else {
+        setMessage(t("Your state sits this SvS season out."));
+      }
+    } catch {
+      setMessage(t("The SvS draw could not be loaded."));
+    } finally {
+      setFillingFromOracle(false);
+    }
   }
 
   function beginEditingPlan(plan: BattlePlan) {
@@ -521,6 +587,9 @@ export default function BattlePlanningPage() {
     setEditingBattleType(plan.battle_type);
     setEditingScheduledAt(toLocalDateTime(plan.scheduled_at));
     setEditingPlanNotes(plan.notes ?? "");
+    setEditingPlanOpponent(
+      plan.opponent_state_number ? String(plan.opponent_state_number) : "",
+    );
   }
   async function savePlan() {
     if (!editingPlanId) return;
@@ -537,7 +606,15 @@ export default function BattlePlanningPage() {
       plan_scheduled_at: date.toISOString(),
       plan_notes: editingPlanNotes.trim() || null,
     });
-    if (error) setMessage(error.message);
+    const opponentError = error
+      ? null
+      : (
+          await supabase.rpc("set_battle_plan_opponent", {
+            target_plan_id: editingPlanId,
+            opponent_number: parseOpponent(editingPlanOpponent),
+          })
+        ).error;
+    if (error || opponentError) setMessage((error ?? opponentError)!.message);
     else {
       setEditingPlanId(null);
       await loadPlanning();
@@ -1014,6 +1091,16 @@ export default function BattlePlanningPage() {
                     onChange={(event) => setScheduledAt(event.target.value)}
                   />
                 </label>
+                <label>
+                  {t("Opponent state")}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={planOpponent}
+                    onChange={(event) => setPlanOpponent(event.target.value)}
+                    placeholder={t("e.g. 1501")}
+                  />
+                </label>
                 <label className="battle-plan-notes-field">
                   {t("Notes")}
                   <textarea
@@ -1030,6 +1117,16 @@ export default function BattlePlanningPage() {
                 onClick={() => void createPlan()}
               >
                 {t("Create draft plan")}
+              </button>{" "}
+              <button
+                type="button"
+                className="secondary-link"
+                disabled={fillingFromOracle}
+                onClick={() => void fillFromOracle()}
+              >
+                {fillingFromOracle
+                  ? t("Loading SvS draw...")
+                  : t("Fill from SvS draw (WOSOracle)")}
               </button>
             </section>
           )}
@@ -1102,6 +1199,13 @@ export default function BattlePlanningPage() {
                           </span>
                           <h3>{plan.name}</h3>
                           <time>{formatDateTime(plan.scheduled_at)}</time>
+                          {plan.opponent_state_number && (
+                            <span className="battle-type-badge">
+                              {t("vs state {opponent}", {
+                                opponent: plan.opponent_state_number,
+                              })}
+                            </span>
+                          )}
                         </div>
                         {isAdmin && (
                           <div className="battle-plan-actions">
@@ -1198,6 +1302,17 @@ export default function BattlePlanningPage() {
                               value={editingScheduledAt}
                               onChange={(event) =>
                                 setEditingScheduledAt(event.target.value)
+                              }
+                            />
+                          </label>
+                          <label>
+                            {t("Opponent state")}
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={editingPlanOpponent}
+                              onChange={(event) =>
+                                setEditingPlanOpponent(event.target.value)
                               }
                             />
                           </label>

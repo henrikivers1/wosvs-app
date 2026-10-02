@@ -8,9 +8,14 @@ import {
   isEnemyPetActive,
 } from "@/lib/battleDisplay";
 import { useLanguage } from "@/components/LanguageProvider";
+import {
+  OpponentRosterPicker,
+  type PickedEnemy,
+} from "@/components/OpponentRosterPicker";
+import { useStates } from "@/components/StateProvider";
 
 export default function ManageLeadersPage() {
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
   const {
     enemyLeaders,
     currentTime,
@@ -19,7 +24,9 @@ export default function ManageLeadersPage() {
     updateEnemyLeader,
     removeEnemyLeader,
   } = useBattle();
+  const { activeMembership } = useStates();
   const [enemyName, setEnemyName] = useState("");
+  const [picked, setPicked] = useState<PickedEnemy | null>(null);
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
   const [enemyPetActive, setEnemyPetActive] = useState(false);
@@ -30,12 +37,25 @@ export default function ManageLeadersPage() {
   const [editPetActive, setEditPetActive] = useState(false);
 
   async function handleAddLeader() {
-    const error = await addEnemyLeader(enemyName, x, y, enemyPetActive);
+    const error = await addEnemyLeader(
+      enemyName,
+      x,
+      y,
+      enemyPetActive,
+      picked
+        ? {
+            wosId: picked.member.wosId,
+            power: picked.member.power,
+            allianceAbbr: picked.alliance.abbr || null,
+          }
+        : undefined,
+    );
     if (error) {
       window.alert(error);
       return;
     }
     setEnemyName("");
+    setPicked(null);
     setEnemyPetActive(false);
   }
 
@@ -84,14 +104,37 @@ export default function ManageLeadersPage() {
             "These leaders belong only to the current battle period. A new battle period starts with an empty leader list.",
           )}
         </p>
+        {activeMembership && (
+          <OpponentRosterPicker
+            stateId={activeMembership.stateId}
+            onPick={(selection) => {
+              setPicked(selection);
+              setEnemyName(selection.member.name);
+            }}
+          />
+        )}
         <label>
           {t("Player name")}
           <input
             type="text"
             value={enemyName}
-            onChange={(event) => setEnemyName(event.target.value)}
+            onChange={(event) => {
+              setEnemyName(event.target.value);
+              setPicked(null);
+            }}
           />
         </label>
+        {picked && (
+          <p>
+            {t(
+              "Picked from WOSOracle: [{abbr}] {name}. Enter their coordinates below.",
+              {
+                abbr: picked.alliance.abbr,
+                name: picked.member.name,
+              },
+            )}
+          </p>
+        )}
         <label>
           {t("X coordinate")}
           <input
@@ -193,9 +236,12 @@ export default function ManageLeadersPage() {
                 ) : (
                   <>
                     <span>
+                      {leader.allianceAbbr && `[${leader.allianceAbbr}] `}
                       {leader.name} {t("—")} {leader.x}
                       {t(":")}
                       {leader.y}
+                      {leader.power !== null &&
+                        ` — ${formatNumber(leader.power)}`}
                     </span>
                     <label>
                       <input
