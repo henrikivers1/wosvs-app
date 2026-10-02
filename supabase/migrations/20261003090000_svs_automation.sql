@@ -56,7 +56,6 @@ declare
   svs_plan_id uuid;
   created boolean := false;
   plan_name text := 'SvS vs ' || opponent_number;
-  member_account_id uuid;
 begin
   select id into svs_plan_id
   from public.battle_plans
@@ -90,22 +89,19 @@ begin
   on conflict (plan_id) where plan_id is not null do nothing;
 
   if created then
-    for member_account_id in
-      select wos_account_id from public.state_members
-      where state_id = target_state_id
-    loop
-      perform public.queue_account_notification(
-        member_account_id,
-        'svs_drawn',
-        'SvS opponent drawn',
-        'Your state faces state ' || opponent_number || ' on ' ||
-          to_char(battle_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') ||
-          ' UTC.',
-        jsonb_build_object('plan_id', svs_plan_id),
-        'battle',
-        target_state_id
-      );
-    end loop;
+    perform public.queue_account_notification(
+      member.wos_account_id,
+      'svs_drawn',
+      'SvS opponent drawn',
+      'Your state faces state ' || opponent_number || ' on ' ||
+        to_char(battle_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI') ||
+        ' UTC.',
+      jsonb_build_object('plan_id', svs_plan_id),
+      'battle',
+      target_state_id
+    )
+    from public.state_members member
+    where member.state_id = target_state_id;
   end if;
 
   return svs_plan_id;
@@ -123,44 +119,38 @@ set search_path to 'public'
 as $$
 declare
   changed integer := 0;
-  battle record;
-  member_account_id uuid;
+  due record;
 begin
-  for battle in
+  for due in
     select b.id, b.state_id, b.name
     from public.battles b
     where b.status = 'scheduled'
       and b.scheduled_at <= now()
       and b.scheduled_at + battle_duration > now()
     order by b.scheduled_at
-    for update
   loop
-    -- Re-checked per row so two due battles in one state do not both start.
-    if exists (
-      select 1 from public.battles active
-      where active.state_id = battle.state_id and active.status = 'active'
-    ) then
-      continue;
-    end if;
+    -- Only one active battle per state.
+    continue when exists (
+      select 1 from public.battles running
+      where running.state_id = due.state_id and running.status = 'active'
+    );
 
     update public.battles
     set status = 'active', started_at = now()
-    where id = battle.id;
+    where id = due.id and status = 'scheduled';
 
-    for member_account_id in
-      select wos_account_id from public.state_members
-      where state_id = battle.state_id
-    loop
-      perform public.queue_account_notification(
-        member_account_id,
-        'battle_started',
-        'Battle started',
-        battle.name || ' is live. Open Garrison for your send times.',
-        jsonb_build_object('battle_id', battle.id),
-        'battle',
-        battle.state_id
-      );
-    end loop;
+    perform public.queue_account_notification(
+      member.wos_account_id,
+      'battle_started',
+      'Battle started',
+      due.name || ' is live. Open Garrison for your send times.',
+      jsonb_build_object('battle_id', due.id),
+      'battle',
+      due.state_id
+    )
+    from public.state_members member
+    where member.state_id = due.state_id;
+
     changed := changed + 1;
   end loop;
 
