@@ -13,7 +13,11 @@ import { PET_DURATION_MS } from "@/lib/battleDisplay";
 import { syncServerClock, type ClockSync } from "@/lib/serverClock";
 import { createClient } from "@/lib/supabase/client";
 import { useStates } from "@/components/StateProvider";
-import type { EnemyLeader, EnemyRally } from "@/types/rally";
+import type {
+  EnemyLeader,
+  EnemyLeaderDetails,
+  EnemyRally,
+} from "@/types/rally";
 
 type NewRally = Omit<EnemyRally, "id">;
 
@@ -28,7 +32,8 @@ type BattleContextValue = {
     name: string,
     x: number,
     y: number,
-    petActive: boolean
+    petActive: boolean,
+    details?: EnemyLeaderDetails
   ) => Promise<string | null>;
   toggleEnemyLeaderPet: (id: number) => Promise<string | null>;
   updateEnemyLeader: (
@@ -82,7 +87,9 @@ export function BattleProvider({
     const [leadersResult, ralliesResult] = await Promise.all([
       supabase
         .from("enemy_leaders")
-        .select("id, name, x, y, pet_expires_at")
+        .select(
+          "id, name, x, y, pet_expires_at, wos_id, power, alliance_abbr"
+        )
         .eq("battle_id", activeBattleId)
         .order("name"),
       supabase
@@ -107,6 +114,9 @@ export function BattleProvider({
           petExpiresAt: leader.pet_expires_at
             ? new Date(leader.pet_expires_at).getTime()
             : null,
+          wosId: leader.wos_id ?? null,
+          power: leader.power ?? null,
+          allianceAbbr: leader.alliance_abbr ?? null,
         }))
       );
     }
@@ -211,7 +221,8 @@ export function BattleProvider({
     name: string,
     x: number,
     y: number,
-    petActive: boolean
+    petActive: boolean,
+    details?: EnemyLeaderDetails
   ): Promise<string | null> {
     if (!activeStateId) return "Select a state first.";
     if (!activeBattleId) return "Start a battle period first.";
@@ -233,6 +244,9 @@ export function BattleProvider({
       x,
       y,
       pet_expires_at: petExpiresAt,
+      wos_id: details?.wosId ?? null,
+      power: details?.power ?? null,
+      alliance_abbr: details?.allianceAbbr ?? null,
     });
 
     if (error) {

@@ -60,7 +60,7 @@ function pick(payload: Record<string, unknown>, ...keys: string[]) {
   return undefined;
 }
 
-function textField(value: unknown, field: string) {
+export function textField(value: unknown, field: string) {
   const text =
     typeof value === "string"
       ? value.trim()
@@ -73,13 +73,13 @@ function textField(value: unknown, field: string) {
   return text;
 }
 
-function optionalText(value: unknown) {
+export function optionalText(value: unknown) {
   if (typeof value === "number") return String(value);
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 // Large numbers such as power are often serialised as strings.
-function toNumber(value: unknown) {
+export function toNumber(value: unknown) {
   const parsed =
     typeof value === "number"
       ? value
@@ -128,11 +128,13 @@ export function fireCrystalLevel(rawFurnaceLevel: number) {
   return Math.max(0, Math.min(10, rawFurnaceLevel - 30));
 }
 
-export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
-  if (!/^[0-9]+$/.test(wosId)) {
-    throw new OraclePlayerError("A numeric WOS ID is required.", 400);
-  }
-
+// Performs an authenticated GET against the WOSOracle public API and returns
+// the parsed JSON body. `revalidateSeconds` lets Next cache responses that do
+// not need to be live (matchups, rosters) to save API quota.
+export async function oracleRequest(
+  path: string,
+  options: { revalidateSeconds?: number; notFoundMessage?: string } = {},
+): Promise<unknown> {
   const baseUrl = (
     process.env.WOS_ORACLE_API_BASE_URL ?? DEFAULT_ORACLE_API_BASE_URL
   ).replace(/\/$/, "");
@@ -152,10 +154,12 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
 
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}/players/${encodeURIComponent(wosId)}`, {
+    response = await fetch(`${baseUrl}${path}`, {
       headers,
-      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
+      ...(options.revalidateSeconds
+        ? { next: { revalidate: options.revalidateSeconds } }
+        : { cache: "no-store" as const }),
     });
   } catch {
     throw new OraclePlayerError("WOSOracle could not be reached.", 502);
@@ -163,23 +167,21 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
 
   if (!response.ok) {
     const detail = (await response.text().catch(() => "")).slice(0, 500);
-    console.error(
-      `[wosOracle] GET ${baseUrl}/players/${wosId} -> ${response.status}`,
-      detail,
-    );
+    console.error(`[wosOracle] GET ${path} -> ${response.status}`, detail);
     const message =
       response.status === 404
-        ? "That WOS player was not found."
+        ? (options.notFoundMessage ?? "WOSOracle has no data for that.")
         : response.status === 401 || response.status === 403
           ? `WOSOracle authentication failed${apiKey ? " (API key rejected)" : " (no API key configured)"}.`
-          : `WOSOracle returned ${response.status}.`;
+          : response.status === 402
+            ? "This needs a higher WOSOracle subscription."
+            : `WOSOracle returned ${response.status}.`;
     throw new OraclePlayerError(message, response.status);
   }
 
   const rawBody = await response.text();
-  let responseBody: unknown;
   try {
-    responseBody = JSON.parse(rawBody);
+    return JSON.parse(rawBody);
   } catch {
     console.error(
       "[wosOracle] Non-JSON response:",
@@ -188,13 +190,24 @@ export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
     );
     throw new OraclePlayerError("WOSOracle returned a non-JSON response.", 502);
   }
+}
+
+export async function fetchOraclePlayer(wosId: string): Promise<OraclePlayer> {
+  if (!/^[0-9]+$/.test(wosId)) {
+    throw new OraclePlayerError("A numeric WOS ID is required.", 400);
+  }
+
+  const responseBody = await oracleRequest(
+    `/players/${encodeURIComponent(wosId)}`,
+    { notFoundMessage: "That WOS player was not found." },
+  );
 
   try {
     return parsePlayer(unwrapPlayer(responseBody), wosId);
   } catch (error) {
     console.error(
       "[wosOracle] Unexpected response shape:",
-      rawBody.slice(0, 1000),
+      JSON.stringify(responseBody).slice(0, 1000),
     );
     throw error;
   }

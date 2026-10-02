@@ -2846,3 +2846,18 @@ article.plan-comment-admins {
     gap: 4px;
   }
 }
+.opponent-roster-picker {
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.roster-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.roster-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}

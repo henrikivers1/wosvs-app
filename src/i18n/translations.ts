@@ -82,6 +82,38 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  " — from the SvS draw": " — del sorteo de SvS",
+  " — from the battle plan": " — del plan de batalla",
+  "(Leader)": "(Líder)",
+  "Auto from battle plan": "Automático desde el plan",
+  "Enter a valid state number.": "Introduce un número de estado válido.",
+  "Fill from SvS draw (WOSOracle)": "Rellenar con el sorteo de SvS (WOSOracle)",
+  "Filled in from WOSOracle: state {opponent}.":
+    "Rellenado desde WOSOracle: estado {opponent}.",
+  "In-game state": "Estado del juego",
+  "In-game state number saved.": "Número de estado guardado.",
+  "Load alliances": "Cargar alianzas",
+  "Loading SvS draw...": "Cargando sorteo de SvS...",
+  "Only the state owner can change this.":
+    "Solo el propietario del estado puede cambiar esto.",
+  "Opponent state": "Estado rival",
+  "Pick from the enemy roster": "Elegir de la lista enemiga",
+  "Picked from WOSOracle: [{abbr}] {name}. Enter their coordinates below.":
+    "Elegido de WOSOracle: [{abbr}] {name}. Introduce sus coordenadas abajo.",
+  "Search player": "Buscar jugador",
+  "Select alliance": "Seleccionar alianza",
+  "State number": "Número de estado",
+  "State {opponent}": "Estado {opponent}",
+  "The SvS draw could not be loaded.": "No se pudo cargar el sorteo de SvS.",
+  "The opponent could not be loaded.": "No se pudo cargar el rival.",
+  "The roster could not be loaded.": "No se pudo cargar la lista.",
+  "Used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
+    "Se usa para buscar tu rival y la hora de batalla de SvS en WOSOracle. Solo el propietario puede cambiarlo.",
+  Use: "Usar",
+  "Your state sits this SvS season out.":
+    "Tu estado no participa en esta temporada de SvS.",
+  "e.g. 1501": "p. ej. 1501",
+  "vs state {opponent}": "vs estado {opponent}",
   "Battle clock not synchronized yet — using this device's clock.":
     "Reloj de batalla aún no sincronizado: se usa el reloj de este dispositivo.",
   "Battle clock synchronized (±{accuracy} ms).":

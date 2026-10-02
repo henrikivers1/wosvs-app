@@ -45,6 +45,7 @@ export default function ManageStatePage() {
   );
   const [inviteWosId, setInviteWosId] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [gameStateNumber, setGameStateNumber] = useState("");
   const [releaseWosId, setReleaseWosId] = useState("");
   const [releasingClaim, setReleasingClaim] = useState(false);
   const [battleResult, setBattleResult] = useState("win");
@@ -110,6 +111,15 @@ export default function ManageStatePage() {
         .select("alliance_id")
         .eq("state_id", activeMembership.stateId),
     ]);
+
+    const { data: stateRow } = await supabase
+      .from("states")
+      .select("game_state_number")
+      .eq("id", activeMembership.stateId)
+      .maybeSingle();
+    setGameStateNumber(
+      stateRow?.game_state_number ? String(stateRow.game_state_number) : "",
+    );
 
     const loadError = memberError || allianceError || allianceAssignmentError;
     if (loadError || !memberRows) {
@@ -372,6 +382,25 @@ export default function ManageStatePage() {
         "Invitation delivered in the player's notification inbox. The link below is an optional backup.",
       ),
     );
+  }
+
+  async function saveGameStateNumber() {
+    if (!activeMembership) return;
+    const trimmed = gameStateNumber.trim();
+    if (trimmed && !/^[1-9][0-9]*$/.test(trimmed)) {
+      setMessage(t("Enter a valid state number."));
+      return;
+    }
+    const { data, error } = await supabase
+      .from("states")
+      .update({ game_state_number: trimmed ? Number(trimmed) : null })
+      .eq("id", activeMembership.stateId)
+      .select("id");
+    if (error || !data || data.length === 0) {
+      setMessage(error?.message ?? t("Only the state owner can change this."));
+      return;
+    }
+    setMessage(t("In-game state number saved."));
   }
 
   async function releaseClaim() {
@@ -866,6 +895,32 @@ export default function ManageStatePage() {
             </button>
           </div>
         )}
+      </section>
+
+      <section>
+        <h2>{t("In-game state")}</h2>
+        <p>
+          {t(
+            "Used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.",
+          )}
+        </p>
+        <div className="invite-form">
+          <label>
+            {t("State number")}
+            <input
+              type="text"
+              inputMode="numeric"
+              value={gameStateNumber}
+              disabled={activeMembership.role !== "owner"}
+              onChange={(event) => setGameStateNumber(event.target.value)}
+            />
+          </label>
+          {activeMembership.role === "owner" && (
+            <button type="button" onClick={() => void saveGameStateNumber()}>
+              {t("Save")}
+            </button>
+          )}
+        </div>
       </section>
 
       <section>
