@@ -126,10 +126,6 @@ function parseAlliance(value: unknown): OracleAlliance | null {
   return { id, abbr: abbr ?? "", name: name ?? abbr ?? "" };
 }
 
-export function fireCrystalLevel(rawFurnaceLevel: number) {
-  return Math.max(0, Math.min(10, rawFurnaceLevel - 30));
-}
-
 const DEFAULT_DAILY_BUDGET = 950;
 
 export function oracleDailyBudget() {

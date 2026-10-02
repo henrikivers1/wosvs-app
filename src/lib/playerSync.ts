@@ -1,5 +1,6 @@
 import type { createAdminClient } from "@/lib/supabase/admin";
-import { fetchOraclePlayer, fireCrystalLevel } from "@/lib/wosOracle";
+import { fireCrystalLevel } from "@/lib/furnace";
+import { fetchOraclePlayer } from "@/lib/wosOracle";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 

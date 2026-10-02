@@ -83,6 +83,19 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Expected draw {date}.": "Sorteo previsto {date}.",
+  "Next battle {date}.": "Próxima batalla {date}.",
+  "Start (UTC)": "Inicio (UTC)",
+  "SvS draw {when}": "Sorteo de SvS {when}",
+  "SvS vs state {opponent} {when}": "SvS contra el estado {opponent} {when}",
+  "The SvS plan is created automatically as soon as the draw is made. Build rally groups, assign members, then publish the alliance roster and optional tags.":
+    "El plan de SvS se crea automáticamente en cuanto se hace el sorteo. Crea grupos de rally, asigna miembros y publica la lista de alianzas y etiquetas opcionales.",
+  "WOSOracle expected the draw {date} but has not published it yet. Checked every hour until it appears.":
+    "WOSOracle esperaba el sorteo {date} pero aún no lo ha publicado. Se comprueba cada hora hasta que aparezca.",
+  "Waiting for the SvS draw": "Esperando el sorteo de SvS",
+  "in {days} days": "en {days} días",
+  "in {hours} hours": "en {hours} horas",
+  "within the hour": "en menos de una hora",
   intel: "Inteligencia",
   "Any availability": "Cualquier disponibilidad",
   Attendance: "Asistencia",

@@ -13,6 +13,18 @@ type AdminClient = ReturnType<typeof createAdminClient>;
 
 const HOUR_MS = 60 * 60 * 1000;
 const BATTLE_DURATION_MS = 5 * HOUR_MS;
+// WOSOracle reports when the battle *phase* opens (00:00 UTC on battle day);
+// the castle fight itself runs 12:00-17:00 UTC that day.
+const SVS_BATTLE_START_HOUR_UTC = 12;
+
+function svsBattleStart(phaseOpensAt: string | null) {
+  if (!phaseOpensAt) return null;
+  const start = new Date(phaseOpensAt);
+  if (start.getUTCHours() < SVS_BATTLE_START_HOUR_UTC) {
+    start.setUTCHours(SVS_BATTLE_START_HOUR_UTC, 0, 0, 0);
+  }
+  return start;
+}
 // Normal draw check cadence; hourly when the draw is due within a day.
 const DRAW_CHECK_INTERVAL_MS = 6 * HOUR_MS;
 const DRAW_CHECK_INTERVAL_NEAR_DRAW_MS = HOUR_MS;
@@ -56,7 +68,8 @@ function drawCheckDue(state: StateRow, now: number) {
   const drawAt = state.svs_draw_expected_at
     ? new Date(state.svs_draw_expected_at).getTime()
     : null;
-  const nearDraw = drawAt !== null && Math.abs(drawAt - now) < 24 * HOUR_MS;
+  // Hourly from a day before the expected draw until it is published.
+  const nearDraw = drawAt !== null && drawAt - now < 24 * HOUR_MS;
   return (
     since >=
     (nearDraw ? DRAW_CHECK_INTERVAL_NEAR_DRAW_MS : DRAW_CHECK_INTERVAL_MS)
@@ -74,7 +87,7 @@ async function refreshDraw(
   const stateNumber = state.game_state_number!;
   const now = Date.now();
   const matchup = await fetchSvsMatchup(stateNumber);
-  const battleAt = matchup?.battleAt ? new Date(matchup.battleAt) : null;
+  const battleAt = svsBattleStart(matchup?.battleAt ?? null);
   const upcoming =
     matchup?.opponent &&
     battleAt &&
@@ -129,7 +142,8 @@ async function refreshDraw(
       svs_opponent: null,
       svs_battle_at: null,
       svs_draw_expected_at: forecast.drawExpectedAt,
-      svs_next_battle_at: forecast.nextBattleAt,
+      svs_next_battle_at:
+        svsBattleStart(forecast.nextBattleAt)?.toISOString() ?? null,
       oracle_checked_at: new Date().toISOString(),
     })
     .eq("id", state.id);

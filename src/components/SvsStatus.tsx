@@ -15,11 +15,15 @@ type SvsState = {
 
 const BATTLE_DURATION_MS = 5 * 60 * 60 * 1000;
 
-function daysUntil(target: string, now: number) {
-  return Math.max(
-    0,
-    Math.ceil((new Date(target).getTime() - now) / 86_400_000),
-  );
+function timeUntil(
+  target: string,
+  now: number,
+  t: (key: string, values?: Record<string, string | number>) => string,
+) {
+  const hours = (new Date(target).getTime() - now) / 3_600_000;
+  if (hours >= 24) return t("in {days} days", { days: Math.floor(hours / 24) });
+  if (hours >= 1) return t("in {hours} hours", { hours: Math.floor(hours) });
+  return t("within the hour");
 }
 
 // SvS countdown and draw status from the data the automation job stores.
@@ -103,25 +107,33 @@ export function SvsStatus({
       ? t("SvS battle vs state {opponent} is live", {
           opponent: state.svs_opponent,
         })
-      : t("SvS vs state {opponent} in {days} days", {
+      : t("SvS vs state {opponent} {when}", {
           opponent: state.svs_opponent,
-          days: daysUntil(state.svs_battle_at, now),
+          when: timeUntil(state.svs_battle_at, now, t),
         });
     detail = t("Battle starts {date}.", {
       date: formatDateTime(state.svs_battle_at),
     });
   } else if (state?.svs_draw_expected_at) {
-    headline = t("SvS draw in {days} days", {
-      days: daysUntil(state.svs_draw_expected_at, now),
-    });
-    detail = state.svs_next_battle_at
-      ? t("Expected draw {draw}; next battle {battle}.", {
-          draw: formatDateTime(state.svs_draw_expected_at),
-          battle: formatDateTime(state.svs_next_battle_at),
-        })
-      : t("Expected draw {draw}.", {
-          draw: formatDateTime(state.svs_draw_expected_at),
+    const drawDue = now >= new Date(state.svs_draw_expected_at).getTime();
+    headline = drawDue
+      ? t("Waiting for the SvS draw")
+      : t("SvS draw {when}", {
+          when: timeUntil(state.svs_draw_expected_at, now, t),
         });
+    const nextBattle = state.svs_next_battle_at
+      ? ` ${t("Next battle {date}.", {
+          date: formatDateTime(state.svs_next_battle_at),
+        })}`
+      : "";
+    detail = drawDue
+      ? t(
+          "WOSOracle expected the draw {date} but has not published it yet. Checked every hour until it appears.",
+          { date: formatDateTime(state.svs_draw_expected_at) },
+        ) + nextBattle
+      : t("Expected draw {date}.", {
+          date: formatDateTime(state.svs_draw_expected_at),
+        }) + nextBattle;
   } else if (state && !state.oracle_checked_at) {
     detail = t("Not checked with WOSOracle yet.");
   }

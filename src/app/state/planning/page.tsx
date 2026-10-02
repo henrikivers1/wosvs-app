@@ -14,6 +14,7 @@ import {
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import { furnaceLabel } from "@/lib/furnace";
 
 type BattleType = "svs" | "castle" | "test";
 type BattlePlan = {
@@ -91,14 +92,6 @@ type ScheduledBattle = {
   scheduled_at: string | null;
 };
 
-function defaultScheduledTime() {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  date.setHours(18, 0, 0, 0);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
-
 function parseOpponent(value: string) {
   const trimmed = value.trim();
   return /^[0-9]+$/.test(trimmed) && Number(trimmed) > 0
@@ -106,10 +99,13 @@ function parseOpponent(value: string) {
     : null;
 }
 
-function toLocalDateTime(value: string) {
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+// The edit form works in UTC, like the game: "2026-10-10T12:00".
+function toUtcInputValue(value: string) {
+  return new Date(value).toISOString().slice(0, 16);
+}
+
+function fromUtcInputValue(value: string) {
+  return new Date(`${value}:00Z`);
 }
 
 function average(values: Array<number | null>) {
@@ -121,11 +117,6 @@ function average(values: Array<number | null>) {
 
 function formatAverage(value: number | null) {
   return value === null ? "—" : value.toFixed(1);
-}
-
-function furnaceLabel(rawLevel: number | null) {
-  if (rawLevel === null) return "—";
-  return rawLevel <= 30 ? `Furnace ${rawLevel}` : `FC${rawLevel - 30}`;
 }
 
 export default function BattlePlanningPage() {
@@ -150,10 +141,6 @@ export default function BattlePlanningPage() {
   const [commentVisibility, setCommentVisibility] = useState<
     Record<string, "public" | "admins">
   >({});
-  const [planName, setPlanName] = useState("");
-  const [scheduledAt, setScheduledAt] = useState(defaultScheduledTime);
-  const [planNotes, setPlanNotes] = useState("");
-  const [planOpponent, setPlanOpponent] = useState("");
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [editingPlanName, setEditingPlanName] = useState("");
   const [editingScheduledAt, setEditingScheduledAt] = useState("");
@@ -463,57 +450,10 @@ export default function BattlePlanningPage() {
     };
   }, [activeMembership, loadPlanning, supabase]);
 
-  async function createPlan() {
-    if (!activeMembership || !isAdmin) return;
-    const date = new Date(scheduledAt);
-    if (
-      planName.trim().length < 3 ||
-      Number.isNaN(date.getTime()) ||
-      date <= new Date()
-    ) {
-      setMessage(t("Enter a plan name and choose a future battle time."));
-      return;
-    }
-    setSaving(true);
-    setMessage(t(""));
-    const { data: newPlanId, error } = await supabase.rpc(
-      "create_battle_plan",
-      {
-        target_state_id: activeMembership.stateId,
-        plan_name: planName.trim(),
-        selected_battle_type: "svs",
-        plan_scheduled_at: date.toISOString(),
-        plan_notes: planNotes.trim() || null,
-      },
-    );
-    const opponentNumber = parseOpponent(planOpponent);
-    const opponentError =
-      !error && opponentNumber
-        ? (
-            await supabase.rpc("set_battle_plan_opponent", {
-              target_plan_id: newPlanId,
-              opponent_number: opponentNumber,
-            })
-          ).error
-        : null;
-    if (error || opponentError) {
-      setMessage((error ?? opponentError)!.message);
-      if (!error) await loadPlanning();
-    } else {
-      setPlanName("");
-      setScheduledAt(defaultScheduledTime());
-      setPlanNotes("");
-      setPlanOpponent("");
-      await loadPlanning();
-      setMessage(t("Battle plan created as a draft."));
-    }
-    setSaving(false);
-  }
-
   function beginEditingPlan(plan: BattlePlan) {
     setEditingPlanId(plan.id);
     setEditingPlanName(plan.name);
-    setEditingScheduledAt(toLocalDateTime(plan.scheduled_at));
+    setEditingScheduledAt(toUtcInputValue(plan.scheduled_at));
     setEditingPlanNotes(plan.notes ?? "");
     setEditingPlanOpponent(
       plan.opponent_state_number ? String(plan.opponent_state_number) : "",
@@ -521,7 +461,7 @@ export default function BattlePlanningPage() {
   }
   async function savePlan() {
     if (!editingPlanId) return;
-    const date = new Date(editingScheduledAt);
+    const date = fromUtcInputValue(editingScheduledAt);
     if (editingPlanName.trim().length < 3 || Number.isNaN(date.getTime())) {
       setMessage(t("Enter a valid plan name and time."));
       return;
@@ -972,61 +912,11 @@ export default function BattlePlanningPage() {
             <h1>{t("Battle planning")}</h1>
             <p>
               {t(
-                "Build rally groups, assign every member here, then publish the alliance roster and optional tags.",
+                "The SvS plan is created automatically as soon as the draw is made. Build rally groups, assign members, then publish the alliance roster and optional tags.",
               )}
             </p>
           </section>
           <SvsStatus stateId={activeMembership.stateId} />
-          {isAdmin && (
-            <section>
-              <h2>{t("Create battle plan")}</h2>
-              <div className="battle-plan-create-grid">
-                <label>
-                  {t("Plan name")}
-                  <input
-                    value={planName}
-                    maxLength={100}
-                    onChange={(event) => setPlanName(event.target.value)}
-                    placeholder={t("SVS vs 1501")}
-                  />
-                </label>
-                <label>
-                  {t("Scheduled start")}
-                  <input
-                    type="datetime-local"
-                    value={scheduledAt}
-                    onChange={(event) => setScheduledAt(event.target.value)}
-                  />
-                </label>
-                <label>
-                  {t("Opponent state")}
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={planOpponent}
-                    onChange={(event) => setPlanOpponent(event.target.value)}
-                    placeholder={t("e.g. 1501")}
-                  />
-                </label>
-                <label className="battle-plan-notes-field">
-                  {t("Notes")}
-                  <textarea
-                    rows={3}
-                    maxLength={2000}
-                    value={planNotes}
-                    onChange={(event) => setPlanNotes(event.target.value)}
-                  />
-                </label>
-              </div>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void createPlan()}
-              >
-                {t("Create draft plan")}
-              </button>
-            </section>
-          )}
           <section>
             <div className="section-title-row">
               <div>
@@ -1168,7 +1058,7 @@ export default function BattlePlanningPage() {
                             />
                           </label>
                           <label>
-                            {t("Start")}
+                            {t("Start (UTC)")}
                             <input
                               type="datetime-local"
                               value={editingScheduledAt}

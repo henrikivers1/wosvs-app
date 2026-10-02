@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import { furnaceLabel } from "@/lib/furnace";
 
 type WosAccount = {
   id: string;
@@ -67,11 +68,6 @@ const COMBAT_FIELDS: Array<{
   { key: "marksman_t12_skill", label: "Marksman T12 skill", min: 0, max: 3 },
 ];
 
-
-function furnaceLabel(rawLevel: number | null) {
-  if (rawLevel === null) return "—";
-  return rawLevel <= 30 ? `Furnace ${rawLevel}` : `FC${rawLevel - 30}`;
-}
 
 export default function AccountPage() {
   const { t, formatDateTime, formatNumber } = useLanguage();
