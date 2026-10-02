@@ -1,4 +1,4 @@
-import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
+import { createAdminClient, serviceRoleKeyProblem } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type StateAccess = {
@@ -12,11 +12,10 @@ export type StateAccess = {
 export async function requireStateMember(
   stateId: string | null,
 ): Promise<StateAccess | Response> {
-  if (!hasAdminCredentials()) {
-    return Response.json(
-      { error: "The server is missing SUPABASE_SERVICE_ROLE_KEY." },
-      { status: 500 },
-    );
+  const keyProblem = serviceRoleKeyProblem();
+  if (keyProblem) {
+    console.error(`[state-access] ${keyProblem}`);
+    return Response.json({ error: keyProblem }, { status: 500 });
   }
 
   const supabase = await createClient();
