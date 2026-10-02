@@ -235,7 +235,11 @@ export async function runAutomation(
   if (options.stateId) query = query.eq("id", options.stateId);
   const { data: states, error } = await query;
   if (error) {
-    report.errors.push(`States: ${error.message}`);
+    report.errors.push(
+      error.code === "42703"
+        ? "The database is missing the SvS automation columns. Run supabase/migrations/20261003090000_svs_automation.sql in the Supabase SQL Editor."
+        : `States: ${error.message}`,
+    );
     return report;
   }
 
