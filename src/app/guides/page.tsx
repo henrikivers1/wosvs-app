@@ -9,7 +9,7 @@ import { enterDemo } from "@/lib/demo/mode";
 import { GUIDE_FAQ, GUIDE_SECTIONS } from "@/lib/guides";
 
 // A guide to everything in Overwatch. Public, so players can read it before
-// they sign up.
+// they join.
 export default function GuidesPage() {
   const { t } = useLanguage();
   const { signedIn } = useStates();

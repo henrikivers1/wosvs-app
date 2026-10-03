@@ -1027,23 +1027,29 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     }
     return ok();
   },
+  get_state_join_link: ({ target_state_id }) =>
+    ok(
+      demoTable("state_join_links")
+        .filter((row) => row.state_id === target_state_id)
+        .map(({ token, pin, created_at }) => ({ token, pin, created_at })),
+    ),
+  create_state_join_link: ({ target_state_id }) => {
+    remove("state_join_links", (row) => row.state_id === target_state_id);
+    const link = {
+      state_id: target_state_id,
+      token: newUuid().replaceAll("-", "").slice(0, 24),
+      pin: String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0"),
+      created_at: nowIso(),
+    };
+    demoTable("state_join_links").push(link);
+    return ok([{ token: link.token, pin: link.pin, created_at: link.created_at }]);
+  },
 };
-
-const NOT_IN_DEMO = new Set([
-  "create_state_join_invite",
-  "review_state_invite",
-  "respond_to_state_invite",
-  "complete_account_setup",
-]);
 
 export function runDemoRpc(name: string, args: Args = {}): DemoResult {
   const handler = handlers[name];
   if (!handler) {
-    return fail(
-      NOT_IN_DEMO.has(name)
-        ? "Invitations and account setup are not available in the demo."
-        : "This action is not available in the demo.",
-    );
+    return fail("This action is not available in the demo.");
   }
   const before = snapshotDemoMembers();
   const result = handler(args);

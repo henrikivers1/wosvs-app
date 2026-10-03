@@ -7,9 +7,7 @@ const english = {
   notifications: "Notifications",
   unreadNotifications: "unread notifications",
   openProfileMenu: "Open profile menu",
-  setupRequired: "Setup required",
   profile: "Profile",
-  wosAccounts: "WOS accounts",
   signOut: "Sign out",
   signIn: "Sign in",
   overwatch: "Overwatch",
@@ -30,8 +28,166 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
-  "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell. Is your state not on Overwatch yet? Your owner can message us on Discord: wosoverwatch.":
-    "Cuando tu estado del juego usa Overwatch, al añadir tu WOS ID se envía automáticamente una solicitud a su propietario y administradores. Recibes una notificación en cuanto la aprueban. Un administrador también puede invitar a tu WOS ID; acepta la invitación en la campana. ¿Tu estado aún no está en Overwatch? Su propietario puede escribirnos en Discord: wosoverwatch.",
+  "6 to 12 digits.":
+    "De 6 a 12 dígitos.",
+  "6 to 12 digits. Don't reuse the first-time PIN or share yours.":
+    "De 6 a 12 dígitos. No reutilices el PIN inicial ni compartas el tuyo.",
+  "Back":
+    "Atrás",
+  "Bring your members in":
+    "Trae a tus miembros",
+  "Change PIN":
+    "Cambiar PIN",
+  "Choose your PIN":
+    "Elige tu PIN",
+  "Continue":
+    "Continuar",
+  "Copied.":
+    "Copiado.",
+  "Copy chat message":
+    "Copiar mensaje para el chat",
+  "Copy it by hand: select the text above.":
+    "Cópialo a mano: selecciona el texto de arriba.",
+  "Copy link":
+    "Copiar enlace",
+  "Current PIN":
+    "PIN actual",
+  "Enter your WOS ID and the first-time PIN your state leader shared. We check with WOSOracle that you are in this state.":
+    "Introduce tu WOS ID y el PIN inicial que compartió el líder de tu estado. Comprobamos con WOSOracle que estás en este estado.",
+  "First-time PIN":
+    "PIN inicial",
+  "Forgot your PIN?":
+    "¿Olvidaste tu PIN?",
+  "Give {player} a one-time PIN? Their current PIN stops working and they are signed out.":
+    "¿Dar a {player} un PIN de un solo uso? Su PIN actual deja de funcionar y se cierra su sesión.",
+  "Join":
+    "Unirse",
+  "Join link":
+    "Enlace de acceso",
+  "Join {state}":
+    "Únete a {state}",
+  "Join {state} on Overwatch: {link} First-time PIN: {pin}":
+    "Únete a {state} en Overwatch: {link} PIN inicial: {pin}",
+  "Joining failed. Try again.":
+    "No se pudo unir. Inténtalo de nuevo.",
+  "Link":
+    "Enlace",
+  "Lost PINs and wrong players":
+    "PIN perdidos y jugadores equivocados",
+  "Made {date}. Works until you make a new one.":
+    "Creado el {date}. Funciona hasta que crees uno nuevo.",
+  "Make a join link":
+    "Crear enlace de acceso",
+  "Make a new link":
+    "Crear un enlace nuevo",
+  "Make a new link and PIN? The current ones stop working; players who already joined are not affected.":
+    "¿Crear un enlace y un PIN nuevos? Los actuales dejan de funcionar; los jugadores que ya se unieron no se ven afectados.",
+  "Members and roles":
+    "Miembros y roles",
+  "New here? Ask your state leader for the join link and first-time PIN. Forgot your PIN? Your state leader can give you a new one.":
+    "¿Eres nuevo? Pide al líder de tu estado el enlace de acceso y el PIN inicial. ¿Olvidaste tu PIN? El líder de tu estado puede darte uno nuevo.",
+  "One-time PIN for {player}. Send it to them privately; they choose their own PIN when they sign in.":
+    "PIN de un solo uso para {player}. Envíaselo en privado; elegirá su propio PIN al iniciar sesión.",
+  "Operator":
+    "Operador",
+  "PIN":
+    "PIN",
+  "PIN again":
+    "Repite el PIN",
+  "Reset PIN":
+    "Restablecer PIN",
+  "Save PIN":
+    "Guardar PIN",
+  "Share the link and first-time PIN in your state and alliance chats. Players open it, enter their WOS ID and the PIN, and choose their own PIN. WOSOracle confirms they are in your state.":
+    "Comparte el enlace y el PIN inicial en los chats del estado y de la alianza. Los jugadores lo abren, introducen su WOS ID y el PIN, y eligen su propio PIN. WOSOracle confirma que están en tu estado.",
+  "Sign-in failed. Try again.":
+    "No se pudo iniciar sesión. Inténtalo de nuevo.",
+  "States":
+    "Estados",
+  "The PIN could not be reset.":
+    "No se pudo restablecer el PIN.",
+  "The two PINs are different.":
+    "Los dos PIN no coinciden.",
+  "This join link could not be opened.":
+    "No se pudo abrir este enlace de acceso.",
+  "This join link no longer works. Ask your state leader for the new one.":
+    "Este enlace de acceso ya no funciona. Pide el nuevo al líder de tu estado.",
+  "Too many wrong PINs. Try again in {minutes} minutes.":
+    "Demasiados PIN incorrectos. Inténtalo de nuevo en {minutes} minutos.",
+  "Welcome back, {player}! You already have a login. Enter your PIN to join.":
+    "¡Hola de nuevo, {player}! Ya tienes una cuenta. Introduce tu PIN para unirte.",
+  "Welcome, {player}! Choose your own PIN. You sign in with your WOS ID and this PIN from now on.":
+    "¡Bienvenido, {player}! Elige tu propio PIN. A partir de ahora inicias sesión con tu WOS ID y este PIN.",
+  "Wrong WOS ID or PIN.":
+    "WOS ID o PIN incorrecto.",
+  "You are not in a state. Ask your state leader for the join link and first-time PIN.":
+    "No estás en ningún estado. Pide al líder de tu estado el enlace de acceso y el PIN inicial.",
+  "You sign in with your WOS ID and this PIN.":
+    "Inicias sesión con tu WOS ID y este PIN.",
+  "You sign in with your WOS ID and your PIN.":
+    "Inicias sesión con tu WOS ID y tu PIN.",
+  "You signed in with a one-time PIN. Choose your own PIN; you sign in with your WOS ID and this PIN from now on.":
+    "Iniciaste sesión con un PIN de un solo uso. Elige tu propio PIN; a partir de ahora inicias sesión con tu WOS ID y este PIN.",
+  "Your PIN":
+    "Tu PIN",
+  "Your PIN could not be changed.":
+    "No se pudo cambiar tu PIN.",
+  "Your WOS account":
+    "Tu cuenta de WOS",
+  "Your in-game name and public game data come from your WOS ID.":
+    "Tu nombre en el juego y tus datos públicos vienen de tu WOS ID.",
+  "Your new PIN":
+    "Tu nuevo PIN",
+  "Your player data":
+    "Tus datos de jugador",
+  "Wrong first-time PIN.":
+    "PIN inicial incorrecto.",
+  "Your current PIN is wrong.":
+    "Tu PIN actual es incorrecto.",
+  "Your PIN needs 6 to 12 digits.":
+    "Tu PIN necesita de 6 a 12 dígitos.",
+  "Wrong PIN for this WOS ID.":
+    "PIN incorrecto para este WOS ID.",
+  "Enter your WOS ID (numbers only).":
+    "Introduce tu WOS ID (solo números).",
+  "WOSOracle does not know that WOS ID. Check it in your in-game profile.":
+    "WOSOracle no conoce ese WOS ID. Compruébalo en tu perfil del juego.",
+  "Your WOS ID could not be checked right now. Try again in a minute.":
+    "No se pudo comprobar tu WOS ID ahora. Inténtalo de nuevo en un minuto.",
+  "This state has no in-game state number yet. Ask your state leader.":
+    "Este estado aún no tiene número de estado del juego. Pregunta al líder de tu estado.",
+  "You cannot reset that player's PIN.":
+    "No puedes restablecer el PIN de ese jugador.",
+  "Open your state's join link, enter your WOS ID and choose a PIN. It takes about a minute.":
+    "Abre el enlace de acceso de tu estado, introduce tu WOS ID y elige un PIN. Lleva un minuto.",
+  "Get the join link and first-time PIN from your state leader. They usually post it in the state or alliance chat.":
+    "Consigue el enlace de acceso y el PIN inicial del líder de tu estado. Normalmente lo publica en el chat del estado o de la alianza.",
+  "Open the link and enter your WOS ID and the first-time PIN.":
+    "Abre el enlace e introduce tu WOS ID y el PIN inicial.",
+  "Choose your own PIN of 6 to 12 digits. From now on you sign in with your WOS ID and that PIN.":
+    "Elige tu propio PIN de 6 a 12 dígitos. A partir de ahora inicias sesión con tu WOS ID y ese PIN.",
+  "Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day on Account.":
+    "Tu nombre, avatar, estado, poder, Horno, puntuación del Laberinto y alianza se rellenan desde WOSOracle. Se actualizan cada lunes y puedes actualizarlos a mano una vez al día en Cuenta.",
+  "Ask an admin of your state. They give you a one-time PIN, and you choose a new PIN when you sign in. Is your state not on Overwatch yet? Your leader can message us on Discord: wosoverwatch.":
+    "Pregunta a un administrador de tu estado. Te da un PIN de un solo uso y eliges uno nuevo al iniciar sesión. ¿Tu estado aún no está en Overwatch? Tu líder puede escribirnos en Discord: wosoverwatch.",
+  "Under State management, make a join link and share it with its first-time PIN in your chats. Players get in right away when WOSOracle lists them in your state. Make a new link whenever the old one should stop working; players who already joined are not affected.":
+    "En Gestión del estado, crea un enlace de acceso y compártelo con su PIN inicial en tus chats. Los jugadores entran al momento si WOSOracle los muestra en tu estado. Crea un enlace nuevo cuando quieras que el anterior deje de funcionar; quienes ya se unieron no se ven afectados.",
+  "The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.":
+    "El propietario decide quién es administrador; los administradores dan el rol de Coordinador, pueden quitar Guarnición (todos los miembros la tienen por defecto) y eliminar miembros. Cada cambio se notifica al miembro.",
+  "Reset PIN on a member gives them a one-time PIN and signs them out. Owners reset anyone, admins reset members. If someone joined with a WOS ID that is not theirs, reset its PIN and give the one-time PIN to the real player.":
+    "Restablecer PIN en un miembro le da un PIN de un solo uso y cierra su sesión. El propietario restablece a cualquiera; los administradores, a los miembros. Si alguien se unió con un WOS ID que no es suyo, restablece su PIN y da el PIN de un solo uso al jugador real.",
+  "Your state leader messages us on Discord (wosoverwatch) and we set the state up. The leader then shares a join link and first-time PIN in your chats; members open it, enter their WOS ID and choose their own PIN.":
+    "El líder de tu estado nos escribe en Discord (wosoverwatch) y configuramos el estado. Luego el líder comparte un enlace de acceso y un PIN inicial en vuestros chats; los miembros lo abren, introducen su WOS ID y eligen su propio PIN.",
+  "Your login: your WOS ID and your PIN. The PIN is stored only as a secure hash by our login provider; we never see it.":
+    "Tu acceso: tu WOS ID y tu PIN. El PIN solo lo guarda nuestro proveedor de inicio de sesión como hash seguro; nunca lo vemos.",
+  "Game data for your WOS ID from WOSOracle: name, avatar, state, power, Furnace level, Labyrinth score and alliance.":
+    "Datos de juego de tu WOS ID desde WOSOracle: nombre, avatar, estado, poder, nivel del Horno, puntuación del Laberinto y alianza.",
+  "Members of your state see your game data, rally and votes. Admins also see roles.":
+    "Los miembros de tu estado ven tus datos de juego, tu rally y tus votos. Los administradores también ven los roles.",
+  "Your PIN is never shown to anyone. Admins can only give you a new one-time PIN.":
+    "Tu PIN nunca se muestra a nadie. Los administradores solo pueden darte un PIN nuevo de un solo uso.",
+  "Expired notices are removed automatically, and wrong-PIN counters after a day.":
+    "Los avisos caducados se eliminan automáticamente, y los contadores de PIN incorrectos al cabo de un día.",
   "Live Battle opens by itself at 11:00 UTC, an hour before the battle. Every member has the Garrison role, and coordinators also call rallies. Use that hour to enter coordinates.":
     "La batalla en vivo se abre sola a las 11:00 UTC, una hora antes de la batalla. Todos los miembros tienen el rol de Guarnición y los coordinadores además lanzan rallies. Usa esa hora para introducir coordenadas.",
   "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
@@ -42,8 +198,6 @@ const spanishInterface: Record<string, string> = {
     "En Gestión del estado, la automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, el tamaño de la guarnición, la formación por defecto, los cuatro héroes de unión por defecto y el orden en que el autorrelleno valora a los jugadores. Desactiva los rallies o la publicación automáticos si prefieres hacerlo tú.",
   "Under the checklist, Needs attention lists what to check before publishing: a pet block without a lead or castle holder, no garrison, a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.":
     "Bajo la lista, Requiere atención muestra qué revisar antes de publicar: un bloque de mascotas sin líder o defensor del castillo, falta de guarnición, un rally sin alianza o sin héroes, un jugador en la mitad equivocada, jugadores sin héroe de unión o plazas libres mientras hay jugadores esperando. Cada línea tiene un botón que lo arregla. Cuando la lista quede vacía, publica.",
-  "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.":
-    "Aprueba las solicitudes en Pendientes de tu verificación. El propietario decide quién es administrador; los administradores dan el rol de Coordinador, pueden quitar Guarnición (todos los miembros la tienen por defecto) y expulsar miembros. Cada cambio se notifica al miembro.",
   "It only appears from 11:00 to 17:00 UTC on battle day. Every member has the Garrison role by default; if you still can't see it, ask an admin whether yours was removed.":
     "Solo aparece de 11:00 a 17:00 UTC el día de la batalla. Todos los miembros tienen el rol de Guarnición por defecto; si aun así no la ves, pregunta a un administrador si te lo quitaron.",
   "The strongest defenders hold the castle, Rally Leads swap every pet block, and joiners bring one of four joiner heroes they own at 4★. Auto-fill follows your priorities.":
@@ -56,8 +210,6 @@ const spanishInterface: Record<string, string> = {
     "Vota una vez, mira tu rally, héroe, formación y orden de líderes, y entérate de cada cambio.",
   "Every member. Enter your city once; a countdown and an alert tell you the exact second to send.":
     "Todos los miembros. Introduce tu ciudad una vez; una cuenta atrás y un aviso te dicen el segundo exacto para enviar.",
-  "Your state owner signs up and messages us on Discord (wosoverwatch), and we set the state up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.":
-    "El propietario de tu estado se registra y nos escribe en Discord (wosoverwatch), y nosotros preparamos el estado. Después, los miembros se unen añadiendo su WOS ID: la solicitud llega automáticamente al propietario y los administradores.",
   "Discord":
     "Discord",
   "Copy Discord name":
@@ -334,8 +486,6 @@ const spanishInterface: Record<string, string> = {
     "11:00 UTC",
   "Live Battle opens for coordinates":
     "Se abre la batalla en vivo para las coordenadas",
-  "Could not confirm email":
-    "No se pudo confirmar el correo",
   "Privacy":
     "Privacidad",
   "Your data in Overwatch":
@@ -344,12 +494,6 @@ const spanishInterface: Record<string, string> = {
     "Cómo usamos tus datos",
   "What we store":
     "Qué guardamos",
-  "Your login: email address and password. The password is stored only as a secure hash by our login provider; we never see it.":
-    "Tu inicio de sesión: correo y contraseña. Nuestro proveedor de inicio de sesión guarda la contraseña solo como un hash seguro; nunca la vemos.",
-  "Your public username and the WOS IDs you add.":
-    "Tu nombre de usuario público y los WOS ID que añadas.",
-  "Game data for those WOS IDs from WOSOracle: name, avatar, state, power, Furnace level, Labyrinth score and alliance.":
-    "Datos de juego de esos WOS ID desde WOSOracle: nombre, avatar, estado, poder, nivel del Horno, puntuación del Laberinto y alianza.",
   "What you enter in Overwatch: attendance votes, joiner heroes, troop details, and your state memberships and roles.":
     "Lo que introduces en Overwatch: votos de asistencia, héroes de unión, datos de tropas y tus membresías y roles de estado.",
   "What your state's admins and coordinators enter: rally assignments, notices, tags, and enemy leaders with their city coordinates.":
@@ -364,18 +508,12 @@ const spanishInterface: Record<string, string> = {
     "Sin anuncios, sin rastreo, sin analíticas. Nunca vendemos ni compartimos tus datos con fines de marketing.",
   "Who can see it":
     "Quién puede verlo",
-  "Members of your state see your username, game data, rally and votes. Admins also see join requests and roles.":
-    "Los miembros de tu estado ven tu nombre de usuario, datos de juego, rally y votos. Los administradores también ven solicitudes de unión y roles.",
-  "Your email address is never shown to other players.":
-    "Tu correo nunca se muestra a otros jugadores.",
   "Services we use":
     "Servicios que usamos",
   "Supabase stores the database and handles sign-in.":
     "Supabase guarda la base de datos y gestiona el inicio de sesión.",
   "Vercel hosts the website.":
     "Vercel aloja el sitio web.",
-  "An email service sends sign-up and password emails.":
-    "Un servicio de correo envía los correos de registro y de contraseña.",
   "WOSOracle provides the game data; we send it only WOS IDs, state numbers and alliance IDs.":
     "WOSOracle proporciona los datos de juego; solo le enviamos WOS ID, números de estado e ID de alianza.",
   "These services may process data outside your country.":
@@ -390,14 +528,10 @@ const spanishInterface: Record<string, string> = {
     "Cuánto tiempo lo guardamos",
   "Read notifications are removed after 30 days and all notifications after 90 days.":
     "Las notificaciones leídas se eliminan a los 30 días y todas las notificaciones a los 90 días.",
-  "Expired notices and invitations are removed automatically.":
-    "Los avisos e invitaciones caducados se eliminan automáticamente.",
   "Everything else is kept until you remove it or ask us to delete your account.":
     "Todo lo demás se guarda hasta que lo elimines o nos pidas borrar tu cuenta.",
   "Your rights":
     "Tus derechos",
-  "You can remove WOS accounts on Account at any time.":
-    "Puedes quitar cuentas de WOS en Cuenta en cualquier momento.",
   "Email us to get a copy of your data, correct it, or delete your account and everything linked to it. We answer within 30 days.":
     "Escríbenos para obtener una copia de tus datos, corregirlos o borrar tu cuenta y todo lo vinculado a ella. Respondemos en un plazo de 30 días.",
   "If you are in the EU or UK you can also complain to your data protection authority.":
@@ -418,22 +552,10 @@ const spanishInterface: Record<string, string> = {
     "Primeros pasos",
   "Everyone":
     "Todos",
-  "Create an account, add your WOS ID and join your state. It takes about two minutes.":
-    "Crea una cuenta, añade tu WOS ID y únete a tu estado. Solo te lleva unos dos minutos.",
   "Create your account":
     "Crea tu cuenta",
-  "Open Sign in and choose Sign up.":
-    "Abre Iniciar sesión y elige Regístrate.",
-  "Enter your email, a password, a public username and your WOS ID.":
-    "Introduce tu correo, una contraseña, un nombre de usuario público y tu WOS ID.",
-  "Confirm your email if you are asked to.":
-    "Confirma tu correo si te lo piden.",
   "Want to look around first? The free demo needs no account.":
     "¿Quieres echar un vistazo primero? La demo gratis no necesita cuenta.",
-  "Add your WOS accounts":
-    "Añade tus cuentas de WOS",
-  "On Account, add every WOS ID you play. Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day.":
-    "En Cuenta, añade cada WOS ID con el que juegas. Tu nombre, avatar, estado, poder, Horno, puntuación del Laberinto y alianza se rellenan desde WOSOracle. Se actualizan cada lunes, y puedes actualizarlos a mano una vez al día.",
   "Tell us your joiner heroes":
     "Dinos tus héroes de apoyo",
   "On Account, tick every joiner hero you have at 4★ or higher. Rallies only give you a hero you own, so this decides which rally you can join.":
@@ -522,12 +644,6 @@ const spanishInterface: Record<string, string> = {
     "Cómo se crean los rallies",
   "Adjust by hand":
     "Ajusta a mano",
-  "Members and join requests":
-    "Miembros y solicitudes de unión",
-  "A WOS ID claimed by the wrong person":
-    "Un WOS ID reclamado por la persona equivocada",
-  "Under Release a claimed WOS ID, enter the ID. It is removed from the login that claimed it so the real player can add it.":
-    "En Liberar un WOS ID reclamado, introduce el ID. Se quita del usuario que lo reclamó para que el jugador real pueda añadirlo.",
   "Notices and tags":
     "Avisos y etiquetas",
   "Send notices to the whole state, one alliance or everyone with a tag. Tags are for your own groupings; rally and hero tags are created automatically when you publish.":
@@ -692,8 +808,6 @@ const spanishInterface: Record<string, string> = {
   "Join your state": "Únete a tu estado",
   "Sign in to see your SvS, your rally and your send times.":
     "Inicia sesión para ver tu SvS, tu rally y tus horas de envío.",
-  "Create an account with your WOS ID; your state's admins get your join request automatically.":
-    "Crea una cuenta con tu WOS ID; los admins de tu estado reciben tu solicitud automáticamente.",
   "State management": "Gestión del estado",
   "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
     "Miembros, alianzas y cómo la automatización prepara cada SvS. La planificación y las batallas funcionan solas.",
@@ -704,14 +818,8 @@ const spanishInterface: Record<string, string> = {
     "Elige abajo a los jugadores del rival. Sus coordenadas se recuerdan: en la próxima batalla se rellenan solas y los líderes que añadiste antes aparecen automáticamente al empezar.",
   "Coordinates from the last battle against this player.":
     "Coordenadas de la última batalla contra este jugador.",
-  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
-    "Aún no te has unido a un estado. Cuando el estado de tu cuenta WOS use WOSOverwatch, se envía una solicitud automáticamente; recibirás una notificación cuando un admin la apruebe.",
-  "That username may already be registered.":
-    "Ese nombre de usuario puede estar ya registrado.",
   "Review rallies": "Revisar rallies",
   "Vote now": "Votar ahora",
-  "Invitation delivered in the player's notification inbox.":
-    "Invitación entregada en la bandeja de notificaciones del jugador.",
   "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
     "Se rellena desde la cuenta WOS del dueño; sirve para buscar tu rival y hora de SvS en WOSOracle. Solo el dueño puede cambiarlo.",
   "Publish now? Every member gets their rally assignment.":
@@ -782,18 +890,7 @@ const spanishInterface: Record<string, string> = {
     "Se publican automáticamente el {time}.",
   "Publish them from Planning.": "Publícalos desde Planificación.",
   Add: "Añadir",
-  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.":
-    "Datos del jugador sincronizados. Se envió una solicitud para unirse a {state}; un dueño o admin la revisará.",
-  "Player data synchronized. Your request to join {state} is waiting for review.":
-    "Datos del jugador sincronizados. Tu solicitud para unirte a {state} está pendiente de revisión.",
-  "Player data synchronized. You have an invitation to {state}: accept it in Notifications.":
-    "Datos del jugador sincronizados. Tienes una invitación a {state}: acéptala en Notificaciones.",
-  "Join request: {player}": "Solicitud de ingreso: {player}",
-  "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.":
-    "{player} (WOS ID {wosId}) quiere unirse a {state}. Revisa la solicitud en Gestión del estado.",
   "Join request sent": "Solicitud de ingreso enviada",
-  "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.":
-    "{player} está en el estado {number}, así que se envió una solicitud para unirse a {state}. Un dueño o admin la revisará.",
   "End battle as a win": "Terminar la batalla con victoria",
   "End battle as a loss": "Terminar la batalla con derrota",
   Victory: "Victoria",
@@ -1107,27 +1204,12 @@ const spanishInterface: Record<string, string> = {
   "When to send": "Cuándo enviar",
   "Window {number}": "Ventana {number}",
   impact: "impacto",
-  "Claimed WOS ID": "WOS ID reclamado",
-  "If someone registered a WOS ID that is not theirs, release it so the real player can add it. Works for members of this state and for players WOSOracle lists in your in-game state.":
-    "Si alguien registró un WOS ID que no es suyo, libéralo para que el jugador real pueda añadirlo. Funciona para miembros de este estado y para jugadores que WOSOracle muestra en tu estado del juego.",
-  "Release WOS ID": "Liberar WOS ID",
-  "Release WOS ID {wosId}? It is removed from the login that claimed it, including all state memberships, so the real player can register it.":
-    "¿Liberar el WOS ID {wosId}? Se eliminará de la cuenta que lo reclamó, incluidas todas sus membresías de estado, para que el jugador real pueda registrarlo.",
-  "Release a claimed WOS ID": "Liberar un WOS ID reclamado",
-  "Releasing...": "Liberando...",
-  "That WOS ID is already registered. If it is yours, ask an admin of your state to release it.":
-    "Ese WOS ID ya está registrado. Si es tuyo, pide a un administrador de tu estado que lo libere.",
-  "The WOS ID could not be released.": "No se pudo liberar el WOS ID.",
-  "WOS ID {wosId} was released.": "El WOS ID {wosId} fue liberado.",
   "— March:": "— Marcha:",
   "/2000 characters": "/2000 caracteres",
-  Accept: "Aceptar",
   Account: "Cuenta",
   "Active announcements": "Anuncios activos",
   "Add a public comment": "Añadir un comentario público",
-  "Add another WOS account": "Añadir otra cuenta de WOS",
   "Add leader": "Añadir líder",
-  "Add WOS account": "Añadir cuenta de WOS",
   "Automatic player data has not been synchronized yet.":
     "Los datos automáticos del jugador aún no se han sincronizado.",
   Admin: "Administrador",
@@ -1175,8 +1257,6 @@ const spanishInterface: Record<string, string> = {
   "Cancel rally": "Cancelar rally",
   Cancelled: "Cancelada",
   Capacity: "Capacidad",
-  "Check your email to confirm your account.":
-    "Revisa tu correo para confirmar la cuenta.",
   "Choose a state": "Elegir un estado",
   "Choose alliance": "Elegir alianza",
   "Choose battle role": "Elegir rol de batalla",
@@ -1191,7 +1271,6 @@ const spanishInterface: Record<string, string> = {
   "Comment deleted.": "Comentario eliminado.",
   "Comment posted.": "Comentario publicado.",
   Comments: "Comentarios",
-  "Complete your account": "Completa tu cuenta",
   "Completed battles": "Batallas completadas",
   Coordinator: "Coordinador",
   Coordinators: "Coordinadores",
@@ -1200,19 +1279,14 @@ const spanishInterface: Record<string, string> = {
     "Crea las alianzas disponibles para los planificadores. Las asignaciones de miembros solo se administran desde Planificación de batalla y aparecen en el resumen después de publicar.",
   "Create the first destination for your battle plans.":
     "Crea el primer destino para tus planes de batalla.",
-  Decline: "Rechazar",
   Delete: "Eliminar",
   "Delete this comment?": "¿Eliminar este comentario?",
   "Destination alliance": "Alianza de destino",
   Edit: "Editar",
-  Email: "Correo electrónico",
   Ended: "Finalizada",
   "Enemy leaders": "Líderes enemigos",
   "Enter a name, Rally Lead, and destination alliance.":
     "Introduce un nombre, un líder de rally y una alianza de destino.",
-  "Enter a numeric WOS ID.": "Introduce un ID de WOS numérico.",
-  "Enter only the WOS ID. Name, avatar, state, Furnace and statistics are synchronized automatically.":
-    "Introduce solo el ID de WOS. El nombre, avatar, estado, Horno y estadísticas se sincronizan automáticamente.",
   "Enter a tag name.": "Introduce un nombre de etiqueta.",
   "Enter a title containing at least 3 characters.":
     "Introduce un título de al menos 3 caracteres.",
@@ -1220,8 +1294,6 @@ const spanishInterface: Record<string, string> = {
     "Introduce un nombre y una hora válidos para el plan.",
   "Enter an alliance name.": "Introduce un nombre de alianza.",
   "Enter an announcement message.": "Introduce el mensaje del anuncio.",
-  "Enter the player's registered WOS ID. They receive an in-app invitation and must accept it. You then verify the player before they receive state access.":
-    "Introduce el ID de WOS registrado del jugador. Recibirá una invitación dentro de la aplicación y deberá aceptarla. Después tendrás que verificarlo antes de concederle acceso.",
   "Enter your own position to see when you must send after calling the enemy rallies.":
     "Introduce tu posición para saber cuándo debes enviar después de registrar los rallies enemigos.",
   "Entire state": "Todo el estado",
@@ -1237,7 +1309,6 @@ const spanishInterface: Record<string, string> = {
   "Labyrinth score": "Puntuación de Laberinto",
   "Last synchronized: {date}": "Última sincronización: {date}",
   Instructions: "Instrucciones",
-  "Invite a WOS account": "Invitar una cuenta de WOS",
   "Join a state to view battle assignments":
     "Únete a un estado para ver las asignaciones de batalla",
   "Join a state to view notices": "Únete a un estado para ver los avisos",
@@ -1254,7 +1325,6 @@ const spanishInterface: Record<string, string> = {
   "Loading...": "Cargando...",
   Leaders: "Líderes",
   Loss: "Derrota",
-  Manage: "Administrar",
   "Manage enemy rally leaders": "Administrar líderes de rally enemigos",
   "Manage state": "Administrar estado",
   "Manage tags": "Administrar etiquetas",
@@ -1283,20 +1353,16 @@ const spanishInterface: Record<string, string> = {
   "No members assigned in the published plan.":
     "No hay miembros asignados en el plan publicado.",
   "No members found.": "No se encontraron miembros.",
-  "No players are waiting for approval.":
-    "No hay jugadores esperando aprobación.",
   "No public comments on this plan.":
     "No hay comentarios públicos en este plan.",
   "No published battle is currently scheduled.":
     "No hay ninguna batalla publicada programada actualmente.",
   "No tags yet": "Todavía no hay etiquetas",
-  "No WOS accounts added.": "No se han añadido cuentas de WOS.",
   "No alliance": "Sin alianza",
   "Not on the battle roster": "Fuera de la lista de batalla",
   Notes: "Notas",
   Notices: "Avisos",
   Notifications: "Notificaciones",
-  "Numeric WOS ID": "ID de WOS numérico",
   "Only state Owners and Admins can manage tags.":
     "Solo los propietarios y administradores pueden gestionar etiquetas.",
   "Only state owners and admins can manage this page.":
@@ -1314,7 +1380,6 @@ const spanishInterface: Record<string, string> = {
   Owner: "Propietario",
   "Owner and admin tools": "Herramientas del propietario y administradores",
   Owners: "Propietarios",
-  Password: "Contraseña",
   "Permission role": "Rol de permisos",
   "Pet active": "Mascota activa",
   "Pet active now": "Mascota activa ahora",
@@ -1326,13 +1391,10 @@ const spanishInterface: Record<string, string> = {
     "No se pudieron sincronizar los datos del jugador: {reason}",
   "Player data synchronized from WOSOracle.":
     "Datos del jugador sincronizados desde WOSOracle.",
-  "Player's WOS ID": "ID de WOS del jugador",
   Players: "Jugadores",
   "Position:": "Posición:",
   "Public — all state members": "Público: todos los miembros del estado",
   "Public comments": "Comentarios públicos",
-  "Public username": "Nombre de usuario público",
-  "Public username:": "Nombre de usuario público:",
   "Pending synchronization": "Sincronización pendiente",
   Power: "Potencia",
   "Published assignments": "Asignaciones publicadas",
@@ -1344,12 +1406,10 @@ const spanishInterface: Record<string, string> = {
   "Rally minutes remaining": "Minutos restantes del rally",
   "Rally seconds remaining": "Segundos restantes del rally",
   "Rally timer:": "Temporizador del rally:",
-  Reject: "Rechazar",
   "Remove leader": "Eliminar líder",
   Remove: "Eliminar",
   "Refresh player data": "Actualizar datos del jugador",
   "Reusable labels": "Etiquetas reutilizables",
-  "Review request": "Revisar solicitud",
   Save: "Guardar",
   "Save combat profile": "Guardar perfil de combate",
   "Save plan": "Guardar plan",
@@ -1363,7 +1423,6 @@ const spanishInterface: Record<string, string> = {
   "Select or join a state first.":
     "Primero selecciona un estado o únete a uno.",
   "Select rally leader": "Seleccionar líder de rally",
-  "Send invitation": "Enviar invitación",
   "Send notices": "Enviar avisos",
   "Send reinforcement at:": "Enviar refuerzo a las:",
   Sent: "Enviado",
@@ -1393,12 +1452,8 @@ const spanishInterface: Record<string, string> = {
     "Indica a los miembros seleccionados lo que necesitan saber.",
   "The selected WOS accounts are saved as the recipient list when you send. Notices expire automatically Sunday at 23:59 UTC.":
     "Las cuentas de WOS seleccionadas se guardan como destinatarios al enviar. Los avisos caducan automáticamente el domingo a las 23:59 UTC.",
-  "These players accepted an invitation. Confirm their identity outside the app before approving them.":
-    "Estos jugadores aceptaron una invitación. Confirma su identidad fuera de la aplicación antes de aprobarlos.",
   "This is the current published battle-day roster. Member assignments can only be changed from Battle Planning.":
     "Esta es la lista publicada para el día de batalla. Las asignaciones solo pueden cambiarse desde Planificación de batalla.",
-  "This WOS account cannot be removed while it belongs to a state.":
-    "Esta cuenta de WOS no puede eliminarse mientras pertenezca a un estado.",
   "This WOS account does not have a live battle role.":
     "Esta cuenta de WOS no tiene un rol de batalla en vivo.",
   "This WOS account has not been assigned to a rally group.":
@@ -1412,12 +1467,9 @@ const spanishInterface: Record<string, string> = {
   "Use a six-digit color code such as #e4a853.":
     "Usa un código de color de seis dígitos, como #e4a853.",
   Username: "Nombre de usuario",
-  "Verify and approve": "Verificar y aprobar",
   Visibility: "Visibilidad",
   VIP: "VIP",
   active: "activo",
-  "Waiting for owner verification": "Esperando verificación del propietario",
-  "Waiting for your verification": "Esperando tu verificación",
   Win: "Victoria",
   "WOS accounts": "Cuentas de WOS",
   "Troop details (manual)": "Detalles de tropas (manual)",
@@ -1435,19 +1487,12 @@ const spanishInterface: Record<string, string> = {
   "Your battle assignment, tags, alliance and operational messages.":
     "Tu asignación de batalla, etiquetas, alianza y mensajes operativos.",
   "Your battle notices": "Tus avisos de batalla",
-  "Your email is private and is never shown to other players.":
-    "Tu correo es privado y nunca se muestra a otros jugadores.",
-  "Your in-game name and public game data will be synchronized automatically from your WOS ID.":
-    "Tu nombre en el juego y tus datos públicos se sincronizarán automáticamente desde tu ID de WOS.",
   "Your march time:": "Tu tiempo de marcha:",
   "Your notices": "Tus avisos",
   "Your numeric WOS ID": "Tu ID de WOS numérico",
   "Your reinforcement setup": "Tu configuración de refuerzos",
   "Your reinforcement timing": "Tu horario de refuerzos",
   "Your tags": "Tus etiquetas",
-  "Your username is public. Your email remains private and is only used to sign in.":
-    "Tu nombre de usuario es público. Tu correo permanece privado y solo se usa para iniciar sesión.",
-  "Your WOS accounts": "Tus cuentas de WOS",
   "Your X coordinate": "Tu coordenada X",
   "Your Y coordinate": "Tu coordenada Y",
   " — Pet active": " — Mascota activa",
@@ -1461,15 +1506,12 @@ const spanishInterface: Record<string, string> = {
   alliances: "alianzas",
   Battle: "Batalla",
   "Battle period active": "Periodo de batalla activo",
-  "Complete setup": "Completar configuración",
-  "Create account": "Crear cuenta",
   "Create alliance": "Crear alianza",
   "Enable notifications": "Activar notificaciones",
   "Former member": "Antiguo miembro",
   Inactive: "Inactivo",
   "Live Battle": "Batalla en vivo",
   "Loading state memberships...": "Cargando membresías de estado...",
-  "Need an account? Sign up": "¿Necesitas una cuenta? Regístrate",
   "Not in a state": "No pertenece a ningún estado",
   "Not selected": "Sin seleccionar",
   "Not started": "No iniciada",
@@ -1497,10 +1539,7 @@ const spanishInterface: Record<string, string> = {
   UNCLASSIFIED: "SIN CLASIFICAR",
   Unknown: "Desconocido",
   "Unnamed account": "Cuenta sin nombre",
-  "Unnamed WOS account": "Cuenta de WOS sin nombre",
-  "Already have an account? Sign in": "¿Ya tienes una cuenta? Inicia sesión",
   " · permanent system tag": " · etiqueta permanente del sistema",
-  " — expires {date}": " — caduca {date}",
   "Alliance assigned": "Alianza asignada",
   "Alliance assignment changed": "Asignación de alianza modificada",
   "Alliance assignment removed": "Asignación de alianza eliminada",
@@ -1538,9 +1577,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     notifications: "通知",
     unreadNotifications: "条未读通知",
     openProfileMenu: "打开个人资料菜单",
-    setupRequired: "需要完成设置",
     profile: "个人资料",
-    wosAccounts: "WOS 账号",
     signOut: "退出登录",
     signIn: "登录",
     overwatch: "指挥中心",
@@ -1562,9 +1599,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     notifications: "Notificaciones",
     unreadNotifications: "notificaciones sin leer",
     openProfileMenu: "Abrir menú del perfil",
-    setupRequired: "Configuración necesaria",
     profile: "Perfil",
-    wosAccounts: "Cuentas de WOS",
     signOut: "Cerrar sesión",
     signIn: "Iniciar sesión",
     overwatch: "Overwatch",
@@ -1587,9 +1622,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     notifications: "الإشعارات",
     unreadNotifications: "إشعارات غير مقروءة",
     openProfileMenu: "فتح قائمة الملف الشخصي",
-    setupRequired: "الإعداد مطلوب",
     profile: "الملف الشخصي",
-    wosAccounts: "حسابات WOS",
     signOut: "تسجيل الخروج",
     signIn: "تسجيل الدخول",
     overwatch: "مركز القيادة",
@@ -1611,9 +1644,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     notifications: "การแจ้งเตือน",
     unreadNotifications: "การแจ้งเตือนที่ยังไม่ได้อ่าน",
     openProfileMenu: "เปิดเมนูโปรไฟล์",
-    setupRequired: "ต้องตั้งค่าให้เสร็จ",
     profile: "โปรไฟล์",
-    wosAccounts: "บัญชี WOS",
     signOut: "ออกจากระบบ",
     signIn: "เข้าสู่ระบบ",
     overwatch: "โอเวอร์วอทช์",

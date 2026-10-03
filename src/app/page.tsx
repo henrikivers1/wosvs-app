@@ -25,7 +25,7 @@ export default function Home() {
   if (!signedIn) return <LandingPage />;
 
   // Members land on Overwatch (their SvS, vote and assignment); players
-  // without a state on Account, where adding a WOS ID sends the join request.
+  // without a state on Account, which tells them to ask for the join link.
   return (
     <main>
       <AppHeader />

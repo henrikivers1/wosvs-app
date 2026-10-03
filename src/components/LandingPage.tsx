@@ -84,7 +84,7 @@ const QUESTIONS = [
   },
   {
     q: "How does my state get started?",
-    a: "Your state owner signs up and messages us on Discord (wosoverwatch), and we set the state up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.",
+    a: "Your state leader messages us on Discord (wosoverwatch) and we set the state up. The leader then shares a join link and first-time PIN in your chats; members open it, enter their WOS ID and choose their own PIN.",
   },
   {
     q: "Which languages are supported?",
@@ -120,7 +120,7 @@ export function LandingPage() {
               {t("Try the free demo")}
             </button>
             <Link className="secondary-link landing-cta" href="/login">
-              {t("Create your account")}
+              {t("Sign in")}
             </Link>
           </div>
           <p className="landing-note">

@@ -32,18 +32,27 @@ size, default formation and joiner heroes can be changed, in **State
 management → SvS automation**. Nothing the automation does overwrites manual
 changes.
 
-### Joining a state
+### Signing in and joining a state
 
-1. Sign up with email, username and WOS ID (`handle_new_user` stores the
-   account; an already-claimed WOS ID no longer breaks signup).
-2. New players land on Account, which syncs the WOS ID from WOSOracle.
-3. If an app state has that in-game state number, a **join request** is
-   created (`request_state_join_for_account`) and owners/admins are notified.
-   The same happens when an account transfers to another state.
-4. An owner/admin approves it in State management (`review_state_invite`).
-   Admins can also invite a WOS ID directly; the player accepts in the inbox.
-5. A state's in-game number fills itself in from the owner's synced account
-   (`fill_state_number_from_owner`).
+Everyone signs in with **WOS ID + PIN** (6–12 digits); one WOS ID per login.
+On top of Supabase Auth: each login is an email login whose password is
+`HMAC(AUTH_PIN_PEPPER, user id + PIN)` (`lib/pinAuth.ts`), so PINs can only be
+tried through `/api/auth/*`, which locks a WOS ID for 15 minutes after 5 wrong
+PINs (`auth_pin_attempts`). Public sign-up is off in Supabase.
+
+1. A leader asks us on Discord. An operator (`OPERATOR_WOS_IDS`) creates the
+   state on `/operator` from the leader's WOS ID; WOSOracle gives the state
+   number. A new leader gets a one-time PIN (`profiles.must_change_pin`).
+2. The leader makes a **join link** in State management
+   (`create_state_join_link`): a token and a first-time PIN, shared in chats,
+   valid until a new one is made.
+3. A player opens `/join/<token>`, enters WOS ID and the first-time PIN.
+   WOSOracle must list the WOS ID in the state's in-game number; then the
+   player chooses a PIN, the login is created and they are a member at once.
+   A player who already has a login enters their own PIN instead.
+4. Owners and admins **Reset PIN** on a member (`authorize_pin_reset`): a
+   one-time PIN, all sessions ended. This is also how a WOS ID someone else
+   joined with goes back to its real player.
 
 ## 2. Scheduled jobs
 
@@ -96,13 +105,15 @@ Typical cost per state:
 | Route | For | What it does |
 |---|---|---|
 | `/` | everyone | Landing page when signed out; members are sent to Overwatch and players without a state to Account |
-| `/login`, `/auth/confirm`, `/account/setup` | everyone | Sign in / sign up, email confirmation, username fallback for old accounts |
-| `/account` | everyone | WOS accounts (add, sync, remove), join request status, 4★ joiner heroes, manual troop/FC fields |
-| `/notifications` | everyone | Inbox, colour per action, filters, invitation accept/decline |
+| `/login` | everyone | Sign in with WOS ID and PIN; the demo |
+| `/join/[token]` | everyone | Join a state with its link and first-time PIN |
+| `/account`, `/account/pin` | everyone | Your WOS ID (sync), 4★ joiner heroes, manual troop/FC fields; change PIN (forced after a one-time PIN) |
+| `/notifications` | everyone | Inbox, colour per action, filters |
+| `/operator` | operators | Create states, one-time PINs |
 | `/state/overwatch` | members | Next SvS, attendance vote, own rally/hero/formation, notices, plan comments |
 | `/state/intel` | members | Opponent and own state from the stored intel |
 | `/state/planning` | admins | Next SvS checklist (one gold button per step), Needs attention (`planIssues.ts`: each problem with a one-tap fix), waiting list beside compact rally columns (drag, player sheet, rally ⋯ menu for setup/heroes/edit/delete), plan ⋯ menu (add rally, rebuild all, edit, delete), Rally Leads panel, folded comments, plan history. Auto-fill priorities live in State management → SvS automation |
-| `/state/manage` | admins | Alliances, invitations and approvals, in-game number and hero generation, SvS automation settings, release a claimed WOS ID, members (role, Coordinator/Garrison, remove) |
+| `/state/manage` | admins | Join link, alliances, in-game number and hero generation, SvS automation settings, members (role, Coordinator/Garrison, Reset PIN, remove) |
 | `/state/alliances` | members | Published alliance rosters and alliance notices |
 | `/state/announcements` | admins | Send and remove notices |
 | `/state/tags` | admins | Custom tags and their players (rally/hero tags are automatic) |
@@ -122,11 +133,15 @@ realtime, plus the synced server clock.
 |---|---|---|
 | `POST /api/automation/run` | pg_cron (secret), admins (SvS status "Check now") | The hourly job (section 1) |
 | `POST /api/automation/plan` | Planning checklist | Generate/fill or publish one plan now (`runAutoPlan`) |
-| `POST /api/oracle/player-sync` | Account page | Sync one WOS account (once a day by hand) and send the join request |
+| `POST /api/auth/login` | Sign in | WOS ID + PIN, lockout |
+| `GET/POST /api/auth/join` | Join page | State of a link; check WOS ID, then create the login or sign in, and add the member |
+| `POST /api/auth/pin` | Change PIN | New PIN (current PIN unless it was a one-time PIN) |
+| `POST /api/auth/reset-pin` | State management | One-time PIN for a member |
+| `GET/POST /api/operator/states` | `/operator` | List and create states, one-time PIN for anyone |
+| `POST /api/oracle/player-sync` | Account page | Sync your WOS account (once a day by hand) |
 | `GET /api/oracle/opponent` | Enemy leaders | Opponent alliances and top players, from stored intel first |
 | `GET /api/oracle/roster` | Enemy leaders | One opponent alliance's members |
 | `GET /api/oracle/state-alliances`, `/alliance` | State management (admins) | Import alliances, add one by ID |
-| `POST /api/accounts/release-claim` | State management (admins) | Free a WOS ID claimed by the wrong user |
 | `GET /api/time` | Live battle | Server time for the clock sync |
 
 Every state route checks membership with `requireStateMember`
@@ -141,7 +156,8 @@ query in parallel.
 | `autoPlan.ts` | Reminders, rally generation, filling and publishing for one plan |
 | `autofill.ts` | Pure ranking/assignment logic, shared by the server and the Planning page |
 | `wosOracle.ts`, `wosOracleState.ts` | WOSOracle client, cache, budget, one fetcher per endpoint |
-| `playerSync.ts` | Player data from WOSOracle into `wos_accounts`, join request on new/transferred accounts |
+| `playerSync.ts` | Player data from WOSOracle into `wos_accounts` |
+| `pinAuth.ts` | PIN passwords, lockout, creating logins |
 | `stateAccess.ts`, `battleAccess.ts` | Who may use a state route or live battle tool |
 | `svsTime.ts`, `attendance.ts` | Battle time and attendance options |
 | `reinforcementWindows.ts`, `rallyTime.ts`, `serverClock.ts`, `battleDisplay.ts` | Live battle timing |
@@ -155,8 +171,8 @@ query in parallel.
 
 | Area | Functions |
 |---|---|
-| Accounts | `complete_account_setup`, `set_player_heroes` |
-| Membership | `create_state_join_invite`, `respond_to_state_invite`, `review_state_invite`, `set_state_member_role`, `set_state_member_capability`, `remove_state_member`, `set_state_rally_lead`, `set_state_castle_holder` |
+| Accounts | `set_player_heroes` |
+| Membership | `create_state_join_link`, `get_state_join_link`, `authorize_pin_reset`, `set_state_member_role`, `set_state_member_capability`, `remove_state_member`, `set_state_rally_lead`, `set_state_castle_holder` |
 | State settings | `set_state_hero_generation`, `set_state_automation`, `create/update/delete_state_alliance`, `create/update/delete_state_tag` |
 | SvS plan | `create_svs_plan`, `update_battle_plan`, `set_battle_plan_opponent`, `delete_battle_plan`, `get_upcoming_svs`, `set_battle_attendance` |
 | Rallies | `create/update/delete_battle_plan_group`, `create_garrison_group`, `set_battle_plan_group_rotation` (lead per pet block), `set_battle_plan_group_setup`, `set_battle_plan_assignment`, `set_assignment_details`, `apply_battle_plan_autofill`, `publish_battle_plan_with_notifications` |
@@ -166,7 +182,7 @@ query in parallel.
 
 ### Server only (service role)
 
-- **Automation:** `automation_ensure_svs_plan`, `automation_advance_battles`, `automation_set_battle_result`, `publish_battle_plan`, `request_state_join_for_account`, `release_wos_account_claim`.
+- **Automation:** `automation_ensure_svs_plan`, `automation_advance_battles`, `automation_set_battle_result`, `publish_battle_plan`; for `/api/auth/*`: `pin_locked_until`, `record_pin_failure`, `clear_pin_failures`, `end_user_sessions`.
 - **WOSOracle budget:** `reserve_oracle_request`. `count_oracle_request` is the older counter, kept as a fallback until the new migration has run.
 - **Notifications:** `queue_account_notification`, `notify_member_action`, `account_display_name`.
 
@@ -197,7 +213,7 @@ query in parallel.
 | role | purple | `member_role_changed`, `capability_granted` |
 | tag | the tag's colour | `state_tag_awarded` |
 | alliance | gold | `state_alliance_assigned` |
-| membership | cyan | `state_invite`, `state_invite_accepted`, `state_invite_approved`, `state_join_request`, `state_join_requested` |
+| membership | cyan | older invite and join request notifications only |
 | removal | dark rose | `member_removed`, `capability_revoked`, `state_tag_removed`, `state_alliance_removed`, `battle_plan_assignment_removed`, `wos_account_released`, `state_invite_rejected` |
 | comment / notice | grey / sand | plan comments and mentions, `state_announcement` |
 
@@ -220,6 +236,7 @@ WOSOracle:
   - The manual battle-period flow (`start/end_state_battle`, `activate_scheduled_battle`, `complete_active_battle`).
   - Polls and votes (four functions, three tables, the trigger) and state-creation invites.
   - The token invite link (`accept_state_invite`, `/invite/[token]`).
+  - Later, with WOS ID + PIN sign-in: email sign-up, invitations, join requests, claim releases and several WOS IDs per login (`state_invites` and its functions).
   - Bulk moves (`assign_tagged_members_to_alliance`, `bulk_assign_battle_plan_members`, `state_tags.bulk_move_limit`), `set_state_alliance_member`, `create_battle_plan`.
   - Superseded overloads.
 - **Duplicate notifications** on publish, member removal and permission switches.
@@ -232,9 +249,8 @@ WOSOracle:
 - **Enemy leader coordinates the first time a player is seen.** WOSOracle's map
   needs a higher plan; after that they are remembered.
 - **Calling an enemy rally** (the in-game timer is only visible in the game).
-- **Approving join requests:** anyone can type any WOS ID, and WOSOracle
-  cannot prove who owns one. Limits: 10 WOS accounts per login, admins
-  release a wrong claim, and a state's in-game number must match its owner's
-  synced account and is unique across Overwatch.
-- **Owners creating a state:** there is no "create state" flow in the app yet.
+- **Proving who owns a WOS ID:** WOSOracle cannot. Anyone with the join link
+  and first-time PIN can join with an unused WOS ID of that state; an admin
+  then resets that WOS ID's PIN for the real player.
+- **Creating a state:** leaders ask on Discord and an operator creates it.
 

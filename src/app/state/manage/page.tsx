@@ -10,21 +10,14 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { SvsStatus } from "@/components/SvsStatus";
 import { OracleAlliancePicker } from "@/components/OracleAlliancePicker";
 import { LATEST_HERO_GENERATION } from "@/lib/heroes";
+import { JoinLinkCard } from "@/components/JoinLinkCard";
 
 type StateMember = {
   wosAccountId: string;
   wosId: string;
   nickname: string | null;
-  username: string | null;
   role: StateRole;
   capabilities: StateCapability[];
-};
-
-type PendingApproval = {
-  inviteId: string;
-  wosId: string;
-  nickname: string | null;
-  expiresAt: string;
 };
 
 type StateAlliance = {
@@ -38,18 +31,16 @@ type StateAlliance = {
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 export default function ManageStatePage() {
-  const { t, formatDateTime } = useLanguage();
+  const { t } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const { activeMembership, memberships, refreshMemberships } = useStates();
   const [members, setMembers] = useState<StateMember[]>([]);
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>(
-    [],
+  // The one-time PIN just given to a member, shown until dismissed.
+  const [resetPin, setResetPin] = useState<{ name: string; pin: string } | null>(
+    null,
   );
-  const [inviteWosId, setInviteWosId] = useState("");
   const [gameStateNumber, setGameStateNumber] = useState("");
   const [heroGeneration, setHeroGeneration] = useState<number | null>(null);
-  const [releaseWosId, setReleaseWosId] = useState("");
-  const [releasingClaim, setReleasingClaim] = useState(false);
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [allianceName, setAllianceName] = useState("");
   const [allianceColor, setAllianceColor] = useState("#4f8fba");
@@ -69,14 +60,12 @@ export default function ManageStatePage() {
       !["owner", "admin"].includes(activeMembership.role)
     ) {
       setMembers([]);
-      setPendingApprovals([]);
       setAlliances([]);
       return;
     }
 
     const [
       { data: memberRows, error: memberError },
-      { data: inviteRows },
       { data: capabilityRows },
       { data: allianceRows, error: allianceError },
       { data: allianceAssignmentRows, error: allianceAssignmentError },
@@ -85,12 +74,6 @@ export default function ManageStatePage() {
         .from("state_members")
         .select("wos_account_id, role")
         .eq("state_id", activeMembership.stateId),
-      supabase
-        .from("state_invites")
-        .select("id, invited_wos_account_id, expires_at")
-        .eq("state_id", activeMembership.stateId)
-        .eq("status", "pending_owner")
-        .order("created_at"),
       supabase
         .from("state_member_capabilities")
         .select("wos_account_id, capability")
@@ -137,37 +120,14 @@ export default function ManageStatePage() {
     );
 
     const memberAccountIds = memberRows.map((row) => row.wos_account_id);
-    const pendingAccountIds = (inviteRows ?? []).map(
-      (row) => row.invited_wos_account_id,
-    );
-    const accountIds = [
-      ...new Set([...memberAccountIds, ...pendingAccountIds]),
-    ];
-    const { data: accounts } = accountIds.length
+    const { data: accounts } = memberAccountIds.length
       ? await supabase
           .from("wos_accounts")
           .select("id, user_id, wos_id, nickname")
-          .in("id", accountIds)
+          .in("id", memberAccountIds)
       : { data: [] };
-    const memberUserIds = [
-      ...new Set(
-        (accounts ?? [])
-          .filter((account) => memberAccountIds.includes(account.id))
-          .map((account) => account.user_id),
-      ),
-    ];
-    const { data: profiles } = memberUserIds.length
-      ? await supabase
-          .from("profiles")
-          .select("id, username")
-          .in("id", memberUserIds)
-      : { data: [] };
-
     const accountById = new Map(
       (accounts ?? []).map((account) => [account.id, account]),
-    );
-    const usernameByUserId = new Map(
-      (profiles ?? []).map((profile) => [profile.id, profile.username]),
     );
     setMembers(
       memberRows.flatMap((row) => {
@@ -178,7 +138,6 @@ export default function ManageStatePage() {
             wosAccountId: account.id,
             wosId: account.wos_id,
             nickname: account.nickname,
-            username: usernameByUserId.get(account.user_id) ?? null,
             role: row.role as StateRole,
             capabilities: (capabilityRows ?? [])
               .filter((capability) => capability.wos_account_id === account.id)
@@ -188,20 +147,6 @@ export default function ManageStatePage() {
       }),
     );
 
-    setPendingApprovals(
-      (inviteRows ?? []).flatMap((invite) => {
-        const account = accountById.get(invite.invited_wos_account_id);
-        if (!account) return [];
-        return [
-          {
-            inviteId: invite.id,
-            wosId: account.wos_id,
-            nickname: account.nickname,
-            expiresAt: invite.expires_at,
-          },
-        ];
-      }),
-    );
   }, [activeMembership, supabase]);
 
   useEffect(() => {
@@ -340,29 +285,6 @@ export default function ManageStatePage() {
     setSavingAlliance(false);
   }
 
-  async function createInvitation() {
-    if (!activeMembership || !inviteWosId.trim()) return;
-    setMessage("");
-
-    const { error } = await supabase.rpc("create_state_join_invite", {
-      target_state_id: activeMembership.stateId,
-      target_wos_id: inviteWosId.trim(),
-      valid_for_hours: 72,
-    });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setInviteWosId("");
-    setMessage(
-      t(
-        "Invitation delivered in the player's notification inbox.",
-      ),
-    );
-  }
-
   async function saveHeroGeneration(value: number | null) {
     if (!activeMembership) return;
     setHeroGeneration(value);
@@ -392,69 +314,38 @@ export default function ManageStatePage() {
     setMessage(t("In-game state number saved."));
   }
 
-  async function releaseClaim() {
-    const wosId = releaseWosId.trim();
-    if (!activeMembership || !/^[0-9]+$/.test(wosId)) {
-      setMessage(t("Enter a numeric WOS ID."));
-      return;
-    }
+  async function resetMemberPin(member: StateMember) {
+    if (!activeMembership) return;
+    const name = member.nickname || member.wosId;
     if (
       !window.confirm(
         t(
-          "Release WOS ID {wosId}? It is removed from the login that claimed it, including all state memberships, so the real player can register it.",
-          { wosId },
+          "Give {player} a one-time PIN? Their current PIN stops working and they are signed out.",
+          { player: name },
         ),
       )
     ) {
       return;
     }
-
-    setReleasingClaim(true);
     setMessage("");
     try {
-      const response = await fetch("/api/accounts/release-claim", {
+      const response = await fetch("/api/auth/reset-pin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           stateId: activeMembership.stateId,
-          actorAccountId: activeMembership.wosAccountId,
-          wosId,
+          wosAccountId: member.wosAccountId,
         }),
       });
-      const result = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        setMessage(result.error || t("The WOS ID could not be released."));
+      const result = (await response.json()) as { pin?: string; error?: string };
+      if (!response.ok || !result.pin) {
+        setMessage(t(result.error ?? "The PIN could not be reset."));
         return;
       }
-      setReleaseWosId("");
-      setMessage(t("WOS ID {wosId} was released.", { wosId }));
-      await loadStateManagement();
+      setResetPin({ name, pin: result.pin });
     } catch {
-      setMessage(t("The WOS ID could not be released."));
-    } finally {
-      setReleasingClaim(false);
+      setMessage(t("The PIN could not be reset."));
     }
-  }
-
-  async function reviewInvitation(inviteId: string, approveInvite: boolean) {
-    setMessage("");
-    const { error } = await supabase.rpc("review_state_invite", {
-      target_invite_id: inviteId,
-      approve_invite: approveInvite,
-    });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage(
-      approveInvite
-        ? "Player verified and added as a regular member."
-        : "Membership request rejected.",
-    );
-    await loadStateManagement();
-    await refreshMemberships();
   }
 
   async function changeRole(
@@ -577,6 +468,10 @@ export default function ManageStatePage() {
         stateId={activeMembership.stateId}
         canRunCheck
         onChecked={() => void refreshMemberships()}
+      />
+      <JoinLinkCard
+        stateId={activeMembership.stateId}
+        stateName={activeMembership.stateName}
       />
 
       <section>
@@ -772,32 +667,6 @@ export default function ManageStatePage() {
         )}
       </section>
 
-      <section>
-        <h2>
-          {t("Manage")} {activeMembership.stateName}
-        </h2>
-        <h3>{t("Invite a WOS account")}</h3>
-        <p>
-          {t(
-            "Enter the player's registered WOS ID. They receive an in-app invitation and must accept it. You then verify the player before they receive state access.",
-          )}
-        </p>
-        <div className="invite-form">
-          <label>
-            {t("WOS ID")}
-            <input
-              type="text"
-              inputMode="numeric"
-              value={inviteWosId}
-              onChange={(event) => setInviteWosId(event.target.value)}
-              placeholder={t("Player's WOS ID")}
-            />
-          </label>
-          <button type="button" onClick={createInvitation}>
-            {t("Send invitation")}
-          </button>
-        </div>
-      </section>
 
       <section>
         <h2>{t("In-game state")}</h2>
@@ -859,84 +728,25 @@ export default function ManageStatePage() {
       />
 
       <section>
-        <h2>{t("Release a claimed WOS ID")}</h2>
-        <p>
-          {t(
-            "If someone registered a WOS ID that is not theirs, release it so the real player can add it. Works for members of this state and for players WOSOracle lists in your in-game state.",
-          )}
-        </p>
-        <div className="invite-form">
-          <label>
-            {t("WOS ID")}
-            <input
-              type="text"
-              inputMode="numeric"
-              value={releaseWosId}
-              onChange={(event) => setReleaseWosId(event.target.value)}
-              placeholder={t("Claimed WOS ID")}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => void releaseClaim()}
-            disabled={releasingClaim}
-          >
-            {releasingClaim ? t("Releasing...") : t("Release WOS ID")}
-          </button>
-        </div>
-      </section>
-
-      <section>
-        <h2>{t("Waiting for your verification")}</h2>
-        <p>
-          {t(
-            "These players accepted an invitation. Confirm their identity outside the app before approving them.",
-          )}
-        </p>
-        {pendingApprovals.length === 0 ? (
-          <p>{t("No players are waiting for approval.")}</p>
-        ) : (
-          <ul>
-            {pendingApprovals.map((approval) => (
-              <li key={approval.inviteId}>
-                <span>
-                  <strong>
-                    {approval.nickname || t("Unnamed WOS account")}
-                  </strong>
-                  {" — WOS ID " + approval.wosId}
-                  <small>
-                    {t(" — expires {date}", {
-                      date: formatDateTime(approval.expiresAt),
-                    })}
-                  </small>
-                </span>
-                <div className="member-actions">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      void reviewInvitation(approval.inviteId, true)
-                    }
-                  >
-                    {t("Verify and approve")}
-                  </button>
-                  <button
-                    type="button"
-                    className="danger-button"
-                    onClick={() =>
-                      void reviewInvitation(approval.inviteId, false)
-                    }
-                  >
-                    {t("Reject")}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
         <h2>{t("State members")}</h2>
+        {resetPin && (
+          <div className="pin-reveal" role="status">
+            <p>
+              {t(
+                "One-time PIN for {player}. Send it to them privately; they choose their own PIN when they sign in.",
+                { player: resetPin.name },
+              )}
+            </p>
+            <strong className="pin-code">{resetPin.pin}</strong>
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => setResetPin(null)}
+            >
+              {t("Done")}
+            </button>
+          </div>
+        )}
         {members.length === 0 ? (
           <p>{t("No members found.")}</p>
         ) : (
@@ -947,7 +757,6 @@ export default function ManageStatePage() {
                   <strong>{member.nickname || member.wosId}</strong>
                   <small>
                     {"WOS ID " + member.wosId}
-                    {member.username ? " · @" + member.username : ""}
                   </small>
                 </span>
                 {member.role === "owner" ? (
@@ -1005,6 +814,17 @@ export default function ManageStatePage() {
                       />
                       <span>{t("Garrison")}</span>
                     </label>
+                    {(activeMembership.role === "owner" ||
+                      member.role === "member") &&
+                      member.wosAccountId !== activeMembership.wosAccountId && (
+                      <button
+                        type="button"
+                        className="secondary-link"
+                        onClick={() => void resetMemberPin(member)}
+                      >
+                        {t("Reset PIN")}
+                      </button>
+                    )}
                     {(activeMembership.role === "owner" ||
                       member.role === "member") && (
                       <button

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
@@ -75,8 +76,6 @@ export default function AccountPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { memberships, loadingStates } = useStates();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [username, setUsername] = useState("");
 
   function roleLabel(role: string) {
     if (role === "owner") return t("Owner");
@@ -87,7 +86,6 @@ export default function AccountPage() {
   const [combatProfiles, setCombatProfiles] = useState<
     Record<string, CombatProfile>
   >({});
-  const [newWosId, setNewWosId] = useState("");
   const [message, setMessage] = useState("");
   const [syncingIds, setSyncingIds] = useState<string[]>([]);
   const automaticSyncAttempts = useRef<Set<string>>(new Set());
@@ -102,29 +100,13 @@ export default function AccountPage() {
       return;
     }
 
-    setUserId(user.id);
-    const [{ data: profile }, { data: savedAccounts }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", user.id)
-        .maybeSingle(),
-      supabase
+    const { data: savedAccounts } = await supabase
         .from("wos_accounts")
         .select(
           "id, wos_id, nickname, is_configured, furnace_level, furnace_level_raw, power, chief_level, vip_level, kills, labyrinth_score, game_avatar_url, state_number, alliance_abbr, alliance_name, game_active, player_data_updated_at, player_data_synced_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
         )
-        .eq("user_id", user.id)
-        .eq("is_configured", true)
-        .order("created_at"),
-    ]);
+        .eq("user_id", user.id);
 
-    if (!profile?.username) {
-      router.replace("/account/setup");
-      return;
-    }
-
-    setUsername(profile.username);
     const loadedAccounts = (savedAccounts ?? []) as WosAccount[];
     setAccounts(loadedAccounts);
     setCombatProfiles(
@@ -170,7 +152,6 @@ export default function AccountPage() {
         const result = (await response.json()) as {
           error?: string;
           cached?: boolean;
-          joinRequest?: { status: string; state_name?: string } | null;
         };
 
         if (!response.ok) {
@@ -186,26 +167,7 @@ export default function AccountPage() {
             );
           }
         } else {
-          const join = result.joinRequest;
-          const stateName = join?.state_name ?? "";
-          setMessage(
-            join?.status === "requested"
-              ? t(
-                  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.",
-                  { state: stateName },
-                )
-              : join?.status === "pending"
-                ? t(
-                    "Player data synchronized. Your request to join {state} is waiting for review.",
-                    { state: stateName },
-                  )
-                : join?.status === "invited"
-                  ? t(
-                      "Player data synchronized. You have an invitation to {state}: accept it in Notifications.",
-                      { state: stateName },
-                    )
-                  : t("Player data synchronized from WOSOracle."),
-          );
+          setMessage(t("Player data synchronized from WOSOracle."));
           await loadAccount();
         }
       } catch (error) {
@@ -234,56 +196,6 @@ export default function AccountPage() {
       }
     });
   }, [accounts, syncPlayer]);
-
-  async function addWosAccount() {
-    if (!userId || !/^[0-9]+$/.test(newWosId.trim())) {
-      setMessage(t("Enter a numeric WOS ID."));
-      return;
-    }
-
-    setMessage("");
-    const { data: createdAccount, error } = await supabase
-      .from("wos_accounts")
-      .insert({
-        user_id: userId,
-        wos_id: newWosId.trim(),
-        is_configured: true,
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      setMessage(
-        error.code === "23505"
-          ? t(
-              "That WOS ID is already registered. If it is yours, ask an admin of your state to release it.",
-            )
-          : error.message,
-      );
-      return;
-    }
-
-    setNewWosId("");
-    automaticSyncAttempts.current.add(createdAccount.id);
-    await syncPlayer(createdAccount.id, true);
-  }
-
-  async function removeWosAccount(id: string) {
-    const { data, error } = await supabase
-      .from("wos_accounts")
-      .delete()
-      .eq("id", id)
-      .select("id");
-
-    if (error || !data || data.length === 0) {
-      setMessage(
-        t("This WOS account cannot be removed while it belongs to a state."),
-      );
-      return;
-    }
-
-    await loadAccount();
-  }
 
   async function saveCombatProfile(accountId: string) {
     const profile = combatProfiles[accountId];
@@ -322,26 +234,22 @@ export default function AccountPage() {
       <section className="page-heading">
         <h1>{t("Account")}</h1>
         <p>
-          {t("Public username:")}{" "}
-          <strong>
-            {"@"}
-            {username}
-          </strong>
+          {t("You sign in with your WOS ID and your PIN.")}{" "}
+          <Link href="/account/pin">{t("Change PIN")}</Link>
         </p>
-        <p>{t("Your email is private and is never shown to other players.")}</p>
         {!loadingStates && memberships.length === 0 && (
           <p className="page-message">
             {t(
-              "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.",
+              "You are not in a state. Ask your state leader for the join link and first-time PIN.",
             )}
           </p>
         )}
       </section>
 
       <section>
-        <h2>{t("Your WOS accounts")}</h2>
+        <h2>{t("Your WOS account")}</h2>
         {accounts.length === 0 ? (
-          <p>{t("No WOS accounts added.")}</p>
+          <p>{t("Loading...")}</p>
         ) : (
           <ul>
             {accounts.map((account) => {
@@ -533,38 +441,12 @@ export default function AccountPage() {
                       </button>
                     </details>
                   </div>
-                  <button
-                    type="button"
-                    className="danger-button"
-                    onClick={() => void removeWosAccount(account.id)}
-                  >
-                    {t("Remove")}
-                  </button>
                 </li>
               );
             })}
           </ul>
         )}
 
-        <h3>{t("Add another WOS account")}</h3>
-        <p>
-          {t(
-            "Enter only the WOS ID. Name, avatar, state, Furnace and statistics are synchronized automatically.",
-          )}
-        </p>
-        <label>
-          {t("WOS ID")}
-          <input
-            type="text"
-            inputMode="numeric"
-            value={newWosId}
-            onChange={(event) => setNewWosId(event.target.value)}
-            placeholder={t("Numeric WOS ID")}
-          />
-        </label>
-        <button className="primary-button" type="button" onClick={addWosAccount}>
-          {t("Add WOS account")}
-        </button>
         {message && <p className="auth-message">{message}</p>}
       </section>
     </main>

@@ -504,7 +504,7 @@ export function buildDemoSeed(now: Date): DemoTables {
     battle_plan_comments: [],
     state_announcements: [],
     state_announcement_recipients: [],
-    state_invites: [],
+    state_join_links: [],
     notifications: [
       {
         id: 1,

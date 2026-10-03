@@ -10,7 +10,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
-import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
 import {
@@ -23,7 +22,6 @@ import {
 
 type NotificationData = {
   announcement_id?: string;
-  invite_id?: string;
   plan_id?: string;
   state_id?: string;
   comment_id?: string;
@@ -48,17 +46,10 @@ type NotificationItem = {
 type AccountLabel = { id: string; nickname: string | null; wos_id: string };
 type StateLabel = { id: string; name: string };
 
-type InviteStatus = {
-  id: string;
-  status: string;
-};
-
 // Where each notification type leads.
 const OVERWATCH = { href: "/state/overwatch", label: "Open Overwatch" };
 const HISTORY = { href: "/state/stats", label: "Open battle history" };
 const NOTIFICATION_LINKS: Record<string, { href: string; label: string }> = {
-  state_invite_accepted: { href: "/state/manage", label: "Review request" },
-  state_join_request: { href: "/state/manage", label: "Review request" },
   rallies_generated: { href: "/state/planning", label: "Review rallies" },
   attendance_reminder: { href: "/state/overwatch", label: "Vote now" },
   svs_drawn: OVERWATCH,
@@ -83,11 +74,7 @@ export default function NotificationsPage() {
   const { t, formatDateTime } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { refreshMemberships } = useStates();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [inviteStatuses, setInviteStatuses] = useState<Record<string, string>>(
-    {},
-  );
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -169,32 +156,6 @@ export default function NotificationsPage() {
         {},
       ),
     );
-    const inviteIds = [
-      ...new Set(
-        items
-          .map((item) => item.data?.invite_id)
-          .filter((id): id is string => Boolean(id)),
-      ),
-    ];
-
-    if (inviteIds.length > 0) {
-      const { data: invites } = await supabase
-        .from("state_invites")
-        .select("id, status")
-        .in("id", inviteIds);
-      setInviteStatuses(
-        ((invites ?? []) as InviteStatus[]).reduce<Record<string, string>>(
-          (statuses, invite) => {
-            statuses[invite.id] = invite.status;
-            return statuses;
-          },
-          {},
-        ),
-      );
-    } else {
-      setInviteStatuses({});
-    }
-
     const unreadIds = items
       .filter((item) => !item.read_at)
       .map((item) => item.id);
@@ -235,27 +196,6 @@ export default function NotificationsPage() {
       void supabase.removeChannel(channel);
     };
   }, [loadNotifications, supabase, userId]);
-
-  async function respondToInvitation(inviteId: string, acceptInvite: boolean) {
-    setMessage("");
-    const { error } = await supabase.rpc("respond_to_state_invite", {
-      target_invite_id: inviteId,
-      accept_invite: acceptInvite,
-    });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage(
-      acceptInvite
-        ? "Invitation accepted. The state owner must now verify and approve you."
-        : "Invitation declined.",
-    );
-    await loadNotifications();
-    await refreshMemberships();
-  }
 
   const activeFilter =
     NOTIFICATION_FILTERS.find((item) => item.key === filter) ??
@@ -326,11 +266,6 @@ export default function NotificationsPage() {
                 t,
                 formatDateTime,
               ) ?? { title: t(notification.title), body: notification.body };
-              const inviteId = notification.data?.invite_id;
-              const inviteStatus = inviteId
-                ? inviteStatuses[inviteId]
-                : undefined;
-
               return (
                 <article
                   key={notification.id}
@@ -372,36 +307,6 @@ export default function NotificationsPage() {
                   </div>
                   <p>{text.body}</p>
 
-                  {notification.type === "state_invite" &&
-                    inviteId &&
-                    inviteStatus === "pending_recipient" && (
-                      <div className="notification-actions">
-                        <button className="primary-button"
-                          type="button"
-                          onClick={() =>
-                            void respondToInvitation(inviteId, true)
-                          }
-                        >
-                          {t("Accept")}
-                        </button>
-                        <button
-                          type="button"
-                          className="danger-button"
-                          onClick={() =>
-                            void respondToInvitation(inviteId, false)
-                          }
-                        >
-                          {t("Decline")}
-                        </button>
-                      </div>
-                    )}
-
-                  {notification.type === "state_invite" &&
-                    inviteStatus === "pending_owner" && (
-                      <p className="status-badge">
-                        {t("Waiting for owner verification")}
-                      </p>
-                    )}
                   {NOTIFICATION_LINKS[notification.type] && (
                     <Link
                       className="nav-link"
@@ -410,14 +315,6 @@ export default function NotificationsPage() {
                       {t(NOTIFICATION_LINKS[notification.type].label)}
                     </Link>
                   )}
-                  {inviteStatus &&
-                    !["pending_recipient", "pending_owner"].includes(
-                      inviteStatus,
-                    ) && (
-                      <p className="status-badge">
-                        {inviteStatus.replace("_", " ")}
-                      </p>
-                    )}
                 </article>
               );
             })}

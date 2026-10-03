@@ -11,7 +11,6 @@ check it worked.
 | Domain `wosoverwatch.com` | Cloudflare Registrar or Vercel Domains | about $10–15 a year |
 | Vercel | Hobby (free, non-commercial) | $0 |
 | Supabase | Free to test, **Pro** before members rely on it (no pausing, daily backups) | $0, then $25/month |
-| Resend (sign-up emails) | Free | $0 |
 | WOSOracle | Premium | your plan |
 
 ## 1. Check WOSOracle with your Premium key
@@ -46,20 +45,21 @@ Vercel in step 4.
 3. **Database:** in the SQL Editor run, in filename order, every file in
    `supabase/migrations/` that has not been run on this project yet. A brand
    new project runs `supabase/schema.sql` first.
-   - The last one is `20261006090000_security_hardening.sql`.
+   - The last one is `20261007090000_wos_id_pin_login.sql`.
    - Check: `select jobname, schedule from cron.job;` lists
      `wos-advance-battles` and `wos-housekeeping`. If not, pg_cron was off:
      enable it and run `20261005120000_…` and `20261005150000_…` again.
-4. **Sign-in URLs** (Authentication → URL Configuration):
-   - Site URL: `https://wosoverwatch.com`
-   - Redirect URLs: `https://wosoverwatch.com/**`
-5. **Email** (Authentication → SMTP): Supabase's own email only reaches
-   your Supabase team and about 2 messages an hour, so sign-ups fail without
-   this.
-   1. Create a Resend account and add the domain `wosoverwatch.com`.
-   2. Add the DNS records Resend shows at your domain registrar.
-   3. In Supabase, enable custom SMTP with Resend's host, port, username
-      and API key; sender `no-reply@wosoverwatch.com`, name `Overwatch`.
+4. **Sign-in** (Authentication → Sign In / Providers → Email):
+   - Turn **off** "Allow new users to sign up": logins are made only by the
+     server, when a player joins with a state's link.
+   - Turn **off** "Confirm email". No email is ever sent; logins use
+     addresses like `123456789@players.wosoverwatch.com` that nobody reads.
+   - Password requirements: leave **no required characters** and leaked
+     password protection off (the server makes the passwords, not people).
+   - Authentication → Rate Limits: raise **sign-ups and sign-ins** to about
+     1000 per 5 minutes. Every sign-in comes from the server's few
+     addresses; Overwatch limits wrong PINs itself.
+5. **Site URL** (Authentication → URL Configuration): `https://wosoverwatch.com`.
 6. **Keys** (Project Settings → API): note the project URL, the publishable
    key and the secret (service role) key for step 4.
 
@@ -76,6 +76,8 @@ Vercel in step 4.
    | `SUPABASE_SERVICE_ROLE_KEY` | secret key (never share it) |
    | `WOS_ORACLE_API_KEY` | your WOSOracle key |
    | `CRON_SECRET` | a long random text you make up, e.g. from `openssl rand -hex 32` |
+   | `AUTH_PIN_PEPPER` | another long random text, e.g. `openssl rand -hex 32`. Never change it: every PIN stops working |
+   | `OPERATOR_WOS_IDS` | your WOS ID (comma-separate several): who may open `/operator` |
    | `WOS_ORACLE_DAILY_BUDGET` | optional: your plan's daily request limit minus a margin (default 950) |
 
 4. Deploy. Then Settings → Domains → add `wosoverwatch.com` and
@@ -96,29 +98,31 @@ select status, return_message, start_time
 from cron.job_run_details order by start_time desc limit 5;
 ```
 
-## 6. Your state
+## 6. Your login and the first state
 
-There is no "create state" button yet, so the first state is made here.
+Everyone signs in with their WOS ID and a PIN. You are the first, so make
+your own login from your computer:
 
-1. Sign up on wosoverwatch.com with your WOS ID, confirm the email, and wait
-   until Account shows your in-game name (the sync worked).
-2. In the SQL Editor, with your WOS ID:
+1. Add to `.env.local` (never committed): `NEXT_PUBLIC_SUPABASE_URL`,
+   `SUPABASE_SERVICE_ROLE_KEY` and `AUTH_PIN_PEPPER`, the same values as in
+   Vercel.
+2. Run `npm run login:create -- --wos-id <your WOS ID>`. It prints a
+   one-time PIN. (Run it again any time you are locked out.)
+3. Sign in on wosoverwatch.com with your WOS ID and that PIN, and choose
+   your own PIN.
+4. Open `wosoverwatch.com/operator`. Under Create a state, enter the
+   leader's WOS ID (yours, for your own state). WOSOracle gives the state
+   number. A leader who has no login yet gets a one-time PIN: send it to
+   them with the WOS ID they sign in with.
+5. The leader opens State management, sets the hero generation, loads the
+   alliances and presses **Make a join link**. **Copy chat message** gives
+   the link and first-time PIN to post in the state and alliance chats.
+   Members who open it, enter their WOS ID and the PIN are in right away
+   when WOSOracle lists them in that state. A new link stops the old one.
 
-   ```sql
-   with owner_account as (
-     select id, state_number from public.wos_accounts where wos_id = '<your WOS ID>'
-   ), new_state as (
-     insert into public.states (name, game_state_number)
-     select 'State ' || state_number, state_number from owner_account
-     returning id
-   )
-   insert into public.state_members (state_id, wos_account_id, role)
-   select new_state.id, owner_account.id, 'owner' from new_state, owner_account;
-   ```
-
-3. Reload Overwatch. Under State management, set the hero generation, load
-   your alliances and give out roles. Members who add a WOS ID from your
-   state now send you join requests automatically.
+Lost PINs: owners and admins press **Reset PIN** on a member; you can reset
+anyone on `/operator`. Logins from before this version (email and password)
+also get in this way: give them a one-time PIN.
 
 ## 7. First SvS: a rehearsal
 

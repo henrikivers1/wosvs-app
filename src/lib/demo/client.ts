@@ -108,8 +108,10 @@ function demoApiResponse(url: URL): Response | null {
         playersSynced: 0,
         errors: [],
       });
-    case "/api/accounts/release-claim":
-      return json({ error: "Releasing WOS IDs is not available in the demo." }, 400);
+    case "/api/auth/reset-pin":
+      return json({
+        pin: String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0"),
+      });
     case "/api/time":
       return json({ now: Date.now() });
     default:

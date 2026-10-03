@@ -26,24 +26,24 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     title: "Getting started",
     audience: "Everyone",
     intro:
-      "Create an account, add your WOS ID and join your state. It takes about two minutes.",
+      "Open your state's join link, enter your WOS ID and choose a PIN. It takes about a minute.",
     topics: [
       {
-        title: "Create your account",
+        title: "Join your state",
         steps: [
-          "Open Sign in and choose Sign up.",
-          "Enter your email, a password, a public username and your WOS ID.",
-          "Confirm your email if you are asked to.",
+          "Get the join link and first-time PIN from your state leader. They usually post it in the state or alliance chat.",
+          "Open the link and enter your WOS ID and the first-time PIN.",
+          "Choose your own PIN of 6 to 12 digits. From now on you sign in with your WOS ID and that PIN.",
         ],
         tip: "Want to look around first? The free demo needs no account.",
       },
       {
-        title: "Add your WOS accounts",
-        body: "On Account, add every WOS ID you play. Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day.",
+        title: "Your player data",
+        body: "Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day on Account.",
       },
       {
-        title: "Join your state",
-        body: "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell. Is your state not on Overwatch yet? Your owner can message us on Discord: wosoverwatch.",
+        title: "Forgot your PIN?",
+        body: "Ask an admin of your state. They give you a one-time PIN, and you choose a new PIN when you sign in. Is your state not on Overwatch yet? Your leader can message us on Discord: wosoverwatch.",
       },
       {
         title: "Tell us your joiner heroes",
@@ -170,12 +170,16 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         body: "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
       },
       {
-        title: "Members and join requests",
-        body: "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.",
+        title: "Bring your members in",
+        body: "Under State management, make a join link and share it with its first-time PIN in your chats. Players get in right away when WOSOracle lists them in your state. Make a new link whenever the old one should stop working; players who already joined are not affected.",
       },
       {
-        title: "A WOS ID claimed by the wrong person",
-        body: "Under Release a claimed WOS ID, enter the ID. It is removed from the login that claimed it so the real player can add it.",
+        title: "Members and roles",
+        body: "The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.",
+      },
+      {
+        title: "Lost PINs and wrong players",
+        body: "Reset PIN on a member gives them a one-time PIN and signs them out. Owners reset anyone, admins reset members. If someone joined with a WOS ID that is not theirs, reset its PIN and give the one-time PIN to the real player.",
       },
       {
         title: "Notices and tags",

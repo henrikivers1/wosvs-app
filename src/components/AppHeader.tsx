@@ -23,7 +23,6 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
 import { canUseBattleTool } from "@/lib/battleAccess";
 import { isAppLocale, LANGUAGE_OPTIONS, type AppLocale } from "@/i18n/config";
-import { fetchProfileAvatarUrl } from "@/lib/profileAvatar";
 
 export function AppHeader() {
   const router = useRouter();
@@ -57,35 +56,37 @@ export function AppHeader() {
       return;
     }
 
-    const [{ data: profile }, { count }, gameAvatarUrl] = await Promise.all([
+    const [{ data: profile }, { count }, { data: account }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("username, preferred_language")
+        .select("preferred_language, must_change_pin")
         .eq("id", user.id)
         .maybeSingle(),
       supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .is("read_at", null),
-      fetchProfileAvatarUrl(supabase, user.id),
+      supabase
+        .from("wos_accounts")
+        .select("wos_id, nickname, game_avatar_url")
+        .eq("user_id", user.id)
+        .order("created_at")
+        .limit(1)
+        .maybeSingle(),
     ]);
 
-    const publicUsername = profile?.username ?? null;
-    setUsername(publicUsername);
+    setUsername(account ? account.nickname || account.wos_id : null);
     setUnreadCount(count ?? 0);
     if (isAppLocale(profile?.preferred_language)) {
       setLocale(profile.preferred_language);
     }
 
-    setAvatarUrl(gameAvatarUrl);
+    setAvatarUrl(account?.game_avatar_url ?? null);
     setIdentityLoaded(true);
 
-    if (
-      !publicUsername &&
-      pathname !== "/login" &&
-      pathname !== "/account/setup"
-    ) {
-      router.replace("/account/setup");
+    // A one-time PIN (new owner or reset) must be replaced first.
+    if (profile?.must_change_pin && pathname !== "/account/pin") {
+      router.replace("/account/pin");
     }
   }, [pathname, router, setLocale, supabase]);
 
@@ -345,13 +346,9 @@ export function AppHeader() {
               </summary>
               <div className="header-dropdown profile-dropdown">
                 <span className="profile-username">
-                  {username
-                    ? `@${username}`
-                    : identityLoaded
-                      ? t("setupRequired")
-                      : t("profile")}
+                  {username ?? (identityLoaded ? "" : t("profile"))}
                 </span>
-                <Link href="/account">{t("wosAccounts")}</Link>
+                <Link href="/account">{t("Account")}</Link>
                 <Link href="/notifications">{t("notifications")}</Link>
                 <Link href="/guides">{t("Guides")}</Link>
                 <Link href="/privacy">{t("Privacy")}</Link>

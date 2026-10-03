@@ -13,9 +13,8 @@ const SECTIONS: { title: string; items: string[] }[] = [
   {
     title: "What we store",
     items: [
-      "Your login: email address and password. The password is stored only as a secure hash by our login provider; we never see it.",
-      "Your public username and the WOS IDs you add.",
-      "Game data for those WOS IDs from WOSOracle: name, avatar, state, power, Furnace level, Labyrinth score and alliance.",
+      "Your login: your WOS ID and your PIN. The PIN is stored only as a secure hash by our login provider; we never see it.",
+      "Game data for your WOS ID from WOSOracle: name, avatar, state, power, Furnace level, Labyrinth score and alliance.",
       "What you enter in Overwatch: attendance votes, joiner heroes, troop details, and your state memberships and roles.",
       "What your state's admins and coordinators enter: rally assignments, notices, tags, and enemy leaders with their city coordinates.",
       "Your notifications.",
@@ -31,8 +30,8 @@ const SECTIONS: { title: string; items: string[] }[] = [
   {
     title: "Who can see it",
     items: [
-      "Members of your state see your username, game data, rally and votes. Admins also see join requests and roles.",
-      "Your email address is never shown to other players.",
+      "Members of your state see your game data, rally and votes. Admins also see roles.",
+      "Your PIN is never shown to anyone. Admins can only give you a new one-time PIN.",
     ],
   },
   {
@@ -40,7 +39,6 @@ const SECTIONS: { title: string; items: string[] }[] = [
     items: [
       "Supabase stores the database and handles sign-in.",
       "Vercel hosts the website.",
-      "An email service sends sign-up and password emails.",
       "WOSOracle provides the game data; we send it only WOS IDs, state numbers and alliance IDs.",
       "These services may process data outside your country.",
     ],
@@ -56,14 +54,13 @@ const SECTIONS: { title: string; items: string[] }[] = [
     title: "How long we keep it",
     items: [
       "Read notifications are removed after 30 days and all notifications after 90 days.",
-      "Expired notices and invitations are removed automatically.",
+      "Expired notices are removed automatically, and wrong-PIN counters after a day.",
       "Everything else is kept until you remove it or ask us to delete your account.",
     ],
   },
   {
     title: "Your rights",
     items: [
-      "You can remove WOS accounts on Account at any time.",
       "Email us to get a copy of your data, correct it, or delete your account and everything linked to it. We answer within 30 days.",
       "If you are in the EU or UK you can also complain to your data protection authority.",
     ],

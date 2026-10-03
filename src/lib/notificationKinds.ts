@@ -428,24 +428,6 @@ export function localizedNotificationText(
               })
             : t("Publish them from Planning.")),
       };
-    case "state_join_request":
-      if (!data.player || !data.state_name) return null;
-      return {
-        title: t("Join request: {player}", { player }),
-        body: t(
-          "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.",
-          { player, wosId: data.wos_id ?? "", state },
-        ),
-      };
-    case "state_join_requested":
-      if (!data.player || !data.state_name) return null;
-      return {
-        title: t("Join request sent"),
-        body: t(
-          "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.",
-          { player, number: data.state_number ?? "", state },
-        ),
-      };
     default:
       return null;
   }
