@@ -11,9 +11,9 @@ the SQL uses the same values). The castle is at 599,599.
 
 | When | What happens | Who does it |
 |---|---|---|
-| Every hour (6 h before the draw window) | Look up the SvS draw on WOSOracle. Before the draw, store the expected draw time for the countdown | `runAutomation` → `refreshDraw` |
+| Every 6 h, hourly from a day before the expected draw | Look up the SvS draw on WOSOracle. Before the draw, store the expected draw time for the countdown | `runAutomation` → `refreshDraw` |
 | Draw published | Create the SvS plan and battle row, tell every member ("SvS opponent drawn") | `automation_ensure_svs_plan` |
-| Daily until the battle | Opponent intel: summary, SvS record, 20 strongest players, our own summary | `refreshIntel` |
+| With the draw check, at most daily until the battle | Opponent intel: summary, SvS record, 20 strongest players, our own summary | `refreshIntel` |
 | Any time | Members vote attendance (Whole / First half / Second half / Can't) and voice call | Members, `set_battle_attendance` |
 | T−30 h | Remind members who have not voted | `runAutoPlan` → `remindVoters` |
 | T−24 h | **Generate the garrison and rallies** (pet blocks 12–14, 14–16, 16–17 UTC): the garrison gets one Castle Holder per block and is filled first with the strongest defenders who play the whole battle (troop FC, then troop tier, then troop skill; `castle.ts`). Each rally gets one Rally Lead per block (extra leads go where they cover missing blocks), lands in its first lead's alliance and gets the state's default formation and joiner heroes. Rallies are then filled by the auto-fill priorities; half voters join for their half. Rally Leads and Castle Holders are never joiners (database trigger). Admins get "Rallies are ready for review" | `runAutoPlan` → `createGarrison`, `createRallies`, `fillPlan` |
@@ -37,8 +37,10 @@ changes.
 Everyone signs in with **WOS ID + PIN** (6–12 digits); one WOS ID per login.
 On top of Supabase Auth: each login is an email login whose password is
 `HMAC(AUTH_PIN_PEPPER, user id + PIN)` (`lib/pinAuth.ts`), so PINs can only be
-tried through `/api/auth/*`, which locks a WOS ID for 15 minutes after 5 wrong
-PINs (`auth_pin_attempts`). Public sign-up is off in Supabase.
+tried through `/api/auth/*`. Wrong PINs lock for 15 minutes after 5 from one
+network address or 30 in total for one WOS ID (join links: 10 and 60), in
+`auth_pin_attempts`. Signed-in sessions are never affected. Public sign-up is
+off in Supabase.
 
 1. A leader asks us on Discord. An operator (`OPERATOR_WOS_IDS`) creates the
    state on `/operator` from the leader's WOS ID; WOSOracle gives the state
@@ -60,6 +62,7 @@ PINs (`auth_pin_attempts`). Public sign-up is off in Supabase.
 |---|---|---|
 | `wos-automation` → `POST /api/automation/run` | hourly at :07 | `supabase/automation-cron.example.sql` (pg_cron + pg_net, secret in Vault) |
 | `wos-advance-battles` → `automation_advance_battles()` | every minute | created by migration `20261005120000` when pg_cron is enabled |
+| `wos-housekeeping` → `automation_housekeeping()` | nightly at 03:17 UTC | old notifications (read after 30 days, all after 90), expired notices, WOSOracle cache and counters, wrong-PIN counters, unused rally tags |
 
 ## 3. WOSOracle usage
 
@@ -185,21 +188,23 @@ query in parallel.
 - **Automation:** `automation_ensure_svs_plan`, `automation_advance_battles`, `automation_set_battle_result`, `publish_battle_plan`; for `/api/auth/*`: `pin_locked_until`, `record_pin_failure`, `clear_pin_failures`, `end_user_sessions`.
 - **WOSOracle budget:** `reserve_oracle_request`. `count_oracle_request` is the older counter, kept as a fallback until the new migration has run.
 - **Notifications:** `queue_account_notification`, `notify_member_action`, `account_display_name`.
+- **Nightly:** `automation_housekeeping`.
 
 ### Triggers
 
 | Table | Trigger → effect |
 |---|---|
 | `battles` | `battle_status_notification` → Battle over / cancelled / Victory / Defeat for every member; `battle_seed_enemy_leaders` → known enemy leaders at battle start |
-| `state_members` | role change or removal → member notification |
+| `state_members` | role change or removal → member notification; `grant_default_garrison` → every new member gets Garrison |
 | `state_member_capabilities` | Coordinator/Garrison granted or removed → notification |
 | `state_member_tags` | tag added/removed (not plan tags) → notification |
 | `state_alliance_members` | alliance move → notification (muted while publishing) |
 | `battle_plan_assignments` | changes on a published plan → "Your rally assignment changed" / "Removed from …" |
-| `battle_plan_groups` | `assign_group_rally_tag` → "<leader> rally" tag |
+| `battle_plan_groups` | `assign_group_rally_tag` → "<leader> rally" or "Garrison" tag; `default_lead_rotation` → leader leads every pet block until changed |
+| `battle_plan_assignments` | `prevent_lead_as_joiner` → a Rally Lead or Castle Holder in the plan can't be a joiner |
 | `notifications` | `notifications_categorize` → category (colour) from the type |
-| `wos_accounts` | `fill_state_number_from_owner` |
-| `states` | system tags (Rally Lead) on create |
+| `wos_accounts` | `fill_state_number_from_owner`; `limit_wos_accounts_per_user` → one WOS ID per login |
+| `states` | system tags (Rally Lead, Castle Holder) on create; `check_game_state_number` → one app state per in-game number |
 | `battle_plans`, `battle_plan_comments` | clean up related notifications on delete |
 | `enemy_leaders` | only for an active battle of the same state |
 
@@ -208,13 +213,13 @@ query in parallel.
 | Category | Colour | Types |
 |---|---|---|
 | victory / defeat | green / red | `battle_result` |
-| battle | orange | `svs_drawn`, `attendance_reminder`, `rallies_generated`, `battle_started`, `battle_completed`, `battle_cancelled` |
+| battle | orange | `svs_drawn`, `attendance_reminder`, `rallies_generated`, `battle_started` ("Live Battle is open" at 11:00), `battle_completed`, `battle_cancelled` |
 | assignment | blue | `battle_plan_assignment`, `battle_plan_published`, `battle_plan_assignment_changed` |
 | role | purple | `member_role_changed`, `capability_granted` |
 | tag | the tag's colour | `state_tag_awarded` |
 | alliance | gold | `state_alliance_assigned` |
 | membership | cyan | older invite and join request notifications only |
-| removal | dark rose | `member_removed`, `capability_revoked`, `state_tag_removed`, `state_alliance_removed`, `battle_plan_assignment_removed`, `wos_account_released`, `state_invite_rejected` |
+| removal | dark rose | `member_removed`, `capability_revoked`, `state_tag_removed`, `state_alliance_removed`, `battle_plan_assignment_removed` (and older release/rejection kinds) |
 | comment / notice | grey / sand | plan comments and mentions, `state_announcement` |
 
 ## 8. Demo

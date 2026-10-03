@@ -28,6 +28,52 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Change your PIN":
+    "Cambia tu PIN",
+  "On Account, press Change PIN. You need your current PIN. If you signed in with a one-time PIN, Overwatch asks you to choose your own straight away.":
+    "En Cuenta, pulsa Cambiar PIN. Necesitas tu PIN actual. Si iniciaste sesión con un PIN de un solo uso, Overwatch te pide elegir el tuyo enseguida.",
+  "Fill in your troop details":
+    "Rellena los datos de tus tropas",
+  "On Account, open Troop details and enter your troop tier, camp FC and T12 skill for infantry, lancers and marksmen. WOSOracle doesn't have these, and they decide who holds the castle: the garrison takes the strongest defenders first.":
+    "En Cuenta, abre Datos de tropas e introduce el nivel de tropa, el FC del campamento y la habilidad T12 de infantería, lanceros y tiradores. WOSOracle no los tiene, y deciden quién defiende el castillo: la guarnición toma primero a los defensores más fuertes.",
+  "The draw: Overwatch finds your opponent on WOSOracle and tells everyone. Voting opens.":
+    "El sorteo: Overwatch encuentra a tu rival en WOSOracle y avisa a todos. Se abre la votación.",
+  "30 hours before the battle: a reminder goes to everyone who has not voted.":
+    "30 horas antes de la batalla: se avisa a quien no ha votado.",
+  "24 hours before: the garrison and rallies are built from the votes. Admins can review and change them.":
+    "24 horas antes: la guarnición y los rallies se crean con los votos. Los administradores pueden revisarlos y cambiarlos.",
+  "6 hours before: the plan is published and everyone gets their rally, hero and formation.":
+    "6 horas antes: se publica el plan y cada uno recibe su rally, héroe y formación.",
+  "11:00 UTC: Live Battle opens, so the garrison and coordinators can enter coordinates.":
+    "11:00 UTC: se abre la Batalla en vivo para que la guarnición y los coordinadores introduzcan coordenadas.",
+  "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).":
+    "12:00–17:00 UTC: la batalla, en tres bloques de mascotas (12–14, 14–16 y 16–17).",
+  "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.":
+    "Después de la batalla: todos reciben Victoria o Derrota en cuanto WOSOracle tiene el resultado.",
+  "Votes that come in after the rallies are built still get an open seat, and you are told at once.":
+    "Los votos que llegan después de crear los rallies también reciben un hueco libre, y se te avisa al momento.",
+  "We create your state with its in-game number when you message us on Discord. You sign in with your WOS ID and the one-time PIN we send, then choose your own PIN.":
+    "Creamos tu estado con su número del juego cuando nos escribes en Discord. Inicias sesión con tu WOS ID y el PIN de un solo uso que te enviamos, y luego eliges tu propio PIN.",
+  "Under State management, make a join link and post it with its first-time PIN in your state and alliance chats.":
+    "En Gestión del estado, crea un enlace de acceso y publícalo con su PIN inicial en los chats del estado y de la alianza.",
+  "Set your hero generation so only unlocked heroes are offered.":
+    "Configura la generación de héroes para que solo se ofrezcan los desbloqueados.",
+  "Someone already joined with my WOS ID.":
+    "Alguien ya se unió con mi WOS ID.",
+  "Ask an admin of your state to press Reset PIN on that WOS ID and give you the one-time PIN. The other person is signed out, and you choose your own PIN when you sign in.":
+    "Pide a un administrador de tu estado que pulse Restablecer PIN en ese WOS ID y te dé el PIN de un solo uso. La otra persona sale de la sesión y tú eliges tu PIN al iniciar sesión.",
+  "It says too many wrong PINs.":
+    "Dice que hay demasiados PIN incorrectos.",
+  "Wait 15 minutes and try again, or ask an admin of your state for a one-time PIN.":
+    "Espera 15 minutos y vuelve a intentarlo, o pide un PIN de un solo uso a un administrador de tu estado.",
+  "Can I use more than one WOS account?":
+    "¿Puedo usar más de una cuenta de WOS?",
+  "Each login has one WOS ID. Join with your other account's WOS ID and its own PIN, after signing out or in another browser.":
+    "Cada inicio de sesión tiene un WOS ID. Únete con el WOS ID de tu otra cuenta y su propio PIN, tras cerrar sesión o en otro navegador.",
+  "I moved to another state.":
+    "Me mudé a otro estado.",
+  "Ask the new state's leader for their join link. Enter the first-time PIN, then your own PIN: your login stays the same.":
+    "Pide el enlace de acceso al líder del nuevo estado. Introduce el PIN inicial y luego tu propio PIN: tu inicio de sesión no cambia.",
   "6 to 12 digits.":
     "De 6 a 12 dígitos.",
   "6 to 12 digits. Don't reuse the first-time PIN or share yours.":
@@ -630,10 +676,6 @@ const spanishInterface: Record<string, string> = {
     "Overwatch hace el trabajo rutinario de cada SvS. Estos son los sitios que revisar y los ajustes que lo definen.",
   "First setup":
     "Configuración inicial",
-  "The in-game state number fills in from the owner's WOS account.":
-    "El número de estado del juego se rellena desde la cuenta de WOS del propietario.",
-  "Under State management, set your hero generation so only unlocked heroes are offered.":
-    "En Gestión del estado, configura tu generación de héroes para que solo se ofrezcan héroes desbloqueados.",
   "Add your alliances: load them from WOSOracle, add a shell alliance by its ID, or type a name.":
     "Añade tus alianzas: cárgalas desde WOSOracle, añade una alianza vacía por su ID o escribe un nombre.",
   "SvS automation settings":
@@ -648,10 +690,6 @@ const spanishInterface: Record<string, string> = {
     "Avisos y etiquetas",
   "Send notices to the whole state, one alliance or everyone with a tag. Tags are for your own groupings; rally and hero tags are created automatically when you publish.":
     "Envía avisos a todo el estado, a una alianza o a todos los que tengan una etiqueta. Las etiquetas son para tus propios grupos; las de rally y héroe se crean solas al publicar.",
-  "My WOS ID is already registered.":
-    "Mi WOS ID ya está registrado.",
-  "Someone else claimed it. Ask an admin of your state to release it, then add it again.":
-    "Otra persona lo reclamó. Pide a un administrador de tu estado que lo libere y vuelve a añadirlo.",
   "My power or Furnace is out of date.":
     "Mi poder o mi Horno están desactualizados.",
   "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.":

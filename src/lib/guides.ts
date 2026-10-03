@@ -42,12 +42,20 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         body: "Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day on Account.",
       },
       {
+        title: "Change your PIN",
+        body: "On Account, press Change PIN. You need your current PIN. If you signed in with a one-time PIN, Overwatch asks you to choose your own straight away.",
+      },
+      {
         title: "Forgot your PIN?",
         body: "Ask an admin of your state. They give you a one-time PIN, and you choose a new PIN when you sign in. Is your state not on Overwatch yet? Your leader can message us on Discord: wosoverwatch.",
       },
       {
         title: "Tell us your joiner heroes",
         body: "On Account, tick every joiner hero you have at 4★ or higher. Rallies only give you a hero you own, so this decides which rally you can join.",
+      },
+      {
+        title: "Fill in your troop details",
+        body: "On Account, open Troop details and enter your troop tier, camp FC and T12 skill for infantry, lancers and marksmen. WOSOracle doesn't have these, and they decide who holds the castle: the garrison takes the strongest defenders first.",
       },
       {
         title: "Language and notifications",
@@ -63,6 +71,19 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     intro:
       "After the draw you only need to do one thing: say when you can play.",
     topics: [
+      {
+        title: "How an SvS runs",
+        steps: [
+          "The draw: Overwatch finds your opponent on WOSOracle and tells everyone. Voting opens.",
+          "30 hours before the battle: a reminder goes to everyone who has not voted.",
+          "24 hours before: the garrison and rallies are built from the votes. Admins can review and change them.",
+          "6 hours before: the plan is published and everyone gets their rally, hero and formation.",
+          "11:00 UTC: Live Battle opens, so the garrison and coordinators can enter coordinates.",
+          "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).",
+          "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.",
+        ],
+        tip: "Votes that come in after the rallies are built still get an open seat, and you are told at once.",
+      },
       {
         title: "Vote your attendance",
         steps: [
@@ -135,8 +156,9 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       {
         title: "First setup",
         steps: [
-          "The in-game state number fills in from the owner's WOS account.",
-          "Under State management, set your hero generation so only unlocked heroes are offered.",
+          "We create your state with its in-game number when you message us on Discord. You sign in with your WOS ID and the one-time PIN we send, then choose your own PIN.",
+          "Under State management, make a join link and post it with its first-time PIN in your state and alliance chats.",
+          "Set your hero generation so only unlocked heroes are offered.",
           "Add your alliances: load them from WOSOracle, add a shell alliance by its ID, or type a name.",
           "Mark Rally Leads and Castle Holders under Leads & holders in Planning, and give the Coordinator role to the players who call rallies. Every member has Garrison already.",
         ],
@@ -195,8 +217,20 @@ export const GUIDE_FAQ: { q: string; a: string }[] = [
     a: "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.",
   },
   {
-    q: "My WOS ID is already registered.",
-    a: "Someone else claimed it. Ask an admin of your state to release it, then add it again.",
+    q: "Someone already joined with my WOS ID.",
+    a: "Ask an admin of your state to press Reset PIN on that WOS ID and give you the one-time PIN. The other person is signed out, and you choose your own PIN when you sign in.",
+  },
+  {
+    q: "It says too many wrong PINs.",
+    a: "Wait 15 minutes and try again, or ask an admin of your state for a one-time PIN.",
+  },
+  {
+    q: "Can I use more than one WOS account?",
+    a: "Each login has one WOS ID. Join with your other account's WOS ID and its own PIN, after signing out or in another browser.",
+  },
+  {
+    q: "I moved to another state.",
+    a: "Ask the new state's leader for their join link. Enter the first-time PIN, then your own PIN: your login stays the same.",
   },
   {
     q: "My power or Furnace is out of date.",
