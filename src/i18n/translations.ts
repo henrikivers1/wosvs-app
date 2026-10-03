@@ -1,4 +1,7 @@
 import type { AppLocale } from "@/i18n/config";
+import { arabicInterface } from "@/i18n/locales/ar";
+import { chineseInterface } from "@/i18n/locales/zh";
+import { thaiInterface } from "@/i18n/locales/th";
 
 const english = {
   battleCoordination: "Battle coordination",
@@ -1020,6 +1023,7 @@ export type TranslationKey = string;
 export const translations: Record<AppLocale, Record<string, string>> = {
   en: english,
   zh: {
+    ...chineseInterface,
     battleCoordination: "战斗协调",
     notifications: "通知",
     unreadNotifications: "条未读通知",
@@ -1259,6 +1263,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     votesDeleted: "Votação excluída.",
   },
   ar: {
+    ...arabicInterface,
     battleCoordination: "تنسيق المعارك",
     notifications: "الإشعارات",
     unreadNotifications: "إشعارات غير مقروءة",
@@ -1577,6 +1582,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     votesDeleted: "Pemungutan suara dihapus.",
   },
   th: {
+    ...thaiInterface,
     battleCoordination: "การประสานงานการรบ",
     notifications: "การแจ้งเตือน",
     unreadNotifications: "การแจ้งเตือนที่ยังไม่ได้อ่าน",

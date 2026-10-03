@@ -16,14 +16,13 @@ export const LANGUAGE_OPTIONS: Array<{
   code: AppLocale;
   label: string;
 }> = [
+  // Only fully translated languages are offered. Portuguese, Hindi, Russian
+  // and Indonesian stay supported for saved preferences but only cover the
+  // header, so they are not listed.
   { code: "en", label: "English" },
   { code: "zh", label: "简体中文" },
   { code: "es", label: "Español" },
-  { code: "pt", label: "Português (Brasil)" },
   { code: "ar", label: "العربية" },
-  { code: "hi", label: "हिन्दी" },
-  { code: "ru", label: "Русский" },
-  { code: "id", label: "Bahasa Indonesia" },
   { code: "th", label: "ไทย" },
 ];
 
