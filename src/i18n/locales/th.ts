@@ -844,8 +844,6 @@ export const thaiInterface: Record<string, string> = {
     "เลือกผู้เล่นของฝ่ายตรงข้ามด้านล่าง ระบบจะจำพิกัดไว้ ครั้งหน้าจะกรอกให้อัตโนมัติ และหัวหน้าที่เคยเพิ่มจะถูกใส่ให้เองเมื่อการรบเริ่ม",
   "Coordinates from the last battle against this player.":
     "พิกัดจากการรบครั้งล่าสุดกับผู้เล่นคนนี้",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
-    "การรบเริ่มอัตโนมัติเวลา 12:00 UTC ในวันรบ เครื่องมือจะปรากฏที่นี่ตอนนั้น",
   "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
     "คุณยังไม่ได้เข้าร่วมรัฐ เมื่อรัฐของบัญชี WOS ของคุณใช้ WOSOverwatch ระบบจะส่งคำขอเข้าร่วมให้อัตโนมัติ และคุณจะได้รับแจ้งเตือนเมื่อแอดมินอนุมัติ",
   "That username may already be registered.": "ชื่อผู้ใช้นี้อาจถูกใช้แล้ว",
@@ -916,9 +914,6 @@ export const thaiInterface: Record<string, string> = {
   "Automatic publishing is off: publish when ready.":
     "ปิดการเผยแพร่อัตโนมัติ: เผยแพร่เมื่อพร้อม",
   "Publish now": "เผยแพร่ตอนนี้",
-  "Battle goes live automatically": "การรบเริ่มอัตโนมัติ",
-  "Live Battle opens for callers and garrison at {time}.":
-    "Live Battle เปิดให้ผู้เรียกแรลลี่และการ์ริสันเวลา {time}",
   "Next SvS": "SvS ครั้งถัดไป",
   "Can you join the SvS?": "คุณเข้าร่วม SvS ได้ไหม?",
   "Rallies are ready for review": "แรลลี่พร้อมให้ตรวจสอบแล้ว",
@@ -970,7 +965,6 @@ export const thaiInterface: Record<string, string> = {
   "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.": "ข่าวกรองแสดงผู้เล่นที่แข็งแกร่งที่สุดของคู่ต่อสู้ พันธมิตร และสถิติ SvS ของพวกเขา เทียบกับตัวเลขของสเตทคุณ",
   "During the battle": "ระหว่างการรบ",
   "Garrison and coordinators": "กองหนุนและผู้ประสานงาน",
-  "Live Battle opens by itself at 12:00 UTC for everyone with the Garrison or Coordinator role.": "การรบสดเปิดเองเวลา 12:00 UTC สำหรับทุกคนที่มีบทบาทกองหนุนหรือผู้ประสานงาน",
   "Garrison: when to send": "กองหนุน: ส่งเมื่อไร",
   "Open Live Battle, then Garrison.": "เปิดการรบสด แล้วไปที่กองหนุน",
   "Enter your city's X and Y once; your march time is worked out for you.": "กรอกพิกัด X และ Y ของเมืองคุณครั้งเดียว ระบบจะคำนวณเวลาเดินทัพให้",
@@ -1018,7 +1012,6 @@ export const thaiInterface: Record<string, string> = {
   "My power or Furnace is out of date.": "พลังหรือเตาของฉันไม่อัปเดต",
   "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.": "กด รีเฟรชข้อมูลผู้เล่น ในหน้าบัญชี (วันละครั้ง) ทุกคนจะถูกรีเฟรชทุกวันจันทร์ด้วย",
   "I can't see Live Battle.": "ฉันไม่เห็นการรบสด",
-  "It only appears from 12:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.": "จะแสดงเฉพาะเวลา 12:00 ถึง 17:00 UTC ในวันรบ และเฉพาะแอดมินกับสมาชิกที่มีบทบาทผู้ประสานงานหรือกองหนุน",
   "The times look wrong.": "เวลาดูผิด",
   "Every time in Overwatch is UTC, like the game's SvS. In Live Battle, press Resync clock.": "ทุกเวลาใน Overwatch เป็น UTC เหมือน SvS ในเกม ในการรบสด ให้กด ซิงค์นาฬิกาใหม่",
   "I don't get send alerts on my phone.": "ฉันไม่ได้รับการแจ้งเตือนให้ส่งบนมือถือ",
@@ -1045,8 +1038,6 @@ export const thaiInterface: Record<string, string> = {
   "Rallies built and filled": "สร้างและเติมแรลลี่",
   "T−6 h": "T−6 ชม.",
   "Published to every member": "เผยแพร่ถึงสมาชิกทุกคน",
-  "12:00 UTC": "12:00 UTC",
-  "Live Battle opens": "การรบสดเปิด",
   "17:00 UTC": "17:00 UTC",
   "Victory or Defeat for all": "ชัยชนะหรือพ่ายแพ้สำหรับทุกคน",
   "Vote once, see your rally, hero and formation, and get told about every change.": "โหวตครั้งเดียว ดูแรลลี่ ฮีโร่ และฟอร์เมชันของคุณ และรับแจ้งทุกการเปลี่ยนแปลง",
@@ -1140,4 +1131,12 @@ export const thaiInterface: Record<string, string> = {
   "Questions or requests:": "คำถามหรือคำขอ:",
   "Back to Overwatch": "กลับไปที่ Overwatch",
   "Could not confirm email": "ยืนยันอีเมลไม่สำเร็จ",
+  "Live Battle is open: SvS vs state {opponent} {when}": "Live Battle เปิดแล้ว: SvS กับรัฐ {opponent} {when}",
+  "Live Battle opens automatically at 11:00 UTC on battle day, an hour before the battle starts. Live tools appear here then.": "Live Battle เปิดอัตโนมัติเวลา 11:00 UTC ในวันต่อสู้ หนึ่งชั่วโมงก่อนการต่อสู้เริ่ม เครื่องมือสดจะแสดงที่นี่ตอนนั้น",
+  "Live Battle opens at {time}, an hour early, so garrison and coordinators can enter coordinates.": "Live Battle เปิดเวลา {time} ก่อนหนึ่งชั่วโมง เพื่อให้ทีมป้องกันและผู้ประสานงานกรอกพิกัดได้",
+  "Live Battle opens automatically": "Live Battle เปิดอัตโนมัติ",
+  "11:00 UTC": "11:00 UTC",
+  "Live Battle opens for coordinates": "Live Battle เปิดให้กรอกพิกัด",
+  "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.": "Live Battle เปิดเองเวลา 11:00 UTC หนึ่งชั่วโมงก่อนการต่อสู้ สำหรับทุกคนที่มีบทบาท Garrison หรือ Coordinator ใช้ชั่วโมงนั้นกรอกพิกัด",
+  "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.": "แสดงเฉพาะเวลา 11:00 ถึง 17:00 UTC ในวันต่อสู้ และเฉพาะแอดมินกับสมาชิกที่มีบทบาท Coordinator หรือ Garrison",
 };

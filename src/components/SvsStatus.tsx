@@ -108,15 +108,21 @@ export function SvsStatus({
     detail = t("Set the in-game state number on State management.");
   } else if (state?.svs_opponent && state.svs_battle_at) {
     const battleStart = new Date(state.svs_battle_at).getTime();
-    // Live once the battle has been started (automatically at 12:00 UTC).
+    // Live Battle opens an hour early (11:00 UTC); the battle is live from
+    // its start at 12:00 UTC.
     const live =
-      battleActive ||
-      (now >= battleStart && now < battleStart + BATTLE_DURATION_MS);
+      now >= battleStart &&
+      (battleActive || now < battleStart + BATTLE_DURATION_MS);
     headline = live
       ? t("SvS battle vs state {opponent} is live", {
           opponent: state.svs_opponent,
         })
-      : t("SvS vs state {opponent} {when}", {
+      : battleActive
+        ? t("Live Battle is open: SvS vs state {opponent} {when}", {
+            opponent: state.svs_opponent,
+            when: timeUntil(state.svs_battle_at, now, t),
+          })
+        : t("SvS vs state {opponent} {when}", {
           opponent: state.svs_opponent,
           when: timeUntil(state.svs_battle_at, now, t),
         });

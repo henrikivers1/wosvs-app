@@ -45,7 +45,7 @@ const TIMELINE = [
   { when: "T−30 h", what: "Reminder to vote" },
   { when: "T−24 h", what: "Rallies built and filled" },
   { when: "T−6 h", what: "Published to every member" },
-  { when: "12:00 UTC", what: "Live Battle opens" },
+  { when: "11:00 UTC", what: "Live Battle opens for coordinates" },
   { when: "17:00 UTC", what: "Victory or Defeat for all" },
 ];
 

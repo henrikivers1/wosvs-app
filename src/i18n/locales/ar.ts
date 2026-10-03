@@ -842,8 +842,6 @@ export const arabicInterface: Record<string, string> = {
     "اختر لاعبي الخصم أدناه. يتم حفظ إحداثياتهم: في المعركة القادمة تُملأ تلقائيًا، ويُضاف القادة الذين أضفتهم سابقًا تلقائيًا عند بدء المعركة.",
   "Coordinates from the last battle against this player.":
     "إحداثيات من آخر معركة ضد هذا اللاعب.",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
-    "تبدأ المعارك تلقائيًا الساعة 12:00 UTC يوم المعركة. تظهر أدوات المعركة هنا حينها.",
   "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
     "لم تنضم إلى ولاية بعد. عندما تستخدم ولاية حساب WOS الخاص بك WOSOverwatch، يُرسل طلب انضمام تلقائيًا، وستصلك إشعار عند موافقة المشرف.",
   "That username may already be registered.":
@@ -917,9 +915,6 @@ export const arabicInterface: Record<string, string> = {
   "Automatic publishing is off: publish when ready.":
     "النشر التلقائي متوقف: انشر عندما تكون جاهزًا.",
   "Publish now": "انشر الآن",
-  "Battle goes live automatically": "تبدأ المعركة تلقائيًا",
-  "Live Battle opens for callers and garrison at {time}.":
-    "تفتح المعركة المباشرة للمنادين والحامية في {time}.",
   "Next SvS": "SvS القادمة",
   "Can you join the SvS?": "هل يمكنك المشاركة في SvS؟",
   "Rallies are ready for review": "الحشود جاهزة للمراجعة",
@@ -970,7 +965,6 @@ export const arabicInterface: Record<string, string> = {
   "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.": "تعرض المعلومات أقوى لاعبي الخصم وتحالفاتهم وسجلهم في SvS بجانب أرقام ولايتك.",
   "During the battle": "أثناء المعركة",
   "Garrison and coordinators": "الحامية والمنسقون",
-  "Live Battle opens by itself at 12:00 UTC for everyone with the Garrison or Coordinator role.": "تفتح المعركة المباشرة تلقائيًا الساعة 12:00 UTC لكل من لديه دور الحامية أو المنسق.",
   "Garrison: when to send": "الحامية: متى ترسل",
   "Open Live Battle, then Garrison.": "افتح المعركة المباشرة، ثم الحامية.",
   "Enter your city's X and Y once; your march time is worked out for you.": "أدخل إحداثيات X وY لمدينتك مرة واحدة؛ ويُحسب وقت مسيرتك تلقائيًا.",
@@ -1018,7 +1012,6 @@ export const arabicInterface: Record<string, string> = {
   "My power or Furnace is out of date.": "قوتي أو الفرن غير محدّثين.",
   "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.": "اضغط تحديث بيانات اللاعب في الحساب (مرة يوميًا). كما يُحدَّث الجميع كل يوم اثنين.",
   "I can't see Live Battle.": "لا أرى المعركة المباشرة.",
-  "It only appears from 12:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.": "تظهر فقط من 12:00 إلى 17:00 UTC يوم المعركة، وللمشرفين والأعضاء الذين لديهم دور المنسق أو الحامية فقط.",
   "The times look wrong.": "الأوقات تبدو خاطئة.",
   "Every time in Overwatch is UTC, like the game's SvS. In Live Battle, press Resync clock.": "كل الأوقات في Overwatch بتوقيت UTC، مثل SvS في اللعبة. في المعركة المباشرة، اضغط إعادة مزامنة الساعة.",
   "I don't get send alerts on my phone.": "لا تصلني تنبيهات الإرسال على هاتفي.",
@@ -1045,8 +1038,6 @@ export const arabicInterface: Record<string, string> = {
   "Rallies built and filled": "بناء الحشود وملؤها",
   "T−6 h": "T−6 س",
   "Published to every member": "النشر لكل الأعضاء",
-  "12:00 UTC": "12:00 UTC",
-  "Live Battle opens": "فتح المعركة المباشرة",
   "17:00 UTC": "17:00 UTC",
   "Victory or Defeat for all": "النصر أو الهزيمة للجميع",
   "Vote once, see your rally, hero and formation, and get told about every change.": "صوّت مرة واحدة، واطّلع على حشدك وبطلك وتشكيلتك، وتلقَّ إشعارًا بكل تغيير.",
@@ -1140,4 +1131,12 @@ export const arabicInterface: Record<string, string> = {
   "Questions or requests:": "للأسئلة أو الطلبات:",
   "Back to Overwatch": "العودة إلى Overwatch",
   "Could not confirm email": "تعذّر تأكيد البريد الإلكتروني",
+  "Live Battle is open: SvS vs state {opponent} {when}": "المعركة المباشرة مفتوحة: SvS ضد الولاية {opponent} {when}",
+  "Live Battle opens automatically at 11:00 UTC on battle day, an hour before the battle starts. Live tools appear here then.": "تُفتح المعركة المباشرة تلقائيًا الساعة 11:00 UTC يوم المعركة، قبل بدايتها بساعة. تظهر الأدوات المباشرة هنا حينها.",
+  "Live Battle opens at {time}, an hour early, so garrison and coordinators can enter coordinates.": "تُفتح المعركة المباشرة في {time}، قبل ساعة، ليتمكن أفراد الحامية والمنسقون من إدخال الإحداثيات.",
+  "Live Battle opens automatically": "تُفتح المعركة المباشرة تلقائيًا",
+  "11:00 UTC": "11:00 UTC",
+  "Live Battle opens for coordinates": "تُفتح المعركة المباشرة لإدخال الإحداثيات",
+  "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.": "تُفتح المعركة المباشرة تلقائيًا الساعة 11:00 UTC، قبل المعركة بساعة، لكل من لديه دور الحامية أو المنسق. استخدم تلك الساعة لإدخال الإحداثيات.",
+  "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.": "لا تظهر إلا من 11:00 إلى 17:00 UTC يوم المعركة، وفقط للمشرفين والأعضاء الذين لديهم دور المنسق أو الحامية.",
 };

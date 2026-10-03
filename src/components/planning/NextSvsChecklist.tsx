@@ -9,6 +9,7 @@ const HOUR_MS = 60 * 60 * 1000;
 const REMIND_BEFORE_MS = 30 * HOUR_MS;
 const GENERATE_BEFORE_MS = 24 * HOUR_MS;
 const PUBLISH_BEFORE_MS = 6 * HOUR_MS;
+const LIVE_OPENS_BEFORE_MS = HOUR_MS;
 
 type Step = {
   key: string;
@@ -141,11 +142,12 @@ export function NextSvsChecklist({
     },
     {
       key: "battle",
-      done: now >= battleAt,
-      title: t("Battle goes live automatically"),
-      detail: t("Live Battle opens for callers and garrison at {time}.", {
-        time: formatDateTime(plan.scheduled_at),
-      }),
+      done: now >= battleAt - LIVE_OPENS_BEFORE_MS,
+      title: t("Live Battle opens automatically"),
+      detail: t(
+        "Live Battle opens at {time}, an hour early, so garrison and coordinators can enter coordinates.",
+        { time: at(LIVE_OPENS_BEFORE_MS) },
+      ),
     },
   ];
 

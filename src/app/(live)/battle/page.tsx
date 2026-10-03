@@ -40,7 +40,7 @@ export default function LiveBattlePage() {
           </h2>
           <p>
             {t(
-              "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.",
+              "Live Battle opens automatically at 11:00 UTC on battle day, an hour before the battle starts. Live tools appear here then.",
             )}
           </p>
           <Link className="nav-link" href="/state/overwatch">

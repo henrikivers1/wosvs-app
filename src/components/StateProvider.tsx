@@ -178,7 +178,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshMemberships, supabase]);
 
-  // Battles start and end on the server (12:00 and 17:00 UTC); refresh so
+  // Live Battle opens and closes on the server (11:00 and 17:00 UTC); refresh so
   // Live Battle appears and disappears without a page reload.
   const stateIdsKey = [...new Set(memberships.map((item) => item.stateId))]
     .sort()

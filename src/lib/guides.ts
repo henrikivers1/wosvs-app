@@ -88,7 +88,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     title: "During the battle",
     audience: "Garrison and coordinators",
     intro:
-      "Live Battle opens by itself at 12:00 UTC for everyone with the Garrison or Coordinator role.",
+      "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.",
     topics: [
       {
         title: "Garrison: when to send",
@@ -188,7 +188,7 @@ export const GUIDE_FAQ: { q: string; a: string }[] = [
   },
   {
     q: "I can't see Live Battle.",
-    a: "It only appears from 12:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.",
+    a: "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.",
   },
   {
     q: "The times look wrong.",

@@ -32,6 +32,22 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Live Battle is open: SvS vs state {opponent} {when}":
+    "Batalla en vivo abierta: SvS contra el estado {opponent} {when}",
+  "Live Battle opens automatically at 11:00 UTC on battle day, an hour before the battle starts. Live tools appear here then.":
+    "La batalla en vivo se abre automáticamente a las 11:00 UTC el día de la batalla, una hora antes de que empiece. Las herramientas en vivo aparecerán aquí entonces.",
+  "Live Battle opens at {time}, an hour early, so garrison and coordinators can enter coordinates.":
+    "La batalla en vivo se abre a las {time}, una hora antes, para que la guarnición y los coordinadores introduzcan coordenadas.",
+  "Live Battle opens automatically":
+    "La batalla en vivo se abre automáticamente",
+  "11:00 UTC":
+    "11:00 UTC",
+  "Live Battle opens for coordinates":
+    "Se abre la batalla en vivo para las coordenadas",
+  "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.":
+    "La batalla en vivo se abre sola a las 11:00 UTC, una hora antes de la batalla, para todos con el rol de Guarnición o Coordinador. Usa esa hora para introducir coordenadas.",
+  "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.":
+    "Solo aparece de 11:00 a 17:00 UTC el día de la batalla, y solo para administradores y miembros con el rol de Coordinador o Guarnición.",
   "Could not confirm email":
     "No se pudo confirmar el correo",
   "Privacy":
@@ -168,8 +184,6 @@ const spanishInterface: Record<string, string> = {
     "Durante la batalla",
   "Garrison and coordinators":
     "Guarnición y coordinadores",
-  "Live Battle opens by itself at 12:00 UTC for everyone with the Garrison or Coordinator role.":
-    "Batalla en vivo se abre sola a las 12:00 UTC para todos los que tienen el rol de Guarnición o Coordinador.",
   "Garrison: when to send":
     "Guarnición: cuándo enviar",
   "Open Live Battle, then Garrison.":
@@ -264,8 +278,6 @@ const spanishInterface: Record<string, string> = {
     "Pulsa Actualizar datos del jugador en Cuenta (una vez al día). Además, todos se actualizan cada lunes.",
   "I can't see Live Battle.":
     "No veo Batalla en vivo.",
-  "It only appears from 12:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.":
-    "Solo aparece de 12:00 a 17:00 UTC el día de batalla, y solo para administradores y miembros con el rol de Coordinador o Guarnición.",
   "The times look wrong.":
     "Las horas parecen incorrectas.",
   "Every time in Overwatch is UTC, like the game's SvS. In Live Battle, press Resync clock.":
@@ -318,10 +330,6 @@ const spanishInterface: Record<string, string> = {
     "T−6 h",
   "Published to every member":
     "Publicado para cada miembro",
-  "12:00 UTC":
-    "12:00 UTC",
-  "Live Battle opens":
-    "Se abre Batalla en vivo",
   "17:00 UTC":
     "17:00 UTC",
   "Victory or Defeat for all":
@@ -445,8 +453,6 @@ const spanishInterface: Record<string, string> = {
     "Elige abajo a los jugadores del rival. Sus coordenadas se recuerdan: en la próxima batalla se rellenan solas y los líderes que añadiste antes aparecen automáticamente al empezar.",
   "Coordinates from the last battle against this player.":
     "Coordenadas de la última batalla contra este jugador.",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
-    "Las batallas empiezan solas a las 12:00 UTC del día de batalla. Las herramientas aparecen aquí entonces.",
   "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
     "Aún no te has unido a un estado. Cuando el estado de tu cuenta WOS use WOSOverwatch, se envía una solicitud automáticamente; recibirás una notificación cuando un admin la apruebe.",
   "That username may already be registered.":
@@ -521,9 +527,6 @@ const spanishInterface: Record<string, string> = {
   "Automatic publishing is off: publish when ready.":
     "La publicación automática está desactivada: publica cuando esté listo.",
   "Publish now": "Publicar ahora",
-  "Battle goes live automatically": "La batalla empieza sola",
-  "Live Battle opens for callers and garrison at {time}.":
-    "Batalla en vivo se abre para coordinadores y guarnición el {time}.",
   "Next SvS": "Próxima SvS",
   "Can you join the SvS?": "¿Puedes unirte a la SvS?",
   "Rallies are ready for review": "Los rallies están listos para revisar",

@@ -830,8 +830,6 @@ export const chineseInterface: Record<string, string> = {
     "在下方选择对手的玩家。坐标会被记住：下次战斗自动填入，之前添加过的队长会在战斗开始时自动列出。",
   "Coordinates from the last battle against this player.":
     "来自上次与该玩家交战时的坐标。",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
-    "战斗日 12:00 UTC 自动开始，届时实时工具会出现在这里。",
   "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
     "你还没有加入州。当你的 WOS 账号所在的州使用 WOSOverwatch 时，会自动发送加入申请；管理员批准后你会收到通知。",
   "That username may already be registered.": "该用户名可能已被注册。",
@@ -900,9 +898,6 @@ export const chineseInterface: Record<string, string> = {
   "Automatic publishing is off: publish when ready.":
     "自动发布已关闭：准备好后请手动发布。",
   "Publish now": "立即发布",
-  "Battle goes live automatically": "战斗自动开始",
-  "Live Battle opens for callers and garrison at {time}.":
-    "实时战斗将于 {time} 向集结指挥和驻防开放。",
   "Next SvS": "下一场 SvS",
   "Can you join the SvS?": "你能参加 SvS 吗？",
   "Rallies are ready for review": "集结已准备好审核",
@@ -953,7 +948,6 @@ export const chineseInterface: Record<string, string> = {
   "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.": "情报页会显示对手的最强玩家、他们的联盟和 SvS 战绩，并与你所在州的数据并列对比。",
   "During the battle": "战斗期间",
   "Garrison and coordinators": "驻防与协调员",
-  "Live Battle opens by itself at 12:00 UTC for everyone with the Garrison or Coordinator role.": "12:00 UTC 实时战斗会自动向所有拥有驻防或协调员角色的玩家开放。",
   "Garrison: when to send": "驻防：何时派兵",
   "Open Live Battle, then Garrison.": "打开实时战斗，然后进入驻防。",
   "Enter your city's X and Y once; your march time is worked out for you.": "输入一次你城市的 X 和 Y 坐标，行军时间会自动算好。",
@@ -1001,7 +995,6 @@ export const chineseInterface: Record<string, string> = {
   "My power or Furnace is out of date.": "我的战力或熔炉数据已过时。",
   "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.": "在“账号”页点击“刷新玩家数据”（每天一次）。所有人每周一也会自动刷新。",
   "I can't see Live Battle.": "我看不到实时战斗。",
-  "It only appears from 12:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.": "它只在战斗日 12:00 至 17:00 UTC 出现，且仅对管理员和拥有协调员或驻防角色的成员可见。",
   "The times look wrong.": "时间看起来不对。",
   "Every time in Overwatch is UTC, like the game's SvS. In Live Battle, press Resync clock.": "Overwatch 中的所有时间都是 UTC，与游戏的 SvS 一致。在实时战斗中点击“重新同步时钟”。",
   "I don't get send alerts on my phone.": "我的手机收不到派兵提醒。",
@@ -1028,8 +1021,6 @@ export const chineseInterface: Record<string, string> = {
   "Rallies built and filled": "建立并填充集结",
   "T−6 h": "T−6 h",
   "Published to every member": "发布给每位成员",
-  "12:00 UTC": "12:00 UTC",
-  "Live Battle opens": "实时战斗开启",
   "17:00 UTC": "17:00 UTC",
   "Victory or Defeat for all": "全员收到胜利或失败通知",
   "Vote once, see your rally, hero and formation, and get told about every change.": "投票一次，查看你的集结、英雄和阵型，每次变更都会通知你。",
@@ -1123,4 +1114,12 @@ export const chineseInterface: Record<string, string> = {
   "Questions or requests:": "问题或请求：",
   "Back to Overwatch": "返回 Overwatch",
   "Could not confirm email": "无法确认邮箱",
+  "Live Battle is open: SvS vs state {opponent} {when}": "实时战斗已开放：对阵 {opponent} 州的 SvS {when}",
+  "Live Battle opens automatically at 11:00 UTC on battle day, an hour before the battle starts. Live tools appear here then.": "实时战斗会在战斗日 11:00 UTC 自动开放，比战斗开始早一小时。届时实时工具会显示在这里。",
+  "Live Battle opens at {time}, an hour early, so garrison and coordinators can enter coordinates.": "实时战斗在 {time} 提前一小时开放，方便驻防和协调员填写坐标。",
+  "Live Battle opens automatically": "实时战斗自动开放",
+  "11:00 UTC": "11:00 UTC",
+  "Live Battle opens for coordinates": "实时战斗开放，填写坐标",
+  "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.": "实时战斗会在 11:00 UTC（战斗前一小时）自动向所有驻防和协调员角色开放。请利用这一小时填写坐标。",
+  "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.": "它只在战斗日 11:00 至 17:00 UTC 出现，并且只对管理员以及拥有协调员或驻防角色的成员显示。",
 };
