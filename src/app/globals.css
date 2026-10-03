@@ -4125,3 +4125,8 @@ li.member-row button.danger-button:hover:not(:disabled) {
 .landing-faq .secondary-link {
   margin-top: 16px;
 }
+
+/* Arabic letters join; spacing them apart breaks the script. */
+[dir="rtl"] * {
+  letter-spacing: 0 !important;
+}

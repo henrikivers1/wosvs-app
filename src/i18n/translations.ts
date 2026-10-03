@@ -32,6 +32,324 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Getting started":
+    "Primeros pasos",
+  "Everyone":
+    "Todos",
+  "Create an account, add your WOS ID and join your state. It takes about two minutes.":
+    "Crea una cuenta, añade tu WOS ID y únete a tu estado. Solo te lleva unos dos minutos.",
+  "Create your account":
+    "Crea tu cuenta",
+  "Open Sign in and choose Sign up.":
+    "Abre Iniciar sesión y elige Regístrate.",
+  "Enter your email, a password, a public username and your WOS ID.":
+    "Introduce tu correo, una contraseña, un nombre de usuario público y tu WOS ID.",
+  "Confirm your email if you are asked to.":
+    "Confirma tu correo si te lo piden.",
+  "Want to look around first? The free demo needs no account.":
+    "¿Quieres echar un vistazo primero? La demo gratis no necesita cuenta.",
+  "Add your WOS accounts":
+    "Añade tus cuentas de WOS",
+  "On Account, add every WOS ID you play. Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day.":
+    "En Cuenta, añade cada WOS ID con el que juegas. Tu nombre, avatar, estado, poder, Horno, puntuación del Laberinto y alianza se rellenan desde WOSOracle. Se actualizan cada lunes, y puedes actualizarlos a mano una vez al día.",
+  "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell.":
+    "Si tu estado del juego usa Overwatch, al añadir tu WOS ID se envía automáticamente una solicitud de unión a su propietario y administradores. Recibes una notificación en cuanto la aprueben. Un administrador también puede invitar a tu WOS ID; acepta la invitación desde la campana.",
+  "Tell us your joiner heroes":
+    "Dinos tus héroes de apoyo",
+  "On Account, tick every joiner hero you have at 4★ or higher. Rallies only give you a hero you own, so this decides which rally you can join.":
+    "En Cuenta, marca cada héroe de apoyo que tengas con 4★ o más. En los rallies solo te toca un héroe que tengas, así que esto decide a qué rally puedes unirte.",
+  "Language and notifications":
+    "Idioma y notificaciones",
+  "Change the language with the globe in the header. The bell shows your notifications, coloured by kind: green Victory, red Defeat, blue rally assignments, purple roles, gold alliances.":
+    "Cambia el idioma con el globo de la cabecera. La campana muestra tus notificaciones, con un color por tipo: verde Victoria, rojo Derrota, azul asignaciones de rally, morado roles, dorado alianzas.",
+  "Before the SvS":
+    "Antes de la SvS",
+  "After the draw you only need to do one thing: say when you can play.":
+    "Tras el sorteo solo tienes que hacer una cosa: decir cuándo puedes jugar.",
+  "Vote your attendance":
+    "Vota tu asistencia",
+  "Open Overwatch.":
+    "Abre Overwatch.",
+  "Pick Whole battle, First half (12:00–14:30 UTC), Second half (14:30–17:00 UTC) or Can't join.":
+    "Elige Toda la batalla, Primera mitad (12:00–14:30 UTC), Segunda mitad (14:30–17:00 UTC) o No puedo.",
+  "Tick voice call if you can join it.":
+    "Marca chat de voz si puedes unirte.",
+  "You can change your answer until the battle starts. If you have not voted 30 hours before, you get a reminder.":
+    "Puedes cambiar tu respuesta hasta que empiece la batalla. Si no has votado 30 horas antes, te llega un recordatorio.",
+  "Get your rally":
+    "Recibe tu rally",
+  "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation.” Overwatch shows the same details, and you are told about every change.":
+    "Seis horas antes de la batalla se publica el plan y te llega un mensaje como “Hola Frost, te asignaron al rally de Ted en Frost Wolves. Te unes con Jessie y formación 50/20/30.” Overwatch muestra los mismos detalles y te avisa de cada cambio.",
+  "Check the opponent":
+    "Revisa al rival",
+  "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.":
+    "Inteligencia muestra los jugadores más fuertes del rival, sus alianzas y su historial de SvS junto a las cifras de tu propio estado.",
+  "During the battle":
+    "Durante la batalla",
+  "Garrison and coordinators":
+    "Guarnición y coordinadores",
+  "Live Battle opens by itself at 12:00 UTC for everyone with the Garrison or Coordinator role.":
+    "Batalla en vivo se abre sola a las 12:00 UTC para todos los que tienen el rol de Guarnición o Coordinador.",
+  "Garrison: when to send":
+    "Guarnición: cuándo enviar",
+  "Open Live Battle, then Garrison.":
+    "Abre Batalla en vivo y luego Guarnición.",
+  "Enter your city's X and Y once; your march time is worked out for you.":
+    "Introduce la X y la Y de tu ciudad una sola vez; tu tiempo de marcha se calcula solo.",
+  "Turn on sound and notifications.":
+    "Activa el sonido y las notificaciones.",
+  "Send when the countdown reaches zero.":
+    "Envía cuando la cuenta atrás llegue a cero.",
+  "The timer aims your reinforcements between two enemy rallies, or right after the last one hits.":
+    "El temporizador hace que tus refuerzos lleguen entre dos rallies enemigos, o justo después de que golpee el último.",
+  "If the game lags on your connection, add your ping in milliseconds under Send early.":
+    "Si el juego va con retraso en tu conexión, añade tu ping en milisegundos en Enviar antes.",
+  "The shared battle clock":
+    "El reloj de batalla compartido",
+  "Every device times against the same server clock, so a phone that is a few seconds off still sends on time. If it says the clock is not synchronized, press Resync clock.":
+    "Todos los dispositivos se sincronizan con el mismo reloj del servidor, así que un móvil que va unos segundos desfasado envía igualmente a tiempo. Si indica que el reloj no está sincronizado, pulsa Resincronizar reloj.",
+  "Coordinators: enemy leaders":
+    "Coordinadores: líderes enemigos",
+  "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when the battle starts. Mark a leader's pet when it is active.":
+    "En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival. Toca Usar, introduce las coordenadas de la ciudad y añádelos. Las coordenadas se recuerdan: la próxima vez ese jugador aparece ya rellenado, y los líderes conocidos se añaden solos al empezar la batalla. Marca la mascota de un líder cuando esté activa.",
+  "Coordinators: call a rally":
+    "Coordinadores: registrar un rally",
+  "Open Call rally and pick the enemy leader.":
+    "Abre Registrar rally y elige el líder enemigo.",
+  "Type the rally timer you see in the game, for example 4:59.":
+    "Escribe el temporizador del rally que ves en el juego, por ejemplo 4:59.",
+  "Press Call rally the moment the in-game timer shows that value.":
+    "Pulsa Registrar rally justo cuando el temporizador del juego muestre ese valor.",
+  "Every second of delay shifts the whole schedule. Cancel a rally only if it was called by mistake; it disappears for everyone.":
+    "Cada segundo de retraso desplaza todo el horario. Cancela un rally solo si se registró por error; desaparece para todos.",
+  "After the battle":
+    "Después de la batalla",
+  "The battle ends at 17:00 UTC. As soon as WOSOracle has the result, every member gets Victory or Defeat. Past battles are under State, Stats & history.":
+    "La batalla termina a las 17:00 UTC. En cuanto WOSOracle tiene el resultado, cada miembro recibe Victoria o Derrota. Las batallas anteriores están en Estado, Estadísticas e historial.",
+  "Running your state":
+    "Gestiona tu estado",
+  "Owners and admins":
+    "Propietarios y administradores",
+  "Overwatch does the routine work for every SvS. These are the places to look and the settings that shape it.":
+    "Overwatch hace el trabajo rutinario de cada SvS. Estos son los sitios que revisar y los ajustes que lo definen.",
+  "First setup":
+    "Configuración inicial",
+  "The in-game state number fills in from the owner's WOS account.":
+    "El número de estado del juego se rellena desde la cuenta de WOS del propietario.",
+  "Under State management, set your hero generation so only unlocked heroes are offered.":
+    "En Gestión del estado, configura tu generación de héroes para que solo se ofrezcan héroes desbloqueados.",
+  "Add your alliances: load them from WOSOracle, add a shell alliance by its ID, or type a name.":
+    "Añade tus alianzas: cárgalas desde WOSOracle, añade una alianza vacía por su ID o escribe un nombre.",
+  "Give Coordinator and Garrison roles to the right members.":
+    "Da los roles de Coordinador y Guarnición a los miembros adecuados.",
+  "SvS automation settings":
+    "Ajustes de automatización SvS",
+  "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation and the four default joiner heroes. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
+    "En Gestión del estado, Automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, la formación por defecto y los cuatro héroes de apoyo por defecto. Desactiva los rallies automáticos o la publicación automática si prefieres hacerlo tú.",
+  "The Next SvS checklist":
+    "La lista de la próxima SvS",
+  "Planning opens with a checklist: the draw, votes, rallies, publishing and the battle, each with when it happens automatically. The gold button runs the next step now: Generate now, Fill open slots now or Publish now.":
+    "Planificación empieza con una lista de pasos: el sorteo, los votos, los rallies, la publicación y la batalla, cada uno con cuándo ocurre automáticamente. El botón dorado ejecuta ahora el siguiente paso: Generar ahora, Llenar huecos ahora o Publicar ahora.",
+  "How rallies are built":
+    "Cómo se crean los rallies",
+  "Rally Leads who can play come first, topped up with the best Labyrinth players who voted. Each rally goes into its leader's own alliance and fights in the half the leader voted for. Players are then added by your auto-fill priorities, and only get a joiner hero they own at 4★.":
+    "Primero van los líderes de rally que pueden jugar, completados con los mejores jugadores del Laberinto que votaron. Cada rally va a la alianza de su líder y lucha en la mitad que votó el líder. Después se añaden jugadores según tus prioridades de autorrelleno, y solo reciben un héroe de apoyo que tengan con 4★.",
+  "Adjust by hand":
+    "Ajusta a mano",
+  "Drag players between rallies, or tick several and move them at once. Rally setup changes a rally's formation, half and joiner heroes; Assign heroes shares the heroes out again. Nothing you change is undone by the automation.":
+    "Arrastra jugadores entre rallies, o marca varios y muévelos a la vez. Configurar rally cambia la formación, la mitad y los héroes de apoyo de un rally; Asignar héroes vuelve a repartir los héroes. La automatización nunca deshace lo que cambies.",
+  "Rally Leads":
+    "Líderes de rally",
+  "Open Top 20 Labyrinth in Planning to mark or unmark Rally Leads. Only Rally Leads can lead a rally.":
+    "Abre Top 20 del Laberinto en Planificación para marcar o desmarcar líderes de rally. Solo los líderes de rally pueden liderar un rally.",
+  "Members and join requests":
+    "Miembros y solicitudes de unión",
+  "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins can give the Coordinator or Garrison role and remove members. Every change is sent to the member as a notification.":
+    "Aprueba las solicitudes de unión en Esperando tu verificación. El propietario decide quién es administrador; los administradores pueden dar el rol de Coordinador o Guarnición y eliminar miembros. Cada cambio se envía al miembro como notificación.",
+  "A WOS ID claimed by the wrong person":
+    "Un WOS ID reclamado por la persona equivocada",
+  "Under Release a claimed WOS ID, enter the ID. It is removed from the login that claimed it so the real player can add it.":
+    "En Liberar un WOS ID reclamado, introduce el ID. Se quita del usuario que lo reclamó para que el jugador real pueda añadirlo.",
+  "Notices and tags":
+    "Avisos y etiquetas",
+  "Send notices to the whole state, one alliance or everyone with a tag. Tags are for your own groupings; rally and hero tags are created automatically when you publish.":
+    "Envía avisos a todo el estado, a una alianza o a todos los que tengan una etiqueta. Las etiquetas son para tus propios grupos; las de rally y héroe se crean solas al publicar.",
+  "My WOS ID is already registered.":
+    "Mi WOS ID ya está registrado.",
+  "Someone else claimed it. Ask an admin of your state to release it, then add it again.":
+    "Otra persona lo reclamó. Pide a un administrador de tu estado que lo libere y vuelve a añadirlo.",
+  "My power or Furnace is out of date.":
+    "Mi poder o mi Horno están desactualizados.",
+  "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.":
+    "Pulsa Actualizar datos del jugador en Cuenta (una vez al día). Además, todos se actualizan cada lunes.",
+  "I can't see Live Battle.":
+    "No veo Batalla en vivo.",
+  "It only appears from 12:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.":
+    "Solo aparece de 12:00 a 17:00 UTC el día de batalla, y solo para administradores y miembros con el rol de Coordinador o Guarnición.",
+  "The times look wrong.":
+    "Las horas parecen incorrectas.",
+  "Every time in Overwatch is UTC, like the game's SvS. In Live Battle, press Resync clock.":
+    "Todas las horas en Overwatch están en UTC, como la SvS del juego. En Batalla en vivo, pulsa Resincronizar reloj.",
+  "I don't get send alerts on my phone.":
+    "No me llegan las alertas de envío al móvil.",
+  "Allow notifications for this site in your browser, keep the Garrison page open and the screen on during the battle.":
+    "Permite las notificaciones de este sitio en tu navegador y mantén abierta la página de Guarnición y la pantalla encendida durante la batalla.",
+  "Is the demo safe to try?":
+    "¿Es seguro probar la demo?",
+  "Yes. It runs only in your browser with fake players. Nothing is saved to any state, and Reset demo starts it over.":
+    "Sí. Funciona solo en tu navegador con jugadores ficticios. No se guarda nada en ningún estado, y Reiniciar demo la empieza de nuevo.",
+  "Your SvS plans itself":
+    "Tu SvS se planifica sola",
+  "The moment the draw is out, Overwatch creates the plan, reminds members to vote, builds the rallies from who can play and publishes them. Admins only review.":
+    "En cuanto sale el sorteo, Overwatch crea el plan, recuerda a los miembros que voten, arma los rallies según quién puede jugar y los publica. Los administradores solo revisan.",
+  "Land between enemy rallies":
+    "Llega entre rallies enemigos",
+  "Every garrison player gets a personal countdown that tells them exactly when to send, so reinforcements arrive between enemy hits, or right after the last one.":
+    "Cada jugador de guarnición tiene su propia cuenta atrás que le dice exactamente cuándo enviar, para que los refuerzos lleguen entre golpes enemigos, o justo después del último.",
+  "One shared battle clock":
+    "Un único reloj de batalla compartido",
+  "Every phone and PC times against the same server clock, so a device that is a few seconds off still sends on the right second.":
+    "Todos los móviles y PC se sincronizan con el mismo reloj del servidor, así que un dispositivo con unos segundos de desfase envía igualmente en el segundo exacto.",
+  "Rallies built the smart way":
+    "Rallies armados con inteligencia",
+  "Formations, four unique joiner heroes per rally, and only players who own each hero at 4★. Auto-fill balances power and follows your priorities.":
+    "Formaciones, cuatro héroes de apoyo distintos por rally y solo jugadores que tienen cada héroe con 4★. El autorrelleno equilibra el poder y sigue tus prioridades.",
+  "Know your opponent":
+    "Conoce a tu rival",
+  "Their strongest players, alliances and SvS record, refreshed daily from WOSOracle. Enemy leaders and their coordinates are remembered between battles.":
+    "Sus jugadores más fuertes, alianzas e historial de SvS, actualizados a diario desde WOSOracle. Los líderes enemigos y sus coordenadas se recuerdan entre batallas.",
+  "Everyone knows where to be":
+    "Todos saben dónde estar",
+  "“Hi Frost, you're in Ted's rally with Jessie and 50/20/30.” Every member gets their assignment, every change, and Victory or Defeat afterwards.":
+    "“Hola Frost, estás en el rally de Ted con Jessie y 50/20/30.” Cada miembro recibe su asignación, cada cambio y la Victoria o Derrota al final.",
+  "Draw":
+    "Sorteo",
+  "Plan created, members told":
+    "Plan creado, miembros avisados",
+  "T−30 h":
+    "T−30 h",
+  "Reminder to vote":
+    "Recordatorio para votar",
+  "T−24 h":
+    "T−24 h",
+  "Rallies built and filled":
+    "Rallies creados y llenos",
+  "T−6 h":
+    "T−6 h",
+  "Published to every member":
+    "Publicado para cada miembro",
+  "12:00 UTC":
+    "12:00 UTC",
+  "Live Battle opens":
+    "Se abre Batalla en vivo",
+  "17:00 UTC":
+    "17:00 UTC",
+  "Victory or Defeat for all":
+    "Victoria o Derrota para todos",
+  "Vote once, see your rally, hero and formation, and get told about every change.":
+    "Vota una vez, consulta tu rally, héroe y formación, y entérate de cada cambio.",
+  "Enter your city once. A countdown and an alert tell you the exact second to send.":
+    "Introduce tu ciudad una vez. Una cuenta atrás y una alerta te dicen el segundo exacto para enviar.",
+  "Pick enemy leaders from the opponent's strongest players and call each rally with one tap.":
+    "Elige líderes enemigos entre los jugadores más fuertes del rival y registra cada rally con un toque.",
+  "A checklist for the next SvS, automation that does the busywork, and full control when you want it.":
+    "Una lista de pasos para la próxima SvS, automatización que hace el trabajo pesado y control total cuando lo quieras.",
+  "Is the demo really free?":
+    "¿La demo es gratis de verdad?",
+  "Yes. It needs no account, uses a fake state with fake players, and lives only in your browser: nothing is saved anywhere.":
+    "Sí. No necesita cuenta, usa un estado ficticio con jugadores ficticios y vive solo en tu navegador: no se guarda nada en ningún sitio.",
+  "Where does the game data come from?":
+    "¿De dónde salen los datos del juego?",
+  "Player stats, SvS draws, results and opponent intel come from WOSOracle. Members only type their WOS ID.":
+    "Las estadísticas de jugadores, los sorteos de SvS, los resultados y la información del rival vienen de WOSOracle. Los miembros solo escriben su WOS ID.",
+  "Does it work on phones?":
+    "¿Funciona en móviles?",
+  "Yes. Overwatch is built for phones first, with a tab bar at the bottom and big buttons for battle time.":
+    "Sí. Overwatch está pensado primero para móviles, con una barra de pestañas abajo y botones grandes para la hora de la batalla.",
+  "How does my state get started?":
+    "¿Cómo empieza mi estado?",
+  "Your state owner signs up and gets the state set up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.":
+    "El propietario de tu estado se registra y configura el estado. Después, los miembros se unen añadiendo su WOS ID: la solicitud de unión llega automáticamente al propietario y a los administradores.",
+  "Which languages are supported?":
+    "¿Qué idiomas hay?",
+  "English, العربية, ไทย, 简体中文 and Español.":
+    "English, العربية, ไทย, 简体中文 y Español.",
+  "For Whiteout Survival SvS states":
+    "Para estados de SvS de Whiteout Survival",
+  "Your whole SvS, planned and timed for you.":
+    "Toda tu SvS, planificada y cronometrada para ti.",
+  "Overwatch reads the draw, builds your rallies from who can play, tells every member where to be, and counts down to the second when to send reinforcements.":
+    "Overwatch lee el sorteo, arma tus rallies según quién puede jugar, dice a cada miembro dónde estar y cuenta hasta el segundo exacto para enviar refuerzos.",
+  "Try the free demo":
+    "Prueba la demo gratis",
+  "Free demo · No account needed · Nothing leaves your browser":
+    "Demo gratis · Sin cuenta · Nada sale de tu navegador",
+  "Live":
+    "En vivo",
+  "Send reinforcements in":
+    "Envía refuerzos en",
+  "Your garrison lands":
+    "Tu guarnición llega",
+  "Draw: vs state 1234":
+    "Sorteo: contra el estado 1234",
+  "41/48 voted":
+    "41/48 votaron",
+  "6 rallies, 58 players":
+    "6 rallies, 58 jugadores",
+  "Live data from WOSOracle":
+    "Datos en vivo de WOSOracle",
+  "Works on any phone":
+    "Funciona en cualquier móvil",
+  "5 languages":
+    "5 idiomas",
+  "All times in UTC":
+    "Todas las horas en UTC",
+  "The best parts":
+    "Lo mejor",
+  "Less admin work, sharper battles":
+    "Menos trabajo de gestión, batallas más precisas",
+  "How an SvS runs":
+    "Cómo funciona una SvS",
+  "From the draw to the result, on autopilot":
+    "Del sorteo al resultado, en piloto automático",
+  "See it with a fake state, free":
+    "Pruébalo con un estado ficticio, gratis",
+  "The demo gives you a state with 40 players, an SvS draw and an opponent. Start the battle whenever you like, switch between the admin and member view, and try every tool.":
+    "La demo te da un estado con 40 jugadores, un sorteo de SvS y un rival. Empieza la batalla cuando quieras, cambia entre la vista de administrador y de miembro, y prueba todas las herramientas.",
+  "Open the demo":
+    "Abrir la demo",
+  "For everyone in your state":
+    "Para todos en tu estado",
+  "Each role gets exactly what it needs":
+    "Cada rol tiene justo lo que necesita",
+  "Questions":
+    "Preguntas",
+  "Good to know":
+    "Bueno saberlo",
+  "Every feature is explained step by step in the guides.":
+    "Cada función se explica paso a paso en las guías.",
+  "Read the guides":
+    "Leer las guías",
+  "Ready for your next SvS?":
+    "¿Listo para tu próxima SvS?",
+  "Footer":
+    "Pie de página",
+  "Guides":
+    "Guías",
+  "Free demo":
+    "Demo gratis",
+  "A fan-made companion tool for Whiteout Survival. Not affiliated with Century Games.":
+    "Una herramienta de apoyo hecha por fans para Whiteout Survival. Sin relación con Century Games.",
+  "How Overwatch works":
+    "Cómo funciona Overwatch",
+  "Everything from your first sign-in to calling rallies in a live battle. Pick your part below.":
+    "Todo, desde tu primer inicio de sesión hasta registrar rallies en una batalla en vivo. Elige tu parte abajo.",
+  "On this page":
+    "En esta página",
+  "Common questions":
+    "Preguntas frecuentes",
+  "Try every tool in the demo: no account needed, nothing leaves your browser.":
+    "Prueba todas las herramientas en la demo: sin cuenta y nada sale de tu navegador.",
   "Welcome back": "Bienvenido de nuevo",
   "Join your state": "Únete a tu estado",
   "Sign in to see your SvS, your rally and your send times.":
