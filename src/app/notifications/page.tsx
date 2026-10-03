@@ -1,12 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import {
+  localizedNotificationText,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_FILTERS,
+  notificationCategory,
+  type NotificationTextData,
+} from "@/lib/notificationKinds";
 
 type NotificationData = {
   announcement_id?: string;
@@ -18,13 +31,13 @@ type NotificationData = {
   tag_id?: string;
   tag_color?: string;
   token?: string;
-};
+} & NotificationTextData;
 
 type NotificationItem = {
   id: number;
   state_id: string | null;
   wos_account_id: string | null;
-  category: "state" | "social" | "tag" | "alliance" | "battle";
+  category: string;
   type: string;
   title: string;
   body: string;
@@ -40,46 +53,6 @@ type InviteStatus = {
   id: string;
   status: string;
 };
-
-function notificationCategory(
-  type: string,
-  storedCategory?: NotificationItem["category"],
-) {
-  if (storedCategory === "state") return { label: "State", className: "state" };
-  if (storedCategory === "social")
-    return { label: "Social", className: "social" };
-  if (storedCategory === "tag") return { label: "Tag", className: "tag" };
-  if (storedCategory === "alliance")
-    return { label: "Alliance", className: "alliance" };
-  if (storedCategory === "battle")
-    return { label: "Battle", className: "battle" };
-  if (
-    type === "state_invite" ||
-    type === "state_invite_accepted" ||
-    type === "wos_account_released"
-  ) {
-    return { label: "Membership", className: "membership" };
-  }
-  if (type === "state_poll_created") {
-    return { label: "Vote", className: "vote" };
-  }
-  if (type === "state_announcement") {
-    return { label: "Notice", className: "notice" };
-  }
-  if (type === "state_tag_awarded") {
-    return { label: "New tag", className: "tag" };
-  }
-  if (
-    type === "battle_plan_comment" ||
-    type === "battle_plan_comment_mention"
-  ) {
-    return { label: "Plan comment", className: "comment" };
-  }
-  if (type === "battle_plan_assignment" || type === "battle_plan_published") {
-    return { label: "Battle plan", className: "plan" };
-  }
-  return { label: "Update", className: "general" };
-}
 
 export default function NotificationsPage() {
   const { t, formatDateTime } = useLanguage();
@@ -97,6 +70,7 @@ export default function NotificationsPage() {
     {},
   );
   const [stateLabels, setStateLabels] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState("all");
 
   const loadNotifications = useCallback(async () => {
     const {
@@ -256,6 +230,21 @@ export default function NotificationsPage() {
     await refreshMemberships();
   }
 
+  const activeFilter =
+    NOTIFICATION_FILTERS.find((item) => item.key === filter) ??
+    NOTIFICATION_FILTERS[0];
+  const visibleNotifications = activeFilter.categories.length
+    ? notifications.filter((notification) =>
+        activeFilter.categories.includes(
+          notificationCategory(
+            notification.type,
+            notification.category,
+            notification.data,
+          ),
+        ),
+      )
+    : notifications;
+
   return (
     <main>
       <AppHeader />
@@ -263,10 +252,30 @@ export default function NotificationsPage() {
         <h2>{t("Notifications")}</h2>
         <p>
           {t(
-            "Battle plans, comments, mentions, tags, votes, notices, and state membership updates appear here.",
+            "Battle results, rally assignments and everything an admin changes on your accounts appear here, colour-coded by action.",
           )}
         </p>
         {message && <p className="auth-message">{message}</p>}
+        {notifications.length > 0 && (
+          <div className="notification-filters" role="tablist">
+            {NOTIFICATION_FILTERS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                role="tab"
+                aria-selected={filter === item.key}
+                className={
+                  filter === item.key
+                    ? "notification-filter active"
+                    : "notification-filter"
+                }
+                onClick={() => setFilter(item.key)}
+              >
+                {t(item.label)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <p>{t("Loading notifications...")}</p>
@@ -274,11 +283,22 @@ export default function NotificationsPage() {
           <p>{t("You do not have any notifications yet.")}</p>
         ) : (
           <div className="notification-list">
-            {notifications.map((notification) => {
+            {visibleNotifications.length === 0 && (
+              <p>{t("No notifications in this filter.")}</p>
+            )}
+            {visibleNotifications.map((notification) => {
               const category = notificationCategory(
                 notification.type,
                 notification.category,
+                notification.data,
               );
+              const categoryInfo = NOTIFICATION_CATEGORIES[category];
+              const text = localizedNotificationText(
+                notification.type,
+                notification.data ?? {},
+                t,
+                formatDateTime,
+              ) ?? { title: t(notification.title), body: notification.body };
               const inviteId = notification.data?.invite_id;
               const inviteStatus = inviteId
                 ? inviteStatuses[inviteId]
@@ -287,14 +307,22 @@ export default function NotificationsPage() {
               return (
                 <article
                   key={notification.id}
-                  className={`notification-card notification-${category.className}${notification.read_at ? "" : " notification-unread"}`}
+                  className={`notification-card notification-${category}${notification.read_at ? "" : " notification-unread"}`}
+                  style={
+                    category === "tag" && notification.data?.tag_color
+                      ? ({
+                          "--notification-color": notification.data.tag_color,
+                        } as CSSProperties)
+                      : undefined
+                  }
                 >
                   <div className="notification-card-heading">
                     <div>
                       <span className="notification-category">
-                        {t(category.label)}
+                        <span aria-hidden="true">{categoryInfo.icon}</span>{" "}
+                        {t(categoryInfo.label)}
                       </span>
-                      <h3>{t(notification.title)}</h3>
+                      <h3>{text.title}</h3>
                       {(notification.state_id ||
                         notification.wos_account_id) && (
                         <small className="notification-context">
@@ -315,7 +343,7 @@ export default function NotificationsPage() {
                       {formatDateTime(notification.created_at)}
                     </time>
                   </div>
-                  <p>{notification.body}</p>
+                  <p>{text.body}</p>
 
                   {notification.type === "state_invite" &&
                     inviteId &&
@@ -362,7 +390,8 @@ export default function NotificationsPage() {
                       {t("Open Overwatch")}
                     </Link>
                   )}
-                  {notification.type === "battle_plan_assignment" && (
+                  {(notification.type === "battle_plan_assignment" ||
+                    notification.type === "battle_plan_assignment_changed") && (
                     <Link className="nav-link" href="/state/overwatch">
                       {t("Open Overwatch")}
                     </Link>
@@ -394,6 +423,7 @@ export default function NotificationsPage() {
                     </Link>
                   )}
                   {(notification.type === "battle_completed" ||
+                    notification.type === "battle_result" ||
                     notification.type === "battle_cancelled") && (
                     <Link className="nav-link" href="/state/stats">
                       {t("Open battle history")}

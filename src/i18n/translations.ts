@@ -86,6 +86,122 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "End battle as a win":
+    "Terminar la batalla con victoria",
+  "End battle as a loss":
+    "Terminar la batalla con derrota",
+  "Victory":
+    "Victoria",
+  "Defeat":
+    "Derrota",
+  "Rally assignment":
+    "Asignación de rally",
+  "Role":
+    "Rol",
+  "Removed":
+    "Eliminado",
+  "All":
+    "Todas",
+  "Results":
+    "Resultados",
+  "Battles & rallies":
+    "Batallas y rallies",
+  "Your account":
+    "Tu cuenta",
+  "Comments & votes":
+    "Comentarios y votaciones",
+  "No notifications in this filter.":
+    "No hay notificaciones en este filtro.",
+  "Battle results, rally assignments and everything an admin changes on your accounts appear here, colour-coded by action.":
+    "Aquí aparecen los resultados de batalla, las asignaciones de rally y todo lo que un admin cambia en tus cuentas, con un color por tipo de acción.",
+  "your state":
+    "tu estado",
+  "Victory! We won against State {opponent}":
+    "¡Victoria! Ganamos contra el estado {opponent}",
+  "Victory! We won":
+    "¡Victoria! Hemos ganado",
+  "Defeat against State {opponent}":
+    "Derrota contra el estado {opponent}",
+  "Hi {player}, {state} won {battle}. Thank you for fighting!":
+    "Hola {player}, {state} ganó {battle}. ¡Gracias por luchar!",
+  "Hi {player}, {state} lost {battle}. Thank you for fighting, we regroup for the next SvS.":
+    "Hola {player}, {state} perdió {battle}. Gracias por luchar, nos reagrupamos para la próxima SvS.",
+  "Battle over":
+    "Batalla terminada",
+  "{battle} has ended. The win or loss follows as soon as the result is in.":
+    "{battle} ha terminado. La victoria o derrota llegará en cuanto haya resultado.",
+  "Battle cancelled":
+    "Batalla cancelada",
+  "{battle} was cancelled.":
+    "{battle} fue cancelada.",
+  "Promoted to {role}":
+    "Ascendido a {role}",
+  "Role changed to {role}":
+    "Rol cambiado a {role}",
+  "{player} is now {role} of {state} (was {oldRole}).":
+    "{player} ahora es {role} de {state} (antes {oldRole}).",
+  "Removed from {state}":
+    "Eliminado de {state}",
+  "{player} was removed from {state} by an admin.":
+    "Un admin eliminó a {player} de {state}.",
+  "New permission: {capability}":
+    "Nuevo permiso: {capability}",
+  "{player} can now use {capability} in {state}.":
+    "{player} ahora puede usar {capability} en {state}.",
+  "Permission removed: {capability}":
+    "Permiso retirado: {capability}",
+  "{player} can no longer use {capability} in {state}.":
+    "{player} ya no puede usar {capability} en {state}.",
+  "Rally caller":
+    "Llamador de rally",
+  "You are a Rally Lead":
+    "Eres líder de rally",
+  "New tag: {tag}":
+    "Nueva etiqueta: {tag}",
+  "{player} gained the {tag} tag in {state}.":
+    "{player} obtuvo la etiqueta {tag} en {state}.",
+  "Tag removed: {tag}":
+    "Etiqueta retirada: {tag}",
+  "{player} lost the {tag} tag in {state}.":
+    "{player} perdió la etiqueta {tag} en {state}.",
+  "an alliance":
+    "una alianza",
+  "Moved to {alliance}":
+    "Movido a {alliance}",
+  "Assigned to {alliance}":
+    "Asignado a {alliance}",
+  "{player} is now in {alliance} in {state}.":
+    "{player} ahora está en {alliance} en {state}.",
+  "Removed from {alliance}":
+    "Eliminado de {alliance}",
+  "{player} is no longer assigned to {alliance} in {state}.":
+    "{player} ya no está asignado a {alliance} en {state}.",
+  "an alliance not yet selected":
+    "una alianza aún sin elegir",
+  "You lead a rally":
+    "Lideras un rally",
+  "Hi {player}, you're leading {group} in {alliance}. Please be there by battle start ({start}).":
+    "Hola {player}, lideras {group} en {alliance}. Por favor, llega antes del inicio de la batalla ({start}).",
+  "You're joining with {hero} and {formation} formation.":
+    "Te unes con {hero} y formación {formation}.",
+  "You're joining with {hero}.":
+    "Te unes con {hero}.",
+  "Use {formation} formation.":
+    "Usa la formación {formation}.",
+  "Your rally assignment changed":
+    "Tu asignación de rally cambió",
+  "Your rally assignment":
+    "Tu asignación de rally",
+  "Hi {player}, you've been assigned to {group} in {alliance}.":
+    "Hola {player}, te asignaron a {group} en {alliance}.",
+  "Please be there by battle start ({start}).":
+    "Por favor, llega antes del inicio de la batalla ({start}).",
+  "Removed from {group}":
+    "Eliminado de {group}",
+  "Hi {player}, you are no longer in {group} for {plan} ({start}).":
+    "Hola {player}, ya no estás en {group} para {plan} ({start}).",
+  "{plan} was published for {start}. This account is not assigned to a rally.":
+    "{plan} se publicó para {start}. Esta cuenta no está asignada a ningún rally.",
   "after the last rally":
     "después del último rally",
   "Land right after {name} hits at {impact} UTC.":

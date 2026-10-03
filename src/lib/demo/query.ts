@@ -6,6 +6,20 @@ import {
   saveDemoTables,
   type Row,
 } from "@/lib/demo/store";
+import {
+  emitDemoMemberNotifications,
+  snapshotDemoMembers,
+} from "@/lib/demo/notify";
+
+// Direct table writes that should notify, like the database triggers.
+const NOTIFYING_TABLES = new Set([
+  "state_members",
+  "state_member_capabilities",
+  "state_member_tags",
+  "state_alliance_members",
+  "battle_plan_assignments",
+  "battles",
+]);
 
 export type DemoError = { message: string; code?: string };
 export type DemoResult = {
@@ -230,6 +244,19 @@ export class DemoQuery implements PromiseLike<DemoResult> {
   }
 
   private execute(): DemoResult {
+    if (this.action === "select" || !NOTIFYING_TABLES.has(this.table)) {
+      return this.write();
+    }
+    const before = snapshotDemoMembers();
+    const result = this.write();
+    if (!result.error) {
+      emitDemoMemberNotifications(before);
+      saveDemoTables();
+    }
+    return result;
+  }
+
+  private write(): DemoResult {
     const rows = demoTable(this.table);
 
     if (this.action === "select") {

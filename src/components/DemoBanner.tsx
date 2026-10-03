@@ -46,15 +46,27 @@ export function DemoBanner() {
             {t("Start the battle now")}
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => {
-              demoEndBattle("win");
-              window.location.reload();
-            }}
-          >
-            {t("End the battle")}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                demoEndBattle("win");
+                window.location.reload();
+              }}
+            >
+              {t("End battle as a win")}
+            </button>
+            <button
+              type="button"
+              className="danger-button"
+              onClick={() => {
+                demoEndBattle("loss");
+                window.location.reload();
+              }}
+            >
+              {t("End battle as a loss")}
+            </button>
+          </>
         )}
         <button
           type="button"

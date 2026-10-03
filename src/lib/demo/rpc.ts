@@ -1,8 +1,12 @@
 import type { DemoResult } from "@/lib/demo/query";
 import { DEMO_USER_ID } from "@/lib/demo/seed";
 import {
+  emitDemoMemberNotifications,
+  notifyDemoUser,
+  snapshotDemoMembers,
+} from "@/lib/demo/notify";
+import {
   demoTable,
-  newNumericId,
   newUuid,
   nowIso,
   saveDemoTables,
@@ -26,29 +30,6 @@ function remove(table: string, predicate: (row: Row) => boolean) {
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     if (predicate(rows[index])) rows.splice(index, 1);
   }
-}
-
-function notifyDemoUser(
-  type: string,
-  title: string,
-  body: string,
-  data: Row,
-  stateId: unknown,
-  category = "battle",
-) {
-  demoTable("notifications").push({
-    id: newNumericId(),
-    user_id: DEMO_USER_ID,
-    type,
-    title,
-    body,
-    data,
-    read_at: null,
-    created_at: nowIso(),
-    state_id: stateId,
-    wos_account_id: null,
-    category,
-  });
 }
 
 function accountName(accountId: unknown) {
@@ -560,37 +541,73 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         created_at: nowIso(),
       });
     }
-    const mine = assignments.find((row) =>
-      demoTable("wos_accounts").some(
-        (account) =>
-          account.id === row.wos_account_id && account.user_id === DEMO_USER_ID,
-      ),
+    // One message per member account of the demo user, like the database.
+    const myMembers = demoTable("state_members").filter(
+      (member) =>
+        member.state_id === plan.state_id &&
+        demoTable("wos_accounts").some(
+          (account) =>
+            account.id === member.wos_account_id &&
+            account.user_id === DEMO_USER_ID,
+        ),
     );
-    const myGroup = groups.find((group) => group.id === mine?.group_id);
-    if (mine && myGroup) {
-      const alliance = byId("state_alliances", myGroup.alliance_id);
-      const formation = mine.formation ?? myGroup.formation;
-      notifyDemoUser(
-        "battle_plan_assignment",
-        "Your rally assignment",
-        `Hi ${accountName(mine.wos_account_id)}, you've been assigned to ${myGroup.name} in ${alliance?.name ?? "an alliance"}.` +
-          (mine.hero
-            ? ` You're joining with ${mine.hero}${formation ? ` and ${formation} formation` : ""}.`
-            : formation
-              ? ` Use ${formation} formation.`
-              : "") +
-          " Please be there by battle start.",
-        { plan_id: plan.id },
-        plan.state_id,
+    for (const member of myMembers) {
+      const accountId = member.wos_account_id;
+      const player = accountName(accountId);
+      const mine = assignments.find((row) => row.wos_account_id === accountId);
+      const myGroup = groups.find((group) => group.id === mine?.group_id);
+      const ledGroup = groups.find(
+        (group) => group.leader_wos_account_id === accountId,
       );
-    } else {
-      notifyDemoUser(
-        "battle_plan_published",
-        "Battle plan published",
-        `${plan.name} was published. Every member got their rally assignment.`,
-        { plan_id: plan.id },
-        plan.state_id,
-      );
+      const base = {
+        plan_id: plan.id,
+        plan_name: plan.name,
+        battle_start: plan.scheduled_at,
+        player,
+      };
+      if (mine && myGroup) {
+        const alliance = byId("state_alliances", myGroup.alliance_id);
+        notifyDemoUser(
+          "battle_plan_assignment",
+          "Your rally assignment",
+          `Hi ${player}, you've been assigned to ${myGroup.name}.`,
+          {
+            ...base,
+            group_id: myGroup.id,
+            group_name: myGroup.name,
+            alliance_name: alliance?.name ?? null,
+            hero: mine.hero ?? null,
+            formation: mine.formation ?? myGroup.formation ?? null,
+          },
+          plan.state_id,
+          accountId,
+        );
+      } else if (ledGroup) {
+        const alliance = byId("state_alliances", ledGroup.alliance_id);
+        notifyDemoUser(
+          "battle_plan_assignment",
+          "You lead a rally",
+          `Hi ${player}, you're leading ${ledGroup.name}.`,
+          {
+            ...base,
+            group_id: ledGroup.id,
+            group_name: ledGroup.name,
+            alliance_name: alliance?.name ?? null,
+            leader: true,
+          },
+          plan.state_id,
+          accountId,
+        );
+      } else {
+        notifyDemoUser(
+          "battle_plan_published",
+          "Battle plan published",
+          `${plan.name} was published.`,
+          base,
+          plan.state_id,
+          accountId,
+        );
+      }
     }
     return ok(assignments.length);
   },
@@ -855,7 +872,14 @@ export function runDemoRpc(name: string, args: Args = {}): DemoResult {
         : "This action is not available in the demo.",
     );
   }
+  const before = snapshotDemoMembers();
   const result = handler(args);
-  if (!result.error) saveDemoTables();
+  if (!result.error) {
+    emitDemoMemberNotifications(before, {
+      // Publishing sends its own message per member.
+      muted: name === "publish_battle_plan_with_notifications",
+    });
+    saveDemoTables();
+  }
   return result;
 }

@@ -1,3 +1,7 @@
+import {
+  emitDemoMemberNotifications,
+  snapshotDemoMembers,
+} from "@/lib/demo/notify";
 import { demoTable, nowIso, saveDemoTables } from "@/lib/demo/store";
 
 // Demo time controls: jump straight to the live battle or end it, so the
@@ -35,7 +39,10 @@ export function demoStartBattleNow() {
 export function demoEndBattle(result: "win" | "loss") {
   const battle = demoTable("battles").find((row) => row.status === "active");
   if (!battle) return;
+  const before = snapshotDemoMembers();
   Object.assign(battle, { status: "completed", ended_at: nowIso(), result });
+  // Every member gets the Victory / Defeat message.
+  emitDemoMemberNotifications(before);
   saveDemoTables();
 }
 

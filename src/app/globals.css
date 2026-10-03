@@ -1242,38 +1242,73 @@ li .cancel-edit-button {
   margin: 0;
   border-left-width: 4px;
 }
-.notification-membership {
-  border-left-color: #7c9cff;
+/* One colour per kind of action. */
+article.notification-card {
+  border-left: 4px solid var(--notification-color, var(--border-strong));
 }
-.notification-vote {
-  border-left-color: #54b8e8;
+.notification-card .notification-category {
+  color: var(--notification-color, var(--muted-strong));
 }
-.notification-notice {
-  border-left-color: #e4a853;
+.notification-card.notification-victory {
+  --notification-color: #3fb950;
+  background:
+    linear-gradient(90deg, rgba(63, 185, 80, 0.14), transparent 55%),
+    var(--surface-raised);
 }
-.notification-tag {
-  border-left-color: #67b88a;
-}
-.notification-comment {
-  border-left-color: #b58cff;
-}
-.notification-plan {
-  border-left-color: #ff8a5b;
-}
-.notification-general {
-  border-left-color: var(--border-strong);
-}
-.notification-state {
-  border-left-color: #e4a853;
-}
-.notification-social {
-  border-left-color: #a78bfa;
-}
-.notification-alliance {
-  border-left-color: #45b8c8;
+.notification-card.notification-defeat {
+  --notification-color: #f85149;
+  background:
+    linear-gradient(90deg, rgba(248, 81, 73, 0.14), transparent 55%),
+    var(--surface-raised);
 }
 .notification-battle {
-  border-left-color: #ff8a5b;
+  --notification-color: #f0883e;
+}
+.notification-assignment {
+  --notification-color: #4c9aff;
+}
+.notification-role {
+  --notification-color: #a371f7;
+}
+.notification-tag {
+  --notification-color: #2bb3a3;
+}
+.notification-alliance {
+  --notification-color: #e3b341;
+}
+.notification-membership {
+  --notification-color: #56c8e8;
+}
+.notification-removal {
+  --notification-color: #c2535d;
+}
+.notification-comment {
+  --notification-color: #9aa4b2;
+}
+.notification-vote {
+  --notification-color: #db61a2;
+}
+.notification-notice {
+  --notification-color: #d4a85a;
+}
+.notification-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.notification-filter {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: inherit;
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 0.85rem;
+}
+.notification-filter.active {
+  background: var(--accent, #e4a853);
+  border-color: var(--accent, #e4a853);
+  color: #1b1b1b;
 }
 .notification-unread {
   background:
