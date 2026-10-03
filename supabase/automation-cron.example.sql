@@ -1,5 +1,8 @@
--- Hourly automation job (SvS draw, battle start/end, results, Monday player
--- sync). Run this ONCE in the Supabase SQL Editor after the app is deployed.
+-- Hourly automation job (SvS draw, intel, automatic rally planning and
+-- publishing, results, Monday player sync). Run this ONCE in the Supabase SQL
+-- Editor after the app is deployed. Battle start/end runs every minute in the
+-- database itself (job "wos-advance-battles", created by migration
+-- 20261005120000_cleanup_and_pipeline.sql when pg_cron is enabled).
 --
 -- 1. Pick a long random secret and set it as CRON_SECRET in the app's
 --    environment (e.g. Vercel project settings).
