@@ -81,6 +81,9 @@
 }
 html {
   min-height: 100%;
+  /* The header's full-width background may reach past a classic scrollbar;
+     never let it widen the page. */
+  overflow-x: clip;
   background: var(--background);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -500,20 +503,20 @@ input[type="color"] {
   top: 0;
   margin-bottom: 4px;
   padding-top: 10px;
-  /* The header lives inside the centred page column; the shadow and clip
-     stretch its background across the whole window. */
-  background: rgba(11, 29, 49, 0.94);
-  box-shadow: 0 0 0 100vmax rgba(11, 29, 49, 0.94);
-  clip-path: inset(0 -100vmax);
 }
-.app-header::after {
+/* The header lives inside the centred page column; this layer stretches its
+   background and bottom line across the whole window without clipping the
+   header's dropdowns. */
+.app-header::before {
   position: absolute;
+  z-index: -1;
+  top: 0;
   bottom: 0;
   left: 50%;
   width: 100vw;
-  height: 1px;
   content: "";
-  background: rgba(30, 58, 87, 0.8);
+  background: rgba(11, 29, 49, 0.98);
+  border-bottom: 1px solid rgba(30, 58, 87, 0.8);
   transform: translateX(-50%);
 }
 .header-bar {
@@ -930,9 +933,13 @@ article .nav-link:hover {
     top: 6px;
     right: calc(50% - 18px);
   }
+  /* Menus hang from the header's bottom edge, full right. */
+  .header-language-menu,
+  .profile-menu {
+    position: static;
+  }
   .header-dropdown {
-    position: fixed;
-    top: 62px;
+    top: calc(100% + 6px);
     right: 12px;
     left: auto;
   }
@@ -3199,20 +3206,12 @@ li button.lead-toggle.on {
   font-size: 0.8rem;
 }
 
-/* Phones: the header is already full width, so no clipping trick (it
-   would also clip the fixed tab bar), and the demo banner stays small. */
+/* Phones: the header is already full width, and the demo banner stays
+   small. */
 @media (max-width: 720px) {
   .app-header {
     margin: 0 -12px;
     padding: 8px 12px 0;
-    background: rgba(11, 29, 49, 0.96);
-    box-shadow: none;
-    clip-path: none;
-  }
-  .app-header::after {
-    left: 0;
-    width: 100%;
-    transform: none;
   }
   .demo-banner {
     padding: 8px 10px;
