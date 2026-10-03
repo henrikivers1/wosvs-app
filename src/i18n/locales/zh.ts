@@ -1122,4 +1122,5 @@ export const chineseInterface: Record<string, string> = {
   "Contact": "联系",
   "Questions or requests:": "问题或请求：",
   "Back to Overwatch": "返回 Overwatch",
+  "Could not confirm email": "无法确认邮箱",
 };

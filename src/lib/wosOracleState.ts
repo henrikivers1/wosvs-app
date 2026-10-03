@@ -12,7 +12,7 @@ import {
 // minutes in the database (shared by every server instance).
 const CACHE_SECONDS = 600;
 
-type Background = Pick<OracleRequestOptions, "waitForMinute">;
+type Background = Pick<OracleRequestOptions, "waitForMinute" | "userId">;
 
 export type SvsMatchup = {
   season: number | null;
@@ -197,6 +197,7 @@ export async function fetchSvsRecord(
   const body = record(
     await oracleRequest(`/states/${stateNumber}/svs`, {
       waitForMinute: options.waitForMinute,
+      userId: options.userId,
       maxAgeSeconds: options.fresh ? 0 : CACHE_SECONDS,
     }),
   );

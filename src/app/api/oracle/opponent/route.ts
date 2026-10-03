@@ -82,11 +82,11 @@ export async function GET(request: Request) {
     // Otherwise build the top players from WOSOracle (cached for 10 minutes).
     const summary = stored?.alliances?.length
       ? stored
-      : await fetchStateSummary(resolved.opponent);
+      : await fetchStateSummary(resolved.opponent, { userId: access.userId });
     return Response.json({
       ...resolved,
       alliances: summary.alliances,
-      topPlayers: await fetchTopPlayers(summary),
+      topPlayers: await fetchTopPlayers(summary, { userId: access.userId }),
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-opponent");

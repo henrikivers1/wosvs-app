@@ -21,8 +21,10 @@ function isScheduler(request: Request) {
 export async function POST(request: Request) {
   if (isScheduler(request)) {
     const keyProblem = serviceRoleKeyProblem();
-    if (keyProblem)
-      return Response.json({ error: keyProblem }, { status: 500 });
+    if (keyProblem) {
+      console.error(`[automation] ${keyProblem}`);
+      return Response.json({ error: "Server misconfigured." }, { status: 500 });
+    }
     const report = await runAutomation(createAdminClient(), {
       playerSync: true,
     });
@@ -51,13 +53,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const lastCheck = access.oracleCheckedAt
-    ? new Date(access.oracleCheckedAt).getTime()
-    : 0;
+  // Claim the cooldown in one statement, so parallel clicks cannot all
+  // reach WOSOracle.
+  const cutoff = new Date(Date.now() - MANUAL_CHECK_COOLDOWN_MS).toISOString();
+  const { data: claimed } = await access.admin
+    .from("states")
+    .update({ oracle_checked_at: new Date().toISOString() })
+    .eq("id", stateId!)
+    .or(`oracle_checked_at.is.null,oracle_checked_at.lt.${cutoff}`)
+    .select("id");
+  if (!claimed?.length) {
+    return Response.json(
+      { error: "Checked less than 5 minutes ago. Try again in a few minutes." },
+      { status: 429 },
+    );
+  }
 
   const report = await runAutomation(access.admin, {
     stateId: stateId!,
-    forceDrawCheck: Date.now() - lastCheck >= MANUAL_CHECK_COOLDOWN_MS,
+    forceDrawCheck: true,
   });
   return Response.json(report);
 }

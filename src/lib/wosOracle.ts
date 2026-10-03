@@ -129,8 +129,10 @@ function parseAlliance(value: unknown): OracleAlliance | null {
 const DEFAULT_DAILY_BUDGET = 950;
 // WOSOracle allows 50 requests a minute; keep a margin for other callers.
 const MINUTE_BUDGET = 45;
-// A missing Premium endpoint (402) is remembered for a day.
+// A missing Premium endpoint (402) is remembered for a day, and an unknown
+// player, state or alliance (404) for an hour.
 const PAYMENT_REQUIRED_CACHE_MS = 24 * 60 * 60 * 1000;
+const NOT_FOUND_CACHE_MS = 60 * 60 * 1000;
 
 export function oracleDailyBudget() {
   const configured = Number(process.env.WOS_ORACLE_DAILY_BUDGET);
@@ -150,19 +152,36 @@ function errorMessage(status: number, path: string, notFound?: string) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Counts one upstream request against today's and this minute's quota
-// (stored in Supabase, so shared by every server instance). Background jobs
-// wait for the next minute when the minute budget is used; people get a
-// "try again" error instead.
-async function reserveOracleRequest(waitForMinute: boolean) {
+// Requests one person can cause per hour, and the share of the day's budget
+// people can use, so nobody can starve the automation of its quota.
+const USER_HOURLY_BUDGET = 40;
+const USER_SHARE_OF_DAY = 0.6;
+
+type Reservation =
+  | { ok: true; day: number; minute: number }
+  | { ok: false; reason: "minute" | "user" | "day" };
+
+// Counts one upstream request against this minute's, this person's and
+// today's quota (stored in Supabase, so shared by every server instance).
+// A refused request does not count against the day. Background jobs wait
+// for the next minute when the minute budget is used; people get a "try
+// again" error instead.
+async function reserveOracleRequest(waitForMinute: boolean, userId?: string) {
   if (!hasAdminCredentials()) return;
   const admin = createAdminClient();
+  const dayLimit = oracleDailyBudget();
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const { data, error } = await admin.rpc("reserve_oracle_request");
+    const { data, error } = await admin.rpc("reserve_oracle_request", {
+      p_minute_limit: MINUTE_BUDGET,
+      p_day_limit: dayLimit,
+      p_user_id: userId ?? null,
+      p_user_hour_limit: USER_HOURLY_BUDGET,
+      p_user_day_limit: Math.floor(dayLimit * USER_SHARE_OF_DAY),
+    });
     if (error) {
       // Before the migration ran: fall back to the daily counter only.
       const legacy = await admin.rpc("count_oracle_request");
-      if (typeof legacy.data === "number" && legacy.data > oracleDailyBudget()) {
+      if (typeof legacy.data === "number" && legacy.data > dayLimit) {
         throw new OraclePlayerError(
           "Today's WOSOracle request budget is used up. Try again after 00:00 UTC.",
           429,
@@ -170,14 +189,20 @@ async function reserveOracleRequest(waitForMinute: boolean) {
       }
       return;
     }
-    const usage = data as { day: number; minute: number };
-    if (usage.day > oracleDailyBudget()) {
+    const reservation = data as Reservation;
+    if (reservation.ok) return;
+    if (reservation.reason === "day") {
       throw new OraclePlayerError(
         "Today's WOSOracle request budget is used up. Try again after 00:00 UTC.",
         429,
       );
     }
-    if (usage.minute <= MINUTE_BUDGET) return;
+    if (reservation.reason === "user") {
+      throw new OraclePlayerError(
+        "You've made a lot of WOSOracle lookups this hour. Try again later.",
+        429,
+      );
+    }
     if (!waitForMinute || attempt > 0) {
       throw new OraclePlayerError(
         "WOSOracle is busy right now. Try again in a minute.",
@@ -213,6 +238,8 @@ export type OracleRequestOptions = {
   notFoundMessage?: string;
   // Background jobs wait for the next minute instead of failing.
   waitForMinute?: boolean;
+  // The person whose action caused the request: limits their share.
+  userId?: string;
 };
 
 // Performs an authenticated GET against the WOSOracle public API and returns
@@ -228,7 +255,9 @@ export async function oracleRequest(
     const maxAgeMs =
       cached.status === 402
         ? PAYMENT_REQUIRED_CACHE_MS
-        : (options.maxAgeSeconds ?? 0) * 1000;
+        : cached.status === 404
+          ? NOT_FOUND_CACHE_MS
+          : (options.maxAgeSeconds ?? 0) * 1000;
     if (age < maxAgeMs) {
       if (cached.status === 200) return cached.body;
       throw new OraclePlayerError(
@@ -254,7 +283,7 @@ export async function oracleRequest(
     headers.set(headerName, scheme ? `${scheme} ${apiKey}` : apiKey);
   }
 
-  await reserveOracleRequest(options.waitForMinute ?? false);
+  await reserveOracleRequest(options.waitForMinute ?? false, options.userId);
 
   let response: Response;
   try {
@@ -299,7 +328,7 @@ export async function oracleRequest(
 
 export async function fetchOraclePlayer(
   wosId: string,
-  options: Pick<OracleRequestOptions, "waitForMinute"> = {},
+  options: Pick<OracleRequestOptions, "waitForMinute" | "userId"> = {},
 ): Promise<OraclePlayer> {
   if (!/^[0-9]+$/.test(wosId)) {
     throw new OraclePlayerError("A numeric WOS ID is required.", 400);

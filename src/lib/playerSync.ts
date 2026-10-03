@@ -29,12 +29,13 @@ export async function syncWosAccount(
     state_number?: number | null;
     player_data_synced_at?: string | null;
   },
-  options: { background?: boolean } = {},
+  options: { background?: boolean; userId?: string } = {},
 ) {
   let player;
   try {
     player = await fetchOraclePlayer(account.wos_id, {
       waitForMinute: options.background,
+      userId: options.userId,
     });
   } catch (error) {
     // Remember the failure so the weekly queue moves on to other accounts.

@@ -1139,4 +1139,5 @@ export const thaiInterface: Record<string, string> = {
   "Contact": "ติดต่อ",
   "Questions or requests:": "คำถามหรือคำขอ:",
   "Back to Overwatch": "กลับไปที่ Overwatch",
+  "Could not confirm email": "ยืนยันอีเมลไม่สำเร็จ",
 };

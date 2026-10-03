@@ -32,6 +32,8 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Could not confirm email":
+    "No se pudo confirmar el correo",
   "Privacy":
     "Privacidad",
   "Your data in Overwatch":

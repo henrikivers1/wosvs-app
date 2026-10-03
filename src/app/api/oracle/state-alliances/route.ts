@@ -22,7 +22,9 @@ export async function GET(request: Request) {
   }
   try {
     return Response.json({
-      alliances: (await fetchStateSummary(access.gameStateNumber)).alliances,
+      alliances: (await fetchStateSummary(access.gameStateNumber, {
+        userId: access.userId,
+      })).alliances,
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-state-alliances");

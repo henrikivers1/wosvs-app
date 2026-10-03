@@ -6,7 +6,8 @@
 --
 -- 1. Pick a long random secret and set it as CRON_SECRET in the app's
 --    environment (e.g. Vercel project settings).
--- 2. Replace both placeholders below and run the script.
+-- 2. Replace the secret placeholder below (and the domain, if it is not
+--    wosoverwatch.com) and run the script.
 
 create extension if not exists pg_net;
 
@@ -18,7 +19,7 @@ select cron.schedule(
   '7 * * * *', -- every hour at :07
   $$
   select net.http_post(
-    url := 'https://REPLACE_WITH_YOUR_APP_DOMAIN/api/automation/run',
+    url := 'https://wosoverwatch.com/api/automation/run',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || (

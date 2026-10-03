@@ -14,8 +14,8 @@ function fail(error: string, status: number) {
 
 // Lets a state owner/admin remove a WOS ID that another user claimed, so the
 // real player can register it. Allowed when the claimed account is a member
-// of the admin's state, or when WOSOracle reports the player in the same
-// in-game state as the admin's own (server-synchronized) account.
+// of the admin's state only, or of no state and WOSOracle reports the player
+// in the same in-game state as the admin's own (server-synchronized) account.
 export async function POST(request: Request) {
   if (!hasAdminCredentials()) {
     console.error(
@@ -104,23 +104,27 @@ export async function POST(request: Request) {
   }
 
   const memberships = targetMemberships ?? [];
+  // Another state's members are that state's business: an admin here must
+  // never remove them there.
+  if (memberships.some((membership) => membership.state_id !== stateId)) {
+    return fail(
+      "That WOS ID is a member of another state in Overwatch. Ask that state's owner or admins to release it.",
+      409,
+    );
+  }
   if (memberships.some((membership) => membership.role === "owner")) {
     return fail("The owner of a state cannot be released.", 409);
   }
   if (
-    memberships.some(
-      (membership) =>
-        membership.role === "admin" &&
-        (membership.state_id !== stateId || actorMembership.role !== "owner"),
-    )
+    actorMembership.role !== "owner" &&
+    memberships.some((membership) => membership.role === "admin")
   ) {
     return fail("Only the state owner can release an admin account.", 403);
   }
 
-  const inActorState = memberships.some(
-    (membership) => membership.state_id === stateId,
-  );
-  if (!inActorState) {
+  // Not in any state: allowed when WOSOracle puts the player in the same
+  // in-game state as the admin's own account.
+  if (memberships.length === 0) {
     if (actorAccount.state_number === null) {
       return fail(
         "Synchronize your own WOS account first so your in-game state is known.",
@@ -128,7 +132,7 @@ export async function POST(request: Request) {
       );
     }
     try {
-      const player = await fetchOraclePlayer(wosId);
+      const player = await fetchOraclePlayer(wosId, { userId: user.id });
       if (player.state !== actorAccount.state_number) {
         return fail(
           `That player is in state ${player.state}. You can only release WOS IDs from your own state.`,
@@ -149,7 +153,7 @@ export async function POST(request: Request) {
   });
   if (releaseError) {
     console.error("[release-claim] Release failed:", releaseError);
-    return fail(releaseError.message, 500);
+    return fail("The WOS ID could not be released.", 500);
   }
 
   return Response.json({ released: true });

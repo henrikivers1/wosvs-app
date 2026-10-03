@@ -20,6 +20,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    new URL("/login?error=Could not confirm email", request.url),
+    new URL("/login?error=confirm", request.url),
   );
 }

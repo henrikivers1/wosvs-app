@@ -1139,4 +1139,5 @@ export const arabicInterface: Record<string, string> = {
   "Contact": "التواصل",
   "Questions or requests:": "للأسئلة أو الطلبات:",
   "Back to Overwatch": "العودة إلى Overwatch",
+  "Could not confirm email": "تعذّر تأكيد البريد الإلكتروني",
 };

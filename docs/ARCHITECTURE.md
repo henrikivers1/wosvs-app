@@ -58,12 +58,19 @@ All requests go through `oracleRequest` (`src/lib/wosOracle.ts`):
 
 - Responses are cached in `oracle_cache`, which every server instance
   shares. Only real upstream requests count.
-- A 402 (Premium endpoint) answer is remembered for a day, and a 404 for as
-  long as that request's cache lifetime.
-- The budget is checked through `reserve_oracle_request`: per day
-  (`WOS_ORACLE_DAILY_BUDGET`, default 950) and per minute (45).
+- A 402 (Premium endpoint) answer is remembered for a day, and a 404 for an
+  hour.
+- The budget is checked through `reserve_oracle_request`, in this order:
+  per minute (45), per person (40 an hour, for requests a person's action
+  caused) and per day (`WOS_ORACLE_DAILY_BUDGET`, default 950). People share
+  at most 60% of the day, so the automation always has the rest. A refused
+  request does not count against the day.
 - When the minute budget is used up, background jobs wait for the next
   minute; people get "try again in a minute".
+- A failed player sync is not retried for 10 minutes, and "Check now" runs
+  at most once every 5 minutes per state (claimed in one statement).
+- `npm run oracle:check -- --state <n> --player <WOS ID>` runs these fetchers
+  against the live API and saves the raw answers.
 
 | Endpoint | Fetcher (`wosOracleState.ts`) | Cache | Used by |
 |---|---|---|---|
@@ -225,7 +232,9 @@ WOSOracle:
 - **Enemy leader coordinates the first time a player is seen.** WOSOracle's map
   needs a higher plan; after that they are remembered.
 - **Calling an enemy rally** (the in-game timer is only visible in the game).
-- **Approving join requests** (anyone can type any WOS ID).
+- **Approving join requests:** anyone can type any WOS ID, and WOSOracle
+  cannot prove who owns one. Limits: 10 WOS accounts per login, admins
+  release a wrong claim, and a state's in-game number must match its owner's
+  synced account and is unique across Overwatch.
 - **Owners creating a state:** there is no "create state" flow in the app yet.
-- **Announcement expiry:** cleaned up when Overwatch, Alliances or
-  Announcements is opened. A database job could do this nightly instead.
+

@@ -23,7 +23,9 @@ export async function GET(request: Request) {
   }
   try {
     return Response.json({
-      alliance: (await fetchAlliance(allianceId, access.gameStateNumber)).profile,
+      alliance: (await fetchAlliance(allianceId, access.gameStateNumber, {
+        userId: access.userId,
+      })).profile,
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-alliance");

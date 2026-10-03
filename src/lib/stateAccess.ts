@@ -5,7 +5,6 @@ export type StateAccess = {
   userId: string;
   admin: ReturnType<typeof createAdminClient>;
   gameStateNumber: number | null;
-  oracleCheckedAt: string | null;
   isAdmin: boolean;
 };
 
@@ -15,12 +14,6 @@ export type StateAccess = {
 export async function requireStateMember(
   stateId: string | null,
 ): Promise<StateAccess | Response> {
-  const keyProblem = serviceRoleKeyProblem();
-  if (keyProblem) {
-    console.error(`[state-access] ${keyProblem}`);
-    return Response.json({ error: keyProblem }, { status: 500 });
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -34,6 +27,14 @@ export async function requireStateMember(
   if (!stateId) {
     return Response.json({ error: "A state is required." }, { status: 400 });
   }
+  const keyProblem = serviceRoleKeyProblem();
+  if (keyProblem) {
+    console.error(`[state-access] ${keyProblem}`);
+    return Response.json(
+      { error: "The server is not configured correctly." },
+      { status: 500 },
+    );
+  }
 
   const admin = createAdminClient();
   // Membership (via the user's own accounts) and the state row in parallel.
@@ -45,14 +46,17 @@ export async function requireStateMember(
       .eq("wos_accounts.user_id", user.id),
     admin
       .from("states")
-      .select("game_state_number, oracle_checked_at")
+      .select("game_state_number")
       .eq("id", stateId)
       .maybeSingle(),
   ]);
   const { data: memberships, error: membershipError } = membershipResult;
   if (membershipError) {
     console.error("[state-access] Membership lookup failed:", membershipError);
-    return Response.json({ error: membershipError.message }, { status: 500 });
+    return Response.json(
+      { error: "Your membership could not be checked." },
+      { status: 500 },
+    );
   }
   if (!memberships || memberships.length === 0) {
     return Response.json(
@@ -68,7 +72,7 @@ export async function requireStateMember(
         error:
           stateError.code === "42703"
             ? "The database is missing columns. Run the latest files in supabase/migrations in Supabase."
-            : stateError.message,
+            : "The state could not be loaded.",
       },
       { status: 500 },
     );
@@ -78,7 +82,6 @@ export async function requireStateMember(
     userId: user.id,
     admin,
     gameStateNumber: state?.game_state_number ?? null,
-    oracleCheckedAt: state?.oracle_checked_at ?? null,
     isAdmin: memberships.some((membership) =>
       ["owner", "admin"].includes(membership.role),
     ),

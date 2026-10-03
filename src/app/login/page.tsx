@@ -20,9 +20,13 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   // Errors passed back by the email confirmation link (?error=...).
   useEffect(() => {
+    // Only known codes, so a crafted link cannot put its own text here.
     const error = new URLSearchParams(window.location.search).get("error");
-    if (!error) return;
-    const showId = window.setTimeout(() => setMessage(t(error)), 0);
+    if (error !== "confirm") return;
+    const showId = window.setTimeout(
+      () => setMessage(t("Could not confirm email")),
+      0,
+    );
     return () => window.clearTimeout(showId);
   }, [t]);
   const [loading, setLoading] = useState(false);

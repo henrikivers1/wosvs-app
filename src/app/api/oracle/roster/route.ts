@@ -19,7 +19,9 @@ export async function GET(request: Request) {
 
   try {
     return Response.json({
-      members: (await fetchAlliance(allianceId, stateNumber)).members,
+      members: (
+        await fetchAlliance(allianceId, stateNumber, { userId: access.userId })
+      ).members,
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-roster");
