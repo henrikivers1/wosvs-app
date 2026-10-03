@@ -1,6 +1,7 @@
 import type { Availability } from "@/lib/attendance";
 
 export type AutofillCriterion =
+  | "hero_match"
   | "equal_power"
   | "fc"
   | "troop"
@@ -10,6 +11,7 @@ export type AutofillCriterion =
 
 export const AUTOFILL_CRITERIA: { value: AutofillCriterion; label: string }[] =
   [
+    { value: "hero_match", label: "Has the rally's joiner heroes" },
     { value: "equal_power", label: "Equal power across rallies" },
     { value: "fc", label: "Highest FC" },
     { value: "troop", label: "Highest troop tier" },
@@ -76,8 +78,16 @@ export function pickHero(
   );
 }
 
-function score(member: AutofillMember, criterion: AutofillCriterion) {
+function score(
+  member: AutofillMember,
+  criterion: AutofillCriterion,
+  wantedHeroes: Set<string>,
+) {
   switch (criterion) {
+    case "hero_match":
+      return member.heroes.filter((hero) =>
+        wantedHeroes.has(hero.toLowerCase()),
+      ).length;
     case "fc":
       return member.fc;
     case "troop":
@@ -102,7 +112,13 @@ export function computeAutofill(
   groups: AutofillGroup[],
   candidates: AutofillMember[],
   priorities: AutofillCriterion[],
+  options: { requireHero?: boolean } = {},
 ): AutofillDraft[] {
+  const wantedHeroes = new Set(
+    groups.flatMap((group) =>
+      group.joinerHeroes.map((hero) => hero.toLowerCase()),
+    ),
+  );
   const working = groups.map((group) => ({
     ...group,
     count: group.memberIds.length,
@@ -117,7 +133,9 @@ export function computeAutofill(
     )
     .sort((first, second) => {
       for (const criterion of ranking) {
-        const difference = score(second, criterion) - score(first, criterion);
+        const difference =
+          score(second, criterion, wantedHeroes) -
+          score(first, criterion, wantedHeroes);
         if (difference !== 0) return difference;
       }
       return second.power - first.power;
@@ -128,7 +146,12 @@ export function computeAutofill(
     const eligible = working.filter(
       (group) =>
         group.count < group.maxMembers &&
-        canPlayShift(member.availability, group.shift),
+        canPlayShift(member.availability, group.shift) &&
+        // Optionally only players who bring one of the rally's heroes.
+        (!options.requireHero ||
+          !group.joinerHeroes.length ||
+          pickHero(group.joinerHeroes, member.heroes, group.heroUsage) !==
+            null),
     );
     if (!eligible.length) continue;
 
@@ -157,4 +180,31 @@ export function computeAutofill(
     drafts.push({ group_id: target.id, wos_account_id: member.id, hero });
   }
   return drafts;
+}
+
+// Gives every member of one rally a joiner hero they have at 4★ so that all
+// of the rally's heroes are covered: players with the fewest options pick
+// first, each taking the least-used hero they own. The leader is skipped
+// because they lead with their own heroes.
+export function distributeGroupHeroes(
+  memberIds: string[],
+  leaderId: string,
+  joinerHeroes: string[],
+  heroesOf: (memberId: string) => string[],
+): Record<string, string | null> {
+  const usage: Record<string, number> = {};
+  const result: Record<string, string | null> = {};
+  const owned = (memberId: string) => {
+    const mine = new Set(heroesOf(memberId).map((hero) => hero.toLowerCase()));
+    return joinerHeroes.filter((hero) => mine.has(hero.toLowerCase()));
+  };
+  [...memberIds]
+    .filter((memberId) => memberId !== leaderId)
+    .sort((first, second) => owned(first).length - owned(second).length)
+    .forEach((memberId) => {
+      const hero = pickHero(joinerHeroes, heroesOf(memberId), usage);
+      if (hero) usage[hero] = (usage[hero] ?? 0) + 1;
+      result[memberId] = hero;
+    });
+  return result;
 }

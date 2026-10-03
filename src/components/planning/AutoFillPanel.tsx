@@ -5,7 +5,11 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { AUTOFILL_CRITERIA, type AutofillCriterion } from "@/lib/autofill";
 
 const STORAGE_KEY = "wosoverwatch-autofill-priorities";
-const DEFAULT_PRIORITIES: AutofillCriterion[] = ["equal_power", "fc", "voice"];
+const DEFAULT_PRIORITIES: AutofillCriterion[] = [
+  "hero_match",
+  "equal_power",
+  "fc",
+];
 
 // The admin picks which criteria count and in which order; auto-fill then
 // drafts every rally for review before publishing.
@@ -14,12 +18,17 @@ export function AutoFillPanel({
   onRun,
 }: {
   disabled: boolean;
-  onRun: (priorities: AutofillCriterion[], replaceExisting: boolean) => void;
+  onRun: (
+    priorities: AutofillCriterion[],
+    replaceExisting: boolean,
+    requireHero: boolean,
+  ) => void;
 }) {
   const { t } = useLanguage();
   const [priorities, setPriorities] =
     useState<AutofillCriterion[]>(DEFAULT_PRIORITIES);
   const [replaceExisting, setReplaceExisting] = useState(false);
+  const [requireHero, setRequireHero] = useState(false);
 
   useEffect(() => {
     const loadId = window.setTimeout(() => {
@@ -126,10 +135,18 @@ export function AutoFillPanel({
         />
         {t("Start from empty rallies (keeps the leaders)")}
       </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={requireHero}
+          onChange={(event) => setRequireHero(event.target.checked)}
+        />
+        {t("Only players who have one of the rally's joiner heroes at 4★")}
+      </label>
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onRun(priorities, replaceExisting)}
+        onClick={() => onRun(priorities, replaceExisting, requireHero)}
       >
         {t("Auto-fill rallies")}
       </button>

@@ -9,6 +9,7 @@ import { AutoFillPanel } from "@/components/planning/AutoFillPanel";
 import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
 import {
   computeAutofill,
+  distributeGroupHeroes,
   pickHero,
   type AutofillCriterion,
   type AutofillDraft,
@@ -876,6 +877,7 @@ export default function BattlePlanningPage() {
     planId: string,
     priorities: AutofillCriterion[],
     replaceExisting: boolean,
+    requireHero: boolean,
   ) {
     if (!isAdmin || saving) return;
     const planGroups = getPlanGroups(planId);
@@ -924,7 +926,9 @@ export default function BattlePlanningPage() {
         availability: answers.get(member.id)?.availability ?? null,
         heroes: member.heroes,
       }));
-    const drafts = computeAutofill(groupsForFill, pool, priorities);
+    const drafts = computeAutofill(groupsForFill, pool, priorities, {
+      requireHero,
+    });
     setSaving(true);
     const applied = await applyDrafts(planId, drafts, replaceExisting);
     if (applied !== null) {
@@ -976,6 +980,50 @@ export default function BattlePlanningPage() {
     });
     if (error) setMessage(error.message);
     else await loadPlanning();
+    setSaving(false);
+  }
+  // Hands the rally's joiner heroes to its members by 4★ ownership so
+  // every hero is covered.
+  async function assignGroupHeroes(
+    planId: string,
+    group: PlanGroup,
+    joinerHeroes: string[] = group.joiner_heroes ?? [],
+  ) {
+    if (!isAdmin) return;
+    const memberIds = assignments
+      .filter((item) => item.plan_id === planId && item.group_id === group.id)
+      .map((item) => item.wos_account_id);
+    const heroes = distributeGroupHeroes(
+      memberIds,
+      group.leader_wos_account_id,
+      joinerHeroes,
+      (memberId) =>
+        members.find((member) => member.id === memberId)?.heroes ?? [],
+    );
+    const drafts: AutofillDraft[] = Object.entries(heroes).map(
+      ([memberId, hero]) => ({
+        group_id: group.id,
+        wos_account_id: memberId,
+        hero,
+      }),
+    );
+    if (!drafts.length) return;
+    setSaving(true);
+    const applied = await applyDrafts(planId, drafts, false);
+    if (applied !== null) {
+      await loadPlanning();
+      const covered = new Set(Object.values(heroes).filter(Boolean));
+      setMessage(
+        t(
+          "Heroes assigned in {group}: {covered} of {total} joiner heroes covered.",
+          {
+            group: group.name,
+            covered: covered.size,
+            total: joinerHeroes.length,
+          },
+        ),
+      );
+    }
     setSaving(false);
   }
   function toggleSelected(accountId: string) {
@@ -1190,18 +1238,25 @@ export default function BattlePlanningPage() {
               (item) => item.id === assignedGroupId,
             );
             const assignedHero = getAssignment(planId, member.id)?.hero ?? "";
-            const options = [
-              ...new Set([
-                ...(group?.joiner_heroes ?? []),
-                ...(assignedHero ? [assignedHero] : []),
-              ]),
-            ];
-            if (!options.length) return null;
+            if (!group?.joiner_heroes?.length) return null;
+            // Only the rally's heroes this player has at 4★ or higher.
+            const options = group.joiner_heroes.filter((hero) =>
+              member.heroes.includes(hero),
+            );
+            if (!options.length) {
+              return (
+                <small className="plan-member-stats">
+                  {member.heroes_updated_at
+                    ? t("Has none of this rally's joiner heroes at 4★.")
+                    : t("Heroes unknown: ask them to fill in their heroes.")}
+                </small>
+              );
+            }
             return (
               <label className="plan-assignment-select">
                 {t("Joins with")}
                 <select
-                  value={assignedHero}
+                  value={options.includes(assignedHero) ? assignedHero : ""}
                   disabled={saving}
                   onChange={(event) =>
                     void setMemberHero(
@@ -1215,7 +1270,6 @@ export default function BattlePlanningPage() {
                   {options.map((hero) => (
                     <option key={hero} value={hero}>
                       {hero}
-                      {member.heroes.includes(hero) ? "" : ` (${t("not 4★")})`}
                     </option>
                   ))}
                 </select>
@@ -1590,11 +1644,12 @@ export default function BattlePlanningPage() {
                       {isAdmin && (
                         <AutoFillPanel
                           disabled={saving || !planGroups.length}
-                          onRun={(priorities, replaceExisting) =>
+                          onRun={(priorities, replaceExisting, requireHero) =>
                             void runAutofill(
                               plan.id,
                               priorities,
                               replaceExisting,
+                              requireHero,
                             )
                           }
                         />
@@ -1986,9 +2041,13 @@ export default function BattlePlanningPage() {
                                       group={group}
                                       heroGeneration={heroGeneration}
                                       onCancel={() => setSetupGroupId(null)}
-                                      onSaved={() => {
+                                      onSaved={(joinerHeroes) => {
                                         setSetupGroupId(null);
-                                        void loadPlanning();
+                                        void assignGroupHeroes(
+                                          plan.id,
+                                          group,
+                                          joinerHeroes,
+                                        );
                                       }}
                                     />
                                   )}
@@ -2019,6 +2078,18 @@ export default function BattlePlanningPage() {
                                         }
                                       >
                                         {t("Rally setup")}
+                                      </button>
+                                      <button
+                                        className="secondary-link"
+                                        disabled={
+                                          saving ||
+                                          !(group.joiner_heroes ?? []).length
+                                        }
+                                        onClick={() =>
+                                          void assignGroupHeroes(plan.id, group)
+                                        }
+                                      >
+                                        {t("Assign heroes")}
                                       </button>
                                       <button
                                         className="secondary-link"

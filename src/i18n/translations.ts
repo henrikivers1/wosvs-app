@@ -83,6 +83,16 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Has the rally's joiner heroes": "Tiene los héroes de apoyo del rally",
+  "Has none of this rally's joiner heroes at 4★.":
+    "No tiene ninguno de los héroes de apoyo de este rally con 4★.",
+  "Heroes unknown: ask them to fill in their heroes.":
+    "Héroes desconocidos: pídele que rellene sus héroes.",
+  "Heroes assigned in {group}: {covered} of {total} joiner heroes covered.":
+    "Héroes asignados en {group}: {covered} de {total} héroes de apoyo cubiertos.",
+  "Assign heroes": "Asignar héroes",
+  "Only players who have one of the rally's joiner heroes at 4★":
+    "Solo jugadores con uno de los héroes de apoyo del rally con 4★",
   "Pick an enemy rally leader": "Elige un líder de rally enemigo",
   "Load their top players": "Cargar sus mejores jugadores",
   "Their {count} strongest players": "Sus {count} jugadores más fuertes",

@@ -25,7 +25,7 @@ export function RallySetupEditor({
 }: {
   group: RallySetup;
   heroGeneration: number | null;
-  onSaved: () => void;
+  onSaved: (joinerHeroes: string[]) => void;
   onCancel: () => void;
 }) {
   const { t } = useLanguage();
@@ -80,7 +80,7 @@ export function RallySetupEditor({
       setMessage(error.message);
       return;
     }
-    onSaved();
+    onSaved(chosen);
   }
 
   return (
