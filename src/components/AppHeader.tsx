@@ -5,6 +5,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DemoBanner } from "@/components/DemoBanner";
+import {
+  STATE_SECTION_PATHS,
+  StateSectionNav,
+} from "@/components/StateSectionNav";
 import { enterDemo, isDemoMode } from "@/lib/demo/mode";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
@@ -305,11 +309,7 @@ export function AppHeader() {
             {activeMembership && (
               <Link
                 className={
-                  pathname.startsWith("/state/manage") ||
-                  pathname.startsWith("/state/stats") ||
-                  pathname.startsWith("/state/tags") ||
-                  pathname.startsWith("/state/announcements") ||
-                  pathname.startsWith("/state/alliances")
+                  STATE_SECTION_PATHS.some((path) => pathname.startsWith(path))
                     ? "nav-link active-nav-link"
                     : "nav-link"
                 }
@@ -344,6 +344,7 @@ export function AppHeader() {
           )}
         </div>
       )}
+      <StateSectionNav />
       {signedIn === true && !loadingStates && memberships.length === 0 && (
         <p className="state-status">{t("noStateSelected")}</p>
       )}

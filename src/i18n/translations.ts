@@ -83,6 +83,7 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  Alliances: "Alianzas",
   "Has the rally's joiner heroes": "Tiene los héroes de apoyo del rally",
   "Has none of this rally's joiner heroes at 4★.":
     "No tiene ninguno de los héroes de apoyo de este rally con 4★.",

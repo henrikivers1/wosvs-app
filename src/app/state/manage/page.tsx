@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -602,18 +601,6 @@ export default function ManageStatePage() {
     <main>
       <AppHeader />
       {message && <p className="page-message">{message}</p>}
-      <nav className="state-section-nav" aria-label={t("State administration")}>
-        <span className="nav-link active-nav-link">{t("Members & setup")}</span>
-        <Link className="nav-link" href="/state/announcements">
-          {t("Send notices")}
-        </Link>
-        <Link className="nav-link" href="/state/tags">
-          {t("Manage tags")}
-        </Link>
-        <Link className="nav-link" href="/state/stats">
-          {t("Stats & history")}
-        </Link>
-      </nav>
       <SvsStatus
         stateId={activeMembership.stateId}
         canRunCheck
