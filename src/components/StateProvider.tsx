@@ -178,6 +178,32 @@ export function StateProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshMemberships, supabase]);
 
+  // Battles start and end on the server (12:00 and 17:00 UTC); refresh so
+  // Live Battle appears and disappears without a page reload.
+  const stateIdsKey = [...new Set(memberships.map((item) => item.stateId))]
+    .sort()
+    .join(",");
+  useEffect(() => {
+    if (!stateIdsKey) return;
+    const channel = supabase.channel(`battle-status-${stateIdsKey}`);
+    for (const stateId of stateIdsKey.split(",")) {
+      channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "battles",
+          filter: `state_id=eq.${stateId}`,
+        },
+        () => void refreshMemberships(),
+      );
+    }
+    channel.subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [refreshMemberships, stateIdsKey, supabase]);
+
   function setActiveMembership(key: string) {
     if (!memberships.some((membership) => membership.key === key)) return;
     window.localStorage.setItem(ACTIVE_MEMBERSHIP_KEY, key);

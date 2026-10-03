@@ -19,11 +19,13 @@ import {
 
 export default function CallRallyPage() {
   const { t } = useLanguage();
-  const { enemyLeaders, rallies, currentTime, addRally, removeRally } =
+  const { enemyLeaders, rallies, currentTime, now, addRally, removeRally } =
     useBattle();
   const [selectedLeaderId, setSelectedLeaderId] = useState<number | null>(null);
   const [minutes, setMinutes] = useState(4);
   const [seconds, setSeconds] = useState(0);
+  // Confirmation of the last call, shown under the button.
+  const [called, setCalled] = useState<string | null>(null);
 
   const selectedLeader =
     enemyLeaders.find((leader) => leader.id === selectedLeaderId) ?? null;
@@ -41,8 +43,9 @@ export default function CallRallyPage() {
       return;
     }
 
+    // The exact synced time of the tap, not the last 100 ms clock tick.
     const impactTime = calculateImpactTime(
-      currentTime,
+      now(),
       minutes,
       seconds,
       marchTime,
@@ -59,6 +62,7 @@ export default function CallRallyPage() {
       selectedLeader.id,
     );
     if (error) window.alert(error);
+    else setCalled(selectedLeader.name);
   }
 
   return (
@@ -126,6 +130,11 @@ export default function CallRallyPage() {
         <button type="button" onClick={callRally} disabled={!selectedLeader}>
           {t("Call rally")}
         </button>
+        {called && (
+          <p className="status-badge" role="status">
+            {t("Rally from {name} called.", { name: called })}
+          </p>
+        )}
         <p>
           {t("Rally timer:")} {minutes}
           {t(":")}
@@ -153,6 +162,15 @@ export default function CallRallyPage() {
         <IncomingRallies
           rallies={rallies}
           onCancelRally={async (rally) => {
+            if (
+              !window.confirm(
+                t("Cancel the rally from {name} for everyone?", {
+                  name: rally.enemyName,
+                }),
+              )
+            ) {
+              return;
+            }
             const error = await removeRally(rally.id);
             if (error) window.alert(error);
           }}

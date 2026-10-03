@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
+import { canUseBattleTool } from "@/lib/battleAccess";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Home() {
@@ -10,16 +11,8 @@ export default function Home() {
   const { activeMembership, memberships, signedIn, loadingStates } =
     useStates();
   const battleActive = Boolean(activeMembership?.battleId);
-  const canCallRallies =
-    battleActive &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("rally_caller"));
-  const canUseGarrison =
-    battleActive &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("garrison"));
+  const canCallRallies = canUseBattleTool(activeMembership, "rally_caller");
+  const canUseGarrison = canUseBattleTool(activeMembership, "garrison");
   const uniqueStateCount = new Set(
     memberships.map((membership) => membership.stateId),
   ).size;

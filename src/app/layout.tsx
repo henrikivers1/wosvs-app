@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { BattleProvider } from "@/components/BattleProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { StateProvider } from "@/components/StateProvider";
 import "./globals.css";
@@ -19,7 +18,7 @@ export default function RootLayout({
       <body>
         <LanguageProvider>
           <StateProvider>
-            <BattleProvider>{children}</BattleProvider>
+            {children}
           </StateProvider>
         </LanguageProvider>
       </body>

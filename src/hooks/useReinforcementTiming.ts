@@ -24,6 +24,19 @@ function readStoredSettings(): StoredSettings | null {
   }
 }
 
+// Android Chrome has no `new Notification()` (it throws "Illegal
+// constructor"); it only shows notifications through a service worker.
+// Never let an alert take down the garrison page at send time.
+function showSystemNotification(title: string, options: NotificationOptions) {
+  try {
+    new Notification(title, options);
+  } catch {
+    void navigator.serviceWorker?.getRegistration().then((registration) =>
+      registration?.showNotification(title, options),
+    );
+  }
+}
+
 export function useReinforcementTiming(
   rallies: EnemyRally[],
   currentTime: Date,
@@ -125,10 +138,14 @@ export function useReinforcementTiming(
       }
       alertedWindows.current.add(landingWindow.id);
 
-      if (soundEnabled) {
-        window.speechSynthesis.speak(
-          new SpeechSynthesisUtterance(t("Send now")),
-        );
+      if (soundEnabled && "speechSynthesis" in window) {
+        try {
+          window.speechSynthesis.speak(
+            new SpeechSynthesisUtterance(t("Send now")),
+          );
+        } catch {
+          // Speech is optional; the on-screen countdown still shows it.
+        }
       }
 
       if (
@@ -136,7 +153,7 @@ export function useReinforcementTiming(
         "Notification" in window &&
         Notification.permission === "granted"
       ) {
-        new Notification(t("SEND REINFORCEMENTS NOW"), {
+        showSystemNotification(t("SEND REINFORCEMENTS NOW"), {
           body: landingWindow.before
             ? t("Land between {first} and {second}.", {
                 first: landingWindow.after.enemyName,

@@ -19,6 +19,7 @@ import {
 import { enterDemo, isDemoMode } from "@/lib/demo/mode";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
+import { canUseBattleTool } from "@/lib/battleAccess";
 import { isAppLocale, LANGUAGE_OPTIONS, type AppLocale } from "@/i18n/config";
 import { fetchProfileAvatarUrl } from "@/lib/profileAvatar";
 
@@ -38,12 +39,14 @@ export function AppHeader() {
   const [username, setUsername] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const loadIdentity = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    setUserId(user?.id ?? null);
     if (!user) {
       setIdentityLoaded(true);
       setUsername(null);
@@ -84,13 +87,19 @@ export function AppHeader() {
     }
   }, [pathname, router, setLocale, supabase]);
 
+  // Only the unread count changes while the page is open.
+  const loadUnreadCount = useCallback(async () => {
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .is("read_at", null);
+    setUnreadCount(count ?? 0);
+  }, [supabase]);
+
   useEffect(() => {
     const initialLoadId = window.setTimeout(() => {
       void loadIdentity();
     }, 0);
-    const notificationPollId = window.setInterval(() => {
-      void loadIdentity();
-    }, 15000);
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setIdentityLoaded(false);
@@ -107,29 +116,31 @@ export function AppHeader() {
 
     return () => {
       window.clearTimeout(initialLoadId);
-      window.clearInterval(notificationPollId);
       data.subscription.unsubscribe();
     };
   }, [loadIdentity, supabase]);
 
+  // Realtime keeps the bell current; no polling.
   useEffect(() => {
+    if (!userId) return;
     const channel = supabase
-      .channel("header-notification-count")
+      .channel(`header-notifications-${userId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "notifications",
+          filter: `user_id=eq.${userId}`,
         },
-        () => void loadIdentity(),
+        () => void loadUnreadCount(),
       )
       .subscribe();
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [loadIdentity, supabase]);
+  }, [loadUnreadCount, supabase, userId]);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -151,16 +162,8 @@ export function AppHeader() {
     }
   }
 
-  const canCallRallies =
-    Boolean(activeMembership?.battleId) &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("rally_caller"));
-  const canUseGarrison =
-    Boolean(activeMembership?.battleId) &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("garrison"));
+  const canCallRallies = canUseBattleTool(activeMembership, "rally_caller");
+  const canUseGarrison = canUseBattleTool(activeMembership, "garrison");
   const profileInitial = username?.charAt(0).toUpperCase() || "?";
   function navClassName(href: string) {
     return pathname === href ? "nav-link active-nav-link" : "nav-link";

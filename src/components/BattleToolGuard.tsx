@@ -3,15 +3,20 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStates } from "@/components/StateProvider";
+import type { StateCapability } from "@/types/state";
+import { canUseBattleTool } from "@/lib/battleAccess";
 
-export default function GarrisonLayout({ children }: { children: ReactNode }) {
+// Sends people without access to this live battle tool back home.
+export function BattleToolGuard({
+  capability,
+  children,
+}: {
+  capability: StateCapability;
+  children: ReactNode;
+}) {
   const router = useRouter();
   const { activeMembership, loadingStates } = useStates();
-  const allowed =
-    Boolean(activeMembership?.battleId) &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("garrison"));
+  const allowed = canUseBattleTool(activeMembership, capability);
 
   useEffect(() => {
     if (!loadingStates && !allowed) router.replace("/");

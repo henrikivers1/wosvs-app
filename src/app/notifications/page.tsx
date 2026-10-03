@@ -72,7 +72,9 @@ export default function NotificationsPage() {
   const [stateLabels, setStateLabels] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState("all");
 
-  const loadNotifications = useCallback(async () => {
+  // Marks what was there when the page opened as read; notifications that
+  // arrive while it is open stay unread (highlighted) until the next visit.
+  const loadNotifications = useCallback(async (markRead = false) => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -171,7 +173,7 @@ export default function NotificationsPage() {
     const unreadIds = items
       .filter((item) => !item.read_at)
       .map((item) => item.id);
-    if (unreadIds.length > 0) {
+    if (markRead && unreadIds.length > 0) {
       await supabase
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
@@ -183,7 +185,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     const loadId = window.setTimeout(() => {
-      void loadNotifications();
+      void loadNotifications(true);
     }, 0);
     return () => window.clearTimeout(loadId);
   }, [loadNotifications]);

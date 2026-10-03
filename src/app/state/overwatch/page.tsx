@@ -89,6 +89,8 @@ export default function OverwatchPage() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [alliance, setAlliance] = useState<Alliance | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
+  // The next plan whose battle has not ended yet (else the latest one).
+  const [nextPlanId, setNextPlanId] = useState<string | null>(null);
   const [groups, setGroups] = useState<PlanGroup[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -272,6 +274,14 @@ export default function OverwatchPage() {
     setTags((tagResult.data ?? []) as Tag[]);
     setAlliance((allianceResult.data as Alliance | null) ?? null);
     setPlans(planRows);
+    const stillRunningAfter = Date.now() - 5 * 60 * 60 * 1000;
+    setNextPlanId(
+      (
+        planRows.find(
+          (plan) => new Date(plan.scheduled_at).getTime() > stillRunningAfter,
+        ) ?? planRows[planRows.length - 1]
+      )?.id ?? null,
+    );
     setGroups(loadedGroups);
     setAssignments((assignmentResult.data ?? []) as Assignment[]);
     setAnnouncements((announcementResult.data ?? []) as Announcement[]);
@@ -289,22 +299,36 @@ export default function OverwatchPage() {
     return () => window.clearTimeout(loadId);
   }, [loadOverwatch, loadingStates, router, signedIn]);
 
+  // This state's notices, comments, plans and assignments; a burst of
+  // changes (publishing writes a row per member) reloads once.
   useEffect(() => {
     if (!activeMembership) return;
-    const channel = supabase
-      .channel(`overwatch-${activeMembership.key}`)
-      .on(
+    let timer: number | undefined;
+    const reload = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void loadOverwatch(), 400);
+    };
+    const channel = supabase.channel(`overwatch-${activeMembership.key}`);
+    for (const table of [
+      "state_announcements",
+      "battle_plan_comments",
+      "battle_plans",
+      "battle_plan_assignments",
+    ]) {
+      channel.on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "state_announcements" },
-        () => void loadOverwatch(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "battle_plan_comments" },
-        () => void loadOverwatch(),
-      )
-      .subscribe();
+        {
+          event: "*",
+          schema: "public",
+          table,
+          filter: `state_id=eq.${activeMembership.stateId}`,
+        },
+        reload,
+      );
+    }
+    channel.subscribe();
     return () => {
+      window.clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
   }, [activeMembership, loadOverwatch, supabase]);
@@ -359,7 +383,8 @@ export default function OverwatchPage() {
   );
   const featuredBattle = activeBattle ?? scheduledBattle;
   const featuredPlan =
-    plans.find((plan) => plan.id === featuredBattle?.plan_id) ?? plans[0];
+    plans.find((plan) => plan.id === featuredBattle?.plan_id) ??
+    plans.find((plan) => plan.id === nextPlanId);
   const ownAssignment = assignments.find(
     (assignment) => assignment.plan_id === featuredPlan?.id,
   );

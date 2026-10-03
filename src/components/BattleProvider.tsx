@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -27,7 +28,9 @@ type BattleContextValue = {
   currentTime: Date;
   clockSync: ClockSync | null;
   resyncClock: () => Promise<void>;
-  loading: boolean;
+  // Exact synced time at the moment of the call (currentTime ticks every
+  // 100 ms); use it to stamp a rally call.
+  now: () => Date;
   addEnemyLeader: (
     name: string,
     x: number,
@@ -71,7 +74,6 @@ export function BattleProvider({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [clockSync, setClockSync] = useState<ClockSync | null>(null);
   const clockOffsetMs = clockSync?.offsetMs ?? 0;
-  const [loading, setLoading] = useState(true);
 
   const loadBattleData = useCallback(async () => {
     if (loadingStates) return;
@@ -79,11 +81,9 @@ export function BattleProvider({
     if (!activeStateId || !activeBattleId) {
       setEnemyLeaders([]);
       setRallies([]);
-      setLoading(false);
       return;
     }
 
-    setLoading(true);
     const [leadersResult, ralliesResult] = await Promise.all([
       supabase
         .from("enemy_leaders")
@@ -137,8 +137,6 @@ export function BattleProvider({
           }))
       );
     }
-
-    setLoading(false);
   }, [activeBattleId, activeStateId, loadingStates, supabase]);
 
   useEffect(() => {
@@ -150,6 +148,12 @@ export function BattleProvider({
       return () => window.clearTimeout(initialLoadId);
     }
 
+    // A burst of changes (own action plus its realtime echo) reloads once.
+    let reloadId: number | undefined;
+    const reload = () => {
+      window.clearTimeout(reloadId);
+      reloadId = window.setTimeout(() => void loadBattleData(), 150);
+    };
     const channel = supabase
       .channel(`wosvs-battle-data-${activeStateId}`)
       .on(
@@ -160,7 +164,7 @@ export function BattleProvider({
           table: "enemy_leaders",
           filter: `battle_id=eq.${activeBattleId}`,
         },
-        () => void loadBattleData()
+        reload
       )
       .on(
         "postgres_changes",
@@ -170,17 +174,20 @@ export function BattleProvider({
           table: "rallies",
           filter: `battle_id=eq.${activeBattleId}`,
         },
-        () => void loadBattleData()
+        reload
       )
       .subscribe();
 
     return () => {
       window.clearTimeout(initialLoadId);
+      window.clearTimeout(reloadId);
       void supabase.removeChannel(channel);
     };
   }, [activeBattleId, activeStateId, loadBattleData, supabase]);
 
+  const lastSyncRef = useRef(0);
   const resyncClock = useCallback(async () => {
+    lastSyncRef.current = Date.now();
     const result = await syncServerClock();
     if (result) setClockSync(result);
   }, []);
@@ -193,8 +200,15 @@ export function BattleProvider({
       () => void resyncClock(),
       10 * 60 * 1000,
     );
+    // Phones switch between the game and the browser constantly: resync at
+    // most once a minute on those switches.
     const resyncWhenVisible = () => {
-      if (document.visibilityState === "visible") void resyncClock();
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() - lastSyncRef.current > 60_000
+      ) {
+        void resyncClock();
+      }
     };
     document.addEventListener("visibilitychange", resyncWhenVisible);
     window.addEventListener("online", resyncWhenVisible);
@@ -378,7 +392,7 @@ export function BattleProvider({
         currentTime,
         clockSync,
         resyncClock,
-        loading,
+        now: () => new Date(Date.now() + clockOffsetMs),
         addEnemyLeader,
         toggleEnemyLeaderPet,
         updateEnemyLeader,
