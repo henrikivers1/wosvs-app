@@ -122,8 +122,57 @@ function nextSundayEnd() {
 }
 
 const handlers: Record<string, (args: Args) => DemoResult> = {
+  create_svs_plan: ({ target_state_id, opponent_number, battle_date }) => {
+    if (!opponent_number) return fail("Enter the opponent state number.");
+    if (!battle_date) return fail("Choose the battle date.");
+    const start = new Date(`${battle_date}T12:00:00Z`);
+    if (start.getTime() + BATTLE_WINDOW_MS <= Date.now()) {
+      return fail("That battle is already over. Choose a future date.");
+    }
+    if (
+      demoTable("battle_plans").some(
+        (plan) =>
+          plan.state_id === target_state_id &&
+          new Date(plan.scheduled_at as string).getTime() + BATTLE_WINDOW_MS >
+            Date.now(),
+      )
+    ) {
+      return fail("This state already has an upcoming battle plan.");
+    }
+    const id = newUuid();
+    const name = `SvS vs ${opponent_number}`;
+    demoTable("battle_plans").push({
+      id,
+      state_id: target_state_id,
+      name,
+      battle_type: "svs",
+      scheduled_at: start.toISOString(),
+      notes: null,
+      status: "draft",
+      opponent_state_number: opponent_number,
+      auto_created: true,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    });
+    demoTable("battles").push({
+      id: newUuid(),
+      state_id: target_state_id,
+      name,
+      status: "scheduled",
+      battle_type: "svs",
+      scheduled_at: start.toISOString(),
+      plan_id: id,
+      result: null,
+      created_at: nowIso(),
+    });
+    return ok(id);
+  },
+
   set_player_heroes: ({ target_wos_account_id, owned_heroes }) => {
-    remove("player_heroes", (row) => row.wos_account_id === target_wos_account_id);
+    remove(
+      "player_heroes",
+      (row) => row.wos_account_id === target_wos_account_id,
+    );
     [...new Set((owned_heroes as string[]) ?? [])].forEach((hero) =>
       demoTable("player_heroes").push({
         wos_account_id: target_wos_account_id,
@@ -140,7 +189,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     const group = byId("battle_plan_groups", args.target_group_id);
     if (!group) return fail("Rally group not found.");
     const heroes = [...new Set((args.group_joiner_heroes as string[]) ?? [])];
-    if (heroes.length > 4) return fail("A rally can have at most four joiner heroes.");
+    if (heroes.length > 4)
+      return fail("A rally can have at most four joiner heroes.");
     Object.assign(group, {
       formation: args.group_formation ?? null,
       joiner_heroes: heroes,
@@ -166,7 +216,9 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     const planId = args.target_plan_id;
     const plan = byId("battle_plans", planId);
     if (!plan) return fail("Battle plan not found.");
-    const groups = demoTable("battle_plan_groups").filter((row) => row.plan_id === planId);
+    const groups = demoTable("battle_plan_groups").filter(
+      (row) => row.plan_id === planId,
+    );
     const leaders = new Set(groups.map((group) => group.leader_wos_account_id));
     if (args.replace_existing) {
       remove(
@@ -180,7 +232,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       if (!groups.some((group) => group.id === draft.group_id)) continue;
       remove(
         "battle_plan_assignments",
-        (row) => row.plan_id === planId && row.wos_account_id === draft.wos_account_id,
+        (row) =>
+          row.plan_id === planId && row.wos_account_id === draft.wos_account_id,
       );
       demoTable("battle_plan_assignments").push({
         plan_id: planId,
@@ -195,8 +248,9 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     }
     const full = groups.find(
       (group) =>
-        demoTable("battle_plan_assignments").filter((row) => row.group_id === group.id)
-          .length > (group.max_members as number),
+        demoTable("battle_plan_assignments").filter(
+          (row) => row.group_id === group.id,
+        ).length > (group.max_members as number),
     );
     if (full) return fail(`Rally group ${full.name} would be over capacity.`);
     return ok(applied);
@@ -209,8 +263,7 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
           (plan) =>
             plan.state_id === target_state_id &&
             plan.auto_created &&
-            new Date(plan.scheduled_at as string).getTime() +
-              BATTLE_WINDOW_MS >
+            new Date(plan.scheduled_at as string).getTime() + BATTLE_WINDOW_MS >
               Date.now(),
         )
         .map((plan) => ({
@@ -270,14 +323,20 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     return ok();
   },
 
-  set_state_rally_lead: ({ target_state_id, target_wos_account_id, enabled }) => {
+  set_state_rally_lead: ({
+    target_state_id,
+    target_wos_account_id,
+    enabled,
+  }) => {
     const tag = demoTable("state_tags").find(
-      (row) => row.state_id === target_state_id && row.system_key === "rally_lead",
+      (row) =>
+        row.state_id === target_state_id && row.system_key === "rally_lead",
     );
     if (!tag) return fail("The Rally Lead system tag is missing.");
     remove(
       "state_member_tags",
-      (row) => row.tag_id === tag.id && row.wos_account_id === target_wos_account_id,
+      (row) =>
+        row.tag_id === tag.id && row.wos_account_id === target_wos_account_id,
     );
     if (enabled) {
       demoTable("state_member_tags").push({
@@ -317,7 +376,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       leader_wos_account_id: args.leader_account_id,
       alliance_id: args.destination_alliance_id,
       assignment_tag_id:
-        args.publish_tag_id ?? rallyTagFor(plan.state_id, args.leader_account_id),
+        args.publish_tag_id ??
+        rallyTagFor(plan.state_id, args.leader_account_id),
       max_members: Number(args.group_max_members ?? 10),
       notes: args.group_notes ?? null,
       sort_order: groups.filter((row) => row.plan_id === plan.id).length,
@@ -331,7 +391,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
   update_battle_plan_group: (args) => {
     const group = byId("battle_plan_groups", args.target_group_id);
     if (!group) return fail("Rally group not found.");
-    const leaderChanged = group.leader_wos_account_id !== args.leader_account_id;
+    const leaderChanged =
+      group.leader_wos_account_id !== args.leader_account_id;
     const oldTag = byId("state_tags", group.assignment_tag_id);
     Object.assign(group, {
       name: String(args.group_name ?? group.name),
@@ -352,7 +413,10 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
   },
 
   delete_battle_plan_group: ({ target_group_id }) => {
-    remove("battle_plan_assignments", (row) => row.group_id === target_group_id);
+    remove(
+      "battle_plan_assignments",
+      (row) => row.group_id === target_group_id,
+    );
     remove("battle_plan_groups", (row) => row.id === target_group_id);
     return ok();
   },
@@ -394,9 +458,14 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       updated_at: nowIso(),
     });
     demoTable("battles")
-      .filter((battle) => battle.plan_id === plan.id && battle.status === "scheduled")
+      .filter(
+        (battle) => battle.plan_id === plan.id && battle.status === "scheduled",
+      )
       .forEach((battle) =>
-        Object.assign(battle, { name: plan.name, scheduled_at: plan.scheduled_at }),
+        Object.assign(battle, {
+          name: plan.name,
+          scheduled_at: plan.scheduled_at,
+        }),
       );
     return ok();
   },
@@ -411,7 +480,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
   delete_battle_plan: ({ target_plan_id }) => {
     if (
       demoTable("battles").some(
-        (battle) => battle.plan_id === target_plan_id && battle.status === "active",
+        (battle) =>
+          battle.plan_id === target_plan_id && battle.status === "active",
       )
     ) {
       return fail("This battle is live. End it from the demo bar first.");
@@ -435,9 +505,12 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     const groups = demoTable("battle_plan_groups").filter(
       (row) => row.plan_id === plan.id,
     );
-    if (!groups.length) return fail("Add at least one rally group before publishing.");
+    if (!groups.length)
+      return fail("Add at least one rally group before publishing.");
     if (groups.some((group) => !group.alliance_id)) {
-      return fail("Every rally group needs a destination alliance before publishing.");
+      return fail(
+        "Every rally group needs a destination alliance before publishing.",
+      );
     }
     const assignments = demoTable("battle_plan_assignments").filter(
       (row) => row.plan_id === plan.id,
@@ -489,7 +562,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     }
     const mine = assignments.find((row) =>
       demoTable("wos_accounts").some(
-        (account) => account.id === row.wos_account_id && account.user_id === DEMO_USER_ID,
+        (account) =>
+          account.id === row.wos_account_id && account.user_id === DEMO_USER_ID,
       ),
     );
     const myGroup = groups.find((group) => group.id === mine?.group_id);
@@ -500,7 +574,11 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         "battle_plan_assignment",
         "Your rally assignment",
         `Hi ${accountName(mine.wos_account_id)}, you've been assigned to ${myGroup.name} in ${alliance?.name ?? "an alliance"}.` +
-          (mine.hero ? ` You're joining with ${mine.hero}${formation ? ` and ${formation} formation` : ""}.` : formation ? ` Use ${formation} formation.` : "") +
+          (mine.hero
+            ? ` You're joining with ${mine.hero}${formation ? ` and ${formation} formation` : ""}.`
+            : formation
+              ? ` Use ${formation} formation.`
+              : "") +
           " Please be there by battle start.",
         { plan_id: plan.id },
         plan.state_id,
@@ -557,7 +635,8 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
 
   delete_state_tag: ({ target_tag_id }) => {
     const tag = byId("state_tags", target_tag_id);
-    if (tag?.system_key) return fail("System tags are permanent and cannot be deleted.");
+    if (tag?.system_key)
+      return fail("System tags are permanent and cannot be deleted.");
     remove("state_member_tags", (row) => row.tag_id === target_tag_id);
     remove("state_tags", (row) => row.id === target_tag_id);
     return ok();
@@ -594,7 +673,10 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
   },
 
   delete_state_alliance: ({ target_alliance_id }) => {
-    remove("state_alliance_members", (row) => row.alliance_id === target_alliance_id);
+    remove(
+      "state_alliance_members",
+      (row) => row.alliance_id === target_alliance_id,
+    );
     remove("state_alliances", (row) => row.id === target_alliance_id);
     return ok();
   },
@@ -669,9 +751,13 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       (row) => row.state_id === target_state_id,
     );
     const users = new Set(
-      members.map((member) => byId("wos_accounts", member.wos_account_id)?.user_id),
+      members.map(
+        (member) => byId("wos_accounts", member.wos_account_id)?.user_id,
+      ),
     );
-    return ok([{ player_count: users.size, wos_account_count: members.length }]);
+    return ok([
+      { player_count: users.size, wos_account_count: members.length },
+    ]);
   },
 
   get_state_battle_history_v2: ({ target_state_id }) =>
@@ -688,8 +774,9 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
           started_at: battle.started_at ?? null,
           ended_at: battle.ended_at ?? null,
           plan_id: battle.plan_id ?? null,
-          rally_count: demoTable("rallies").filter((row) => row.battle_id === battle.id)
-            .length,
+          rally_count: demoTable("rallies").filter(
+            (row) => row.battle_id === battle.id,
+          ).length,
           cancelled_rally_count: demoTable("rallies").filter(
             (row) => row.battle_id === battle.id && row.cancelled_at,
           ).length,
@@ -699,7 +786,11 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         })),
     ),
 
-  set_state_member_role: ({ target_state_id, target_wos_account_id, new_role }) => {
+  set_state_member_role: ({
+    target_state_id,
+    target_wos_account_id,
+    new_role,
+  }) => {
     const member = demoTable("state_members").find(
       (row) =>
         row.state_id === target_state_id &&

@@ -155,6 +155,10 @@ export default function BattlePlanningPage() {
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [heroGeneration, setHeroGeneration] = useState<number | null>(null);
+  // Shown when the state has no upcoming plan (e.g. it was deleted).
+  const [hasUpcomingPlan, setHasUpcomingPlan] = useState(true);
+  const [newPlanOpponent, setNewPlanOpponent] = useState("");
+  const [newPlanDate, setNewPlanDate] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<SortKey>("power");
   const [setupGroupId, setSetupGroupId] = useState<string | null>(null);
@@ -353,7 +357,9 @@ export default function BattlePlanningPage() {
         : Promise.resolve({ data: [], error: null }),
       supabase
         .from("states")
-        .select("hero_generation_max")
+        .select(
+          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at",
+        )
         .eq("id", stateId)
         .maybeSingle(),
     ]);
@@ -366,6 +372,11 @@ export default function BattlePlanningPage() {
         ]),
     );
     setHeroGeneration(stateRow?.hero_generation_max ?? null);
+    const nextBattle = stateRow?.svs_battle_at ?? stateRow?.svs_next_battle_at;
+    setNewPlanOpponent(
+      stateRow?.svs_opponent ? String(stateRow.svs_opponent) : "",
+    );
+    setNewPlanDate(nextBattle ? String(nextBattle).slice(0, 10) : "");
     const userIds = [...new Set(accountRows.map((account) => account.user_id))];
     const profileResult = userIds.length
       ? await supabase.from("profiles").select("id, username").in("id", userIds)
@@ -421,6 +432,11 @@ export default function BattlePlanningPage() {
     setAlliances((allianceResult.data ?? []) as StateAlliance[]);
     setAttendance((attendanceResult.data ?? []) as AttendanceRow[]);
     const stillRelevantAfter = Date.now() - 5 * 60 * 60 * 1000;
+    setHasUpcomingPlan(
+      planRows.some(
+        (plan) => new Date(plan.scheduled_at).getTime() > stillRelevantAfter,
+      ),
+    );
     setUpcomingPlanId(
       planRows.find(
         (plan) =>
@@ -1034,6 +1050,22 @@ export default function BattlePlanningPage() {
       return next;
     });
   }
+  async function createSvsPlan() {
+    if (!activeMembership || !isAdmin) return;
+    setSaving(true);
+    setMessage(t(""));
+    const { error } = await supabase.rpc("create_svs_plan", {
+      target_state_id: activeMembership.stateId,
+      opponent_number: Number(newPlanOpponent) || null,
+      battle_date: newPlanDate || null,
+    });
+    if (error) setMessage(error.message);
+    else {
+      await loadPlanning();
+      setMessage(t("SvS plan created."));
+    }
+    setSaving(false);
+  }
   async function toggleRallyLead(member: StateMember, enabled: boolean) {
     if (!activeMembership) return;
     setSaving(true);
@@ -1333,6 +1365,43 @@ export default function BattlePlanningPage() {
             </p>
           </section>
           <SvsStatus stateId={activeMembership.stateId} />
+          {isAdmin && !loading && !hasUpcomingPlan && (
+            <section>
+              <p className="section-label">{t("No SvS plan")}</p>
+              <h2>{t("Create the SvS plan")}</h2>
+              <p>
+                {t(
+                  "There is no upcoming battle plan. It is normally created automatically from the SvS draw; if it was deleted, create it again here. A state can only have one upcoming plan.",
+                )}
+              </p>
+              <div className="invite-form">
+                <label>
+                  {t("Opponent state")}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={newPlanOpponent}
+                    onChange={(event) => setNewPlanOpponent(event.target.value)}
+                  />
+                </label>
+                <label>
+                  {t("Battle date (12:00–17:00 UTC)")}
+                  <input
+                    type="date"
+                    value={newPlanDate}
+                    onChange={(event) => setNewPlanDate(event.target.value)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={saving || !newPlanOpponent || !newPlanDate}
+                  onClick={() => void createSvsPlan()}
+                >
+                  {t("Create SvS plan")}
+                </button>
+              </div>
+            </section>
+          )}
           {isAdmin && renderLabyrinthLeaders()}
           <section>
             <div className="section-title-row">

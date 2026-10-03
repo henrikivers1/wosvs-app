@@ -83,6 +83,13 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "No SvS plan": "Sin plan de SvS",
+  "Create the SvS plan": "Crear el plan de SvS",
+  "There is no upcoming battle plan. It is normally created automatically from the SvS draw; if it was deleted, create it again here. A state can only have one upcoming plan.":
+    "No hay ningún plan de batalla próximo. Normalmente se crea automáticamente a partir del sorteo de SvS; si se eliminó, créalo de nuevo aquí. Un estado solo puede tener un plan próximo.",
+  "Battle date (12:00–17:00 UTC)": "Fecha de batalla (12:00–17:00 UTC)",
+  "Create SvS plan": "Crear plan de SvS",
+  "SvS plan created.": "Plan de SvS creado.",
   Alliances: "Alianzas",
   "Has the rally's joiner heroes": "Tiene los héroes de apoyo del rally",
   "Has none of this rally's joiner heroes at 4★.":
