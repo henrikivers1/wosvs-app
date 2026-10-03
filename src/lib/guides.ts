@@ -43,7 +43,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Join your state",
-        body: "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell.",
+        body: "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell. Is your state not on Overwatch yet? Your owner can message us on Discord: wosoverwatch.",
       },
       {
         title: "Tell us your joiner heroes",
@@ -88,7 +88,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     title: "During the battle",
     audience: "Garrison and coordinators",
     intro:
-      "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.",
+      "Live Battle opens by itself at 11:00 UTC, an hour before the battle. Every member has the Garrison role, and coordinators also call rallies. Use that hour to enter coordinates.",
     topics: [
       {
         title: "Garrison: when to send",
@@ -107,7 +107,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Coordinators: enemy leaders",
-        body: "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when the battle starts. Mark a leader's pet when it is active.",
+        body: "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.",
       },
       {
         title: "Coordinators: call a rally",
@@ -138,12 +138,12 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           "The in-game state number fills in from the owner's WOS account.",
           "Under State management, set your hero generation so only unlocked heroes are offered.",
           "Add your alliances: load them from WOSOracle, add a shell alliance by its ID, or type a name.",
-          "Give Coordinator and Garrison roles to the right members.",
+          "Mark Rally Leads and Castle Holders under Leads & holders in Planning, and give the Coordinator role to the players who call rallies. Every member has Garrison already.",
         ],
       },
       {
         title: "SvS automation settings",
-        body: "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.",
+        body: "In State management, SvS automation decides how many rallies are built, how many players each takes, the garrison size, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.",
       },
       {
         title: "The Next SvS checklist",
@@ -151,7 +151,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Needs attention",
-        body: "Under the checklist, Needs attention lists what to check before publishing: a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.",
+        body: "Under the checklist, Needs attention lists what to check before publishing: a pet block without a lead or castle holder, no garrison, a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.",
       },
       {
         title: "How rallies are built",
@@ -171,7 +171,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Members and join requests",
-        body: "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins can give the Coordinator or Garrison role and remove members. Every change is sent to the member as a notification.",
+        body: "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.",
       },
       {
         title: "A WOS ID claimed by the wrong person",
@@ -200,7 +200,7 @@ export const GUIDE_FAQ: { q: string; a: string }[] = [
   },
   {
     q: "I can't see Live Battle.",
-    a: "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.",
+    a: "It only appears from 11:00 to 17:00 UTC on battle day. Every member has the Garrison role by default; if you still can't see it, ask an admin whether yours was removed.",
   },
   {
     q: "The times look wrong.",

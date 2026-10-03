@@ -27,7 +27,7 @@ const FEATURES: { icon: NavIconName; title: string; body: string }[] = [
   {
     icon: "state",
     title: "Rallies built the smart way",
-    body: "Formations, four unique joiner heroes per rally, and only players who own each hero at 4★. Auto-fill balances power and follows your priorities.",
+    body: "The strongest defenders hold the castle, Rally Leads swap every pet block, and joiners bring one of four joiner heroes they own at 4★. Auto-fill follows your priorities.",
   },
   {
     icon: "intel",
@@ -37,14 +37,14 @@ const FEATURES: { icon: NavIconName; title: string; body: string }[] = [
   {
     icon: "bell",
     title: "Everyone knows where to be",
-    body: "“Hi Frost, you're in Ted's rally with Jessie and 50/20/30.” Every member gets their assignment, every change, and Victory or Defeat afterwards.",
+    body: "“Hi Frost, you're in Ted's rally with Jessie and 50/20/30. Leads: Ted 12–14, Ice 14–16.” Every member gets their assignment, every change, and Victory or Defeat afterwards.",
   },
 ];
 
 const TIMELINE = [
   { when: "Draw", what: "Plan created, members told" },
   { when: "T−30 h", what: "Reminder to vote" },
-  { when: "T−24 h", what: "Rallies built and filled" },
+  { when: "T−24 h", what: "Garrison and rallies built and filled" },
   { when: "T−6 h", what: "Published to every member" },
   { when: "11:00 UTC", what: "Live Battle opens for coordinates" },
   { when: "17:00 UTC", what: "Victory or Defeat for all" },
@@ -53,11 +53,11 @@ const TIMELINE = [
 const ROLES = [
   {
     title: "Members",
-    body: "Vote once, see your rally, hero and formation, and get told about every change.",
+    body: "Vote once, see your rally, hero, formation and lead order, and get told about every change.",
   },
   {
     title: "Garrison",
-    body: "Enter your city once. A countdown and an alert tell you the exact second to send.",
+    body: "Every member. Enter your city once; a countdown and an alert tell you the exact second to send.",
   },
   {
     title: "Coordinators",
@@ -84,11 +84,7 @@ const QUESTIONS = [
   },
   {
     q: "How does my state get started?",
-    a: "Your state owner signs up and gets the state set up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.",
-  },
-  {
-    q: "How do I get help or get my state set up?",
-    a: "Message us on Discord: wosoverwatch. We help states get started and answer questions there.",
+    a: "Your state owner signs up and messages us on Discord (wosoverwatch), and we set the state up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.",
   },
   {
     q: "Which languages are supported?",

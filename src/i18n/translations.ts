@@ -30,6 +30,34 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell. Is your state not on Overwatch yet? Your owner can message us on Discord: wosoverwatch.":
+    "Cuando tu estado del juego usa Overwatch, al añadir tu WOS ID se envía automáticamente una solicitud a su propietario y administradores. Recibes una notificación en cuanto la aprueban. Un administrador también puede invitar a tu WOS ID; acepta la invitación en la campana. ¿Tu estado aún no está en Overwatch? Su propietario puede escribirnos en Discord: wosoverwatch.",
+  "Live Battle opens by itself at 11:00 UTC, an hour before the battle. Every member has the Garrison role, and coordinators also call rallies. Use that hour to enter coordinates.":
+    "La batalla en vivo se abre sola a las 11:00 UTC, una hora antes de la batalla. Todos los miembros tienen el rol de Guarnición y los coordinadores además lanzan rallies. Usa esa hora para introducir coordenadas.",
+  "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
+    "En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival. Pulsa Usar, introduce las coordenadas de la ciudad y añádelos. Las coordenadas se recuerdan: la próxima vez ese jugador aparece relleno y los líderes conocidos se añaden solos cuando se abre la batalla en vivo. Marca la mascota de un líder cuando esté activa.",
+  "Mark Rally Leads and Castle Holders under Leads & holders in Planning, and give the Coordinator role to the players who call rallies. Every member has Garrison already.":
+    "Marca a los líderes de rally y defensores del castillo en Líderes y defensores de Planificación, y da el rol de Coordinador a quienes lanzan rallies. Todos los miembros ya tienen Guarnición.",
+  "In State management, SvS automation decides how many rallies are built, how many players each takes, the garrison size, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
+    "En Gestión del estado, la automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, el tamaño de la guarnición, la formación por defecto, los cuatro héroes de unión por defecto y el orden en que el autorrelleno valora a los jugadores. Desactiva los rallies o la publicación automáticos si prefieres hacerlo tú.",
+  "Under the checklist, Needs attention lists what to check before publishing: a pet block without a lead or castle holder, no garrison, a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.":
+    "Bajo la lista, Requiere atención muestra qué revisar antes de publicar: un bloque de mascotas sin líder o defensor del castillo, falta de guarnición, un rally sin alianza o sin héroes, un jugador en la mitad equivocada, jugadores sin héroe de unión o plazas libres mientras hay jugadores esperando. Cada línea tiene un botón que lo arregla. Cuando la lista quede vacía, publica.",
+  "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.":
+    "Aprueba las solicitudes en Pendientes de tu verificación. El propietario decide quién es administrador; los administradores dan el rol de Coordinador, pueden quitar Guarnición (todos los miembros la tienen por defecto) y expulsar miembros. Cada cambio se notifica al miembro.",
+  "It only appears from 11:00 to 17:00 UTC on battle day. Every member has the Garrison role by default; if you still can't see it, ask an admin whether yours was removed.":
+    "Solo aparece de 11:00 a 17:00 UTC el día de la batalla. Todos los miembros tienen el rol de Guarnición por defecto; si aun así no la ves, pregunta a un administrador si te lo quitaron.",
+  "The strongest defenders hold the castle, Rally Leads swap every pet block, and joiners bring one of four joiner heroes they own at 4★. Auto-fill follows your priorities.":
+    "Los mejores defensores protegen el castillo, los líderes de rally se turnan en cada bloque de mascotas y los participantes llevan uno de cuatro héroes de unión que tengan a 4★. El autorrelleno sigue tus prioridades.",
+  "“Hi Frost, you're in Ted's rally with Jessie and 50/20/30. Leads: Ted 12–14, Ice 14–16.” Every member gets their assignment, every change, and Victory or Defeat afterwards.":
+    "«Hola Frost, estás en el rally de Ted con Jessie y 50/20/30. Líderes: Ted 12–14, Ice 14–16.» Cada miembro recibe su asignación, cada cambio y la victoria o derrota al final.",
+  "Garrison and rallies built and filled":
+    "Guarnición y rallies creados y llenos",
+  "Vote once, see your rally, hero, formation and lead order, and get told about every change.":
+    "Vota una vez, mira tu rally, héroe, formación y orden de líderes, y entérate de cada cambio.",
+  "Every member. Enter your city once; a countdown and an alert tell you the exact second to send.":
+    "Todos los miembros. Introduce tu ciudad una vez; una cuenta atrás y un aviso te dicen el segundo exacto para enviar.",
+  "Your state owner signs up and messages us on Discord (wosoverwatch), and we set the state up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.":
+    "El propietario de tu estado se registra y nos escribe en Discord (wosoverwatch), y nosotros preparamos el estado. Después, los miembros se unen añadiendo su WOS ID: la solicitud llega automáticamente al propietario y los administradores.",
   "Discord":
     "Discord",
   "Copy Discord name":
@@ -38,10 +66,6 @@ const spanishInterface: Record<string, string> = {
     "Copiado",
   "Copy":
     "Copiar",
-  "How do I get help or get my state set up?":
-    "¿Cómo consigo ayuda o pongo en marcha mi estado?",
-  "Message us on Discord: wosoverwatch. We help states get started and answer questions there.":
-    "Escríbenos en Discord: wosoverwatch. Allí ayudamos a los estados a empezar y respondemos preguntas.",
   "Where do I get help?":
     "¿Dónde consigo ayuda?",
   "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.":
@@ -164,12 +188,8 @@ const spanishInterface: Record<string, string> = {
     "{name} lidera {rally} {block}, pero votó {voted}.",
   "{rally} has no lead {blocks}.":
     "{rally} no tiene líder {blocks}.",
-  "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
-    "En Gestión del estado, la automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, la formación por defecto, los cuatro héroes de unión por defecto y el orden en que el autorrelleno valora a los jugadores. Desactiva los rallies o la publicación automáticos si prefieres hacerlo tú.",
   "Planning opens with a checklist: the draw, votes, rallies, publishing and Live Battle, each with when it happens automatically. The gold button runs the next step now: Generate now, then Publish now.":
     "Planificación empieza con una lista: el sorteo, los votos, los rallies, la publicación y la batalla en vivo, cada uno con cuándo ocurre automáticamente. El botón dorado ejecuta ya el siguiente paso: Generar ahora y luego Publicar ahora.",
-  "Under the checklist, Needs attention lists what to check before publishing: a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.":
-    "Bajo la lista, Requiere atención muestra qué revisar antes de publicar: un rally sin alianza o sin héroes, un jugador en la mitad equivocada, jugadores sin héroe de unión o plazas libres mientras hay jugadores esperando. Cada línea tiene un botón que lo arregla. Cuando la lista quede vacía, publica.",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.":
     "Arrastra jugadores entre rallies o desde la lista de espera. Toca a un jugador para cambiar su rally o el héroe que lleva. El menú ⋯ de cada rally tiene Configuración del rally (formación, mitad y héroes de unión), Asignar héroes, Editar y Eliminar. La automatización nunca deshace tus cambios.",
   "Add rally":
@@ -314,10 +334,6 @@ const spanishInterface: Record<string, string> = {
     "11:00 UTC",
   "Live Battle opens for coordinates":
     "Se abre la batalla en vivo para las coordenadas",
-  "Live Battle opens by itself at 11:00 UTC, an hour before the battle, for everyone with the Garrison or Coordinator role. Use that hour to enter coordinates.":
-    "La batalla en vivo se abre sola a las 11:00 UTC, una hora antes de la batalla, para todos con el rol de Guarnición o Coordinador. Usa esa hora para introducir coordenadas.",
-  "It only appears from 11:00 to 17:00 UTC on battle day, and only for admins and members with the Coordinator or Garrison role.":
-    "Solo aparece de 11:00 a 17:00 UTC el día de la batalla, y solo para administradores y miembros con el rol de Coordinador o Guarnición.",
   "Could not confirm email":
     "No se pudo confirmar el correo",
   "Privacy":
@@ -418,8 +434,6 @@ const spanishInterface: Record<string, string> = {
     "Añade tus cuentas de WOS",
   "On Account, add every WOS ID you play. Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day.":
     "En Cuenta, añade cada WOS ID con el que juegas. Tu nombre, avatar, estado, poder, Horno, puntuación del Laberinto y alianza se rellenan desde WOSOracle. Se actualizan cada lunes, y puedes actualizarlos a mano una vez al día.",
-  "When your in-game state uses Overwatch, adding your WOS ID sends a join request to its owner and admins automatically. You get a notification as soon as they approve it. An admin can also invite your WOS ID; accept the invitation under the bell.":
-    "Si tu estado del juego usa Overwatch, al añadir tu WOS ID se envía automáticamente una solicitud de unión a su propietario y administradores. Recibes una notificación en cuanto la aprueben. Un administrador también puede invitar a tu WOS ID; acepta la invitación desde la campana.",
   "Tell us your joiner heroes":
     "Dinos tus héroes de apoyo",
   "On Account, tick every joiner hero you have at 4★ or higher. Rallies only give you a hero you own, so this decides which rally you can join.":
@@ -472,8 +486,6 @@ const spanishInterface: Record<string, string> = {
     "Todos los dispositivos se sincronizan con el mismo reloj del servidor, así que un móvil que va unos segundos desfasado envía igualmente a tiempo. Si indica que el reloj no está sincronizado, pulsa Resincronizar reloj.",
   "Coordinators: enemy leaders":
     "Coordinadores: líderes enemigos",
-  "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when the battle starts. Mark a leader's pet when it is active.":
-    "En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival. Toca Usar, introduce las coordenadas de la ciudad y añádelos. Las coordenadas se recuerdan: la próxima vez ese jugador aparece ya rellenado, y los líderes conocidos se añaden solos al empezar la batalla. Marca la mascota de un líder cuando esté activa.",
   "Coordinators: call a rally":
     "Coordinadores: registrar un rally",
   "Open Call rally and pick the enemy leader.":
@@ -502,8 +514,6 @@ const spanishInterface: Record<string, string> = {
     "En Gestión del estado, configura tu generación de héroes para que solo se ofrezcan héroes desbloqueados.",
   "Add your alliances: load them from WOSOracle, add a shell alliance by its ID, or type a name.":
     "Añade tus alianzas: cárgalas desde WOSOracle, añade una alianza vacía por su ID o escribe un nombre.",
-  "Give Coordinator and Garrison roles to the right members.":
-    "Da los roles de Coordinador y Guarnición a los miembros adecuados.",
   "SvS automation settings":
     "Ajustes de automatización SvS",
   "The Next SvS checklist":
@@ -514,8 +524,6 @@ const spanishInterface: Record<string, string> = {
     "Ajusta a mano",
   "Members and join requests":
     "Miembros y solicitudes de unión",
-  "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins can give the Coordinator or Garrison role and remove members. Every change is sent to the member as a notification.":
-    "Aprueba las solicitudes de unión en Esperando tu verificación. El propietario decide quién es administrador; los administradores pueden dar el rol de Coordinador o Guarnición y eliminar miembros. Cada cambio se envía al miembro como notificación.",
   "A WOS ID claimed by the wrong person":
     "Un WOS ID reclamado por la persona equivocada",
   "Under Release a claimed WOS ID, enter the ID. It is removed from the login that claimed it so the real player can add it.":
@@ -560,16 +568,12 @@ const spanishInterface: Record<string, string> = {
     "Todos los móviles y PC se sincronizan con el mismo reloj del servidor, así que un dispositivo con unos segundos de desfase envía igualmente en el segundo exacto.",
   "Rallies built the smart way":
     "Rallies armados con inteligencia",
-  "Formations, four unique joiner heroes per rally, and only players who own each hero at 4★. Auto-fill balances power and follows your priorities.":
-    "Formaciones, cuatro héroes de apoyo distintos por rally y solo jugadores que tienen cada héroe con 4★. El autorrelleno equilibra el poder y sigue tus prioridades.",
   "Know your opponent":
     "Conoce a tu rival",
   "Their strongest players, alliances and SvS record, refreshed daily from WOSOracle. Enemy leaders and their coordinates are remembered between battles.":
     "Sus jugadores más fuertes, alianzas e historial de SvS, actualizados a diario desde WOSOracle. Los líderes enemigos y sus coordenadas se recuerdan entre batallas.",
   "Everyone knows where to be":
     "Todos saben dónde estar",
-  "“Hi Frost, you're in Ted's rally with Jessie and 50/20/30.” Every member gets their assignment, every change, and Victory or Defeat afterwards.":
-    "“Hola Frost, estás en el rally de Ted con Jessie y 50/20/30.” Cada miembro recibe su asignación, cada cambio y la Victoria o Derrota al final.",
   "Draw":
     "Sorteo",
   "Plan created, members told":
@@ -580,8 +584,6 @@ const spanishInterface: Record<string, string> = {
     "Recordatorio para votar",
   "T−24 h":
     "T−24 h",
-  "Rallies built and filled":
-    "Rallies creados y llenos",
   "T−6 h":
     "T−6 h",
   "Published to every member":
@@ -590,10 +592,6 @@ const spanishInterface: Record<string, string> = {
     "17:00 UTC",
   "Victory or Defeat for all":
     "Victoria o Derrota para todos",
-  "Vote once, see your rally, hero and formation, and get told about every change.":
-    "Vota una vez, consulta tu rally, héroe y formación, y entérate de cada cambio.",
-  "Enter your city once. A countdown and an alert tell you the exact second to send.":
-    "Introduce tu ciudad una vez. Una cuenta atrás y una alerta te dicen el segundo exacto para enviar.",
   "Pick enemy leaders from the opponent's strongest players and call each rally with one tap.":
     "Elige líderes enemigos entre los jugadores más fuertes del rival y registra cada rally con un toque.",
   "A checklist for the next SvS, automation that does the busywork, and full control when you want it.":
@@ -612,8 +610,6 @@ const spanishInterface: Record<string, string> = {
     "Sí. Overwatch está pensado primero para móviles, con una barra de pestañas abajo y botones grandes para la hora de la batalla.",
   "How does my state get started?":
     "¿Cómo empieza mi estado?",
-  "Your state owner signs up and gets the state set up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.":
-    "El propietario de tu estado se registra y configura el estado. Después, los miembros se unen añadiendo su WOS ID: la solicitud de unión llega automáticamente al propietario y a los administradores.",
   "Which languages are supported?":
     "¿Qué idiomas hay?",
   "English, العربية, ไทย, 简体中文 and Español.":
