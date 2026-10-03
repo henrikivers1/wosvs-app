@@ -18,6 +18,7 @@ SR = 44100
 ORDER = [
     ("title", "fade", 0.6),
     ("vote", "smoothleft", 0.5),
+    ("intel", "smoothleft", 0.5),
     ("plan", "smoothleft", 0.5),
     ("publish", "fadeblack", 0.7),
     ("call", "smoothleft", 0.5),

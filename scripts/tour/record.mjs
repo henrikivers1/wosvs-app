@@ -136,6 +136,23 @@ await point(page.locator("button, label").filter({ hasText: "First half" }).firs
 await point(page.locator("button, label").filter({ hasText: "Whole battle" }).first());
 await endSeg();
 
+// ---- Automatic imports: opponent intel, then your own imported stats
+await caption({ k: "Automatic imports", t: "Opponent intel imports itself.", s: "Their top alliances, strongest players and power, next to your own state." }, true);
+await wait(400);
+seg("intel", 9.0);
+await wait(400);
+await point(page.locator("a.main-nav-link", { hasText: "Intel" }));
+await page.waitForURL("**/state/intel"); await wait(1500);
+const players = page.locator("section", { hasText: "Their strongest players" }).first();
+await scrollToEl(players, 120); await wait(700);
+await caption({ k: "Automatic imports", t: "So do your own stats.", s: "Power, Furnace, Labyrinth score and alliance from WOSOracle, refreshed every Monday." });
+await point(page.locator(".profile-menu summary, .header-profile summary, summary:has(.profile-avatar)").first());
+await wait(300);
+await point(page.locator(".profile-dropdown a", { hasText: "Account" }).first());
+await page.waitForURL("**/account"); await wait(900);
+const grid = page.locator(".player-data-grid").first();
+if (await grid.count()) { await scrollToEl(grid, 260); await grid.evaluate((el) => el.classList.add("ow-spot")); }
+await endSeg();
 // ---- Plan builds itself
 seg("plan", 9.0);
 await caption({ k: "Automation", t: "24 hours before, the plan builds itself.", s: "The garrison first, then every rally, from who can play." });

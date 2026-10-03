@@ -110,9 +110,9 @@ function card(ms, { title, sub, cta, url, outAt }) {
 // ---------- The castle: a garrison landing between two enemy rallies ----------
 // Game seconds after SEND NOW (19:42:24.2 UTC) from the recorded battle.
 const SEND = { h: 19, m: 42, s: 24.2 };
-const EMBER = { name: "Ember", coords: "596:611", march: 59, hit: 33.0, from: [430, 700], color: COL.rose };
-const INFERNO = { name: "Inferno", coords: "612:588", march: 79, hit: 39.1, from: [1540, 330], color: COL.rose };
-const YOU = { name: "Your garrison", coords: "600:606", march: 36, hit: 36.0, from: [690, 760], color: COL.aurora };
+const EMBER = { name: "Ember", coords: "596:611", march: 59, hit: 33.0, from: [430, 700], color: COL.rose, tag: [-96, -10] };
+const INFERNO = { name: "Inferno", coords: "612:588", march: 79, hit: 39.1, from: [1540, 330], color: COL.rose, tag: [96, -30] };
+const YOU = { name: "Your garrison", coords: "600:606", march: 36, hit: 36.0, from: [690, 760], color: COL.aurora, tag: [30, 52] };
 const CASTLE = [1010, 470];
 const LAPSE = { start: 900, end: 8100, from: -1, to: 41 }; // ms → game seconds
 
@@ -197,8 +197,10 @@ function march(unit, sec, alpha) {
     g.fillStyle = unit.color; g.beginPath(); g.arc(x, y, 15, 0, 6.283); g.fill();
     g.strokeStyle = COL.navy; g.lineWidth = 4; g.stroke();
     const left = Math.max(0, unit.hit - sec);
-    pill(x + 24, y - 22, 132, 44, "rgba(8,21,36,0.92)", unit.color);
-    text(`${left.toFixed(1)} s`, x + 90, y, { size: 24, weight: 500, font: MONO, color: unit.color === COL.aurora ? COL.aurora : COL.roseText });
+    // Each march keeps its tag on its own side so they never overlap.
+    const [ox, oy] = unit.tag;
+    pill(x + ox - 66, y + oy - 22, 132, 44, "rgba(8,21,36,0.92)", unit.color);
+    text(`${left.toFixed(1)} s`, x + ox, y + oy, { size: 24, weight: 500, font: MONO, color: unit.color === COL.aurora ? COL.aurora : COL.roseText });
   }
   g.restore();
 }
@@ -258,8 +260,9 @@ function castle(ms) {
   const intro = easeOut(span(ms, 0, 600));
   const landed = sec >= YOU.hit;
   const glow = landed ? clamp((sec - YOU.hit) / 0.6) : 0;
-  for (const u of [EMBER, INFERNO, YOU]) march(u, sec, intro);
+  // Marches are drawn over the castle so they stay visible to the end.
   drawCastle(glow);
+  for (const u of [EMBER, INFERNO, YOU]) march(u, sec, intro);
   city(EMBER.from, "Ember", EMBER.coords, COL.rose, intro);
   city(INFERNO.from, "Inferno", INFERNO.coords, COL.rose, intro);
   city(YOU.from, "You", YOU.coords, COL.aurora, intro);
