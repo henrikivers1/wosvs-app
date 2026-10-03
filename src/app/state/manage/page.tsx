@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { StateCapability, StateRole } from "@/types/state";
 import { useLanguage } from "@/components/LanguageProvider";
 import { SvsStatus } from "@/components/SvsStatus";
+import { LATEST_HERO_GENERATION } from "@/lib/heroes";
 
 type StateMember = {
   wosAccountId: string;
@@ -47,6 +48,7 @@ export default function ManageStatePage() {
   const [inviteWosId, setInviteWosId] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [gameStateNumber, setGameStateNumber] = useState("");
+  const [heroGeneration, setHeroGeneration] = useState<number | null>(null);
   const [releaseWosId, setReleaseWosId] = useState("");
   const [releasingClaim, setReleasingClaim] = useState(false);
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
@@ -114,12 +116,13 @@ export default function ManageStatePage() {
 
     const { data: stateRow } = await supabase
       .from("states")
-      .select("game_state_number")
+      .select("game_state_number, hero_generation_max")
       .eq("id", activeMembership.stateId)
       .maybeSingle();
     setGameStateNumber(
       stateRow?.game_state_number ? String(stateRow.game_state_number) : "",
     );
+    setHeroGeneration(stateRow?.hero_generation_max ?? null);
 
     const loadError = memberError || allianceError || allianceAssignmentError;
     if (loadError || !memberRows) {
@@ -359,6 +362,16 @@ export default function ManageStatePage() {
         "Invitation delivered in the player's notification inbox. The link below is an optional backup.",
       ),
     );
+  }
+
+  async function saveHeroGeneration(value: number | null) {
+    if (!activeMembership) return;
+    setHeroGeneration(value);
+    const { error } = await supabase.rpc("set_state_hero_generation", {
+      target_state_id: activeMembership.stateId,
+      max_generation: value,
+    });
+    setMessage(error ? error.message : t("Hero generation saved."));
   }
 
   async function saveGameStateNumber() {
@@ -840,6 +853,34 @@ export default function ManageStatePage() {
             </button>
           )}
         </div>
+        <div className="invite-form">
+          <label>
+            {t("Hero generation")}
+            <select
+              value={heroGeneration ?? ""}
+              onChange={(event) =>
+                void saveHeroGeneration(
+                  event.target.value ? Number(event.target.value) : null,
+                )
+              }
+            >
+              <option value="">{t("Not set (show all heroes)")}</option>
+              {Array.from(
+                { length: LATEST_HERO_GENERATION },
+                (_, index) => index + 1,
+              ).map((generation) => (
+                <option key={generation} value={generation}>
+                  {t("Gen {number}", { number: generation })}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <p>
+          {t(
+            "The newest hero generation your state has unlocked. Heroes from later generations are hidden in Tags.",
+          )}
+        </p>
       </section>
 
       <section>

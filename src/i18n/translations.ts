@@ -83,6 +83,15 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Change in State management": "Cambiar en Gestión del estado",
+  "Hero generation": "Generación de héroes",
+  "Hero generation not set: showing every generation.":
+    "Generación de héroes sin configurar: se muestran todas.",
+  "Hero generation saved.": "Generación de héroes guardada.",
+  "Not set (show all heroes)": "Sin configurar (mostrar todos)",
+  "The newest hero generation your state has unlocked. Heroes from later generations are hidden in Tags.":
+    "La generación de héroes más reciente que ha desbloqueado tu estado. Los héroes de generaciones posteriores se ocultan en Etiquetas.",
+  "Your state is on Gen {number}.": "Tu estado está en la Gen {number}.",
   "Add all shown heroes ({count})": "Añadir todos los héroes mostrados ({count})",
   "All generations": "Todas las generaciones",
   "All tags": "Todas las etiquetas",

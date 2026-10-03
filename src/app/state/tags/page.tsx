@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
@@ -213,16 +214,6 @@ export default function TagsPage() {
     await loadTags();
   }
 
-  async function saveHeroGenerationMax(value: number | null) {
-    if (!activeMembership) return;
-    setHeroGenerationMax(value);
-    const { error } = await supabase.rpc("set_state_hero_generation", {
-      target_state_id: activeMembership.stateId,
-      max_generation: value,
-    });
-    if (error) setMessage(error.message);
-  }
-
   function isHiddenGeneration(generation: number | null) {
     return (
       generation !== null &&
@@ -248,24 +239,14 @@ export default function TagsPage() {
     return (
       <>
         <div className="invite-form">
-          <label>
-            {t("Unlocked up to")}
-            <select
-              value={heroGenerationMax ?? ""}
-              onChange={(event) =>
-                void saveHeroGenerationMax(
-                  event.target.value ? Number(event.target.value) : null,
-                )
-              }
-            >
-              <option value="">{t("All generations")}</option>
-              {GENERATIONS.map((generation) => (
-                <option key={generation} value={generation}>
-                  {t("Gen {number}", { number: generation })}
-                </option>
-              ))}
-            </select>
-          </label>
+          <p>
+            {heroGenerationMax
+              ? t("Your state is on Gen {number}.", {
+                  number: heroGenerationMax,
+                })
+              : t("Hero generation not set: showing every generation.")}{" "}
+            <Link href="/state/manage">{t("Change in State management")}</Link>
+          </p>
           <label>
             {t("Show")}
             <select
