@@ -331,11 +331,68 @@ export async function fetchAllianceProfile(
 const TOP_PLAYER_COUNT = 20;
 const ROSTERS_FOR_TOP_PLAYERS = 5;
 
-// A state's strongest players. The free plan lists only five, so the
-// rosters of the strongest alliances are merged and ranked by power.
+export type LeaderboardEntry = {
+  rank: number;
+  wosId: string | null;
+  name: string;
+  allianceAbbr: string;
+  power: number;
+  score: number;
+};
+
+// Premium: a state's ranking board, top 100 (3 = Personal Power,
+// 20 = Labyrinth). Throws OraclePlayerError 402 on the base plan.
+export async function fetchLeaderboard(
+  stateNumber: number,
+  boardType: number,
+): Promise<LeaderboardEntry[]> {
+  const body = objectOf(
+    await oracleRequest(
+      `/states/${stateNumber}/leaderboards/${boardType}?cached=1`,
+      { revalidateSeconds: CACHE_SECONDS },
+    ),
+  );
+  return listOf(body.entries).map((entry) => ({
+    rank: toNumber(entry.rank) ?? 0,
+    wosId: optionalText(entry.player_id),
+    name: optionalText(entry.name) ?? "",
+    allianceAbbr: optionalText(entry.alliance) ?? "",
+    power: toNumber(entry.power) ?? 0,
+    score: toNumber(entry.score) ?? 0,
+  }));
+}
+
+const PERSONAL_POWER_BOARD = 3;
+
+// A state's strongest players. With Premium this is the Personal Power
+// board; on the base plan the strongest alliance rosters are merged.
 export async function fetchTopPlayers(
   summary: StateSummary,
 ): Promise<StateSummary["topPlayers"]> {
+  try {
+    const board = await fetchLeaderboard(
+      summary.stateNumber,
+      PERSONAL_POWER_BOARD,
+    );
+    if (board.length) {
+      return board
+        .filter((entry) => entry.name)
+        .slice(0, TOP_PLAYER_COUNT)
+        .map((entry) => ({
+          wosId: entry.wosId,
+          name: entry.name,
+          power: entry.power || entry.score,
+          furnaceLevel: 0,
+          allianceAbbr: entry.allianceAbbr,
+        }));
+    }
+  } catch (error) {
+    // 402 = base plan: fall back to merging rosters below.
+    if (!(error instanceof OraclePlayerError) || error.status !== 402) {
+      throw error;
+    }
+  }
+
   const players = new Map<string, StateSummary["topPlayers"][number]>();
   const add = (player: StateSummary["topPlayers"][number]) => {
     const key = player.wosId ?? `name:${player.name.toLowerCase()}`;
