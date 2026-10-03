@@ -204,10 +204,6 @@ export function buildDemoSeed(now: Date): DemoTables {
       playerHeroes.push({ wos_account_id: account.id, hero, updated_at: iso }),
     );
   });
-  const heroesOf = (accountId: unknown) =>
-    playerHeroes
-      .filter((row) => row.wos_account_id === accountId)
-      .map((row) => row.hero as string);
 
   const byLabyrinth = [...accounts].sort(
     (first, second) =>
@@ -238,17 +234,6 @@ export function buildDemoSeed(now: Date): DemoTables {
     hero_generation: 1,
     created_at: iso,
   }));
-  const rallyTags = leaders.slice(0, 2).map((leader, index) => ({
-    id: id("7c", index),
-    state_id: DEMO_STATE_ID,
-    name: `${leader.nickname} rally`,
-    color: "#4f8fba",
-    system_key: null,
-    kind: "rally",
-    hero_generation: null,
-    created_at: iso,
-  }));
-
   const memberTags: Row[] = [
     ...leaders.map((leader) => ({
       tag_id: rallyLeadTag.id,
@@ -263,49 +248,6 @@ export function buildDemoSeed(now: Date): DemoTables {
       assigned_at: iso,
     })),
   ];
-
-  const groups: Row[] = leaders.slice(0, 2).map((leader, index) => ({
-    id: id("6a", index),
-    plan_id: planId,
-    state_id: DEMO_STATE_ID,
-    name: `${leader.nickname}'s rally`,
-    leader_wos_account_id: leader.id,
-    alliance_id: alliances[index].id,
-    assignment_tag_id: rallyTags[index].id,
-    max_members: 10,
-    notes: null,
-    sort_order: index,
-    created_at: iso,
-    formation: "50/20/30",
-    joiner_heroes: ["Jessie", "Jasser", "Seo-yoon", "Sergey"],
-    shift: "whole",
-  }));
-  const alreadyAssigned = new Set<unknown>();
-  const assignments: Row[] = groups.flatMap((group, groupIndex) => {
-    const groupMembers = [
-      accounts.find((account) => account.id === group.leader_wos_account_id)!,
-      // The demo user sits in the first rally so publishing shows their message.
-      ...(groupIndex === 0 ? [accounts[0]] : [accounts[memberViewIndex]]),
-      ...accounts.slice(6 + groupIndex * 5, 10 + groupIndex * 5),
-    ];
-    const unique = groupMembers.filter((account) => {
-      if (alreadyAssigned.has(account.id)) return false;
-      alreadyAssigned.add(account.id);
-      return true;
-    });
-    return unique.map((account) => ({
-      plan_id: planId,
-      group_id: group.id,
-      state_id: DEMO_STATE_ID,
-      wos_account_id: account.id,
-      assigned_at: iso,
-      hero:
-        (group.joiner_heroes as string[]).find((hero) =>
-          heroesOf(account.id).includes(hero),
-        ) ?? null,
-      formation: null,
-    }));
-  });
 
   const choices = [
     "whole",
@@ -385,25 +327,20 @@ export function buildDemoSeed(now: Date): DemoTables {
       },
     ],
     state_members: members,
+    // Every member has Garrison by default, like in a real state.
     state_member_capabilities: [
-      // The member view can open the Garrison timer during the battle.
-      {
+      ...members.map((member) => ({
         state_id: DEMO_STATE_ID,
-        wos_account_id: accounts[memberViewIndex].id,
+        wos_account_id: member.wos_account_id,
         capability: "garrison",
-      },
+      })),
       {
         state_id: DEMO_STATE_ID,
         wos_account_id: accounts[0].id,
         capability: "rally_caller",
       },
-      {
-        state_id: DEMO_STATE_ID,
-        wos_account_id: accounts[0].id,
-        capability: "garrison",
-      },
     ],
-    state_tags: [rallyLeadTag, ...heroTags, ...rallyTags],
+    state_tags: [rallyLeadTag, ...heroTags],
     state_member_tags: memberTags,
     state_alliances: alliances,
     state_alliance_members: allianceMembers,
@@ -414,7 +351,7 @@ export function buildDemoSeed(now: Date): DemoTables {
         name: `SvS vs ${DEMO_OPPONENT_NUMBER}`,
         battle_type: "svs",
         scheduled_at: battleAt,
-        notes: "Demo plan: try assigning players, then publish.",
+        notes: "Demo plan: press Generate now to build the rallies, adjust them, then publish.",
         status: "draft",
         created_by: null,
         published_at: null,
@@ -439,8 +376,9 @@ export function buildDemoSeed(now: Date): DemoTables {
         started_at: null,
       },
     ],
-    battle_plan_groups: groups,
-    battle_plan_assignments: assignments,
+    // No rallies yet: the visitor builds them with "Generate now".
+    battle_plan_groups: [],
+    battle_plan_assignments: [],
     battle_attendance: attendance,
     battle_intel: [
       {
