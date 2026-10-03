@@ -83,6 +83,11 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Pick an enemy rally leader": "Elige un líder de rally enemigo",
+  "Load their top players": "Cargar sus mejores jugadores",
+  "Their {count} strongest players": "Sus {count} jugadores más fuertes",
+  "Not in the top {count}? Search an alliance roster":
+    "¿No está en el top {count}? Busca en la lista de una alianza",
   "Add a priority": "Añadir una prioridad",
   "Add at least one rally group first.":
     "Primero añade al menos un grupo de rally.",

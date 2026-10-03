@@ -1,6 +1,10 @@
 import { oracleErrorResponse, positiveInteger } from "@/lib/oracleRouteError";
 import { requireStateMember, type StateAccess } from "@/lib/stateAccess";
-import { fetchStateAlliances, type StateSummary } from "@/lib/wosOracleState";
+import {
+  fetchStateSummary,
+  fetchTopPlayers,
+  type StateSummary,
+} from "@/lib/wosOracleState";
 
 // Opponent of the active (or next scheduled) battle: the number set on its
 // plan, falling back to the stored SvS draw.
@@ -67,16 +71,23 @@ export async function GET(request: Request) {
       .limit(1)
       .maybeSingle();
     const stored = intel?.opponent as StateSummary | undefined;
-    if (stored?.alliances?.length) {
+    if (stored?.alliances?.length && (stored.topPlayers?.length ?? 0) > 5) {
       return Response.json({
         ...resolved,
         alliances: stored.alliances,
-        topPlayers: stored.topPlayers ?? [],
+        topPlayers: stored.topPlayers,
       });
     }
 
-    const alliances = await fetchStateAlliances(resolved.opponent);
-    return Response.json({ ...resolved, alliances, topPlayers: [] });
+    // Otherwise build the top players from WOSOracle (cached for 10 minutes).
+    const summary = stored?.alliances?.length
+      ? stored
+      : await fetchStateSummary(resolved.opponent);
+    return Response.json({
+      ...resolved,
+      alliances: summary.alliances,
+      topPlayers: await fetchTopPlayers(summary),
+    });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-opponent");
   }

@@ -327,3 +327,44 @@ export async function fetchAllianceProfile(
     power: toNumber(body.power) ?? 0,
   };
 }
+
+const TOP_PLAYER_COUNT = 20;
+const ROSTERS_FOR_TOP_PLAYERS = 5;
+
+// A state's strongest players. The free plan lists only five, so the
+// rosters of the strongest alliances are merged and ranked by power.
+export async function fetchTopPlayers(
+  summary: StateSummary,
+): Promise<StateSummary["topPlayers"]> {
+  const players = new Map<string, StateSummary["topPlayers"][number]>();
+  const add = (player: StateSummary["topPlayers"][number]) => {
+    const key = player.wosId ?? `name:${player.name.toLowerCase()}`;
+    const known = players.get(key);
+    if (!known || player.power > known.power) players.set(key, player);
+  };
+  summary.topPlayers.forEach(add);
+
+  const strongest = [...summary.alliances]
+    .sort((first, second) => second.power - first.power)
+    .slice(0, ROSTERS_FOR_TOP_PLAYERS);
+  const rosters = await Promise.allSettled(
+    strongest.map((alliance) =>
+      fetchAllianceRoster(alliance.id, summary.stateNumber).then((members) =>
+        members.map((member) => ({
+          wosId: member.wosId,
+          name: member.name,
+          power: member.power,
+          furnaceLevel: member.furnaceLevel,
+          allianceAbbr: alliance.abbr,
+        })),
+      ),
+    ),
+  );
+  rosters.forEach((result) => {
+    if (result.status === "fulfilled") result.value.forEach(add);
+  });
+
+  return [...players.values()]
+    .sort((first, second) => second.power - first.power)
+    .slice(0, TOP_PLAYER_COUNT);
+}

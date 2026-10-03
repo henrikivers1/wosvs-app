@@ -3,6 +3,7 @@ import type { createAdminClient } from "@/lib/supabase/admin";
 import { OraclePlayerError, oracleDailyBudget } from "@/lib/wosOracle";
 import {
   fetchStateSummary,
+  fetchTopPlayers,
   fetchSvsForecast,
   fetchSvsMatchup,
   fetchSvsRecord,
@@ -150,7 +151,7 @@ async function refreshDraw(
 }
 
 // Stores the opponent's state summary and SvS record next to our own
-// summary for the Intel page. Three WOSOracle requests, at most daily.
+// summary for the Intel page. About eight WOSOracle requests, at most daily.
 async function refreshIntel(
   admin: AdminClient,
   target: {
@@ -179,6 +180,8 @@ async function refreshIntel(
     fetchSvsRecord(target.opponent),
     fetchStateSummary(target.stateNumber),
   ]);
+  // Their 20 strongest players, the likely rally leaders.
+  opponent.topPlayers = await fetchTopPlayers(opponent);
   const { error } = await admin.from("battle_intel").upsert({
     plan_id: target.planId,
     state_id: target.stateId,

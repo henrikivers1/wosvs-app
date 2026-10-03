@@ -110,7 +110,7 @@ export function OpponentRosterPicker({
 
   return (
     <div className="opponent-roster-picker">
-      <h3>{t("Pick from the enemy roster")}</h3>
+      <h3>{t("Pick an enemy rally leader")}</h3>
       <div className="invite-form">
         <label>
           {t("Opponent state")}
@@ -127,7 +127,7 @@ export function OpponentRosterPicker({
           disabled={loading}
           onClick={() => void loadOpponent()}
         >
-          {t("Load alliances")}
+          {t("Load their top players")}
         </button>
       </div>
       {opponent && (
@@ -141,11 +141,16 @@ export function OpponentRosterPicker({
 
       {topPlayers.length > 0 && (
         <>
-          <p>{t("Their strongest players")}</p>
+          <p>
+            {t("Their {count} strongest players", {
+              count: topPlayers.length,
+            })}
+          </p>
           <ul className="roster-list">
-            {topPlayers.map((player) => (
+            {topPlayers.map((player, index) => (
               <li key={player.wosId ?? player.name}>
                 <span>
+                  {index + 1}.{" "}
                   {player.allianceAbbr && `[${player.allianceAbbr}] `}
                   <strong>{player.name}</strong> — {formatNumber(player.power)}
                 </span>
@@ -184,56 +189,64 @@ export function OpponentRosterPicker({
       )}
 
       {alliances.length > 0 && (
-        <label>
-          {t("Alliance")}
-          <select
-            value={selectedAlliance?.id ?? ""}
-            onChange={(event) => {
-              const alliance = alliances.find(
-                (item) => item.id === Number(event.target.value),
-              );
-              if (alliance) void loadRoster(alliance);
-            }}
-          >
-            <option value="">{t("Select alliance")}</option>
-            {alliances.map((alliance) => (
-              <option key={alliance.id} value={alliance.id}>
-                [{alliance.abbr}] {alliance.name} —{" "}
-                {formatNumber(alliance.power)}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-
-      {selectedAlliance && members.length > 0 && (
-        <>
+        <details className="roster-search">
+          <summary>
+            {t("Not in the top {count}? Search an alliance roster", {
+              count: topPlayers.length || 20,
+            })}
+          </summary>
           <label>
-            {t("Search player")}
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
+            {t("Alliance")}
+            <select
+              value={selectedAlliance?.id ?? ""}
+              onChange={(event) => {
+                const alliance = alliances.find(
+                  (item) => item.id === Number(event.target.value),
+                );
+                if (alliance) void loadRoster(alliance);
+              }}
+            >
+              <option value="">{t("Select alliance")}</option>
+              {alliances.map((alliance) => (
+                <option key={alliance.id} value={alliance.id}>
+                  [{alliance.abbr}] {alliance.name} —{" "}
+                  {formatNumber(alliance.power)}
+                </option>
+              ))}
+            </select>
           </label>
-          <ul className="roster-list">
-            {visibleMembers.slice(0, 50).map((member) => (
-              <li key={member.wosId ?? member.name}>
-                <span>
-                  <strong>{member.name}</strong>{" "}
-                  {member.rank === 5 && t("(Leader)")} —{" "}
-                  {formatNumber(member.power)}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onPick({ member, alliance: selectedAlliance })}
-                >
-                  {t("Use")}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
+          {selectedAlliance && members.length > 0 && (
+            <>
+              <label>
+                {t("Search player")}
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </label>
+              <ul className="roster-list">
+                {visibleMembers.slice(0, 50).map((member) => (
+                  <li key={member.wosId ?? member.name}>
+                    <span>
+                      <strong>{member.name}</strong>{" "}
+                      {member.rank === 5 && t("(Leader)")} —{" "}
+                      {formatNumber(member.power)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onPick({ member, alliance: selectedAlliance })
+                      }
+                    >
+                      {t("Use")}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </details>
       )}
       {loading && <p>{t("Loading...")}</p>}
     </div>

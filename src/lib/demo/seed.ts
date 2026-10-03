@@ -6,17 +6,56 @@ export const DEMO_STATE_NUMBER = 9999;
 export const DEMO_OPPONENT_NUMBER = 9998;
 
 const NAMES = [
-  "Frostbite", "IceQueen", "Nordic", "Glacier", "Polaris", "Blizzard",
-  "Snowfang", "Tundra", "Aurora", "Whiteout", "Permafrost", "Hailstorm",
-  "Icebreaker", "Wolfpack", "Yeti", "Avalanche", "Coldsteel", "Rime",
-  "Sleet", "Northwind", "Frostfire", "Snowdrift", "Icicle", "Boreal",
-  "Crystal", "Winterfell", "Hoarfrost", "Floe", "Iceberg", "Snowhawk",
-  "Freezer", "Chill", "Arctic", "Kelvin", "Fjord", "Sastrugi", "Nunatak",
-  "Brrr", "Stormcrow",
+  "Frostbite",
+  "IceQueen",
+  "Nordic",
+  "Glacier",
+  "Polaris",
+  "Blizzard",
+  "Snowfang",
+  "Tundra",
+  "Aurora",
+  "Whiteout",
+  "Permafrost",
+  "Hailstorm",
+  "Icebreaker",
+  "Wolfpack",
+  "Yeti",
+  "Avalanche",
+  "Coldsteel",
+  "Rime",
+  "Sleet",
+  "Northwind",
+  "Frostfire",
+  "Snowdrift",
+  "Icicle",
+  "Boreal",
+  "Crystal",
+  "Winterfell",
+  "Hoarfrost",
+  "Floe",
+  "Iceberg",
+  "Snowhawk",
+  "Freezer",
+  "Chill",
+  "Arctic",
+  "Kelvin",
+  "Fjord",
+  "Sastrugi",
+  "Nunatak",
+  "Brrr",
+  "Stormcrow",
 ];
 
 const ENEMY_NAMES = [
-  "Inferno", "Ember", "Blaze", "Magma", "Cinder", "Scorch", "Pyro", "Ash",
+  "Inferno",
+  "Ember",
+  "Blaze",
+  "Magma",
+  "Cinder",
+  "Scorch",
+  "Pyro",
+  "Ash",
 ];
 
 // Small deterministic random generator so every demo starts the same.
@@ -49,9 +88,30 @@ export function buildDemoSeed(now: Date): DemoTables {
   const battleId = id("ba", 1);
 
   const alliances: Row[] = [
-    { id: id("a1", 1), state_id: DEMO_STATE_ID, name: "Frost Wolves", color: "#4f8fba", max_members: 100, created_at: iso },
-    { id: id("a1", 2), state_id: DEMO_STATE_ID, name: "Polar Guard", color: "#e4a853", max_members: 100, created_at: iso },
-    { id: id("a1", 3), state_id: DEMO_STATE_ID, name: "Ice Legion", color: "#6bbf7a", max_members: 100, created_at: iso },
+    {
+      id: id("a1", 1),
+      state_id: DEMO_STATE_ID,
+      name: "Frost Wolves",
+      color: "#4f8fba",
+      max_members: 100,
+      created_at: iso,
+    },
+    {
+      id: id("a1", 2),
+      state_id: DEMO_STATE_ID,
+      name: "Polar Guard",
+      color: "#e4a853",
+      max_members: 100,
+      created_at: iso,
+    },
+    {
+      id: id("a1", 3),
+      state_id: DEMO_STATE_ID,
+      name: "Ice Legion",
+      color: "#6bbf7a",
+      max_members: 100,
+      created_at: iso,
+    },
   ];
 
   const accounts: Row[] = [];
@@ -119,7 +179,16 @@ export function buildDemoSeed(now: Date): DemoTables {
   });
 
   // Most players already told us their 4★ joiner heroes; a few have not.
-  const JOINERS = ["Jessie", "Jasser", "Seo-yoon", "Sergey", "Patrick", "Ling Xue", "Gina", "Bahiti"];
+  const JOINERS = [
+    "Jessie",
+    "Jasser",
+    "Seo-yoon",
+    "Sergey",
+    "Patrick",
+    "Ling Xue",
+    "Gina",
+    "Bahiti",
+  ];
   const playerHeroes: Row[] = [];
   accounts.forEach((account, index) => {
     if (index > 0 && rand() < 0.15) return;
@@ -131,7 +200,9 @@ export function buildDemoSeed(now: Date): DemoTables {
     );
   });
   const heroesOf = (accountId: unknown) =>
-    playerHeroes.filter((row) => row.wos_account_id === accountId).map((row) => row.hero as string);
+    playerHeroes
+      .filter((row) => row.wos_account_id === accountId)
+      .map((row) => row.hero as string);
 
   const byLabyrinth = [...accounts].sort(
     (first, second) =>
@@ -139,24 +210,70 @@ export function buildDemoSeed(now: Date): DemoTables {
   );
   const leaders = byLabyrinth.slice(0, 4);
 
-  const rallyLeadTag = { id: id("7a", 1), state_id: DEMO_STATE_ID, name: "Rally Lead", color: "#e4a853", system_key: "rally_lead", kind: "custom", hero_generation: null, bulk_move_limit: 100, created_at: iso };
+  const rallyLeadTag = {
+    id: id("7a", 1),
+    state_id: DEMO_STATE_ID,
+    name: "Rally Lead",
+    color: "#e4a853",
+    system_key: "rally_lead",
+    kind: "custom",
+    hero_generation: null,
+    bulk_move_limit: 100,
+    created_at: iso,
+  };
   const heroTags = ["Jessie", "Jasser", "Sergey"].map((hero, index) => ({
-    id: id("7b", index), state_id: DEMO_STATE_ID, name: hero, color: "#9b6bd6", system_key: null, kind: "hero", hero_generation: 1, bulk_move_limit: 100, created_at: iso,
+    id: id("7b", index),
+    state_id: DEMO_STATE_ID,
+    name: hero,
+    color: "#9b6bd6",
+    system_key: null,
+    kind: "hero",
+    hero_generation: 1,
+    bulk_move_limit: 100,
+    created_at: iso,
   }));
   const rallyTags = leaders.slice(0, 2).map((leader, index) => ({
-    id: id("7c", index), state_id: DEMO_STATE_ID, name: `${leader.nickname} rally`, color: "#4f8fba", system_key: null, kind: "rally", hero_generation: null, bulk_move_limit: 100, created_at: iso,
+    id: id("7c", index),
+    state_id: DEMO_STATE_ID,
+    name: `${leader.nickname} rally`,
+    color: "#4f8fba",
+    system_key: null,
+    kind: "rally",
+    hero_generation: null,
+    bulk_move_limit: 100,
+    created_at: iso,
   }));
 
   const memberTags: Row[] = [
-    ...leaders.map((leader) => ({ tag_id: rallyLeadTag.id, wos_account_id: leader.id, source: "manual", assigned_at: iso })),
+    ...leaders.map((leader) => ({
+      tag_id: rallyLeadTag.id,
+      wos_account_id: leader.id,
+      source: "manual",
+      assigned_at: iso,
+    })),
     ...accounts.slice(5, 20).map((account, index) => ({
-      tag_id: heroTags[index % heroTags.length].id, wos_account_id: account.id, source: "manual", assigned_at: iso,
+      tag_id: heroTags[index % heroTags.length].id,
+      wos_account_id: account.id,
+      source: "manual",
+      assigned_at: iso,
     })),
   ];
 
   const groups: Row[] = leaders.slice(0, 2).map((leader, index) => ({
-    id: id("6a", index), plan_id: planId, state_id: DEMO_STATE_ID, name: `${leader.nickname}'s rally`, leader_wos_account_id: leader.id, alliance_id: alliances[index].id, assignment_tag_id: rallyTags[index].id, max_members: 10, notes: null, sort_order: index, created_at: iso,
-    formation: "50/20/30", joiner_heroes: ["Jessie", "Jasser", "Seo-yoon", "Sergey"], shift: "whole",
+    id: id("6a", index),
+    plan_id: planId,
+    state_id: DEMO_STATE_ID,
+    name: `${leader.nickname}'s rally`,
+    leader_wos_account_id: leader.id,
+    alliance_id: alliances[index].id,
+    assignment_tag_id: rallyTags[index].id,
+    max_members: 10,
+    notes: null,
+    sort_order: index,
+    created_at: iso,
+    formation: "50/20/30",
+    joiner_heroes: ["Jessie", "Jasser", "Seo-yoon", "Sergey"],
+    shift: "whole",
   }));
   const alreadyAssigned = new Set<unknown>();
   const assignments: Row[] = groups.flatMap((group, groupIndex) => {
@@ -172,106 +289,231 @@ export function buildDemoSeed(now: Date): DemoTables {
       return true;
     });
     return unique.map((account) => ({
-      plan_id: planId, group_id: group.id, state_id: DEMO_STATE_ID, wos_account_id: account.id, assigned_at: iso,
-      hero: (group.joiner_heroes as string[]).find((hero) => heroesOf(account.id).includes(hero)) ?? null,
+      plan_id: planId,
+      group_id: group.id,
+      state_id: DEMO_STATE_ID,
+      wos_account_id: account.id,
+      assigned_at: iso,
+      hero:
+        (group.joiner_heroes as string[]).find((hero) =>
+          heroesOf(account.id).includes(hero),
+        ) ?? null,
       formation: null,
     }));
   });
 
-  const choices = ["whole", "whole", "first_half", "second_half", "unavailable"];
+  const choices = [
+    "whole",
+    "whole",
+    "first_half",
+    "second_half",
+    "unavailable",
+  ];
   const attendance: Row[] = [
-    { plan_id: planId, state_id: DEMO_STATE_ID, wos_account_id: accounts[0].id, availability: "whole", voice_call: true, updated_at: iso },
+    {
+      plan_id: planId,
+      state_id: DEMO_STATE_ID,
+      wos_account_id: accounts[0].id,
+      availability: "whole",
+      voice_call: true,
+      updated_at: iso,
+    },
     ...accounts.slice(1).flatMap((account) =>
-    rand() < 0.7
-      ? [{
-          plan_id: planId, state_id: DEMO_STATE_ID, wos_account_id: account.id,
-          availability: choices[Math.floor(rand() * choices.length)],
-          voice_call: rand() < 0.5, updated_at: iso,
-        }]
-      : [],
+      rand() < 0.7
+        ? [
+            {
+              plan_id: planId,
+              state_id: DEMO_STATE_ID,
+              wos_account_id: account.id,
+              availability: choices[Math.floor(rand() * choices.length)],
+              voice_call: rand() < 0.5,
+              updated_at: iso,
+            },
+          ]
+        : [],
     ),
   ];
 
-  const enemyAlliances = ["INF", "EMB", "BLZ", "ASH", "MAG"].map((abbr, index) => ({
-    id: 900 + index, abbr, name: ["Infernal", "Embers", "Blazing Sun", "Ashfall", "Magma Core"][index],
-    power: Math.round((9 - index * 1.4) * 1_000_000_000), memberCount: 100 - index * 6,
-  }));
+  const enemyAlliances = ["INF", "EMB", "BLZ", "ASH", "MAG"].map(
+    (abbr, index) => ({
+      id: 900 + index,
+      abbr,
+      name: ["Infernal", "Embers", "Blazing Sun", "Ashfall", "Magma Core"][
+        index
+      ],
+      power: Math.round((9 - index * 1.4) * 1_000_000_000),
+      memberCount: 100 - index * 6,
+    }),
+  );
   const ownAlliances = alliances.map((alliance, index) => ({
-    id: 800 + index, abbr: ["FWV", "PGD", "ICL"][index], name: alliance.name as string,
-    power: Math.round((8 - index * 1.6) * 1_000_000_000), memberCount: 95 - index * 8,
+    id: 800 + index,
+    abbr: ["FWV", "PGD", "ICL"][index],
+    name: alliance.name as string,
+    power: Math.round((8 - index * 1.6) * 1_000_000_000),
+    memberCount: 95 - index * 8,
   }));
 
   return {
     profiles,
     wos_accounts: accounts,
     player_heroes: playerHeroes,
-    states: [{
-      id: DEMO_STATE_ID, name: `Demo State #${DEMO_STATE_NUMBER}`, created_at: iso,
-      game_state_number: DEMO_STATE_NUMBER, hero_generation_max: 10,
-      svs_season: 21, svs_opponent: DEMO_OPPONENT_NUMBER, svs_battle_at: battleAt,
-      svs_draw_expected_at: null, svs_next_battle_at: battleAt, oracle_checked_at: iso,
-    }],
+    states: [
+      {
+        id: DEMO_STATE_ID,
+        name: `Demo State #${DEMO_STATE_NUMBER}`,
+        created_at: iso,
+        game_state_number: DEMO_STATE_NUMBER,
+        hero_generation_max: 10,
+        svs_season: 21,
+        svs_opponent: DEMO_OPPONENT_NUMBER,
+        svs_battle_at: battleAt,
+        svs_draw_expected_at: null,
+        svs_next_battle_at: battleAt,
+        oracle_checked_at: iso,
+      },
+    ],
     state_members: members,
     state_member_capabilities: [
-      { state_id: DEMO_STATE_ID, wos_account_id: accounts[0].id, capability: "rally_caller" },
-      { state_id: DEMO_STATE_ID, wos_account_id: accounts[0].id, capability: "garrison" },
+      {
+        state_id: DEMO_STATE_ID,
+        wos_account_id: accounts[0].id,
+        capability: "rally_caller",
+      },
+      {
+        state_id: DEMO_STATE_ID,
+        wos_account_id: accounts[0].id,
+        capability: "garrison",
+      },
     ],
     state_tags: [rallyLeadTag, ...heroTags, ...rallyTags],
     state_member_tags: memberTags,
     state_alliances: alliances,
     state_alliance_members: allianceMembers,
-    battle_plans: [{
-      id: planId, state_id: DEMO_STATE_ID, name: `SvS vs ${DEMO_OPPONENT_NUMBER}`, battle_type: "svs",
-      scheduled_at: battleAt, notes: "Demo plan: try assigning players, then publish.", status: "draft",
-      created_by: null, published_at: null, created_at: iso, updated_at: iso,
-      opponent_state_number: DEMO_OPPONENT_NUMBER, auto_created: true,
-    }],
-    battles: [{
-      id: battleId, state_id: DEMO_STATE_ID, name: `SvS vs ${DEMO_OPPONENT_NUMBER}`, status: "scheduled",
-      created_at: iso, ended_at: null, battle_type: "svs", scheduled_at: battleAt, plan_id: planId,
-      result: null, started_at: null,
-    }],
+    battle_plans: [
+      {
+        id: planId,
+        state_id: DEMO_STATE_ID,
+        name: `SvS vs ${DEMO_OPPONENT_NUMBER}`,
+        battle_type: "svs",
+        scheduled_at: battleAt,
+        notes: "Demo plan: try assigning players, then publish.",
+        status: "draft",
+        created_by: null,
+        published_at: null,
+        created_at: iso,
+        updated_at: iso,
+        opponent_state_number: DEMO_OPPONENT_NUMBER,
+        auto_created: true,
+      },
+    ],
+    battles: [
+      {
+        id: battleId,
+        state_id: DEMO_STATE_ID,
+        name: `SvS vs ${DEMO_OPPONENT_NUMBER}`,
+        status: "scheduled",
+        created_at: iso,
+        ended_at: null,
+        battle_type: "svs",
+        scheduled_at: battleAt,
+        plan_id: planId,
+        result: null,
+        started_at: null,
+      },
+    ],
     battle_plan_groups: groups,
     battle_plan_assignments: assignments,
     battle_attendance: attendance,
-    battle_intel: [{
-      plan_id: planId, state_id: DEMO_STATE_ID, opponent_state: DEMO_OPPONENT_NUMBER, fetched_at: iso,
-      opponent: {
-        stateNumber: DEMO_OPPONENT_NUMBER, trackedPlayers: 1180,
-        topPlayers: ENEMY_NAMES.slice(0, 5).map((name, index) => ({
-          wosId: String(400_000_000 + index), name, power: 320_000_000 - index * 25_000_000,
-          furnaceLevel: 80 - index, allianceAbbr: enemyAlliances[index % 3].abbr,
-        })),
-        alliances: enemyAlliances,
-        stats: [{ key: "power", label: "Total power", value: 41_000_000_000, rank: 212, outOf: 1500 }],
+    battle_intel: [
+      {
+        plan_id: planId,
+        state_id: DEMO_STATE_ID,
+        opponent_state: DEMO_OPPONENT_NUMBER,
+        fetched_at: iso,
+        opponent: {
+          stateNumber: DEMO_OPPONENT_NUMBER,
+          trackedPlayers: 1180,
+          // Their 20 strongest players, the likely rally leaders.
+          topPlayers: Array.from({ length: 20 }, (_, index) => ({
+            wosId: String(400_000_000 + index),
+            name: `${ENEMY_NAMES[index % ENEMY_NAMES.length]}${index < ENEMY_NAMES.length ? "" : index + 1}`,
+            power: 320_000_000 - index * 9_000_000,
+            furnaceLevel: 80 - Math.floor(index / 4),
+            allianceAbbr: enemyAlliances[index % 5].abbr,
+          })),
+          alliances: enemyAlliances,
+          stats: [
+            {
+              key: "power",
+              label: "Total power",
+              value: 41_000_000_000,
+              rank: 212,
+              outOf: 1500,
+            },
+          ],
+        },
+        opponent_svs: {
+          record: {
+            battle_wins: 9,
+            battle_losses: 6,
+            prep_wins: 10,
+            prep_losses: 5,
+            castles_taken: 5,
+            castles_lost: 3,
+          },
+          recent: [
+            {
+              battleAt: new Date(now.getTime() - 28 * 86_400_000).toISOString(),
+              opponent: 9001,
+              outcome: "conquered",
+              prepWon: true,
+              battleWon: true,
+            },
+            {
+              battleAt: new Date(now.getTime() - 56 * 86_400_000).toISOString(),
+              opponent: 9042,
+              outcome: "repelled",
+              prepWon: true,
+              battleWon: false,
+            },
+          ],
+        },
+        own: {
+          stateNumber: DEMO_STATE_NUMBER,
+          trackedPlayers: 1120,
+          topPlayers: byLabyrinth.slice(0, 5).map((account) => ({
+            wosId: account.wos_id,
+            name: account.nickname,
+            power: account.power,
+            furnaceLevel: account.furnace_level_raw,
+            allianceAbbr: account.alliance_abbr,
+          })),
+          alliances: ownAlliances,
+          stats: [],
+        },
       },
-      opponent_svs: {
-        record: { battle_wins: 9, battle_losses: 6, prep_wins: 10, prep_losses: 5, castles_taken: 5, castles_lost: 3 },
-        recent: [
-          { battleAt: new Date(now.getTime() - 28 * 86_400_000).toISOString(), opponent: 9001, outcome: "conquered", prepWon: true, battleWon: true },
-          { battleAt: new Date(now.getTime() - 56 * 86_400_000).toISOString(), opponent: 9042, outcome: "repelled", prepWon: true, battleWon: false },
-        ],
-      },
-      own: {
-        stateNumber: DEMO_STATE_NUMBER, trackedPlayers: 1120,
-        topPlayers: byLabyrinth.slice(0, 5).map((account) => ({
-          wosId: account.wos_id, name: account.nickname, power: account.power, furnaceLevel: account.furnace_level_raw, allianceAbbr: account.alliance_abbr,
-        })),
-        alliances: ownAlliances, stats: [],
-      },
-    }],
+    ],
     enemy_leaders: [],
     rallies: [],
     battle_plan_comments: [],
     state_announcements: [],
     state_announcement_recipients: [],
     state_invites: [],
-    notifications: [{
-      id: 1, user_id: DEMO_USER_ID, type: "svs_drawn", title: "SvS opponent drawn",
-      body: `Your state faces state ${DEMO_OPPONENT_NUMBER}. Open Overwatch to vote when you can play.`,
-      data: { plan_id: planId }, read_at: null, created_at: iso, state_id: DEMO_STATE_ID,
-      wos_account_id: accounts[0].id, category: "battle",
-    }],
+    notifications: [
+      {
+        id: 1,
+        user_id: DEMO_USER_ID,
+        type: "svs_drawn",
+        title: "SvS opponent drawn",
+        body: `Your state faces state ${DEMO_OPPONENT_NUMBER}. Open Overwatch to vote when you can play.`,
+        data: { plan_id: planId },
+        read_at: null,
+        created_at: iso,
+        state_id: DEMO_STATE_ID,
+        wos_account_id: accounts[0].id,
+        category: "battle",
+      },
+    ],
   };
 }
 
