@@ -756,7 +756,6 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     return ok();
   },
 
-  cleanup_expired_state_announcements: () => ok(),
 
   get_state_overview: ({ target_state_id }) => {
     const members = demoTable("state_members").filter(

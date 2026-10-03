@@ -319,8 +319,8 @@ export default function AccountPage() {
   return (
     <main>
       <AppHeader />
-      <section>
-        <h2>{t("Account")}</h2>
+      <section className="page-heading">
+        <h1>{t("Account")}</h1>
         <p>
           {t("Public username:")}{" "}
           <strong>
@@ -562,7 +562,7 @@ export default function AccountPage() {
             placeholder={t("Numeric WOS ID")}
           />
         </label>
-        <button type="button" onClick={addWosAccount}>
+        <button className="primary-button" type="button" onClick={addWosAccount}>
           {t("Add WOS account")}
         </button>
         {message && <p className="auth-message">{message}</p>}

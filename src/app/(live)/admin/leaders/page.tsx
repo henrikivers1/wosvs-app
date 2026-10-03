@@ -191,7 +191,7 @@ export default function ManageLeadersPage() {
           />
           {t("Pet active now")}
         </label>
-        <button type="button" onClick={handleAddLeader}>
+        <button className="primary-button" type="button" onClick={handleAddLeader}>
           {t("Add leader")}
         </button>
 

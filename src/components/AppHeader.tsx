@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DemoBanner } from "@/components/DemoBanner";
+import { NavIcon, type NavIconName } from "@/components/NavIcon";
 
 const BATTLE_SECTION_PATHS = [
   "/battle",
@@ -176,37 +178,126 @@ export function AppHeader() {
     return role.replaceAll("_", " ");
   }
 
+  const isAdmin =
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
+  const inBattleSection = BATTLE_SECTION_PATHS.some((path) =>
+    pathname.startsWith(path),
+  );
+  // Main sections. On phones they become a tab bar at the bottom.
+  const mainLinks: {
+    href: string;
+    label: string;
+    icon: NavIconName;
+    active: boolean;
+    live?: boolean;
+  }[] = activeMembership
+    ? [
+        {
+          href: "/state/overwatch",
+          label: t("overwatch"),
+          icon: "overwatch",
+          active: pathname.startsWith("/state/overwatch"),
+        },
+        {
+          href: "/state/intel",
+          label: t("intel"),
+          icon: "intel",
+          active: pathname.startsWith("/state/intel"),
+        },
+        ...(isAdmin
+          ? [
+              {
+                href: "/state/planning",
+                label: t("planning"),
+                icon: "planning" as const,
+                active: pathname.startsWith("/state/planning"),
+              },
+            ]
+          : []),
+        ...(activeMembership.battleId && (canCallRallies || canUseGarrison)
+          ? [
+              {
+                href: "/battle",
+                label: t("liveBattle"),
+                icon: "live" as const,
+                active: inBattleSection,
+                live: true,
+              },
+            ]
+          : []),
+        {
+          href: isAdmin ? "/state/manage" : "/state/stats",
+          label: t("state"),
+          icon: "state",
+          active: STATE_SECTION_PATHS.some((path) => pathname.startsWith(path)),
+        },
+      ]
+    : [];
+
   return (
     <header className="app-header">
       <DemoBanner />
-      <div className="header-top">
-        <Link className="brand-link" href="/">
-          <span className="brand-mark">WOS</span>
-          <span className="brand-copy">
-            <strong>WOSOverwatch</strong>
-            <small>{t("battleCoordination")}</small>
-          </span>
+      <div className="header-bar">
+        <Link className="brand-link" href="/" aria-label="Overwatch">
+          <Image
+            src="/brand/overwatch-mark-on-dark.svg"
+            width={36}
+            height={36}
+            alt=""
+            priority
+          />
+          <span className="brand-name">Overwatch</span>
         </Link>
+
+        {mainLinks.length > 0 && (
+          <nav className="main-nav" aria-label={t("mainNavigation")}>
+            {mainLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`main-nav-link${link.active ? " active" : ""}${link.live ? " live" : ""}`}
+                aria-current={link.active ? "page" : undefined}
+              >
+                <NavIcon name={link.icon} />
+                <span>{link.label}</span>
+              </Link>
+            ))}
+          </nav>
+        )}
 
         {signedIn === true ? (
           <div className="account-controls">
+            {memberships.length > 1 ? (
+              <label className="state-switcher">
+                <span className="visually-hidden">{t("activeWorkspace")}</span>
+                <select
+                  value={activeMembership?.key ?? ""}
+                  onChange={(event) => setActiveMembership(event.target.value)}
+                >
+                  {memberships.map((membership) => (
+                    <option key={membership.key} value={membership.key}>
+                      {membership.stateName} ·{" "}
+                      {membership.wosNickname || membership.wosId}
+                      {` (${translatedRole(membership.role)})`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : activeMembership ? (
+              <span className="state-chip" title={t("activeWorkspace")}>
+                {activeMembership.stateName}
+              </span>
+            ) : null}
+
             <details className="header-language-menu">
               <summary
-                className="language-button"
+                className="icon-button"
                 aria-label={t("language")}
                 title={t("language")}
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  width="19"
-                  height="19"
-                >
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M3 12h18M12 3c2.3 2.5 3.5 5.5 3.5 9s-1.2 6.5-3.5 9c-2.3-2.5-3.5-5.5-3.5-9S9.7 5.5 12 3Z" />
-                </svg>
+                <NavIcon name="globe" />
               </summary>
-              <div className="header-language-dropdown">
+              <div className="header-dropdown">
                 <label className="profile-language-field">
                   <span>{t("language")}</span>
                   <select
@@ -226,12 +317,12 @@ export function AppHeader() {
             </details>
 
             <Link
-              className="notification-button"
+              className="icon-button notification-button"
               href="/notifications"
               aria-label={`${unreadCount} ${t("unreadNotifications")}`}
               title={t("notifications")}
             >
-              <span aria-hidden="true">🔔</span>
+              <NavIcon name="bell" />
               {unreadCount > 0 && (
                 <span className="notification-count">
                   {unreadCount > 99 ? "99+" : unreadCount}
@@ -252,7 +343,7 @@ export function AppHeader() {
                   {!avatarUrl && profileInitial}
                 </span>
               </summary>
-              <div className="profile-dropdown">
+              <div className="header-dropdown profile-dropdown">
                 <span className="profile-username">
                   {username
                     ? `@${username}`
@@ -261,6 +352,7 @@ export function AppHeader() {
                       : t("profile")}
                 </span>
                 <Link href="/account">{t("wosAccounts")}</Link>
+                <Link href="/notifications">{t("notifications")}</Link>
                 {!isDemoMode() && (
                   <button type="button" onClick={() => enterDemo()}>
                     {t("Try the private demo")}
@@ -272,8 +364,8 @@ export function AppHeader() {
               </div>
             </details>
           </div>
-        ) : signedIn === false ? (
-          <Link className="nav-link header-sign-in" href="/login">
+        ) : signedIn === false && pathname !== "/login" ? (
+          <Link className="secondary-link header-sign-in" href="/login">
             {t("signIn")}
           </Link>
         ) : (
@@ -281,89 +373,8 @@ export function AppHeader() {
         )}
       </div>
 
-      {signedIn === true && (
-        <div className="header-workspace-row">
-          <nav aria-label={t("mainNavigation")}>
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/overwatch")}
-                href="/state/overwatch"
-              >
-                {t("overwatch")}
-              </Link>
-            )}
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/intel")}
-                href="/state/intel"
-              >
-                {t("intel")}
-              </Link>
-            )}
-            {(activeMembership?.role === "owner" ||
-              activeMembership?.role === "admin") && (
-              <Link
-                className={navClassName("/state/planning")}
-                href="/state/planning"
-              >
-                {t("planning")}
-              </Link>
-            )}
-            {activeMembership?.battleId &&
-              (canCallRallies || canUseGarrison) && (
-                <Link
-                  className={
-                    BATTLE_SECTION_PATHS.some((path) =>
-                      pathname.startsWith(path),
-                    )
-                      ? "nav-link active-nav-link"
-                      : "nav-link"
-                  }
-                  href="/battle"
-                >
-                  {t("liveBattle")}
-                </Link>
-              )}
-            {activeMembership && (
-              <Link
-                className={
-                  STATE_SECTION_PATHS.some((path) => pathname.startsWith(path))
-                    ? "nav-link active-nav-link"
-                    : "nav-link"
-                }
-                href={
-                  activeMembership.role === "owner" ||
-                  activeMembership.role === "admin"
-                    ? "/state/manage"
-                    : "/state/stats"
-                }
-              >
-                {t("state")}
-              </Link>
-            )}
-          </nav>
-
-          {memberships.length > 0 && (
-            <label className="state-switcher">
-              <span>{t("activeWorkspace")}</span>
-              <select
-                value={activeMembership?.key ?? ""}
-                onChange={(event) => setActiveMembership(event.target.value)}
-              >
-                {memberships.map((membership) => (
-                  <option key={membership.key} value={membership.key}>
-                    {membership.stateName} —{" "}
-                    {membership.wosNickname || membership.wosId}
-                    {` (${translatedRole(membership.role)})`}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-      )}
       <StateSectionNav />
-      {BATTLE_SECTION_PATHS.some((path) => pathname.startsWith(path)) &&
+      {inBattleSection &&
         (canCallRallies || canUseGarrison) && (
           // Live Battle sub-navigation, so callers can jump between enemy
           // leaders, calling rallies and the garrison timer directly.

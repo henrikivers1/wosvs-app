@@ -33,6 +33,20 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Welcome back":
+    "Bienvenido de nuevo",
+  "Join your state":
+    "Únete a tu estado",
+  "Sign in to see your SvS, your rally and your send times.":
+    "Inicia sesión para ver tu SvS, tu rally y tus horas de envío.",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.":
+    "Crea una cuenta con tu WOS ID; los admins de tu estado reciben tu solicitud automáticamente.",
+  "State management":
+    "Gestión del estado",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
+    "Miembros, alianzas y cómo la automatización prepara cada SvS. La planificación y las batallas funcionan solas.",
+  "{count} Rally Leads":
+    "{count} líderes de rally",
   "Rally from {name} called.":
     "Rally de {name} registrado.",
   "Cancel the rally from {name} for everyone?":

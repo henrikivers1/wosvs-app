@@ -275,8 +275,8 @@ export default function NotificationsPage() {
   return (
     <main>
       <AppHeader />
-      <section>
-        <h2>{t("Notifications")}</h2>
+      <section className="page-heading">
+        <h1>{t("Notifications")}</h1>
         <p>
           {t(
             "Battle results, rally assignments and everything an admin changes on your accounts appear here, colour-coded by action.",
@@ -376,7 +376,7 @@ export default function NotificationsPage() {
                     inviteId &&
                     inviteStatus === "pending_recipient" && (
                       <div className="notification-actions">
-                        <button
+                        <button className="primary-button"
                           type="button"
                           onClick={() =>
                             void respondToInvitation(inviteId, true)

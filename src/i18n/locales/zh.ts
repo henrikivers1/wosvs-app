@@ -916,4 +916,11 @@ export const chineseInterface: Record<string, string> = {
   "{rallies} rallies with {players} players were set up for {plan}.": "已为 {plan} 设置 {rallies} 个集结，共 {players} 名玩家。",
   "They are published automatically at {time}.": "将于 {time} 自动发布。",
   "Publish them from Planning.": "请在计划页发布。",
+  "State management": "州管理",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.": "成员、联盟以及自动化如何准备每场 SvS。计划和战斗会自动进行。",
+  "{count} Rally Leads": "{count} 名集结队长",
+  "Welcome back": "欢迎回来",
+  "Join your state": "加入你的州",
+  "Sign in to see your SvS, your rally and your send times.": "登录查看你的 SvS、集结和派兵时间。",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.": "用你的 WOS ID 创建账号；你所在州的管理员会自动收到加入申请。",
 };

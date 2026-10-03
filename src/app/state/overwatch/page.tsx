@@ -120,7 +120,6 @@ export default function OverwatchPage() {
     const stateId = activeMembership.stateId;
     const accountId = activeMembership.wosAccountId;
 
-    await supabase.rpc("cleanup_expired_state_announcements");
 
     const [
       battleResult,
@@ -220,6 +219,7 @@ export default function OverwatchPage() {
         ? supabase
             .from("state_announcements")
             .select("id, title, body, expires_at, created_at")
+        .gt("expires_at", new Date().toISOString())
             .in("id", announcementIds)
             .order("created_at", { ascending: false })
         : Promise.resolve({ data: [], error: null }),

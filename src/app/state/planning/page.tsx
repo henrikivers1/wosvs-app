@@ -1190,59 +1190,80 @@ export default function BattlePlanningPage() {
           (second.labyrinth_score ?? 0) - (first.labyrinth_score ?? 0),
       )
       .slice(0, 20);
+    const leadCount = members.filter((member) =>
+      member.tags.some((tag) => tag.system_key === "rally_lead"),
+    ).length;
     return (
-      <section>
-        <p className="section-label">{t("Rally leads")}</p>
-        <h2>{t("Top 20 Labyrinth in your state")}</h2>
-        <p>
-          {t(
-            "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.",
-          )}
-        </p>
-        {ranked.length === 0 ? (
-          <p>
+      <section className="labyrinth-section">
+        <details className="labyrinth-panel">
+          <summary>
+            <span>
+              <span className="section-label">{t("Rally leads")}</span>
+              <strong>{t("Top 20 Labyrinth in your state")}</strong>
+            </span>
+            <span className="labyrinth-count">
+              {t("{count} Rally Leads", { count: leadCount })}
+            </span>
+          </summary>
+          <p className="form-hint">
             {t(
-              "No Labyrinth scores yet. They appear after members' accounts are synced.",
+              "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.",
             )}
           </p>
-        ) : (
-          <ol className="labyrinth-leaders">
-            {ranked.map((member) => {
-              const isLead = member.tags.some(
-                (tag) => tag.system_key === "rally_lead",
-              );
-              const answer = upcomingPlanId
-                ? attendance.find(
-                    (row) =>
-                      row.plan_id === upcomingPlanId &&
-                      row.wos_account_id === member.id,
-                  )
-                : undefined;
-              return (
-                <li key={member.id}>
-                  <span>
-                    <strong>{member.nickname || member.wos_id}</strong>{" "}
-                    {t("Lab")} {formatNumber(member.labyrinth_score ?? 0)} ·{" "}
-                    {furnaceLabel(member.furnace_level_raw)} ·{" "}
-                    {member.power === null ? "—" : formatNumber(member.power)}
-                    {answer &&
-                      ` · ${t(availabilityLabel(answer.availability))}${
-                        answer.voice_call ? ` · ${t("Voice")}` : ""
-                      }`}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={saving}
-                    className={isLead ? "secondary-link" : undefined}
-                    onClick={() => void toggleRallyLead(member, !isLead)}
-                  >
-                    {isLead ? t("Remove Rally Lead") : t("Make Rally Lead")}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        )}
+          {ranked.length === 0 ? (
+            <p>
+              {t(
+                "No Labyrinth scores yet. They appear after members' accounts are synced.",
+              )}
+            </p>
+          ) : (
+            <ol className="labyrinth-leaders">
+              {ranked.map((member, index) => {
+                const isLead = member.tags.some(
+                  (tag) => tag.system_key === "rally_lead",
+                );
+                const answer = upcomingPlanId
+                  ? attendance.find(
+                      (row) =>
+                        row.plan_id === upcomingPlanId &&
+                        row.wos_account_id === member.id,
+                    )
+                  : undefined;
+                return (
+                  <li key={member.id} className={isLead ? "is-lead" : undefined}>
+                    <span className="labyrinth-rank">{index + 1}</span>
+                    <span className="labyrinth-player">
+                      <strong>{member.nickname || member.wos_id}</strong>
+                      <small>
+                        {t("Lab")} {formatNumber(member.labyrinth_score ?? 0)} ·{" "}
+                        {furnaceLabel(member.furnace_level_raw)} ·{" "}
+                        {member.power === null
+                          ? "—"
+                          : formatNumber(member.power)}
+                        {answer &&
+                          ` · ${t(availabilityLabel(answer.availability))}${
+                            answer.voice_call ? ` · ${t("Voice")}` : ""
+                          }`}
+                      </small>
+                    </span>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      aria-pressed={isLead}
+                      className={isLead ? "lead-toggle on" : "lead-toggle"}
+                      title={
+                        isLead ? t("Remove Rally Lead") : t("Make Rally Lead")
+                      }
+                      onClick={() => void toggleRallyLead(member, !isLead)}
+                    >
+                      {isLead ? t("Rally Lead") : t("Make Rally Lead")}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </details>
       </section>
     );
   }

@@ -930,4 +930,11 @@ export const thaiInterface: Record<string, string> = {
   "{rallies} rallies with {players} players were set up for {plan}.": "ตั้ง {rallies} แรลลี่ {players} ผู้เล่นสำหรับ {plan} แล้ว",
   "They are published automatically at {time}.": "จะเผยแพร่อัตโนมัติเวลา {time}",
   "Publish them from Planning.": "เผยแพร่จากหน้าวางแผน",
+  "State management": "การจัดการรัฐ",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.": "สมาชิก พันธมิตร และวิธีที่ระบบอัตโนมัติเตรียม SvS แต่ละครั้ง การวางแผนและการรบทำงานเอง",
+  "{count} Rally Leads": "หัวหน้าแรลลี่ {count} คน",
+  "Welcome back": "ยินดีต้อนรับกลับ",
+  "Join your state": "เข้าร่วมรัฐของคุณ",
+  "Sign in to see your SvS, your rally and your send times.": "เข้าสู่ระบบเพื่อดู SvS แรลลี่ และเวลาส่งกำลังของคุณ",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.": "สร้างบัญชีด้วย WOS ID ของคุณ แอดมินของรัฐจะได้รับคำขอเข้าร่วมของคุณโดยอัตโนมัติ",
 };

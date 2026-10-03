@@ -928,4 +928,11 @@ export const arabicInterface: Record<string, string> = {
   "{rallies} rallies with {players} players were set up for {plan}.": "تم تجهيز {rallies} حشود مع {players} لاعبين لـ{plan}.",
   "They are published automatically at {time}.": "تُنشر تلقائيًا في {time}.",
   "Publish them from Planning.": "انشرها من صفحة التخطيط.",
+  "State management": "إدارة الولاية",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.": "الأعضاء والتحالفات وكيف تُجهّز الأتمتة كل SvS. التخطيط والمعارك يعملان تلقائيًا.",
+  "{count} Rally Leads": "{count} قادة حشود",
+  "Welcome back": "مرحبًا بعودتك",
+  "Join your state": "انضم إلى ولايتك",
+  "Sign in to see your SvS, your rally and your send times.": "سجّل الدخول لرؤية SvS وحشدك وأوقات الإرسال.",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.": "أنشئ حسابًا بمعرّف WOS الخاص بك؛ يصل طلب انضمامك إلى مشرفي ولايتك تلقائيًا.",
 };

@@ -74,7 +74,6 @@ export default function AnnouncementsPage() {
 
     setLoading(true);
     setMessage("");
-    await supabase.rpc("cleanup_expired_state_announcements");
 
     const [allianceResult, tagResult, recipientResult] = await Promise.all([
       supabase
@@ -117,6 +116,7 @@ export default function AnnouncementsPage() {
       .select(
         "id, title, body, audience_type, audience_id, audience_value, expires_at, created_at",
       )
+        .gt("expires_at", new Date().toISOString())
       .eq("state_id", activeMembership.stateId)
       .order("created_at", { ascending: false });
 
@@ -438,7 +438,7 @@ export default function AnnouncementsPage() {
                   </span>
                 </label>
               </div>
-              <button
+              <button className="primary-button"
                 type="button"
                 disabled={saving}
                 onClick={() => void createAnnouncement()}

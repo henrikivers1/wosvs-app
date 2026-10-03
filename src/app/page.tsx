@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
@@ -28,7 +29,16 @@ export default function Home() {
         <AppHeader />
         <section className="public-intro">
           <div>
-            <p className="section-label">{t("WOSOverwatch")}</p>
+            <div className="public-brand">
+              <Image
+                src="/brand/overwatch-mark-on-dark.svg"
+                width={56}
+                height={56}
+                alt=""
+                priority
+              />
+              <span>Overwatch</span>
+            </div>
             <h1>{t("Rally timing for organized SVS states.")}</h1>
             <p className="intro-text">
               {t(

@@ -149,6 +149,9 @@ export function NextSvsChecklist({
     },
   ];
 
+  // The next step an admin can act on gets the screen's gold button.
+  const nextActionKey = steps.find((step) => step.action && !step.done)?.key;
+
   return (
     <section className="next-svs">
       <p className="section-label">{t("Next SvS")}</p>
@@ -170,7 +173,9 @@ export function NextSvsChecklist({
             {step.action && (
               <button
                 type="button"
-                className="secondary-link"
+                className={
+                  step.key === nextActionKey ? "primary-button" : "secondary-link"
+                }
                 disabled={busy}
                 onClick={step.action.onClick}
               >

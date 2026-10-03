@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+<defs>
+<radialGradient id="gaf32" cx="0.28" cy="0" r="0.75" gradientTransform="translate(0.28 0) scale(1 0.8) translate(-0.28 0)">
+<stop offset="0" stop-color="#5FE0C0" stop-opacity="0.20"/><stop offset="1" stop-color="#5FE0C0" stop-opacity="0"/></radialGradient>
+<radialGradient id="gvf32" cx="0.62" cy="0" r="0.8" gradientTransform="translate(0.62 0) scale(1 0.75) translate(-0.62 0)">
+<stop offset="0" stop-color="#9A7CF0" stop-opacity="0.24"/><stop offset="1" stop-color="#9A7CF0" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="32" height="32" fill="#0B1D31" rx="7"/>
+<rect width="32" height="32" fill="url(#gaf32)" rx="7"/>
+<rect width="32" height="32" fill="url(#gvf32)" rx="7"/>
+<g transform="translate(2.24 2.5600000000000005) scale(0.3276190476190476) translate(-14 -1)">
+<polygon points="18,88 54,22 92,88" fill="#2B5079"/>
+<polygon points="54,22 65.6,42 60,38 55,44 49,38 43.1,42" fill="#EAF4FB"/>
+<rect x="48" y="4" width="12" height="12" fill="#F2B33D"/>
+</g>
+</svg>

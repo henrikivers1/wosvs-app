@@ -115,7 +115,7 @@ export default function AccountSetupPage() {
               "Your in-game name and public game data will be synchronized automatically from your WOS ID.",
             )}
           </p>
-          <button type="submit" disabled={saving}>
+          <button className="primary-button" type="submit" disabled={saving}>
             {saving ? t("Saving...") : t("Complete setup")}
           </button>
         </form>

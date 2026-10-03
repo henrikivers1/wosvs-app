@@ -403,7 +403,7 @@ export default function TagsPage() {
                   />
                 </span>
               </label>
-              <button
+              <button className="primary-button"
                 type="button"
                 disabled={saving}
                 onClick={() => void createTag()}

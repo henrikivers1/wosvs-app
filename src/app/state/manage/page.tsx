@@ -563,6 +563,15 @@ export default function ManageStatePage() {
   return (
     <main>
       <AppHeader />
+      <section className="page-heading">
+        <p className="section-label">{activeMembership.stateName}</p>
+        <h1>{t("State management")}</h1>
+        <p>
+          {t(
+            "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.",
+          )}
+        </p>
+      </section>
       {message && <p className="page-message">{message}</p>}
       <SvsStatus
         stateId={activeMembership.stateId}
@@ -933,11 +942,13 @@ export default function ManageStatePage() {
         ) : (
           <ul>
             {members.map((member) => (
-              <li key={member.wosAccountId}>
-                <span>
+              <li key={member.wosAccountId} className="member-row">
+                <span className="member-identity">
                   <strong>{member.nickname || member.wosId}</strong>
-                  {" — WOS ID " + member.wosId}
-                  {member.username ? " — @" + member.username : ""}
+                  <small>
+                    {"WOS ID " + member.wosId}
+                    {member.username ? " · @" + member.username : ""}
+                  </small>
                 </span>
                 {member.role === "owner" ? (
                   <div className="member-actions">
@@ -947,7 +958,9 @@ export default function ManageStatePage() {
                   <div className="member-actions">
                     {activeMembership.role === "owner" ? (
                       <label>
-                        {t("Permission role")}
+                        <span className="visually-hidden">
+                          {t("Permission role")}
+                        </span>
                         <select
                           value={member.role}
                           onChange={(event) =>

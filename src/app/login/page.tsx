@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
@@ -95,7 +96,25 @@ export default function LoginPage() {
     <main>
       <AppHeader />
       <section className="auth-card">
-        <h2>{mode === "login" ? t("Sign in") : t("Create account")}</h2>
+        <div className="auth-brand">
+          <Image
+            src="/brand/overwatch-mark-on-dark.svg"
+            width={64}
+            height={64}
+            alt=""
+            priority
+          />
+          <h1>
+            {mode === "login" ? t("Welcome back") : t("Join your state")}
+          </h1>
+          <p>
+            {mode === "login"
+              ? t("Sign in to see your SvS, your rally and your send times.")
+              : t(
+                  "Create an account with your WOS ID; your state's admins get your join request automatically.",
+                )}
+          </p>
+        </div>
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
             {t("Email")}
@@ -155,7 +174,7 @@ export default function LoginPage() {
               </p>
             </>
           )}
-          <button type="submit" disabled={loading}>
+          <button className="primary-button" type="submit" disabled={loading}>
             {loading
               ? t("Please wait...")
               : mode === "login"

@@ -114,7 +114,9 @@ export function AttendanceVote({
             >
               <strong>{t(option.label)}</strong>
               {option.window && (
-                <small>{windowLabel(svs.battle_at, option.window)}</small>
+                <small>
+                  <bdi dir="ltr">{windowLabel(svs.battle_at, option.window)}</bdi>
+                </small>
               )}
               <small>{t("{count} players", { count })}</small>
             </button>

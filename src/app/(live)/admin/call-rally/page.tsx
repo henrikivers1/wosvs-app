@@ -127,7 +127,7 @@ export default function CallRallyPage() {
             "Enter the time shown in game, then press Call rally the moment the in-game timer changes to that value. Every second of delay shifts the whole schedule.",
           )}
         </p>
-        <button type="button" onClick={callRally} disabled={!selectedLeader}>
+        <button className="primary-button" type="button" onClick={callRally} disabled={!selectedLeader}>
           {t("Call rally")}
         </button>
         {called && (

@@ -74,7 +74,6 @@ export default function AlliancesPage() {
 
     setLoading(true);
     setMessage("");
-    await supabase.rpc("cleanup_expired_state_announcements");
 
     const [allianceResult, assignmentResult, memberResult, recipientResult] =
       await Promise.all([
@@ -131,6 +130,7 @@ export default function AlliancesPage() {
       let noticeQuery = supabase
         .from("state_announcements")
         .select("id, title, body, audience_id, expires_at, created_at")
+        .gt("expires_at", new Date().toISOString())
         .eq("state_id", activeMembership.stateId)
         .eq("audience_type", "alliance")
         .order("created_at", { ascending: false });
