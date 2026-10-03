@@ -4130,3 +4130,32 @@ li.member-row button.danger-button:hover:not(:disabled) {
 [dir="rtl"] * {
   letter-spacing: 0 !important;
 }
+
+/* ==========================================================================
+   Privacy
+   ========================================================================== */
+.privacy-content {
+  display: grid;
+  max-width: 760px;
+  gap: 8px;
+}
+.privacy-list {
+  display: grid;
+  padding-inline-start: 20px;
+  margin: 10px 0 0;
+  gap: 8px;
+  list-style: disc;
+}
+.privacy-list li {
+  display: list-item;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  color: var(--muted-strong);
+  line-height: 1.6;
+  background: none;
+  border: 0;
+}
+.privacy-list li::marker {
+  color: var(--accent);
+}

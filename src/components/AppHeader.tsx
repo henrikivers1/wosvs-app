@@ -354,6 +354,7 @@ export function AppHeader() {
                 <Link href="/account">{t("wosAccounts")}</Link>
                 <Link href="/notifications">{t("notifications")}</Link>
                 <Link href="/guides">{t("Guides")}</Link>
+                <Link href="/privacy">{t("Privacy")}</Link>
                 {!isDemoMode() && (
                   <button type="button" onClick={() => enterDemo()}>
                     {t("Try the private demo")}

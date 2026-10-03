@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -170,7 +171,8 @@ export default function LoginPage() {
               <p className="form-hint">
                 {t(
                   "Your in-game name and public game data will be synchronized automatically from your WOS ID.",
-                )}
+                )}{" "}
+                <Link href="/privacy">{t("How we use your data")}</Link>
               </p>
             </>
           )}

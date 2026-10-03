@@ -291,6 +291,7 @@ export function LandingPage() {
         <nav aria-label={t("Footer")}>
           <Link href="/guides">{t("Guides")}</Link>
           <Link href="/login">{t("Sign in")}</Link>
+          <Link href="/privacy">{t("Privacy")}</Link>
           <button type="button" onClick={() => enterDemo()}>
             {t("Free demo")}
           </button>

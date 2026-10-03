@@ -32,6 +32,78 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Privacy":
+    "Privacidad",
+  "Your data in Overwatch":
+    "Tus datos en Overwatch",
+  "How we use your data":
+    "Cómo usamos tus datos",
+  "What we store":
+    "Qué guardamos",
+  "Your login: email address and password. The password is stored only as a secure hash by our login provider; we never see it.":
+    "Tu inicio de sesión: correo y contraseña. Nuestro proveedor de inicio de sesión guarda la contraseña solo como un hash seguro; nunca la vemos.",
+  "Your public username and the WOS IDs you add.":
+    "Tu nombre de usuario público y los WOS ID que añadas.",
+  "Game data for those WOS IDs from WOSOracle: name, avatar, state, power, Furnace level, Labyrinth score and alliance.":
+    "Datos de juego de esos WOS ID desde WOSOracle: nombre, avatar, estado, poder, nivel del Horno, puntuación del Laberinto y alianza.",
+  "What you enter in Overwatch: attendance votes, joiner heroes, troop details, and your state memberships and roles.":
+    "Lo que introduces en Overwatch: votos de asistencia, héroes de unión, datos de tropas y tus membresías y roles de estado.",
+  "What your state's admins and coordinators enter: rally assignments, notices, tags, and enemy leaders with their city coordinates.":
+    "Lo que introducen los administradores y coordinadores de tu estado: asignaciones de rally, avisos, etiquetas y líderes enemigos con las coordenadas de su ciudad.",
+  "Your notifications.":
+    "Tus notificaciones.",
+  "Why":
+    "Para qué",
+  "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.":
+    "Solo para que Overwatch funcione para ti y tu estado: iniciar sesión, planificar rallies, cronometrar refuerzos y avisarte de los cambios.",
+  "No ads, no tracking, no analytics. We never sell or share your data for marketing.":
+    "Sin anuncios, sin rastreo, sin analíticas. Nunca vendemos ni compartimos tus datos con fines de marketing.",
+  "Who can see it":
+    "Quién puede verlo",
+  "Members of your state see your username, game data, rally and votes. Admins also see join requests and roles.":
+    "Los miembros de tu estado ven tu nombre de usuario, datos de juego, rally y votos. Los administradores también ven solicitudes de unión y roles.",
+  "Your email address is never shown to other players.":
+    "Tu correo nunca se muestra a otros jugadores.",
+  "Services we use":
+    "Servicios que usamos",
+  "Supabase stores the database and handles sign-in.":
+    "Supabase guarda la base de datos y gestiona el inicio de sesión.",
+  "Vercel hosts the website.":
+    "Vercel aloja el sitio web.",
+  "An email service sends sign-up and password emails.":
+    "Un servicio de correo envía los correos de registro y de contraseña.",
+  "WOSOracle provides the game data; we send it only WOS IDs, state numbers and alliance IDs.":
+    "WOSOracle proporciona los datos de juego; solo le enviamos WOS ID, números de estado e ID de alianza.",
+  "These services may process data outside your country.":
+    "Estos servicios pueden tratar datos fuera de tu país.",
+  "Cookies and your browser":
+    "Cookies y tu navegador",
+  "One sign-in cookie keeps you logged in. There are no other cookies.":
+    "Una cookie de inicio de sesión te mantiene conectado. No hay más cookies.",
+  "Your browser stores your language, your last state, your garrison settings and, if you open it, the demo. This never leaves your device.":
+    "Tu navegador guarda tu idioma, tu último estado, tus ajustes de guarnición y, si la abres, la demo. Esto nunca sale de tu dispositivo.",
+  "How long we keep it":
+    "Cuánto tiempo lo guardamos",
+  "Read notifications are removed after 30 days and all notifications after 90 days.":
+    "Las notificaciones leídas se eliminan a los 30 días y todas las notificaciones a los 90 días.",
+  "Expired notices and invitations are removed automatically.":
+    "Los avisos e invitaciones caducados se eliminan automáticamente.",
+  "Everything else is kept until you remove it or ask us to delete your account.":
+    "Todo lo demás se guarda hasta que lo elimines o nos pidas borrar tu cuenta.",
+  "Your rights":
+    "Tus derechos",
+  "You can remove WOS accounts on Account at any time.":
+    "Puedes quitar cuentas de WOS en Cuenta en cualquier momento.",
+  "Email us to get a copy of your data, correct it, or delete your account and everything linked to it. We answer within 30 days.":
+    "Escríbenos para obtener una copia de tus datos, corregirlos o borrar tu cuenta y todo lo vinculado a ella. Respondemos en un plazo de 30 días.",
+  "If you are in the EU or UK you can also complain to your data protection authority.":
+    "Si estás en la UE o el Reino Unido, también puedes reclamar ante tu autoridad de protección de datos.",
+  "Contact":
+    "Contacto",
+  "Questions or requests:":
+    "Preguntas o solicitudes:",
+  "Back to Overwatch":
+    "Volver a Overwatch",
   "Rally 1":
     "Rally 1",
   "Rally 2":
