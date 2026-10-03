@@ -137,9 +137,9 @@ await point(page.locator("button, label").filter({ hasText: "Whole battle" }).fi
 await endSeg();
 
 // ---- Automatic imports: opponent intel, then your own imported stats
-await caption({ k: "Automatic imports", t: "Opponent intel imports itself.", s: "Their top alliances, strongest players and power, next to your own state." }, true);
+await caption({ k: "Automatic imports", t: "Opponent intel imports itself.", s: "Their likely rally leads by Labyrinth score, their alliances and power." }, true);
 await wait(400);
-seg("intel", 9.0);
+seg("intel", 9.5);
 await wait(400);
 await point(page.locator("a.main-nav-link", { hasText: "Intel" }));
 await page.waitForURL("**/state/intel"); await wait(1500);
@@ -206,7 +206,7 @@ await wait(500);
 await point(leader, { click: false }); await leader.selectOption({ label: "Ember" }); await wait(300);
 const emberMarch = await marchOf();
 // Ember must land GAP seconds before Inferno: call it at exactly the right moment.
-const GAP = 1.08;
+const GAP = 1.1;
 const emberTimer = 40;
 await type(page.getByLabel("Rally seconds remaining"), String(emberTimer));
 const callButton = page.getByRole("button", { name: "Call rally" });

@@ -1,6 +1,6 @@
 # Landing video
 
-`public/video/overwatch-tour.*`: about 66 seconds, made from the real demo.
+`public/video/overwatch-tour.*`: about 68 seconds, made from the real demo.
 Everything here is local: no recording service, no stock media.
 
 | Step | Command | Output |

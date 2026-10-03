@@ -9,7 +9,7 @@
  ],
  [
   "intel",
-  "The data imports itself. The opponent's alliances and strongest players, and every member's power, furnace and labyrinth score."
+  "The data imports itself. The opponent's likely rally leads, ranked by labyrinth score, and every member's power, furnace and labyrinth."
  ],
  [
   "plan",
@@ -29,7 +29,7 @@
  ],
  [
   "castle",
-  "Send on zero, and your reinforcements land in the six second gap between two enemy rallies. The castle stays yours."
+  "Send on zero. In slow motion, your reinforcements land in the one second gap between two enemy rallies. The castle stays yours."
  ],
  [
   "victory",

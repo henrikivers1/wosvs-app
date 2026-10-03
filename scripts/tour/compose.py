@@ -27,7 +27,11 @@ ORDER = [
     ("victory", "fade", 0.6),
     ("end", None, 0),
 ]
-SEND_NOW_IN_GARRISON = 8.3
+# Recorded by record.mjs (SEND NOW in the garrison clip) and anim.mjs (the
+# castle's impacts, in ms from the start of its clip).
+MARKS = json.load(open(f"{VID}/marks.json"))
+CASTLE_EVENTS = json.load(open(f"{VID}/castle-events.json"))
+SEND_NOW_IN_GARRISON = MARKS["sendNowInGarrison"]
 
 
 def duration(path):
@@ -48,10 +52,10 @@ for i, (name, trans, tdur) in enumerate(ORDER):
 TOTAL = t
 at = {c["name"]: c for c in clips}
 T_SEND = at["garrison"]["start"] + SEND_NOW_IN_GARRISON
-castle_ms = lambda g: (900 + (g + 1) / 42 * 7200) / 1000
-T_EMBER = at["castle"]["start"] + castle_ms(33.0)
-T_LAND = at["castle"]["start"] + castle_ms(36.0)
-T_INFERNO = at["castle"]["start"] + castle_ms(39.1)
+T_EMBER = at["castle"]["start"] + CASTLE_EVENTS["first"] / 1000
+T_LAND = at["castle"]["start"] + CASTLE_EVENTS["land"] / 1000
+T_INFERNO = at["castle"]["start"] + CASTLE_EVENTS["second"] / 1000
+T_SLOW = at["castle"]["start"] + CASTLE_EVENTS["slowFrom"] / 1000
 json.dump({"clips": clips, "total": TOTAL, "send": T_SEND}, open(f"{VID}/timeline.json", "w"), indent=1)
 
 N = int(TOTAL * SR) + SR
@@ -212,7 +216,14 @@ kick(T_SEND, 1.0, 32, 1.4)
 noise_hit(T_SEND, 1.2, 200, 9000, 0.35, 0.3)
 pad_chord(T_SEND, 2.4, [45, 52, 57, 64], 0.12, 900)
 # Castle: the full groove, with the three arrivals.
-section(T_SEND + 1.2, t_victory, ["Am", "F", "C", "G"], kicks=(0, 1, 2, 3), level=0.1)
+section(T_SEND + 1.2, T_SLOW, ["Am", "F", "C", "G"], kicks=(0, 1, 2, 3), level=0.1)
+# Slow motion: the beat drops to a heartbeat under a held chord.
+pad_chord(T_SLOW, t_victory - T_SLOW, [45, 52, 57, 60, 64], 0.1, 700)
+beat = T_SLOW
+while beat < t_victory - 0.3:
+    kick(beat, 0.55, 40, 0.5)
+    kick(beat + 0.22, 0.35, 40, 0.4)
+    beat += 1.1
 for when in (T_EMBER, T_INFERNO):
     kick(when, 0.8, 38, 0.7)
     noise_hit(when, 0.5, 120, 1200, 0.2, 0.12)

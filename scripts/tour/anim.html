@@ -118,6 +118,10 @@ const SEND = { h: sh, m: sm, s: ss };
 const EMBER = { name: M.first.name, coords: "596:611", march: M.first.march, hit: M.first.hit, from: [430, 700], color: COL.rose, tag: [-96, -10] };
 const INFERNO = { name: M.second.name, coords: "612:588", march: M.second.march, hit: M.second.hit, from: [1540, 330], color: COL.rose, tag: [96, -30] };
 const YOU = { name: "Your garrison", coords: "600:606", march: M.ownMarch, hit: M.ownMarch, from: [690, 760], color: COL.aurora, tag: [30, 52] };
+// The app aims the landing at the middle of the gap: draw it that way, with
+// the gap the app showed.
+EMBER.hit = YOU.hit - M.gap / 2;
+INFERNO.hit = YOU.hit + M.gap / 2;
 const CASTLE = [1010, 470];
 // Fast until just before the first impact, then slow motion through all three.
 const SLOW_FROM = EMBER.hit - 1.2, SLOW_TO = INFERNO.hit + 1.0;
@@ -219,10 +223,11 @@ function march(unit, sec, alpha) {
     g.fillStyle = unit.color; g.beginPath(); g.arc(x, y, 15, 0, 6.283); g.fill();
     g.strokeStyle = COL.navy; g.lineWidth = 4; g.stroke();
     const left = Math.max(0, unit.hit - sec);
-    // Each march keeps its tag on its own side so they never overlap.
+    // Each march keeps its tag on its own side; near the castle the
+    // timeline below takes over, so the tags do not pile up.
     const [ox, oy] = unit.tag;
-    pill(x + ox - 66, y + oy - 22, 132, 44, "rgba(8,21,36,0.92)", unit.color);
-    text(`${left.toFixed(1)} s`, x + ox, y + oy, { size: 24, weight: 500, font: MONO, color: unit.color === COL.aurora ? COL.aurora : COL.roseText });
+    if (left > 2.5) pill(x + ox - 66, y + oy - 22, 132, 44, "rgba(8,21,36,0.92)", unit.color);
+    if (left > 2.5) text(`${left.toFixed(1)} s`, x + ox, y + oy, { size: 24, weight: 500, font: MONO, color: unit.color === COL.aurora ? COL.aurora : COL.roseText });
   }
   g.restore();
 }
@@ -249,28 +254,33 @@ function impact(sec, at, color, label, sub, side) {
   if (sub) text(sub, x, y + 28, { size: 22, weight: 500, font: MONO, color: COL.mutedStrong, alpha: a });
 }
 function timeline(sec, alpha) {
-  // Impact times around the gap, to scale.
-  const x0 = 360, x1 = 1560, y = 990, from = EMBER.hit - 1.5, to = INFERNO.hit + 1.5;
+  // Impact times around the gap, to scale, with the time between arrivals.
+  const x0 = 300, x1 = 1620, y = 1000, from = EMBER.hit - 1.2, to = INFERNO.hit + 1.2;
   const X = (s) => x0 + ((s - from) / (to - from)) * (x1 - x0);
   g.save(); g.globalAlpha = alpha;
-  g.beginPath(); g.roundRect(x0 - 40, y - 64, x1 - x0 + 80, 112, 18); g.fillStyle = "rgba(8,21,36,0.9)"; g.fill();
+  g.beginPath(); g.roundRect(x0 - 40, y - 108, x1 - x0 + 80, 158, 20); g.fillStyle = "rgba(8,21,36,0.92)"; g.fill();
   g.strokeStyle = COL.lineStrong; g.lineWidth = 2; g.stroke();
-  // Gap
-  g.fillStyle = "rgba(95,224,192,0.16)"; g.fillRect(X(EMBER.hit), y - 26, X(INFERNO.hit) - X(EMBER.hit), 30);
-  g.strokeStyle = COL.line; g.lineWidth = 3; g.beginPath(); g.moveTo(x0, y - 11); g.lineTo(x1, y - 11); g.stroke();
+  g.fillStyle = "rgba(95,224,192,0.16)"; g.fillRect(X(EMBER.hit), y - 30, X(INFERNO.hit) - X(EMBER.hit), 38);
+  g.strokeStyle = COL.line; g.lineWidth = 4; g.beginPath(); g.moveTo(x0, y - 11); g.lineTo(x1, y - 11); g.stroke();
   g.restore();
-  text(`${M.gap.toFixed(1)} s gap`, (X(EMBER.hit) + X(INFERNO.hit)) / 2, y + 26, { size: 20, weight: 500, font: MONO, color: COL.aurora, alpha });
-  for (const [s, label, color] of [[EMBER.hit, EMBER.name, COL.rose], [YOU.hit, "You land", COL.aurora], [INFERNO.hit, INFERNO.name, COL.rose]]) {
+  text(`${M.gap.toFixed(1)} s gap`, (X(EMBER.hit) + X(INFERNO.hit)) / 2, y + 30, { size: 24, weight: 500, font: MONO, color: COL.aurora, alpha });
+  const marks = [[EMBER.hit, EMBER.name, COL.rose], [YOU.hit, "You land", COL.aurora], [INFERNO.hit, INFERNO.name, COL.rose]];
+  marks.forEach(([s, label, color], i) => {
     const done = sec >= s;
+    const pop = done ? 1 + 0.5 * Math.max(0, 1 - (sec - s) / 0.25) : 1;
     g.save(); g.globalAlpha = alpha;
-    g.fillStyle = done ? color : COL.raised; g.strokeStyle = color; g.lineWidth = 3;
-    g.beginPath(); g.arc(X(s), y - 11, 11, 0, 6.283); g.fill(); g.stroke();
+    g.fillStyle = done ? color : COL.raised; g.strokeStyle = color; g.lineWidth = 4;
+    g.beginPath(); g.arc(X(s), y - 11, 15 * pop, 0, 6.283); g.fill(); g.stroke();
     g.restore();
-    text(label, X(s), y - 44, { size: 20, weight: 700, color, alpha });
-  }
+    text(label, X(s), y - 52, { size: 26, weight: 700, color, alpha });
+    if (i > 0) {
+      const prev = marks[i - 1][0];
+      text(`+${(s - prev).toFixed(1)} s`, (X(prev) + X(s)) / 2, y - 84, { size: 20, weight: 500, font: MONO, color: COL.mutedStrong, alpha });
+    }
+  });
   const px = X(clamp(sec, from, to));
-  g.save(); g.globalAlpha = alpha * (sec > from - 1 ? 1 : 0.4);
-  g.fillStyle = COL.frost; g.fillRect(px - 2, y - 30, 4, 38);
+  g.save(); g.globalAlpha = alpha * (sec > from ? 1 : 0.4);
+  g.fillStyle = COL.frost; g.fillRect(px - 2, y - 36, 4, 50);
   g.restore();
 }
 function castle(ms) {
