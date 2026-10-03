@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import { HEROES, LATEST_HERO_GENERATION } from "@/lib/heroes";
 
 type StateTag = {
   id: string;
@@ -15,6 +16,7 @@ type StateTag = {
   system_key: string | null;
   created_at: string;
   kind: "custom" | "rally" | "hero";
+  hero_generation: number | null;
 };
 
 type TagAssignment = {
@@ -27,9 +29,13 @@ type MemberOption = {
   label: string;
 };
 
-// Heroes commonly used to join rallies; admins can add any other hero.
-const PRESET_HEROES = ["Jessie", "Jasser", "Seo-yoon", "Sergey"];
 const HERO_TAG_COLOR = "#9b6bd6";
+const GENERATIONS = Array.from(
+  { length: LATEST_HERO_GENERATION },
+  (_, index) => index + 1,
+);
+
+type KindFilter = "all" | "custom" | "rally" | "hero";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -47,6 +53,14 @@ export default function TagsPage() {
   const [playersTagId, setPlayersTagId] = useState<string | null>(null);
   const [memberToAdd, setMemberToAdd] = useState("");
   const [customHero, setCustomHero] = useState("");
+  // Newest hero generation the state has unlocked; null shows every hero.
+  const [heroGenerationMax, setHeroGenerationMax] = useState<number | null>(
+    null,
+  );
+  const [generationFilter, setGenerationFilter] = useState<number | "all">(
+    "all",
+  );
+  const [kindFilter, setKindFilter] = useState<KindFilter>("all");
   const [name, setName] = useState("");
   const [color, setColor] = useState("#e4a853");
   const [bulkMoveLimit, setBulkMoveLimit] = useState(100);
@@ -74,7 +88,7 @@ export default function TagsPage() {
       supabase
         .from("state_tags")
         .select(
-          "id, name, color, bulk_move_limit, system_key, created_at, kind",
+          "id, name, color, bulk_move_limit, system_key, created_at, kind, hero_generation",
         )
         .eq("state_id", activeMembership.stateId)
         .order("name"),
@@ -84,6 +98,12 @@ export default function TagsPage() {
         .select("wos_account_id, wos_accounts(nickname, wos_id)")
         .eq("state_id", activeMembership.stateId),
     ]);
+    const { data: stateRow } = await supabase
+      .from("states")
+      .select("hero_generation_max")
+      .eq("id", activeMembership.stateId)
+      .maybeSingle();
+    setHeroGenerationMax(stateRow?.hero_generation_max ?? null);
 
     const firstError = tagResult.error || assignmentResult.error;
     if (firstError) {
@@ -165,18 +185,21 @@ export default function TagsPage() {
     return true;
   }
 
-  async function addHeroTag(heroName: string) {
-    if (!activeMembership || !isAdmin) return;
-    const trimmed = heroName.trim().slice(0, 32);
-    if (!trimmed) return;
+  async function addHeroTags(
+    heroes: { name: string; generation: number | null }[],
+  ) {
+    if (!activeMembership || !isAdmin || heroes.length === 0) return;
     setSaving(true);
     setMessage(t(""));
-    const { error } = await supabase.from("state_tags").insert({
-      state_id: activeMembership.stateId,
-      name: trimmed,
-      color: HERO_TAG_COLOR,
-      kind: "hero",
-    });
+    const { error } = await supabase.from("state_tags").insert(
+      heroes.map((hero) => ({
+        state_id: activeMembership.stateId,
+        name: hero.name.trim().slice(0, 32),
+        color: HERO_TAG_COLOR,
+        kind: "hero",
+        hero_generation: hero.generation,
+      })),
+    );
     setSaving(false);
     if (error) {
       setMessage(
@@ -188,6 +211,135 @@ export default function TagsPage() {
     }
     setCustomHero("");
     await loadTags();
+  }
+
+  async function saveHeroGenerationMax(value: number | null) {
+    if (!activeMembership) return;
+    setHeroGenerationMax(value);
+    const { error } = await supabase.rpc("set_state_hero_generation", {
+      target_state_id: activeMembership.stateId,
+      max_generation: value,
+    });
+    if (error) setMessage(error.message);
+  }
+
+  function isHiddenGeneration(generation: number | null) {
+    return (
+      generation !== null &&
+      heroGenerationMax !== null &&
+      generation > heroGenerationMax
+    );
+  }
+
+  function renderHeroCatalog() {
+    const existingByName = new Map(
+      tags.map((tag) => [tag.name.toLowerCase(), tag]),
+    );
+    const visibleGenerations = GENERATIONS.filter(
+      (generation) =>
+        !isHiddenGeneration(generation) &&
+        (generationFilter === "all" || generationFilter === generation),
+    );
+    const missing = HEROES.filter(
+      (hero) =>
+        visibleGenerations.includes(hero.generation) &&
+        !existingByName.has(hero.name.toLowerCase()),
+    );
+    return (
+      <>
+        <div className="invite-form">
+          <label>
+            {t("Unlocked up to")}
+            <select
+              value={heroGenerationMax ?? ""}
+              onChange={(event) =>
+                void saveHeroGenerationMax(
+                  event.target.value ? Number(event.target.value) : null,
+                )
+              }
+            >
+              <option value="">{t("All generations")}</option>
+              {GENERATIONS.map((generation) => (
+                <option key={generation} value={generation}>
+                  {t("Gen {number}", { number: generation })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {t("Show")}
+            <select
+              value={generationFilter}
+              onChange={(event) =>
+                setGenerationFilter(
+                  event.target.value === "all"
+                    ? "all"
+                    : Number(event.target.value),
+                )
+              }
+            >
+              <option value="all">{t("All unlocked")}</option>
+              {GENERATIONS.filter(
+                (generation) => !isHiddenGeneration(generation),
+              ).map((generation) => (
+                <option key={generation} value={generation}>
+                  {t("Gen {number}", { number: generation })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            disabled={saving || missing.length === 0}
+            onClick={() => void addHeroTags(missing)}
+          >
+            {t("Add all shown heroes ({count})", { count: missing.length })}
+          </button>
+        </div>
+        {visibleGenerations.map((generation) => (
+          <div key={generation} className="hero-generation">
+            <h3>{t("Gen {number}", { number: generation })}</h3>
+            <div className="hero-presets">
+              {HEROES.filter((hero) => hero.generation === generation).map(
+                (hero) => {
+                  const tag = existingByName.get(hero.name.toLowerCase());
+                  return tag ? (
+                    <button
+                      key={hero.name}
+                      type="button"
+                      className="hero-chip added"
+                      onClick={() => {
+                        setMemberToAdd("");
+                        setKindFilter("hero");
+                        setPlayersTagId(tag.id);
+                      }}
+                    >
+                      {hero.name} ·{" "}
+                      {t("{count} players", {
+                        count: assignmentCounts[tag.id] ?? 0,
+                      })}
+                    </button>
+                  ) : (
+                    <button
+                      key={hero.name}
+                      type="button"
+                      className="hero-chip secondary-link"
+                      disabled={saving}
+                      onClick={() => void addHeroTags([hero])}
+                    >
+                      {t("+ {hero}", { hero: hero.name })}
+                      {hero.rarity !== "Legendary" && (
+                        <small> {t(hero.rarity)}</small>
+                      )}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          </div>
+        ))}
+      </>
+    );
   }
 
   async function setPlayerTag(
@@ -473,24 +625,7 @@ export default function TagsPage() {
                 "Tag players with the hero they join rallies with. Players see it on Overwatch as “Join with”.",
               )}
             </p>
-            <div className="hero-presets">
-              {PRESET_HEROES.filter(
-                (hero) =>
-                  !tags.some(
-                    (tag) => tag.name.toLowerCase() === hero.toLowerCase(),
-                  ),
-              ).map((hero) => (
-                <button
-                  key={hero}
-                  type="button"
-                  className="secondary-link"
-                  disabled={saving}
-                  onClick={() => void addHeroTag(hero)}
-                >
-                  {t("+ {hero}", { hero })}
-                </button>
-              ))}
-            </div>
+            {renderHeroCatalog()}
             <div className="invite-form">
               <label>
                 {t("Other hero")}
@@ -504,7 +639,9 @@ export default function TagsPage() {
               <button
                 type="button"
                 disabled={saving || !customHero.trim()}
-                onClick={() => void addHeroTag(customHero)}
+                onClick={() =>
+                  void addHeroTags([{ name: customHero, generation: null }])
+                }
               >
                 {t("Add hero tag")}
               </button>
@@ -521,6 +658,22 @@ export default function TagsPage() {
                 {tags.length} {tags.length === 1 ? t("tag") : t("tags")}
               </span>
             </div>
+            <div className="invite-form">
+              <label>
+                {t("Type")}
+                <select
+                  value={kindFilter}
+                  onChange={(event) =>
+                    setKindFilter(event.target.value as KindFilter)
+                  }
+                >
+                  <option value="all">{t("All tags")}</option>
+                  <option value="custom">{t("Regular")}</option>
+                  <option value="rally">{t("Rally")}</option>
+                  <option value="hero">{t("Hero")}</option>
+                </select>
+              </label>
+            </div>
 
             {loading ? (
               <p>{t("Loading tags...")}</p>
@@ -533,141 +686,147 @@ export default function TagsPage() {
               </div>
             ) : (
               <div className="tag-list">
-                {tags.map((tag) =>
-                  editingTagId === tag.id && !tag.system_key ? (
-                    <article key={tag.id} className="tag-edit-card">
-                      <div className="tag-create-form">
-                        <label>
-                          {t("Tag name")}
-                          <input
-                            type="text"
-                            maxLength={32}
-                            value={editingName}
-                            onChange={(event) =>
-                              setEditingName(event.target.value)
-                            }
-                          />
-                        </label>
-                        <label>
-                          {t("Color")}
-                          <span className="color-input-row">
+                {tags
+                  .filter(
+                    (tag) =>
+                      (kindFilter === "all" || tag.kind === kindFilter) &&
+                      !isHiddenGeneration(tag.hero_generation),
+                  )
+                  .map((tag) =>
+                    editingTagId === tag.id && !tag.system_key ? (
+                      <article key={tag.id} className="tag-edit-card">
+                        <div className="tag-create-form">
+                          <label>
+                            {t("Tag name")}
                             <input
-                              type="color"
-                              value={
-                                HEX_COLOR.test(editingColor)
-                                  ? editingColor
-                                  : "#e4a853"
-                              }
-                              onChange={(event) =>
-                                setEditingColor(event.target.value)
-                              }
-                            />
-                            <input
-                              className="hex-color-input"
                               type="text"
-                              maxLength={7}
-                              value={editingColor}
+                              maxLength={32}
+                              value={editingName}
                               onChange={(event) =>
-                                setEditingColor(event.target.value)
+                                setEditingName(event.target.value)
                               }
                             />
-                          </span>
-                        </label>
-                        <label>
-                          {t("Bulk-move limit")}
-                          <input
-                            type="number"
-                            min="1"
-                            max="100"
-                            value={editingBulkMoveLimit}
-                            onChange={(event) =>
-                              setEditingBulkMoveLimit(
-                                Number(event.target.value),
-                              )
-                            }
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          disabled={saving}
-                          onClick={() => void saveTag()}
-                        >
-                          {t("Save")}
-                        </button>
-                        <button
-                          type="button"
-                          className="secondary-link"
-                          onClick={() => setEditingTagId(null)}
-                        >
-                          {t("Cancel")}
-                        </button>
-                      </div>
-                    </article>
-                  ) : (
-                    <article key={tag.id} className="tag-row">
-                      <span
-                        className="tag-swatch"
-                        style={{ backgroundColor: tag.color }}
-                      />
-                      <div>
-                        <strong>
-                          {tag.name}
-                          {tag.kind === "hero" && (
-                            <span className="role-badge">{t("Hero")}</span>
-                          )}
-                          {tag.kind === "rally" && (
-                            <span className="role-badge">{t("Rally")}</span>
-                          )}
-                        </strong>
-                        <small>
-                          {tag.color.toUpperCase()} {t("·")}{" "}
-                          {assignmentCounts[tag.id] ?? 0} {t("assigned")}
-                          {tag.system_key
-                            ? t(" · permanent system tag")
-                            : ` · bulk max ${tag.bulk_move_limit}`}
-                        </small>
-                      </div>
-                      {tag.system_key ? (
-                        <span className="role-badge">
-                          {t("Managed in State members")}
-                        </span>
-                      ) : (
-                        <div className="tag-row-actions">
+                          </label>
+                          <label>
+                            {t("Color")}
+                            <span className="color-input-row">
+                              <input
+                                type="color"
+                                value={
+                                  HEX_COLOR.test(editingColor)
+                                    ? editingColor
+                                    : "#e4a853"
+                                }
+                                onChange={(event) =>
+                                  setEditingColor(event.target.value)
+                                }
+                              />
+                              <input
+                                className="hex-color-input"
+                                type="text"
+                                maxLength={7}
+                                value={editingColor}
+                                onChange={(event) =>
+                                  setEditingColor(event.target.value)
+                                }
+                              />
+                            </span>
+                          </label>
+                          <label>
+                            {t("Bulk-move limit")}
+                            <input
+                              type="number"
+                              min="1"
+                              max="100"
+                              value={editingBulkMoveLimit}
+                              onChange={(event) =>
+                                setEditingBulkMoveLimit(
+                                  Number(event.target.value),
+                                )
+                              }
+                            />
+                          </label>
                           <button
                             type="button"
-                            className="secondary-link"
-                            onClick={() => {
-                              setMemberToAdd("");
-                              setPlayersTagId(
-                                playersTagId === tag.id ? null : tag.id,
-                              );
-                            }}
-                          >
-                            {t("Players")}
-                          </button>
-                          <button
-                            type="button"
-                            className="secondary-link"
-                            onClick={() => beginEditing(tag)}
-                          >
-                            {t("Edit")}
-                          </button>
-                          <button
-                            type="button"
-                            className="danger-button"
                             disabled={saving}
-                            onClick={() => void deleteTag(tag)}
+                            onClick={() => void saveTag()}
                           >
-                            {t("Delete")}
+                            {t("Save")}
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-link"
+                            onClick={() => setEditingTagId(null)}
+                          >
+                            {t("Cancel")}
                           </button>
                         </div>
-                      )}
-                      {playersTagId === tag.id &&
-                        !tag.system_key &&
-                        renderPlayersPanel(tag)}
-                    </article>
-                  ),
-                )}
+                      </article>
+                    ) : (
+                      <article key={tag.id} className="tag-row">
+                        <span
+                          className="tag-swatch"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        <div>
+                          <strong>
+                            {tag.name}
+                            {tag.kind === "hero" && (
+                              <span className="role-badge">{t("Hero")}</span>
+                            )}
+                            {tag.kind === "rally" && (
+                              <span className="role-badge">{t("Rally")}</span>
+                            )}
+                          </strong>
+                          <small>
+                            {tag.color.toUpperCase()} {t("·")}{" "}
+                            {assignmentCounts[tag.id] ?? 0} {t("assigned")}
+                            {tag.system_key
+                              ? t(" · permanent system tag")
+                              : ` · bulk max ${tag.bulk_move_limit}`}
+                          </small>
+                        </div>
+                        {tag.system_key ? (
+                          <span className="role-badge">
+                            {t("Managed in State members")}
+                          </span>
+                        ) : (
+                          <div className="tag-row-actions">
+                            <button
+                              type="button"
+                              className="secondary-link"
+                              onClick={() => {
+                                setMemberToAdd("");
+                                setPlayersTagId(
+                                  playersTagId === tag.id ? null : tag.id,
+                                );
+                              }}
+                            >
+                              {t("Players")}
+                            </button>
+                            <button
+                              type="button"
+                              className="secondary-link"
+                              onClick={() => beginEditing(tag)}
+                            >
+                              {t("Edit")}
+                            </button>
+                            <button
+                              type="button"
+                              className="danger-button"
+                              disabled={saving}
+                              onClick={() => void deleteTag(tag)}
+                            >
+                              {t("Delete")}
+                            </button>
+                          </div>
+                        )}
+                        {playersTagId === tag.id &&
+                          !tag.system_key &&
+                          renderPlayersPanel(tag)}
+                      </article>
+                    ),
+                  )}
               </div>
             )}
           </section>

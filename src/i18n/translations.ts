@@ -83,6 +83,16 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Add all shown heroes ({count})": "Añadir todos los héroes mostrados ({count})",
+  "All generations": "Todas las generaciones",
+  "All tags": "Todas las etiquetas",
+  "All unlocked": "Todas las desbloqueadas",
+  Epic: "Épico",
+  "Gen {number}": "Gen {number}",
+  Rare: "Raro",
+  Regular: "Normal",
+  Show: "Mostrar",
+  "Unlocked up to": "Desbloqueado hasta",
   "+ {hero}": "+ {hero}",
   "A tag with that name already exists.": "Ya existe una etiqueta con ese nombre.",
   "Add hero tag": "Añadir etiqueta de héroe",

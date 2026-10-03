@@ -2932,3 +2932,12 @@ article.tag-row {
 .join-hero {
   font-weight: 700;
 }
+.hero-generation h3 {
+  margin: 14px 0 6px;
+}
+.hero-chip small {
+  opacity: 0.7;
+}
+.hero-chip.added {
+  border-color: #9b6bd6;
+}
