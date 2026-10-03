@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useLanguage } from "@/components/LanguageProvider";
 import {
   AVAILABILITY_OPTIONS,
@@ -25,6 +26,7 @@ export function AttendanceVote({
   const [svs, setSvs] = useState<UpcomingSvs | null>(null);
   const [rows, setRows] = useState<AttendanceRow[]>([]);
   const [voiceCall, setVoiceCall] = useState(false);
+  const [heroesKnown, setHeroesKnown] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -38,6 +40,12 @@ export function AttendanceVote({
       setRows([]);
       return;
     }
+    const { data: account } = await supabase
+      .from("wos_accounts")
+      .select("heroes_updated_at")
+      .eq("id", wosAccountId)
+      .maybeSingle();
+    setHeroesKnown(Boolean(account?.heroes_updated_at));
     const { data: attendance } = await supabase
       .from("battle_attendance")
       .select("plan_id, wos_account_id, availability, voice_call")
@@ -134,6 +142,12 @@ export function AttendanceVote({
           voice: rows.filter((row) => row.voice_call).length,
         })}
       </p>
+      {!heroesKnown && (
+        <p className="auth-message">
+          {t("Your 4★ joiner heroes are not filled in yet.")}{" "}
+          <Link href="/account">{t("Update them on your account page")}</Link>
+        </p>
+      )}
       {message && <p className="auth-message">{message}</p>}
     </section>
   );

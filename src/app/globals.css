@@ -2971,3 +2971,101 @@ article.tag-row {
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+.joiner-heroes-editor {
+  margin: 10px 0;
+}
+.joiner-heroes-editor summary small {
+  font-weight: 400;
+  color: var(--muted);
+}
+.joiner-heroes-editor .needs-answer {
+  color: var(--accent);
+}
+.hero-owned-generation {
+  margin: 8px 0;
+}
+.hero-owned-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.hero-owned-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-weight: 500;
+}
+.autofill-panel {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+.autofill-priorities {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+.autofill-priorities li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+.autofill-priorities li span {
+  flex: 1;
+}
+.autofill-priorities button {
+  margin: 0;
+  padding: 2px 8px;
+}
+.selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  margin: 8px 0;
+}
+.plan-member-main input[type="checkbox"] {
+  margin-right: 6px;
+}
+.hero-pill {
+  border-color: #9b6bd6;
+}
+.heroes-unknown-pill {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.joiner-slot-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 6px 0;
+}
+.rally-setup-editor {
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+}
+.formation-presets,
+.joiner-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+.formation-presets button {
+  margin: 0;
+  padding: 3px 9px;
+}
+.joiner-slots select {
+  flex: 1 1 140px;
+}
+.plan-roster-filters label:has(> input[type="checkbox"]) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}

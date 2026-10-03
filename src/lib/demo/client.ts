@@ -90,6 +90,26 @@ function demoApiResponse(url: URL): Response | null {
       return json({
         members: demoEnemyRoster(Number(url.searchParams.get("allianceId"))),
       });
+    case "/api/oracle/state-alliances":
+      return json({
+        alliances: [
+          { id: 801, abbr: "FWV", name: "Frost Wolves", power: 8_000_000_000, memberCount: 95 },
+          { id: 802, abbr: "PGD", name: "Polar Guard", power: 6_400_000_000, memberCount: 87 },
+          { id: 803, abbr: "ICL", name: "Ice Legion", power: 4_800_000_000, memberCount: 79 },
+          { id: 804, abbr: "SNW", name: "Snow Owls", power: 2_100_000_000, memberCount: 61 },
+        ],
+      });
+    case "/api/oracle/alliance":
+      return json({
+        alliance: {
+          id: Number(url.searchParams.get("allianceId")),
+          abbr: "SHL",
+          name: "Shell Alliance",
+          state: 9999,
+          memberCount: 3,
+          power: 0,
+        },
+      });
     case "/api/oracle/player-sync":
       return json({ cached: true });
     case "/api/automation/run":

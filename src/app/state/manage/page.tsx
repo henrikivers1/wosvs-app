@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { StateCapability, StateRole } from "@/types/state";
 import { useLanguage } from "@/components/LanguageProvider";
 import { SvsStatus } from "@/components/SvsStatus";
+import { OracleAlliancePicker } from "@/components/OracleAlliancePicker";
 import { LATEST_HERO_GENERATION } from "@/lib/heroes";
 
 type StateMember = {
@@ -243,6 +244,25 @@ export default function ManageStatePage() {
       return false;
     }
     return true;
+  }
+
+  async function addOracleAlliance(name: string) {
+    if (!activeMembership) return;
+    setSavingAlliance(true);
+    setMessage(t(""));
+    const { error } = await supabase.rpc("create_state_alliance", {
+      target_state_id: activeMembership.stateId,
+      alliance_name: name,
+      alliance_color: allianceColor,
+      alliance_max_members: 100,
+    });
+    setSavingAlliance(false);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    await loadStateManagement();
+    setMessage(t("Alliance added. It can now be selected in Battle Planning."));
   }
 
   async function createAlliance() {
@@ -617,6 +637,12 @@ export default function ManageStatePage() {
           )}
         </p>
 
+        <OracleAlliancePicker
+          stateId={activeMembership.stateId}
+          existingNames={alliances.map((alliance) => alliance.name)}
+          onAdd={addOracleAlliance}
+        />
+        <h3>{t("Add manually")}</h3>
         <div className="alliance-management-create">
           <label>
             {t("Alliance name")}

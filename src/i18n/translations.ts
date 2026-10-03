@@ -83,13 +83,97 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Add a priority": "Añadir una prioridad",
+  "Add at least one rally group first.":
+    "Primero añade al menos un grupo de rally.",
+  "Add from WOSOracle": "Añadir desde WOSOracle",
+  "Add manually": "Añadir manualmente",
+  Added: "Añadida",
+  "Alliance ID": "ID de alianza",
+  "Alliance added. It can now be selected in Battle Planning.":
+    "Alianza añadida. Ya se puede elegir en la planificación.",
+  "Auto-fill": "Autorrelleno",
+  "Auto-fill placed {count} players. Review the rallies, then publish.":
+    "El autorrelleno colocó a {count} jugadores. Revisa los rallies y publica.",
+  "Auto-fill rallies": "Autorrellenar rallies",
+  "Battle half": "Mitad de la batalla",
+  "Clear selection": "Quitar selección",
+  "Drop players here, or select them and use Move selected here.":
+    "Suelta jugadores aquí, o selecciónalos y usa Mover selección aquí.",
+  "Each joiner hero can only be used once per rally.":
+    "Cada héroe de apoyo solo se puede usar una vez por rally.",
+  "Enter a numeric alliance ID.": "Introduce un ID de alianza numérico.",
+  "Equal power across rallies": "Poder igualado entre rallies",
+  "FC level": "Nivel FC",
+  "Fill the rallies for me": "Rellenar los rallies por mí",
+  "Formation (Inf/Lan/Mark %)": "Formación (Inf/Lan/Tir %)",
+  "Formation:": "Formación:",
+  "Four unique joiner heroes. Each member brings one of them.":
+    "Cuatro héroes de apoyo distintos. Cada miembro lleva uno de ellos.",
+  "Heroes saved.": "Héroes guardados.",
+  "Heroes unknown": "Héroes desconocidos",
+  "Highest FC": "FC más alto",
+  "Highest Labyrinth": "Laberinto más alto",
+  "Highest power": "Poder más alto",
+  "Highest troop tier": "Nivel de tropa más alto",
+  "Join with:": "Únete con:",
+  "Joiner hero {number}": "Héroe de apoyo {number}",
+  "Joiner heroes at 4★ or higher": "Héroes de apoyo con 4★ o más",
+  "Joins with": "Se une con",
+  Labyrinth: "Laberinto",
+  "Last updated {date}": "Última actualización {date}",
+  "Load your state's alliances": "Cargar las alianzas de tu estado",
+  "Look up": "Buscar",
+  "Move down": "Bajar",
+  "Move selected here ({count})": "Mover selección aquí ({count})",
+  "Move up": "Subir",
+  "Move {count} selected to…": "Mover {count} seleccionados a…",
+  "No 4★ joiner heroes": "Sin héroes de apoyo 4★",
+  "No hero yet": "Sin héroe aún",
+  "No joiner heroes chosen yet.": "Aún no hay héroes de apoyo elegidos.",
+  "Not assigned yet": "Aún sin asignar",
+  "Not filled in yet": "Aún sin rellenar",
+  "Not set": "Sin configurar",
+  "Pick players for the rallies": "Elige jugadores para los rallies",
+  "Rally setup": "Configurar rally",
+  "Save heroes": "Guardar héroes",
+  "Save rally setup": "Guardar configuración",
+  Select: "Seleccionar",
+  "Select all shown": "Seleccionar todos los mostrados",
+  "Showing the first 80 of {count}. Use the filters to narrow the list.":
+    "Mostrando los primeros 80 de {count}. Usa los filtros para acotar.",
+  "Sort by": "Ordenar por",
+  "Start from empty rallies (keeps the leaders)":
+    "Empezar con rallies vacíos (mantiene a los líderes)",
+  "Tick every hero you have at 4 stars or more. Admins use this to give you a hero to join rallies with.":
+    "Marca cada héroe que tengas con 4 estrellas o más. Los administradores lo usan para darte un héroe con el que unirte a los rallies.",
+  "Troop tier": "Nivel de tropa",
+  "Unassigned players": "Jugadores sin asignar",
+  "Update them on your account page": "Actualízalos en tu página de cuenta",
+  "Use Infantry/Lancer/Marksman percentages that add up to 100, like 50/20/30.":
+    "Usa porcentajes de Infantería/Lancero/Tirador que sumen 100, como 50/20/30.",
+  "Uses players who voted they can play each rally's half, and gives each one a joiner hero they have at 4★. Nothing is sent until you publish.":
+    "Usa a los jugadores que votaron que pueden jugar la mitad de cada rally y da a cada uno un héroe de apoyo que tenga con 4★. No se envía nada hasta que publiques.",
+  "Voice call first": "Chat de voz primero",
+  "WOSOracle could not be reached.": "No se pudo contactar con WOSOracle.",
+  "WOSOracle lists no alliances for your state yet.":
+    "WOSOracle aún no lista alianzas para tu estado.",
+  "WOSOracle lists only your state's strongest alliances. Add shell alliances by their alliance ID, or type a name below.":
+    "WOSOracle solo lista las alianzas más fuertes de tu estado. Añade alianzas vacías por su ID o escribe un nombre abajo.",
+  "Your 4★ joiner heroes are not filled in yet.":
+    "Aún no has rellenado tus héroes de apoyo 4★.",
+  "not 4★": "sin 4★",
+  "not set": "sin configurar",
+  "{count} heroes": "{count} héroes",
+  "{count} members": "{count} miembros",
   "End the battle": "Terminar la batalla",
   "Exit demo": "Salir de la demo",
   "Fake players and data that live only in this browser. Nothing is saved to your state.":
     "Jugadores y datos falsos que solo existen en este navegador. Nada se guarda en tu estado.",
   "Private demo": "Demo privada",
   "Reset demo": "Reiniciar demo",
-  "Reset the demo to its starting data?": "¿Reiniciar la demo con los datos iniciales?",
+  "Reset the demo to its starting data?":
+    "¿Reiniciar la demo con los datos iniciales?",
   "Start the battle now": "Empezar la batalla ahora",
   "Try the private demo": "Probar la demo privada",
   "Want to look around first? The private demo has fake players and a fake SvS, lives only in your browser and never touches real data.":
@@ -103,7 +187,8 @@ const spanishInterface: Record<string, string> = {
   "The newest hero generation your state has unlocked. Heroes from later generations are hidden in Tags.":
     "La generación de héroes más reciente que ha desbloqueado tu estado. Los héroes de generaciones posteriores se ocultan en Etiquetas.",
   "Your state is on Gen {number}.": "Tu estado está en la Gen {number}.",
-  "Add all shown heroes ({count})": "Añadir todos los héroes mostrados ({count})",
+  "Add all shown heroes ({count})":
+    "Añadir todos los héroes mostrados ({count})",
   "All generations": "Todas las generaciones",
   "All tags": "Todas las etiquetas",
   "All unlocked": "Todas las desbloqueadas",
@@ -114,7 +199,8 @@ const spanishInterface: Record<string, string> = {
   Show: "Mostrar",
   "Unlocked up to": "Desbloqueado hasta",
   "+ {hero}": "+ {hero}",
-  "A tag with that name already exists.": "Ya existe una etiqueta con ese nombre.",
+  "A tag with that name already exists.":
+    "Ya existe una etiqueta con ese nombre.",
   "Add hero tag": "Añadir etiqueta de héroe",
   "Add player": "Añadir jugador",
   "Automatic: leader’s rally tag": "Automática: etiqueta del rally del líder",

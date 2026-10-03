@@ -48,11 +48,14 @@ type PlanGroup = {
   leader_wos_account_id: string;
   alliance_id: string | null;
   notes: string | null;
+  formation: string | null;
 };
 
 type Assignment = {
   plan_id: string;
   group_id: string;
+  hero: string | null;
+  formation: string | null;
 };
 
 type Announcement = {
@@ -200,14 +203,14 @@ export default function OverwatchPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, leader_wos_account_id, alliance_id, notes",
+              "id, plan_id, name, leader_wos_account_id, alliance_id, notes, formation",
             )
             .in("plan_id", planIds)
         : Promise.resolve({ data: [], error: null }),
       planIds.length
         ? supabase
             .from("battle_plan_assignments")
-            .select("plan_id, group_id")
+            .select("plan_id, group_id, hero, formation")
             .in("plan_id", planIds)
             .eq("wos_account_id", accountId)
         : Promise.resolve({ data: [], error: null }),
@@ -445,6 +448,20 @@ export default function OverwatchPage() {
                   <p>
                     {t("Alliance:")}{" "}
                     <strong>{alliance?.name ?? t("Not selected")}</strong>
+                  </p>
+                  <p>
+                    {t("Join with:")}{" "}
+                    <strong>
+                      {ownAssignment?.hero ?? t("Not assigned yet")}
+                    </strong>
+                  </p>
+                  <p>
+                    {t("Formation:")}{" "}
+                    <strong>
+                      {ownAssignment?.formation ??
+                        ownGroup.formation ??
+                        t("Not set")}
+                    </strong>
                   </p>
                   {ownGroup.notes && <p>{ownGroup.notes}</p>}
                 </>

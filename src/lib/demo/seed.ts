@@ -118,6 +118,21 @@ export function buildDemoSeed(now: Date): DemoTables {
     });
   });
 
+  // Most players already told us their 4★ joiner heroes; a few have not.
+  const JOINERS = ["Jessie", "Jasser", "Seo-yoon", "Sergey", "Patrick", "Ling Xue", "Gina", "Bahiti"];
+  const playerHeroes: Row[] = [];
+  accounts.forEach((account, index) => {
+    if (index > 0 && rand() < 0.15) return;
+    account.heroes_updated_at = iso;
+    const owned =
+      index === 0 ? ["Jessie", "Sergey"] : JOINERS.filter(() => rand() < 0.4);
+    owned.forEach((hero) =>
+      playerHeroes.push({ wos_account_id: account.id, hero, updated_at: iso }),
+    );
+  });
+  const heroesOf = (accountId: unknown) =>
+    playerHeroes.filter((row) => row.wos_account_id === accountId).map((row) => row.hero as string);
+
   const byLabyrinth = [...accounts].sort(
     (first, second) =>
       (second.labyrinth_score as number) - (first.labyrinth_score as number),
@@ -141,19 +156,32 @@ export function buildDemoSeed(now: Date): DemoTables {
 
   const groups: Row[] = leaders.slice(0, 2).map((leader, index) => ({
     id: id("6a", index), plan_id: planId, state_id: DEMO_STATE_ID, name: `${leader.nickname}'s rally`, leader_wos_account_id: leader.id, alliance_id: alliances[index].id, assignment_tag_id: rallyTags[index].id, max_members: 10, notes: null, sort_order: index, created_at: iso,
+    formation: "50/20/30", joiner_heroes: ["Jessie", "Jasser", "Seo-yoon", "Sergey"], shift: "whole",
   }));
+  const alreadyAssigned = new Set<unknown>();
   const assignments: Row[] = groups.flatMap((group, groupIndex) => {
     const groupMembers = [
       accounts.find((account) => account.id === group.leader_wos_account_id)!,
+      // The demo user sits in the first rally so publishing shows their message.
+      ...(groupIndex === 0 ? [accounts[0]] : []),
       ...accounts.slice(6 + groupIndex * 5, 10 + groupIndex * 5),
     ];
-    return groupMembers.map((account) => ({
+    const unique = groupMembers.filter((account) => {
+      if (alreadyAssigned.has(account.id)) return false;
+      alreadyAssigned.add(account.id);
+      return true;
+    });
+    return unique.map((account) => ({
       plan_id: planId, group_id: group.id, state_id: DEMO_STATE_ID, wos_account_id: account.id, assigned_at: iso,
+      hero: (group.joiner_heroes as string[]).find((hero) => heroesOf(account.id).includes(hero)) ?? null,
+      formation: null,
     }));
   });
 
   const choices = ["whole", "whole", "first_half", "second_half", "unavailable"];
-  const attendance: Row[] = accounts.slice(1).flatMap((account) =>
+  const attendance: Row[] = [
+    { plan_id: planId, state_id: DEMO_STATE_ID, wos_account_id: accounts[0].id, availability: "whole", voice_call: true, updated_at: iso },
+    ...accounts.slice(1).flatMap((account) =>
     rand() < 0.7
       ? [{
           plan_id: planId, state_id: DEMO_STATE_ID, wos_account_id: account.id,
@@ -161,7 +189,8 @@ export function buildDemoSeed(now: Date): DemoTables {
           voice_call: rand() < 0.5, updated_at: iso,
         }]
       : [],
-  );
+    ),
+  ];
 
   const enemyAlliances = ["INF", "EMB", "BLZ", "ASH", "MAG"].map((abbr, index) => ({
     id: 900 + index, abbr, name: ["Infernal", "Embers", "Blazing Sun", "Ashfall", "Magma Core"][index],
@@ -175,6 +204,7 @@ export function buildDemoSeed(now: Date): DemoTables {
   return {
     profiles,
     wos_accounts: accounts,
+    player_heroes: playerHeroes,
     states: [{
       id: DEMO_STATE_ID, name: `Demo State #${DEMO_STATE_NUMBER}`, created_at: iso,
       game_state_number: DEMO_STATE_NUMBER, hero_generation_max: 10,

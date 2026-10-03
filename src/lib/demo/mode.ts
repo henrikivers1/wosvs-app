@@ -1,7 +1,8 @@
 // Private demo mode: the app runs against fake data kept in this browser
 // only. Nothing is read from or written to Supabase or WOSOracle.
 const DEMO_FLAG_KEY = "wosoverwatch-demo";
-const DEMO_DATA_KEY = "wosoverwatch-demo-data";
+// Bump the version when the seed changes so old demo data is replaced.
+const DEMO_DATA_KEY = "wosoverwatch-demo-data-v2";
 
 export function isDemoMode() {
   if (typeof window === "undefined") return false;

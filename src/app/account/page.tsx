@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import { JoinerHeroesEditor } from "@/components/JoinerHeroesEditor";
 import { furnaceLabel } from "@/lib/furnace";
 
 type WosAccount = {
@@ -455,6 +456,13 @@ export default function AccountPage() {
                         </small>
                       )}
                     </div>
+
+                    <JoinerHeroesEditor
+                      wosAccountId={account.id}
+                      stateIds={accountMemberships.map(
+                        (membership) => membership.stateId,
+                      )}
+                    />
 
                     <details className="combat-profile-editor">
                       <summary>{t("Troop details (manual)")}</summary>

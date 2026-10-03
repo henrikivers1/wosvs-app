@@ -295,3 +295,35 @@ export async function fetchSvsRecord(stateNumber: number): Promise<SvsRecord> {
     .slice(0, 10);
   return { record, recent };
 }
+
+export type AllianceProfile = {
+  id: number;
+  abbr: string;
+  name: string;
+  state: number | null;
+  memberCount: number;
+  power: number;
+};
+
+// One alliance by its WOSOracle id; works for shell alliances that are not
+// in a state's top list.
+export async function fetchAllianceProfile(
+  allianceId: number,
+  stateNumber: number | null,
+): Promise<AllianceProfile> {
+  const query = stateNumber ? `?kid=${stateNumber}` : "";
+  const body = objectOf(
+    await oracleRequest(`/alliances/${allianceId}${query}`, {
+      revalidateSeconds: CACHE_SECONDS,
+      notFoundMessage: "WOSOracle does not know that alliance ID.",
+    }),
+  );
+  return {
+    id: toNumber(body.id) ?? allianceId,
+    abbr: optionalText(body.abbr) ?? "",
+    name: optionalText(body.name) ?? "",
+    state: toNumber(body.state),
+    memberCount: toNumber(body.member_count) ?? 0,
+    power: toNumber(body.power) ?? 0,
+  };
+}

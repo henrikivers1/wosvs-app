@@ -122,6 +122,86 @@ function nextSundayEnd() {
 }
 
 const handlers: Record<string, (args: Args) => DemoResult> = {
+  set_player_heroes: ({ target_wos_account_id, owned_heroes }) => {
+    remove("player_heroes", (row) => row.wos_account_id === target_wos_account_id);
+    [...new Set((owned_heroes as string[]) ?? [])].forEach((hero) =>
+      demoTable("player_heroes").push({
+        wos_account_id: target_wos_account_id,
+        hero,
+        updated_at: nowIso(),
+      }),
+    );
+    const account = byId("wos_accounts", target_wos_account_id);
+    if (account) account.heroes_updated_at = nowIso();
+    return ok();
+  },
+
+  set_battle_plan_group_setup: (args) => {
+    const group = byId("battle_plan_groups", args.target_group_id);
+    if (!group) return fail("Rally group not found.");
+    const heroes = [...new Set((args.group_joiner_heroes as string[]) ?? [])];
+    if (heroes.length > 4) return fail("A rally can have at most four joiner heroes.");
+    Object.assign(group, {
+      formation: args.group_formation ?? null,
+      joiner_heroes: heroes,
+      shift: args.group_shift ?? "whole",
+    });
+    return ok();
+  },
+
+  set_assignment_details: (args) => {
+    const assignment = demoTable("battle_plan_assignments").find(
+      (row) =>
+        row.plan_id === args.target_plan_id &&
+        row.wos_account_id === args.target_wos_account_id,
+    );
+    if (assignment) {
+      assignment.hero = args.assigned_hero ?? null;
+      assignment.formation = args.assigned_formation ?? null;
+    }
+    return ok();
+  },
+
+  apply_battle_plan_autofill: (args) => {
+    const planId = args.target_plan_id;
+    const plan = byId("battle_plans", planId);
+    if (!plan) return fail("Battle plan not found.");
+    const groups = demoTable("battle_plan_groups").filter((row) => row.plan_id === planId);
+    const leaders = new Set(groups.map((group) => group.leader_wos_account_id));
+    if (args.replace_existing) {
+      remove(
+        "battle_plan_assignments",
+        (row) => row.plan_id === planId && !leaders.has(row.wos_account_id),
+      );
+    }
+    let applied = 0;
+    for (const draft of (args.new_assignments as Row[]) ?? []) {
+      if (leaders.has(draft.wos_account_id)) continue;
+      if (!groups.some((group) => group.id === draft.group_id)) continue;
+      remove(
+        "battle_plan_assignments",
+        (row) => row.plan_id === planId && row.wos_account_id === draft.wos_account_id,
+      );
+      demoTable("battle_plan_assignments").push({
+        plan_id: planId,
+        group_id: draft.group_id,
+        state_id: plan.state_id,
+        wos_account_id: draft.wos_account_id,
+        hero: draft.hero ?? null,
+        formation: null,
+        assigned_at: nowIso(),
+      });
+      applied += 1;
+    }
+    const full = groups.find(
+      (group) =>
+        demoTable("battle_plan_assignments").filter((row) => row.group_id === group.id)
+          .length > (group.max_members as number),
+    );
+    if (full) return fail(`Rally group ${full.name} would be over capacity.`);
+    return ok(applied);
+  },
+
   get_upcoming_svs: ({ target_state_id }) =>
     ok(
       demoTable("battle_plans")
@@ -407,13 +487,33 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         created_at: nowIso(),
       });
     }
-    notifyDemoUser(
-      "battle_plan_published",
-      "Battle plan published",
-      `${plan.name} was published. Every member got their rally group.`,
-      { plan_id: plan.id },
-      plan.state_id,
+    const mine = assignments.find((row) =>
+      demoTable("wos_accounts").some(
+        (account) => account.id === row.wos_account_id && account.user_id === DEMO_USER_ID,
+      ),
     );
+    const myGroup = groups.find((group) => group.id === mine?.group_id);
+    if (mine && myGroup) {
+      const alliance = byId("state_alliances", myGroup.alliance_id);
+      const formation = mine.formation ?? myGroup.formation;
+      notifyDemoUser(
+        "battle_plan_assignment",
+        "Your rally assignment",
+        `Hi ${accountName(mine.wos_account_id)}, you've been assigned to ${myGroup.name} in ${alliance?.name ?? "an alliance"}.` +
+          (mine.hero ? ` You're joining with ${mine.hero}${formation ? ` and ${formation} formation` : ""}.` : formation ? ` Use ${formation} formation.` : "") +
+          " Please be there by battle start.",
+        { plan_id: plan.id },
+        plan.state_id,
+      );
+    } else {
+      notifyDemoUser(
+        "battle_plan_published",
+        "Battle plan published",
+        `${plan.name} was published. Every member got their rally assignment.`,
+        { plan_id: plan.id },
+        plan.state_id,
+      );
+    }
     return ok(assignments.length);
   },
 

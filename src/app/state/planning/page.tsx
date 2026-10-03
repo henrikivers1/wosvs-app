@@ -5,6 +5,17 @@ import type { DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { SvsStatus } from "@/components/SvsStatus";
+import { AutoFillPanel } from "@/components/planning/AutoFillPanel";
+import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
+import {
+  computeAutofill,
+  pickHero,
+  type AutofillCriterion,
+  type AutofillDraft,
+  type AutofillGroup,
+  type AutofillMember,
+  type GroupShift,
+} from "@/lib/autofill";
 import {
   AVAILABILITY_OPTIONS,
   availabilityLabel,
@@ -37,12 +48,17 @@ type PlanGroup = {
   max_members: number;
   notes: string | null;
   sort_order: number;
+  formation: string | null;
+  joiner_heroes: string[];
+  shift: GroupShift;
 };
 type PlanAssignment = {
   plan_id: string;
   group_id: string;
   wos_account_id: string;
+  hero: string | null;
 };
+type SortKey = "power" | "fc" | "troop" | "labyrinth" | "name";
 type AccountRow = {
   id: string;
   user_id: string;
@@ -52,6 +68,7 @@ type AccountRow = {
   furnace_level_raw: number | null;
   power: number | null;
   labyrinth_score: number | null;
+  heroes_updated_at: string | null;
   infantry_tier: number | null;
   lancer_tier: number | null;
   marksman_tier: number | null;
@@ -67,6 +84,7 @@ type StateTag = {
   name: string;
   color: string;
   system_key: string | null;
+  kind?: "custom" | "rally" | "hero";
 };
 type StateAlliance = {
   id: string;
@@ -78,6 +96,8 @@ type StateMember = AccountRow & {
   role: string;
   username: string | null;
   tags: StateTag[];
+  // Joiner heroes the player has at 4★ or higher.
+  heroes: string[];
 };
 type PlanComment = {
   id: string;
@@ -133,6 +153,10 @@ export default function BattlePlanningPage() {
   const [tags, setTags] = useState<StateTag[]>([]);
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
+  const [heroGeneration, setHeroGeneration] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<SortKey>("power");
+  const [setupGroupId, setSetupGroupId] = useState<string | null>(null);
   // The automatic SvS plan that is upcoming or live, for the Labyrinth panel.
   const [upcomingPlanId, setUpcomingPlanId] = useState<string | null>(null);
   const [planComments, setPlanComments] = useState<PlanComment[]>([]);
@@ -185,14 +209,6 @@ export default function BattlePlanningPage() {
   const rallyLeaders = members.filter((member) =>
     member.tags.some((tag) => tag.system_key === "rally_lead"),
   );
-  const filtersActive = Boolean(
-    memberSearch.trim() ||
-    tagFilter ||
-    availabilityFilter ||
-    voiceOnly ||
-    minimumFurnace > 0 ||
-    minimumTroopTier > 0,
-  );
 
   const loadPlanning = useCallback(async () => {
     if (!activeMembership) {
@@ -232,7 +248,7 @@ export default function BattlePlanningPage() {
         .eq("state_id", stateId),
       supabase
         .from("state_tags")
-        .select("id, name, color, system_key")
+        .select("id, name, color, system_key, kind")
         .eq("state_id", stateId)
         .order("name"),
       supabase
@@ -282,7 +298,7 @@ export default function BattlePlanningPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, leader_wos_account_id, alliance_id, assignment_tag_id, max_members, notes, sort_order",
+              "id, plan_id, name, leader_wos_account_id, alliance_id, assignment_tag_id, max_members, notes, sort_order, formation, joiner_heroes, shift",
             )
             .in("plan_id", planIds)
             .order("sort_order")
@@ -290,14 +306,14 @@ export default function BattlePlanningPage() {
       planIds.length
         ? supabase
             .from("battle_plan_assignments")
-            .select("plan_id, group_id, wos_account_id")
+            .select("plan_id, group_id, wos_account_id, hero")
             .in("plan_id", planIds)
         : Promise.resolve({ data: [], error: null }),
       accountIds.length
         ? supabase
             .from("wos_accounts")
             .select(
-              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, labyrinth_score, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
+              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, labyrinth_score, heroes_updated_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
             )
             .in("id", accountIds)
         : Promise.resolve({ data: [], error: null }),
@@ -327,6 +343,28 @@ export default function BattlePlanningPage() {
     }
 
     const accountRows = (accountResult.data ?? []) as AccountRow[];
+    const [{ data: heroRows }, { data: stateRow }] = await Promise.all([
+      accountIds.length
+        ? supabase
+            .from("player_heroes")
+            .select("wos_account_id, hero")
+            .in("wos_account_id", accountIds)
+        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("states")
+        .select("hero_generation_max")
+        .eq("id", stateId)
+        .maybeSingle(),
+    ]);
+    const heroesByAccount = new Map<string, string[]>();
+    ((heroRows ?? []) as { wos_account_id: string; hero: string }[]).forEach(
+      (row) =>
+        heroesByAccount.set(row.wos_account_id, [
+          ...(heroesByAccount.get(row.wos_account_id) ?? []),
+          row.hero,
+        ]),
+    );
+    setHeroGeneration(stateRow?.hero_generation_max ?? null);
     const userIds = [...new Set(accountRows.map((account) => account.user_id))];
     const profileResult = userIds.length
       ? await supabase.from("profiles").select("id, username").in("id", userIds)
@@ -359,6 +397,7 @@ export default function BattlePlanningPage() {
             ...account,
             role: membership.role,
             username: usernameById.get(account.user_id) ?? null,
+            heroes: heroesByAccount.get(account.id) ?? [],
             tags: tagAssignments
               .filter((item) => item.wos_account_id === account.id)
               .flatMap((item) => {
@@ -616,6 +655,10 @@ export default function BattlePlanningPage() {
     groupId: string | null,
   ) {
     if (!isAdmin || saving) return;
+    if (groupId) {
+      await moveMembers(planId, groupId, [accountId]);
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.rpc("set_battle_plan_assignment", {
       target_plan_id: planId,
@@ -624,34 +667,6 @@ export default function BattlePlanningPage() {
     });
     if (error) setMessage(error.message);
     else await loadPlanning();
-    setSaving(false);
-  }
-  async function bulkAssign(planId: string, group: PlanGroup) {
-    const candidates = getCandidates(planId);
-    if (!candidates.length) {
-      setMessage(t("No unassigned accounts match the current filters."));
-      return;
-    }
-    if (group.max_members <= getGroupMembers(planId, group.id).length) {
-      setMessage(t("That rally group is full."));
-      return;
-    }
-    setSaving(true);
-    const { data, error } = await supabase.rpc(
-      "bulk_assign_battle_plan_members",
-      {
-        target_plan_id: planId,
-        target_group_id: group.id,
-        target_wos_account_ids: candidates.map((member) => member.id),
-      },
-    );
-    if (error) setMessage(error.message);
-    else {
-      await loadPlanning();
-      setMessage(
-        `${Number(data ?? 0)} matching accounts added to ${group.name}.`,
-      );
-    }
     setSaving(false);
   }
   function dropMember(
@@ -744,7 +759,6 @@ export default function BattlePlanningPage() {
     return members.filter((member) => ids.has(member.id));
   }
   function getCandidates(planId: string) {
-    if (!filtersActive) return [];
     const assigned = new Set(
       assignments
         .filter((item) => item.plan_id === planId)
@@ -756,35 +770,220 @@ export default function BattlePlanningPage() {
         .filter((row) => row.plan_id === planId)
         .map((row) => [row.wos_account_id, row]),
     );
-    return members.filter((member) => {
-      if (assigned.has(member.id)) return false;
-      if (
-        search &&
-        ![member.nickname, member.wos_id, member.username]
-          .filter(Boolean)
-          .some((value) => value?.toLowerCase().includes(search))
-      )
-        return false;
-      if (tagFilter && !member.tags.some((tag) => tag.id === tagFilter))
-        return false;
-      const answer = answers.get(member.id);
-      if (availabilityFilter === "unanswered" && answer) return false;
-      if (
-        availabilityFilter &&
-        availabilityFilter !== "unanswered" &&
-        answer?.availability !== availabilityFilter
-      )
-        return false;
-      if (voiceOnly && !answer?.voice_call) return false;
-      if ((member.furnace_level ?? 0) < minimumFurnace) return false;
-      if (
-        minimumTroopTier > 0 &&
-        [member.infantry_tier, member.lancer_tier, member.marksman_tier].some(
-          (value) => (value ?? 0) < minimumTroopTier,
+    return members
+      .filter((member) => {
+        if (assigned.has(member.id)) return false;
+        if (
+          search &&
+          ![member.nickname, member.wos_id, member.username]
+            .filter(Boolean)
+            .some((value) => value?.toLowerCase().includes(search))
         )
+          return false;
+        if (tagFilter && !member.tags.some((tag) => tag.id === tagFilter))
+          return false;
+        const answer = answers.get(member.id);
+        if (availabilityFilter === "unanswered" && answer) return false;
+        if (
+          availabilityFilter &&
+          availabilityFilter !== "unanswered" &&
+          answer?.availability !== availabilityFilter
+        )
+          return false;
+        if (voiceOnly && !answer?.voice_call) return false;
+        if ((member.furnace_level ?? 0) < minimumFurnace) return false;
+        if (
+          minimumTroopTier > 0 &&
+          [member.infantry_tier, member.lancer_tier, member.marksman_tier].some(
+            (value) => (value ?? 0) < minimumTroopTier,
+          )
+        )
+          return false;
+        return true;
+      })
+      .sort((first, second) => {
+        if (sortBy === "name") {
+          return (first.nickname || first.wos_id).localeCompare(
+            second.nickname || second.wos_id,
+          );
+        }
+        return memberScore(second, sortBy) - memberScore(first, sortBy);
+      });
+  }
+  function memberScore(member: StateMember, key: SortKey) {
+    if (key === "fc") return member.furnace_level_raw ?? 0;
+    if (key === "labyrinth") return member.labyrinth_score ?? 0;
+    if (key === "troop") return averageTroopTier(member);
+    return member.power ?? 0;
+  }
+  function averageTroopTier(member: StateMember) {
+    const tiers = [
+      member.infantry_tier,
+      member.lancer_tier,
+      member.marksman_tier,
+    ].filter((value): value is number => value !== null);
+    return tiers.length
+      ? tiers.reduce((sum, value) => sum + value, 0) / tiers.length
+      : 0;
+  }
+  function getAssignment(planId: string, accountId: string) {
+    return assignments.find(
+      (item) => item.plan_id === planId && item.wos_account_id === accountId,
+    );
+  }
+  // Current state of one rally for auto-fill and hero picking.
+  function toAutofillGroup(planId: string, group: PlanGroup): AutofillGroup {
+    const groupAssignments = assignments.filter(
+      (item) => item.plan_id === planId && item.group_id === group.id,
+    );
+    const heroUsage: Record<string, number> = {};
+    groupAssignments.forEach((item) => {
+      if (item.hero) heroUsage[item.hero] = (heroUsage[item.hero] ?? 0) + 1;
+    });
+    return {
+      id: group.id,
+      maxMembers: group.max_members,
+      memberIds: groupAssignments.map((item) => item.wos_account_id),
+      shift: group.shift ?? "whole",
+      joinerHeroes: group.joiner_heroes ?? [],
+      heroUsage,
+      totalPower: groupAssignments.reduce(
+        (sum, item) =>
+          sum +
+          (members.find((member) => member.id === item.wos_account_id)?.power ??
+            0),
+        0,
+      ),
+    };
+  }
+  async function applyDrafts(
+    planId: string,
+    drafts: AutofillDraft[],
+    replaceExisting: boolean,
+  ) {
+    const { data, error } = await supabase.rpc("apply_battle_plan_autofill", {
+      target_plan_id: planId,
+      new_assignments: drafts,
+      replace_existing: replaceExisting,
+    });
+    if (error) {
+      setMessage(error.message);
+      return null;
+    }
+    return Number(data ?? 0);
+  }
+  async function runAutofill(
+    planId: string,
+    priorities: AutofillCriterion[],
+    replaceExisting: boolean,
+  ) {
+    if (!isAdmin || saving) return;
+    const planGroups = getPlanGroups(planId);
+    if (!planGroups.length) {
+      setMessage(t("Add at least one rally group first."));
+      return;
+    }
+    const leaderIds = new Set(
+      planGroups.map((group) => group.leader_wos_account_id),
+    );
+    const assignedIds = new Set(
+      assignments
+        .filter((item) => item.plan_id === planId)
+        .map((item) => item.wos_account_id),
+    );
+    const groupsForFill = planGroups.map((group) => {
+      const current = toAutofillGroup(planId, group);
+      if (!replaceExisting) return current;
+      return {
+        ...current,
+        memberIds: [group.leader_wos_account_id],
+        heroUsage: {},
+        totalPower:
+          members.find((member) => member.id === group.leader_wos_account_id)
+            ?.power ?? 0,
+      };
+    });
+    const answers = new Map(
+      attendance
+        .filter((row) => row.plan_id === planId)
+        .map((row) => [row.wos_account_id, row]),
+    );
+    const pool: AutofillMember[] = members
+      .filter(
+        (member) =>
+          !leaderIds.has(member.id) &&
+          (replaceExisting || !assignedIds.has(member.id)),
       )
-        return false;
-      return true;
+      .map((member) => ({
+        id: member.id,
+        power: member.power ?? 0,
+        fc: member.furnace_level_raw ?? 0,
+        troop: averageTroopTier(member),
+        labyrinth: member.labyrinth_score ?? 0,
+        voice: Boolean(answers.get(member.id)?.voice_call),
+        availability: answers.get(member.id)?.availability ?? null,
+        heroes: member.heroes,
+      }));
+    const drafts = computeAutofill(groupsForFill, pool, priorities);
+    setSaving(true);
+    const applied = await applyDrafts(planId, drafts, replaceExisting);
+    if (applied !== null) {
+      await loadPlanning();
+      setMessage(
+        t(
+          "Auto-fill placed {count} players. Review the rallies, then publish.",
+          { count: applied },
+        ),
+      );
+    }
+    setSaving(false);
+  }
+  async function moveMembers(planId: string, groupId: string, ids: string[]) {
+    if (!isAdmin || saving || !ids.length) return;
+    const group = getPlanGroups(planId).find((item) => item.id === groupId);
+    if (!group) return;
+    const current = toAutofillGroup(planId, group);
+    const drafts: AutofillDraft[] = ids.map((id) => {
+      const member = members.find((item) => item.id === id);
+      const hero = pickHero(
+        current.joinerHeroes,
+        member?.heroes ?? [],
+        current.heroUsage,
+      );
+      if (hero) current.heroUsage[hero] = (current.heroUsage[hero] ?? 0) + 1;
+      return { group_id: groupId, wos_account_id: id, hero };
+    });
+    setSaving(true);
+    const applied = await applyDrafts(planId, drafts, false);
+    if (applied !== null) {
+      setSelectedIds(new Set());
+      await loadPlanning();
+    }
+    setSaving(false);
+  }
+  async function setMemberHero(
+    planId: string,
+    accountId: string,
+    hero: string | null,
+  ) {
+    if (!isAdmin || saving) return;
+    setSaving(true);
+    const { error } = await supabase.rpc("set_assignment_details", {
+      target_plan_id: planId,
+      target_wos_account_id: accountId,
+      assigned_hero: hero,
+      assigned_formation: null,
+    });
+    if (error) setMessage(error.message);
+    else await loadPlanning();
+    setSaving(false);
+  }
+  function toggleSelected(accountId: string) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(accountId)) next.delete(accountId);
+      else next.add(accountId);
+      return next;
     });
   }
   async function toggleRallyLead(member: StateMember, enabled: boolean) {
@@ -924,6 +1123,14 @@ export default function BattlePlanningPage() {
         }}
       >
         <div className="plan-member-main">
+          {isAdmin && !assignedGroupId && (
+            <input
+              type="checkbox"
+              aria-label={t("Select")}
+              checked={selectedIds.has(member.id)}
+              onChange={() => toggleSelected(member.id)}
+            />
+          )}
           <strong>{member.nickname || `WOS ID ${member.wos_id}`}</strong>
           <small>
             {member.username ? `@${member.username} · ` : ""}
@@ -956,13 +1163,65 @@ export default function BattlePlanningPage() {
               </span>
             ) : null;
           })()}
-          {member.tags.map((tag) => (
-            <span key={tag.id} className="member-tag-pill">
-              <span style={{ backgroundColor: tag.color }} />
-              {tag.name}
+          {member.heroes_updated_at ? (
+            <span className="member-tag-pill hero-pill">
+              {member.heroes.length
+                ? `4★ ${member.heroes.join(", ")}`
+                : t("No 4★ joiner heroes")}
             </span>
-          ))}
+          ) : (
+            <span className="member-tag-pill heroes-unknown-pill">
+              {t("Heroes unknown")}
+            </span>
+          )}
+          {member.tags
+            .filter((tag) => tag.kind !== "hero")
+            .map((tag) => (
+              <span key={tag.id} className="member-tag-pill">
+                <span style={{ backgroundColor: tag.color }} />
+                {tag.name}
+              </span>
+            ))}
         </div>
+        {isAdmin &&
+          assignedGroupId &&
+          (() => {
+            const group = planGroups.find(
+              (item) => item.id === assignedGroupId,
+            );
+            const assignedHero = getAssignment(planId, member.id)?.hero ?? "";
+            const options = [
+              ...new Set([
+                ...(group?.joiner_heroes ?? []),
+                ...(assignedHero ? [assignedHero] : []),
+              ]),
+            ];
+            if (!options.length) return null;
+            return (
+              <label className="plan-assignment-select">
+                {t("Joins with")}
+                <select
+                  value={assignedHero}
+                  disabled={saving}
+                  onChange={(event) =>
+                    void setMemberHero(
+                      planId,
+                      member.id,
+                      event.target.value || null,
+                    )
+                  }
+                >
+                  <option value="">{t("No hero yet")}</option>
+                  {options.map((hero) => (
+                    <option key={hero} value={hero}>
+                      {hero}
+                      {member.heroes.includes(hero) ? "" : ` (${t("not 4★")})`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            );
+          })()}
         {isAdmin && (
           <label className="plan-assignment-select">
             {t("Assignment")}
@@ -1276,7 +1535,9 @@ export default function BattlePlanningPage() {
                                 setGroupTagId(event.target.value)
                               }
                             >
-                              <option value="">{t("Automatic: leader’s rally tag")}</option>
+                              <option value="">
+                                {t("Automatic: leader’s rally tag")}
+                              </option>
                               {regularTags.map((tag) => (
                                 <option key={tag.id} value={tag.id}>
                                   {tag.name}
@@ -1327,18 +1588,30 @@ export default function BattlePlanningPage() {
                         </div>
                       )}
                       {isAdmin && (
+                        <AutoFillPanel
+                          disabled={saving || !planGroups.length}
+                          onRun={(priorities, replaceExisting) =>
+                            void runAutofill(
+                              plan.id,
+                              priorities,
+                              replaceExisting,
+                            )
+                          }
+                        />
+                      )}
+                      {isAdmin && (
                         <div className="plan-roster-filters">
                           <div className="section-title-row">
                             <div>
                               <p className="section-label">
-                                {t("Candidate finder")}
+                                {t("Unassigned players")}
                               </p>
-                              <h4>{t("Find accounts worth assigning")}</h4>
+                              <h4>{t("Pick players for the rallies")}</h4>
                             </div>
                             <span className="retention-badge">
-                              {filtersActive
-                                ? `${candidates.length} matches`
-                                : t("Add a filter")}
+                              {t("{count} players", {
+                                count: candidates.length,
+                              })}
                             </span>
                           </div>
                           <input
@@ -1430,31 +1703,82 @@ export default function BattlePlanningPage() {
                           >
                             {t("Clear filters")}
                           </button>
-                          <p>
-                            {filtersActive
-                              ? t(
-                                  "Drag individual matches into a group, or use Add matching on a group.",
+                          <label>
+                            {t("Sort by")}
+                            <select
+                              value={sortBy}
+                              onChange={(event) =>
+                                setSortBy(event.target.value as SortKey)
+                              }
+                            >
+                              <option value="power">{t("Power")}</option>
+                              <option value="fc">{t("FC level")}</option>
+                              <option value="troop">{t("Troop tier")}</option>
+                              <option value="labyrinth">
+                                {t("Labyrinth")}
+                              </option>
+                              <option value="name">{t("Name")}</option>
+                            </select>
+                          </label>
+                          <div className="selection-bar">
+                            <button
+                              type="button"
+                              className="secondary-link"
+                              onClick={() =>
+                                setSelectedIds(
+                                  new Set(
+                                    candidates.map((member) => member.id),
+                                  ),
                                 )
-                              : t(
-                                  "The full member list stays hidden. Add at least one filter to find candidates.",
-                                )}
-                          </p>
-                          {filtersActive && (
-                            <div className="plan-member-list candidate-result-list">
-                              {candidates
-                                .slice(0, 50)
-                                .map((member) =>
-                                  renderMemberCard(member, plan.id),
-                                )}
-                              {candidates.length > 50 && (
-                                <p>
-                                  {t("Showing the first 50 of")}{" "}
-                                  {candidates.length}{" "}
-                                  {t("matches. Narrow the filters.")}
-                                </p>
+                              }
+                            >
+                              {t("Select all shown")}
+                            </button>
+                            <button
+                              type="button"
+                              className="secondary-link"
+                              disabled={!selectedIds.size}
+                              onClick={() => setSelectedIds(new Set())}
+                            >
+                              {t("Clear selection")}
+                            </button>
+                            <select
+                              value=""
+                              disabled={!selectedIds.size || saving}
+                              onChange={(event) =>
+                                event.target.value &&
+                                void moveMembers(plan.id, event.target.value, [
+                                  ...selectedIds,
+                                ])
+                              }
+                            >
+                              <option value="">
+                                {t("Move {count} selected to…", {
+                                  count: selectedIds.size,
+                                })}
+                              </option>
+                              {planGroups.map((group) => (
+                                <option key={group.id} value={group.id}>
+                                  {group.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="plan-member-list candidate-result-list">
+                            {candidates
+                              .slice(0, 80)
+                              .map((member) =>
+                                renderMemberCard(member, plan.id),
                               )}
-                            </div>
-                          )}
+                            {candidates.length > 80 && (
+                              <p>
+                                {t(
+                                  "Showing the first 80 of {count}. Use the filters to narrow the list.",
+                                  { count: candidates.length },
+                                )}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       )}
                       <div className="battle-plan-board">
@@ -1615,26 +1939,86 @@ export default function BattlePlanningPage() {
                                       ? ` · Publish tag: ${assignmentTag.name}`
                                       : ""}
                                   </p>
+                                  <p className="plan-group-notes">
+                                    {t("Formation:")}{" "}
+                                    <strong>
+                                      {group.formation ?? t("not set")}
+                                    </strong>{" "}
+                                    ·{" "}
+                                    {t(
+                                      availabilityLabel(group.shift ?? "whole"),
+                                    )}
+                                  </p>
+                                  <div className="joiner-slot-summary">
+                                    {(group.joiner_heroes ?? []).length ? (
+                                      group.joiner_heroes.map((hero) => {
+                                        const covered = assignments.filter(
+                                          (item) =>
+                                            item.group_id === group.id &&
+                                            item.hero === hero,
+                                        ).length;
+                                        return (
+                                          <span
+                                            key={hero}
+                                            className={
+                                              covered
+                                                ? "member-tag-pill hero-pill"
+                                                : "member-tag-pill heroes-unknown-pill"
+                                            }
+                                          >
+                                            {hero} ×{covered}
+                                          </span>
+                                        );
+                                      })
+                                    ) : (
+                                      <small>
+                                        {t("No joiner heroes chosen yet.")}
+                                      </small>
+                                    )}
+                                  </div>
                                   {group.notes && (
                                     <p className="plan-group-notes">
                                       {group.notes}
                                     </p>
+                                  )}
+                                  {isAdmin && setupGroupId === group.id && (
+                                    <RallySetupEditor
+                                      group={group}
+                                      heroGeneration={heroGeneration}
+                                      onCancel={() => setSetupGroupId(null)}
+                                      onSaved={() => {
+                                        setSetupGroupId(null);
+                                        void loadPlanning();
+                                      }}
+                                    />
                                   )}
                                   {renderStats(groupMembers)}
                                   {isAdmin && (
                                     <div className="plan-group-actions">
                                       <button
                                         className="secondary-link"
-                                        disabled={
-                                          !filtersActive ||
-                                          !candidates.length ||
-                                          saving
-                                        }
+                                        disabled={!selectedIds.size || saving}
                                         onClick={() =>
-                                          void bulkAssign(plan.id, group)
+                                          void moveMembers(plan.id, group.id, [
+                                            ...selectedIds,
+                                          ])
                                         }
                                       >
-                                        {t("Add matching")}
+                                        {t("Move selected here ({count})", {
+                                          count: selectedIds.size,
+                                        })}
+                                      </button>
+                                      <button
+                                        className="secondary-link"
+                                        onClick={() =>
+                                          setSetupGroupId(
+                                            setupGroupId === group.id
+                                              ? null
+                                              : group.id,
+                                          )
+                                        }
+                                      >
+                                        {t("Rally setup")}
                                       </button>
                                       <button
                                         className="secondary-link"
@@ -1660,7 +2044,9 @@ export default function BattlePlanningPage() {
                                   )
                                 ) : (
                                   <p className="plan-drop-hint">
-                                    {t("Drop filtered candidates here.")}
+                                    {t(
+                                      "Drop players here, or select them and use Move selected here.",
+                                    )}
                                   </p>
                                 )}
                               </div>
