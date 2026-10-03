@@ -913,4 +913,11 @@ export const chineseInterface: Record<string, string> = {
   "{plan} was published for {start}. This account is not assigned to a rally.": "{plan} 已发布，时间 {start}。此账号未分配到集结。",
   "End battle as a win": "以胜利结束战斗",
   "End battle as a loss": "以失败结束战斗",
+  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.": "玩家数据已同步。已发送加入 {state} 的申请，州主或管理员会进行审核。",
+  "Player data synchronized. Your request to join {state} is waiting for review.": "玩家数据已同步。你加入 {state} 的申请正在等待审核。",
+  "Player data synchronized. You have an invitation to {state}: accept it in Notifications.": "玩家数据已同步。你收到了 {state} 的邀请：请在通知中接受。",
+  "Join request: {player}": "加入申请：{player}",
+  "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.": "{player}（WOS ID {wosId}）想加入 {state}。请在州管理中审核申请。",
+  "Join request sent": "加入申请已发送",
+  "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.": "{player} 位于 {number} 州，因此已发送加入 {state} 的申请。州主或管理员会进行审核。",
 };

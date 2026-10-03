@@ -170,6 +170,7 @@ export default function AccountPage() {
         const result = (await response.json()) as {
           error?: string;
           cached?: boolean;
+          joinRequest?: { status: string; state_name?: string } | null;
         };
 
         if (!response.ok) {
@@ -185,7 +186,26 @@ export default function AccountPage() {
             );
           }
         } else {
-          setMessage(t("Player data synchronized from WOSOracle."));
+          const join = result.joinRequest;
+          const stateName = join?.state_name ?? "";
+          setMessage(
+            join?.status === "requested"
+              ? t(
+                  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.",
+                  { state: stateName },
+                )
+              : join?.status === "pending"
+                ? t(
+                    "Player data synchronized. Your request to join {state} is waiting for review.",
+                    { state: stateName },
+                  )
+                : join?.status === "invited"
+                  ? t(
+                      "Player data synchronized. You have an invitation to {state}: accept it in Notifications.",
+                      { state: stateName },
+                    )
+                  : t("Player data synchronized from WOSOracle."),
+          );
           await loadAccount();
         }
       } catch (error) {

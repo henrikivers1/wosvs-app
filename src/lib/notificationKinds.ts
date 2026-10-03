@@ -73,6 +73,8 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   state_invite: "membership",
   state_invite_accepted: "membership",
   state_invite_approved: "membership",
+  state_join_request: "membership",
+  state_join_requested: "membership",
   battle_plan_assignment_removed: "removal",
   capability_revoked: "removal",
   state_tag_removed: "removal",
@@ -115,6 +117,8 @@ export type NotificationTextData = {
   alliance_name?: string | null;
   moved?: boolean;
   plan_name?: string;
+  wos_id?: string;
+  state_number?: number;
   group_name?: string;
   hero?: string | null;
   formation?: string | null;
@@ -344,6 +348,24 @@ export function localizedNotificationText(
         body: t(
           "{plan} was published for {start}. This account is not assigned to a rally.",
           { plan: data.plan_name, start },
+        ),
+      };
+    case "state_join_request":
+      if (!data.player || !data.state_name) return null;
+      return {
+        title: t("Join request: {player}", { player }),
+        body: t(
+          "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.",
+          { player, wosId: data.wos_id ?? "", state },
+        ),
+      };
+    case "state_join_requested":
+      if (!data.player || !data.state_name) return null;
+      return {
+        title: t("Join request sent"),
+        body: t(
+          "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.",
+          { player, number: data.state_number ?? "", state },
         ),
       };
     default:

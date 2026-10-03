@@ -75,13 +75,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { player, syncedAt } = await syncWosAccount(
+    const { player, syncedAt, joinRequest } = await syncWosAccount(
       createAdminClient(),
       account,
     );
     return Response.json({
       cached: false,
       player: { id: player.id, name: player.name, syncedAt },
+      joinRequest,
     });
   } catch (error) {
     if (error instanceof OraclePlayerError) {

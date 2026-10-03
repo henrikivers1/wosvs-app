@@ -86,6 +86,20 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.":
+    "Datos del jugador sincronizados. Se envió una solicitud para unirse a {state}; un dueño o admin la revisará.",
+  "Player data synchronized. Your request to join {state} is waiting for review.":
+    "Datos del jugador sincronizados. Tu solicitud para unirte a {state} está pendiente de revisión.",
+  "Player data synchronized. You have an invitation to {state}: accept it in Notifications.":
+    "Datos del jugador sincronizados. Tienes una invitación a {state}: acéptala en Notificaciones.",
+  "Join request: {player}":
+    "Solicitud de ingreso: {player}",
+  "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.":
+    "{player} (WOS ID {wosId}) quiere unirse a {state}. Revisa la solicitud en Gestión del estado.",
+  "Join request sent":
+    "Solicitud de ingreso enviada",
+  "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.":
+    "{player} está en el estado {number}, así que se envió una solicitud para unirse a {state}. Un dueño o admin la revisará.",
   "End battle as a win":
     "Terminar la batalla con victoria",
   "End battle as a loss":

@@ -913,4 +913,11 @@ export const thaiInterface: Record<string, string> = {
   "{plan} was published for {start}. This account is not assigned to a rally.": "เผยแพร่ {plan} สำหรับ {start} แล้ว บัญชีนี้ไม่ได้ถูกจัดเข้าแรลลี่",
   "End battle as a win": "จบการรบแบบชนะ",
   "End battle as a loss": "จบการรบแบบแพ้",
+  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.": "ซิงค์ข้อมูลผู้เล่นแล้ว ส่งคำขอเข้าร่วม {state} แล้ว เจ้าของหรือแอดมินจะตรวจสอบ",
+  "Player data synchronized. Your request to join {state} is waiting for review.": "ซิงค์ข้อมูลผู้เล่นแล้ว คำขอเข้าร่วม {state} ของคุณกำลังรอการตรวจสอบ",
+  "Player data synchronized. You have an invitation to {state}: accept it in Notifications.": "ซิงค์ข้อมูลผู้เล่นแล้ว คุณมีคำเชิญเข้าร่วม {state} กดยอมรับได้ในการแจ้งเตือน",
+  "Join request: {player}": "คำขอเข้าร่วม: {player}",
+  "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.": "{player} (WOS ID {wosId}) ต้องการเข้าร่วม {state} ตรวจสอบคำขอได้ในการจัดการรัฐ",
+  "Join request sent": "ส่งคำขอเข้าร่วมแล้ว",
+  "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.": "{player} อยู่ในรัฐ {number} จึงส่งคำขอเข้าร่วม {state} แล้ว เจ้าของหรือแอดมินจะตรวจสอบ",
 };

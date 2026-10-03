@@ -913,4 +913,11 @@ export const arabicInterface: Record<string, string> = {
   "{plan} was published for {start}. This account is not assigned to a rally.": "نُشرت {plan} لموعد {start}. هذا الحساب غير معيّن في أي حشد.",
   "End battle as a win": "إنهاء المعركة بفوز",
   "End battle as a loss": "إنهاء المعركة بخسارة",
+  "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.": "تمت مزامنة بيانات اللاعب. أُرسل طلب للانضمام إلى {state}؛ سيراجعه المالك أو مشرف.",
+  "Player data synchronized. Your request to join {state} is waiting for review.": "تمت مزامنة بيانات اللاعب. طلبك للانضمام إلى {state} بانتظار المراجعة.",
+  "Player data synchronized. You have an invitation to {state}: accept it in Notifications.": "تمت مزامنة بيانات اللاعب. لديك دعوة إلى {state}: اقبلها من الإشعارات.",
+  "Join request: {player}": "طلب انضمام: {player}",
+  "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.": "يريد {player} (معرّف WOS {wosId}) الانضمام إلى {state}. راجع الطلب في إدارة الولاية.",
+  "Join request sent": "أُرسل طلب الانضمام",
+  "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.": "{player} في الولاية {number}، لذا أُرسل طلب للانضمام إلى {state}. سيراجعه المالك أو مشرف.",
 };

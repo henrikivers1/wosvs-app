@@ -375,7 +375,8 @@ export default function NotificationsPage() {
                         {t("Waiting for owner verification")}
                       </p>
                     )}
-                  {notification.type === "state_invite_accepted" && (
+                  {(notification.type === "state_invite_accepted" ||
+                    notification.type === "state_join_request") && (
                     <Link className="nav-link" href="/state/manage">
                       {t("Review request")}
                     </Link>
