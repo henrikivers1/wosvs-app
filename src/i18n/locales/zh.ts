@@ -1175,4 +1175,8 @@ export const chineseInterface: Record<string, string> = {
   "Each login has one WOS ID. Join with your other account's WOS ID and its own PIN, after signing out or in another browser.": "每个登录只有一个 WOS ID。登出后或在另一个浏览器中，用另一个账号的 WOS ID 和它自己的 PIN 加入。",
   "I moved to another state.": "我转到了另一个州。",
   "Ask the new state's leader for their join link. Enter the first-time PIN, then your own PIN: your login stays the same.": "向新州的领袖索取加入链接。先输入首次 PIN，再输入你自己的 PIN：你的登录不变。",
+  "One minute tour": "一分钟导览",
+  "Watch a whole SvS run itself": "看一整场 SvS 自动运转",
+  "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "录制自演示：计划自动生成并发布，协调员呼叫两次敌方集结，驻防获得倒计时，在两次集结之间落地。",
+  "One minute tour of Overwatch": "Overwatch 一分钟导览",
 };

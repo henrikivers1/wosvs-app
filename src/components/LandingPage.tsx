@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { DiscordHandle } from "@/components/DiscordHandle";
 import { useLanguage } from "@/components/LanguageProvider";
+import { LandingVideo } from "@/components/LandingVideo";
 import { NavIcon, type NavIconName } from "@/components/NavIcon";
 import { enterDemo } from "@/lib/demo/mode";
 
@@ -175,6 +176,8 @@ export function LandingPage() {
         <li>{t("5 languages")}</li>
         <li>{t("All times in UTC")}</li>
       </ul>
+
+      <LandingVideo />
 
       <section className="landing-section">
         <p className="section-label">{t("The best parts")}</p>

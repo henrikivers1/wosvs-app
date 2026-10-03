@@ -28,6 +28,14 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "One minute tour":
+    "Recorrido de un minuto",
+  "Watch a whole SvS run itself":
+    "Mira un SvS completo funcionar solo",
+  "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.":
+    "Grabado en la demo: el plan se crea y se publica solo, los coordinadores marcan dos rallies enemigos y la guarnición recibe su cuenta atrás para llegar entre ellos.",
+  "One minute tour of Overwatch":
+    "Recorrido de un minuto por Overwatch",
   "Change your PIN":
     "Cambia tu PIN",
   "On Account, press Change PIN. You need your current PIN. If you signed in with a one-time PIN, Overwatch asks you to choose your own straight away.":

@@ -202,7 +202,13 @@ export function ReinforcementSchedule({
             </p>
             <p
               className={
-                msUntilSend <= 0 && msUntilSend > -1500 ? "send-now" : ""
+                msUntilSend <= 0 && msUntilSend > -1500
+                  ? "send-status send-now"
+                  : msUntilSend > 0 && msUntilSend <= 10_000
+                    ? "send-status send-soon"
+                    : msUntilSend > 0
+                      ? "send-status"
+                      : "send-status send-passed"
               }
             >
               {timing.getSendStatus(landingWindow)}

@@ -1187,4 +1187,8 @@ export const arabicInterface: Record<string, string> = {
   "Each login has one WOS ID. Join with your other account's WOS ID and its own PIN, after signing out or in another browser.": "لكل تسجيل دخول معرّف WOS واحد. انضم بمعرّف حسابك الآخر ورمزه الخاص بعد تسجيل الخروج أو في متصفح آخر.",
   "I moved to another state.": "انتقلت إلى ولاية أخرى.",
   "Ask the new state's leader for their join link. Enter the first-time PIN, then your own PIN: your login stays the same.": "اطلب رابط الانضمام من قائد الولاية الجديدة. أدخل رمز PIN الأول ثم رمزك الخاص: يبقى تسجيل دخولك كما هو.",
+  "One minute tour": "جولة في دقيقة",
+  "Watch a whole SvS run itself": "شاهد معركة SvS كاملة تسير وحدها",
+  "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "مسجّل في العرض التجريبي: تُبنى الخطة وتُنشر وحدها، ويستدعي المنسقون حشدين للعدو، وتحصل الحامية على عدّها التنازلي لتصل بينهما.",
+  "One minute tour of Overwatch": "جولة في Overwatch خلال دقيقة",
 };

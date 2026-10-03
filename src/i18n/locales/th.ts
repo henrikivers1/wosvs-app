@@ -1188,4 +1188,8 @@ export const thaiInterface: Record<string, string> = {
   "Each login has one WOS ID. Join with your other account's WOS ID and its own PIN, after signing out or in another browser.": "แต่ละการเข้าสู่ระบบมี WOS ID เดียว เข้าร่วมด้วย WOS ID ของอีกบัญชีและ PIN ของมันเอง หลังออกจากระบบหรือในเบราว์เซอร์อื่น",
   "I moved to another state.": "ฉันย้ายไปรัฐอื่น",
   "Ask the new state's leader for their join link. Enter the first-time PIN, then your own PIN: your login stays the same.": "ขอลิงก์เข้าร่วมจากผู้นำรัฐใหม่ ใส่ PIN ครั้งแรก แล้วตามด้วย PIN ของคุณ บัญชีของคุณยังเหมือนเดิม",
+  "One minute tour": "ทัวร์หนึ่งนาที",
+  "Watch a whole SvS run itself": "ดู SvS ทั้งศึกดำเนินไปเอง",
+  "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "บันทึกจากเดโม: แผนสร้างและเผยแพร่เอง ผู้ประสานงานเรียกแรลลี่ศัตรูสองครั้ง และกองรักษาการณ์ได้นับถอยหลังเพื่อไปถึงระหว่างสองแรลลี่นั้น",
+  "One minute tour of Overwatch": "ทัวร์ Overwatch หนึ่งนาที",
 };

@@ -1295,11 +1295,42 @@ li button {
   padding: 6px 12px;
   margin-left: auto;
 }
-.send-now {
-  color: var(--accent);
+/* The garrison's countdown: readable at a glance in battle */
+.send-status {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 6px 14px;
+  color: var(--text);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.send-status.send-soon {
+  color: var(--accent-text);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.send-status.send-now {
+  color: var(--on-accent);
+  background: var(--success);
+  border-color: var(--success);
+  font-weight: 600;
+  animation: send-now-pulse 0.5s ease-in-out infinite alternate;
+}
+.send-status.send-passed {
+  color: var(--muted);
+  font-size: 1rem;
+}
+@keyframes send-now-pulse {
+  from { box-shadow: 0 0 0 0 var(--success-line); }
+  to { box-shadow: 0 0 0 10px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .send-status.send-now { animation: none; }
 }
 .role-badge,
 .status-badge {
@@ -4534,4 +4565,29 @@ li button.lead-toggle.on:not(.holder) {
 .auth-card form > p {
   margin: 0;
   color: var(--muted-strong);
+}
+
+/* Landing: the one-minute tour */
+.landing-video-section {
+  text-align: center;
+}
+.landing-video-lead {
+  max-width: 640px;
+  margin: 10px auto 0;
+  color: var(--muted-strong);
+}
+.landing-video-frame {
+  max-width: 1040px;
+  margin: 26px auto 0;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+.landing-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
