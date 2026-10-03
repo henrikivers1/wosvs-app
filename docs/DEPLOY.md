@@ -45,7 +45,8 @@ Vercel in step 4.
 3. **Database:** in the SQL Editor run, in filename order, every file in
    `supabase/migrations/` that has not been run on this project yet. A brand
    new project runs `supabase/schema.sql` first.
-   - The last one is `20261007120000_map_enemy_leaders_notice.sql`.
+   - The last one is `20261008090000_v1_fixes.sql`. It schedules the
+     `wos-pet-swaps` pg_cron job too.
    - Check: `select jobname, schedule from cron.job;` lists
      `wos-advance-battles` and `wos-housekeeping`. If not, pg_cron was off:
      enable it and run `20261005120000_…` and `20261005150000_…` again.
@@ -119,6 +120,10 @@ your own login from your computer:
    the link and first-time PIN to post in the state and alliance chats.
    Members who open it, enter their WOS ID and the PIN are in right away
    when WOSOracle lists them in that state. A new link stops the old one.
+
+Billing: each state on `/operator` shows "Not billed" or its paid-until date,
+with +1 month, +1 year and a date field. Leave it empty for pilots. When the
+date passes, that state's automation pauses until you extend it.
 
 Lost PINs: owners and admins press **Reset PIN** on a member; you can reset
 anyone on `/operator`. Logins from before this version (email and password)

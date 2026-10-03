@@ -373,10 +373,12 @@ export async function runAutomation(
   };
   const now = Date.now();
 
+  // States whose paid period ran out are paused (null: not billed).
   let query = admin
     .from("states")
     .select(STATE_COLUMNS)
-    .not("game_state_number", "is", null);
+    .not("game_state_number", "is", null)
+    .or(`paid_until.is.null,paid_until.gt.${new Date(now).toISOString()}`);
   if (options.stateId) query = query.eq("id", options.stateId);
   const { data: states, error } = await query;
   if (error) {
@@ -409,6 +411,9 @@ export async function runAutomation(
   );
   if (advanceError) report.errors.push(`Battles: ${advanceError.message}`);
   else report.battlesAdvanced = advanced ?? 0;
+
+  const { error: billingError } = await admin.rpc("automation_billing_reminders");
+  if (billingError) report.errors.push(`Billing reminders: ${billingError.message}`);
 
   if (options.playerSync && new Date().getUTCDay() === WEEKLY_SYNC_DAY) {
     await weeklyPlayerSync(admin, report);

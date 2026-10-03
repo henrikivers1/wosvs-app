@@ -86,7 +86,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
 
     const stateIds = [...new Set(memberRows.map((row) => row.state_id))];
     const [{ data: states }, { data: battles }] = await Promise.all([
-      supabase.from("states").select("id, name").in("id", stateIds),
+      supabase.from("states").select("id, name, paid_until").in("id", stateIds),
       supabase
         .from("battles")
         .select("id, state_id, name")
@@ -141,6 +141,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
             ),
           battleId: activeBattle?.id ?? null,
           battleName: activeBattle?.name ?? null,
+          paidUntil: (state as { paid_until?: string | null }).paid_until ?? null,
         },
       ];
     });

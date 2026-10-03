@@ -61,6 +61,10 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   battle_completed: "battle",
   battle_cancelled: "battle",
   map_enemy_leaders: "battle",
+  attendance_conflict: "battle",
+  pet_swap_reminder: "battle",
+  member_left_state: "notice",
+  billing_reminder: "notice",
   attendance_reminder: "battle",
   rallies_generated: "battle",
   svs_drawn: "battle",
@@ -134,6 +138,8 @@ export type NotificationTextData = {
   // "Ted 12:00–14:00, Ice 14:00–16:00": the group's lead order.
   leads?: string | null;
   battle_start?: string;
+  availability?: string;
+  paid_until?: string;
 };
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -196,6 +202,69 @@ export function localizedNotificationText(
         body: t(
           "{battle} has ended. The win or loss follows as soon as the result is in.",
           { battle: data.battle_name },
+        ),
+      };
+    case "attendance_conflict": {
+      if (!data.player || !data.group_name) return null;
+      const vote =
+        data.availability === "unavailable"
+          ? t("Can't join")
+          : data.availability === "first_half"
+            ? t("First half")
+            : data.availability === "second_half"
+              ? t("Second half")
+              : t("Whole battle");
+      return {
+        title: t("{player} can't play their spot anymore", { player: data.player }),
+        body: t(
+          "{player} changed their vote to {vote} but is in {group}. Open Planning to move them or fill the seat.",
+          { player: data.player, vote, group: data.group_name },
+        ),
+      };
+    }
+    case "pet_swap_reminder": {
+      if (!data.group_name || !data.blocks) return null;
+      const time = data.blocks.split("–")[0];
+      return data.role === "castle_holder"
+        ? {
+            title: t("Your turn to hold the castle at {time} UTC", { time }),
+            body: t(
+              "Swap to the alliance holding the castle and take over the garrison for {blocks} UTC.",
+              { blocks: data.blocks },
+            ),
+          }
+        : {
+            title: t("Your turn to lead {group} at {time} UTC", {
+              group: data.group_name,
+              time,
+            }),
+            body: t("Get your pets ready: you lead {group} for {blocks} UTC.", {
+              group: data.group_name,
+              blocks: data.blocks,
+            }),
+          };
+    }
+    case "member_left_state":
+      if (!data.player || !data.state_number) return null;
+      return {
+        title: t("{player} moved to state {number}", {
+          player: data.player,
+          number: data.state_number,
+        }),
+        body: t(
+          "{player} is no longer in your state in the game. Remove them under State management if they are not coming back.",
+          { player: data.player },
+        ),
+      };
+    case "billing_reminder":
+      if (!data.paid_until) return null;
+      return {
+        title: t("Overwatch for {state} runs until {date}", {
+          state,
+          date: formatDateTime(data.paid_until),
+        }),
+        body: t(
+          "Renew before then to keep the draw checks, planning and publishing running. Message us on Discord: wosoverwatch.",
         ),
       };
     case "map_enemy_leaders":

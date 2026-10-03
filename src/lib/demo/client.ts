@@ -96,6 +96,27 @@ function demoApiResponse(url: URL): Response | null {
           power: 0,
         },
       });
+    case "/api/oracle/player": {
+      // A known enemy top player, or a made-up one in the opponent's state.
+      const wosId = url.searchParams.get("wosId") ?? "";
+      const intel = demoTable("battle_intel")[0] as
+        | { opponent_state: number; opponent: { topPlayers: Record<string, unknown>[] } }
+        | undefined;
+      const known = intel?.opponent.topPlayers.find((player) => player.wosId === wosId);
+      const seed = Number(wosId.slice(-4)) || 7;
+      return json({
+        player: {
+          wosId,
+          name: (known?.name as string) ?? `Frostbiter${seed % 100}`,
+          state: intel?.opponent_state ?? 9998,
+          power: (known?.power as number) ?? 90_000_000 + (seed % 50) * 1_000_000,
+          furnaceLevel: (known?.furnaceLevel as number) ?? 70,
+          labyrinthScore: (known?.labyrinthScore as number) ?? 1500 + (seed % 20) * 60,
+          allianceAbbr: (known?.allianceAbbr as string) ?? "MAG",
+          allianceName: "",
+        },
+      });
+    }
     case "/api/oracle/player-sync":
       return json({ cached: true });
     case "/api/automation/run":

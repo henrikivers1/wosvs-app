@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { BillingBanner } from "@/components/BillingBanner";
 import { DemoBanner } from "@/components/DemoBanner";
 import { NavIcon, type NavIconName } from "@/components/NavIcon";
 
@@ -238,6 +239,7 @@ export function AppHeader() {
   return (
     <header className="app-header">
       <DemoBanner />
+      <BillingBanner />
       <div className="header-bar">
         <Link className="brand-link" href="/" aria-label="Overwatch">
           <Image

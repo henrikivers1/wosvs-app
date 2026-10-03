@@ -79,7 +79,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           "24 hours before: the garrison and rallies are built from the votes. Admins can review and change them.",
           "6 hours before: the plan is published and everyone gets their rally, hero and formation.",
           "11:00 UTC: Live Battle opens. Admins and coordinators are told to map the enemy rally leads, and the garrison enters their city.",
-          "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).",
+          "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17). Each Rally Lead and Castle Holder is reminded 5 minutes before their block.",
           "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.",
         ],
         tip: "Votes that come in after the rallies are built still get an open seat, and you are told at once.",
@@ -128,7 +128,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Coordinators: enemy leaders",
-        body: "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.",
+        body: "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Someone else leads? Add them by WOS ID and their Labyrinth score is looked up too. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.",
       },
       {
         title: "Coordinators: call a rally",
@@ -197,7 +197,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Members and roles",
-        body: "The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.",
+        body: "The owner sets who is an admin and can hand the state to an admin with Make owner. Admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. A member whose WOS ID moves to another state is marked, and you are told. Every change is sent to the member as a notification.",
       },
       {
         title: "Lost PINs and wrong players",
@@ -235,6 +235,14 @@ export const GUIDE_FAQ: { q: string; a: string }[] = [
   {
     q: "My power or Furnace is out of date.",
     a: "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.",
+  },
+  {
+    q: "A player can't come anymore after the plan went out.",
+    a: "Owners and admins get a notice as soon as they change their vote. Open Planning: Needs attention offers to take them out, and Fill open seats adds someone from the waiting list.",
+  },
+  {
+    q: "We won, but it still says Battle over.",
+    a: "The result comes from WOSOracle, usually within hours. If it never arrives, an owner or admin can set Victory or Defeat under State, Stats & history.",
   },
   {
     q: "I can't see Live Battle.",

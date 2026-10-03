@@ -46,6 +46,23 @@ export default function ManageLeadersPage() {
     setEnemyName(selection.member.name);
     setRemembered(false);
     if (!activeMembership || !selection.member.wosId) return;
+    // Roster picks have no Labyrinth score yet: one profile lookup.
+    if (selection.labyrinthScore === undefined) {
+      const params = new URLSearchParams({
+        stateId: activeMembership.stateId,
+        wosId: selection.member.wosId,
+      });
+      void fetch(`/api/oracle/player?${params}`)
+        .then((response) => response.json())
+        .then((result: { player?: { labyrinthScore: number | null } }) =>
+          setPicked((current) =>
+            current?.member.wosId === selection.member.wosId
+              ? { ...current, labyrinthScore: result.player?.labyrinthScore ?? null }
+              : current,
+          ),
+        )
+        .catch(() => {});
+    }
     const { data } = await supabase
       .from("enemy_leaders")
       .select("x, y")
@@ -72,6 +89,7 @@ export default function ManageLeadersPage() {
             wosId: picked.member.wosId,
             power: picked.member.power,
             allianceAbbr: picked.alliance.abbr || null,
+            labyrinthScore: picked.labyrinthScore ?? null,
           }
         : undefined,
     );
@@ -155,6 +173,13 @@ export default function ManageLeadersPage() {
                 abbr: picked.alliance.abbr,
                 name: picked.member.name,
               },
+            )}
+            {typeof picked.labyrinthScore === "number" && (
+              <span className="roster-labyrinth">
+                {t("Labyrinth {score}", {
+                  score: formatNumber(picked.labyrinthScore),
+                })}
+              </span>
             )}
           </p>
         )}
@@ -270,6 +295,13 @@ export default function ManageLeadersPage() {
                       {leader.y}
                       {leader.power !== null &&
                         ` — ${formatNumber(leader.power)}`}
+                      {leader.labyrinthScore !== null && (
+                        <span className="roster-labyrinth">
+                          {t("Labyrinth {score}", {
+                            score: formatNumber(leader.labyrinthScore),
+                          })}
+                        </span>
+                      )}
                     </span>
                     <label>
                       <input

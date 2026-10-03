@@ -1027,6 +1027,26 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     }
     return ok();
   },
+  transfer_state_ownership: ({ target_state_id, target_wos_account_id }) => {
+    const rows = demoTable("state_members").filter((row) => row.state_id === target_state_id);
+    const target = rows.find((row) => row.wos_account_id === target_wos_account_id);
+    if (!target || target.role !== "admin") {
+      return fail("Make them an admin first; only an admin can become the owner.");
+    }
+    rows.forEach((row) => {
+      if (row.role === "owner") row.role = "admin";
+    });
+    target.role = "owner";
+    return ok();
+  },
+  set_battle_result: ({ target_battle_id, battle_result }) => {
+    const battle = byId("battles", target_battle_id);
+    if (!battle || battle.status !== "completed") {
+      return fail("Only a finished battle can get a result.");
+    }
+    battle.result = battle_result;
+    return ok();
+  },
   get_state_join_link: ({ target_state_id }) =>
     ok(
       demoTable("state_join_links")

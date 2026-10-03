@@ -56,7 +56,7 @@ export async function GET() {
   const [{ data: states, error }, { data: members }] = await Promise.all([
     admin
       .from("states")
-      .select("id, name, game_state_number, created_at")
+      .select("id, name, game_state_number, created_at, paid_until")
       .order("created_at", { ascending: false }),
     admin
       .from("state_members")
@@ -78,6 +78,7 @@ export async function GET() {
         name: state.name,
         stateNumber: state.game_state_number,
         createdAt: state.created_at,
+        paidUntil: state.paid_until,
         memberCount: rows.length,
         owner: ownerAccount
           ? { wosId: ownerAccount.wos_id, nickname: ownerAccount.nickname }
@@ -95,11 +96,34 @@ export async function POST(request: Request) {
   const admin = await requireOperator();
   if (admin instanceof Response) return admin;
 
-  let body: { action?: unknown; ownerWosId?: unknown; wosId?: unknown; name?: unknown };
+  let body: {
+    action?: unknown;
+    ownerWosId?: unknown;
+    wosId?: unknown;
+    name?: unknown;
+    stateId?: unknown;
+    paidUntil?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
     return fail("Invalid request body.", 400);
+  }
+
+  // Paid until the end of that day (UTC); null: not billed.
+  if (body.action === "set_paid_until") {
+    if (typeof body.stateId !== "string") return fail("A state is required.", 400);
+    const day = typeof body.paidUntil === "string" ? body.paidUntil : "";
+    if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail("Use a date like 2026-11-30.", 400);
+    const { error } = await admin
+      .from("states")
+      .update({ paid_until: day ? `${day}T23:59:59Z` : null })
+      .eq("id", body.stateId);
+    if (error) {
+      console.error("[operator] Paid-until failed:", error);
+      return fail("The date could not be saved.", 500);
+    }
+    return Response.json({ ok: true });
   }
 
   if (body.action === "reset_pin") {

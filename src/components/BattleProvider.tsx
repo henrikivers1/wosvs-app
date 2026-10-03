@@ -88,7 +88,7 @@ export function BattleProvider({
       supabase
         .from("enemy_leaders")
         .select(
-          "id, name, x, y, pet_expires_at, wos_id, power, alliance_abbr"
+          "id, name, x, y, pet_expires_at, wos_id, power, alliance_abbr, labyrinth_score"
         )
         .eq("battle_id", activeBattleId)
         .order("name"),
@@ -117,6 +117,7 @@ export function BattleProvider({
           wosId: leader.wos_id ?? null,
           power: leader.power ?? null,
           allianceAbbr: leader.alliance_abbr ?? null,
+          labyrinthScore: leader.labyrinth_score ?? null,
         }))
       );
     }
@@ -261,6 +262,7 @@ export function BattleProvider({
       wos_id: details?.wosId ?? null,
       power: details?.power ?? null,
       alliance_abbr: details?.allianceAbbr ?? null,
+      labyrinth_score: details?.labyrinthScore ?? null,
     });
 
     if (error) {

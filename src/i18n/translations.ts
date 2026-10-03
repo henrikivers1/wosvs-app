@@ -28,12 +28,80 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Someone else leads? Add them by WOS ID and their Labyrinth score is looked up too. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
+    "A las 11:00 UTC del día de batalla, el propietario, los administradores y los coordinadores reciben un aviso para mapear a los líderes de rally enemigos. En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival, con la mejor puntuación del Laberinto primero: son sus probables líderes de rally. Pulsa Usar, introduce las coordenadas de la ciudad y añádelos. ¿Lidera otro? Añádelo por WOS ID y también se consulta su puntuación del Laberinto. Las coordenadas se recuerdan: la próxima vez se rellenan solas, y los líderes conocidos se añaden al abrir la Batalla en vivo. Marca la mascota de un líder cuando esté activa.",
+  "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17). Each Rally Lead and Castle Holder is reminded 5 minutes before their block.":
+    "12:00–17:00 UTC: la batalla, en tres bloques de mascotas (12–14, 14–16 y 16–17). Cada líder de rally y defensor del castillo recibe un aviso 5 minutos antes de su bloque.",
+  "The owner sets who is an admin and can hand the state to an admin with Make owner. Admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. A member whose WOS ID moves to another state is marked, and you are told. Every change is sent to the member as a notification.":
+    "El propietario decide quién es administrador y puede ceder el estado a un administrador con Hacer propietario. Los administradores dan el rol de Coordinador, pueden quitar Guarnición (todos los miembros la tienen por defecto) y eliminar miembros. Un miembro cuyo WOS ID se muda a otro estado queda marcado y se te avisa. Cada cambio se notifica al miembro.",
+  "A player can't come anymore after the plan went out.":
+    "Un jugador ya no puede venir después de publicar el plan.",
+  "Owners and admins get a notice as soon as they change their vote. Open Planning: Needs attention offers to take them out, and Fill open seats adds someone from the waiting list.":
+    "El propietario y los administradores reciben un aviso en cuanto cambia su voto. Abre Planificación: Requiere atención ofrece sacarlo, y Cubrir huecos libres añade a alguien de la lista de espera.",
+  "We won, but it still says Battle over.":
+    "Ganamos, pero todavía dice Batalla terminada.",
+  "The result comes from WOSOracle, usually within hours. If it never arrives, an owner or admin can set Victory or Defeat under State, Stats & history.":
+    "El resultado llega de WOSOracle, normalmente en unas horas. Si no llega nunca, el propietario o un administrador puede poner Victoria o Derrota en Estado, Estadísticas e historial.",
+  "Add by WOS ID":
+    "Añadir por WOS ID",
+  "Enter a numeric WOS ID.":
+    "Introduce un WOS ID numérico.",
+  "Get your pets ready: you lead {group} for {blocks} UTC.":
+    "Prepara tus mascotas: lideras {group} de {blocks} UTC.",
+  "Make owner":
+    "Hacer propietario",
+  "Make {player} the owner of {state}? You become an admin, and only the new owner can hand it back.":
+    "¿Hacer a {player} propietario de {state}? Pasarás a ser administrador y solo el nuevo propietario puede devolvértelo.",
+  "Mark this battle as a Defeat? Every member is told.":
+    "¿Marcar esta batalla como Derrota? Se avisará a todos los miembros.",
+  "Mark this battle as a Victory? Every member is told.":
+    "¿Marcar esta batalla como Victoria? Se avisará a todos los miembros.",
+  "No result from WOSOracle yet. Set it yourself:":
+    "WOSOracle aún no tiene el resultado. Ponlo tú:",
+  "Now in state {number}":
+    "Ahora en el estado {number}",
+  "Open Planning":
+    "Abrir Planificación",
+  "Open State management":
+    "Abrir Gestión del estado",
+  "Overwatch for {state} is paused since {date}: no draw checks, planning or publishing.":
+    "Overwatch para {state} está en pausa desde {date}: sin comprobación del sorteo, planificación ni publicación.",
+  "Overwatch for {state} is paused. Your state leader can renew it.":
+    "Overwatch para {state} está en pausa. El líder de tu estado puede renovarlo.",
+  "Overwatch for {state} runs until {date}":
+    "Overwatch para {state} funciona hasta el {date}",
+  "Overwatch for {state} runs until {date}.":
+    "Overwatch para {state} funciona hasta el {date}.",
+  "Renew before then to keep the draw checks, planning and publishing running. Message us on Discord: wosoverwatch.":
+    "Renueva antes para que sigan la comprobación del sorteo, la planificación y la publicación. Escríbenos en Discord: wosoverwatch.",
+  "Swap to the alliance holding the castle and take over the garrison for {blocks} UTC.":
+    "Cámbiate a la alianza que tiene el castillo y toma la guarnición de {blocks} UTC.",
+  "That player could not be found.":
+    "No se encontró a ese jugador.",
+  "Their WOS ID from their in-game profile":
+    "Su WOS ID de su perfil en el juego",
+  "To renew, message us:":
+    "Para renovar, escríbenos:",
+  "Your turn to hold the castle at {time} UTC":
+    "Te toca defender el castillo a las {time} UTC",
+  "Your turn to lead {group} at {time} UTC":
+    "Te toca liderar {group} a las {time} UTC",
+  "{name} is in state {state}, not the opponent's state {opponent}.":
+    "{name} está en el estado {state}, no en el del rival ({opponent}).",
+  "{player} can't play their spot anymore":
+    "{player} ya no puede cubrir su puesto",
+  "{player} changed their vote to {vote} but is in {group}. Open Planning to move them or fill the seat.":
+    "{player} cambió su voto a {vote} pero está en {group}. Abre Planificación para moverlo o cubrir el hueco.",
+  "{player} is no longer in your state in the game. Remove them under State management if they are not coming back.":
+    "{player} ya no está en tu estado en el juego. Elimínalo en Gestión del estado si no va a volver.",
+  "{player} is now the owner.":
+    "{player} es ahora el propietario.",
+  "{player} moved to state {number}":
+    "{player} se mudó al estado {number}",
   "Live Battle is open. Add their likely rally leads (best Labyrinth score first) and their city coordinates under Enemy leaders before the battle starts ({start}).":
     "La Batalla en vivo está abierta. Añade sus probables líderes de rally (mejor puntuación del Laberinto primero) y las coordenadas de sus ciudades en Líderes enemigos antes de que empiece la batalla ({start}).",
   "11:00 UTC: Live Battle opens. Admins and coordinators are told to map the enemy rally leads, and the garrison enters their city.":
     "11:00 UTC: se abre la Batalla en vivo. Se avisa a administradores y coordinadores para mapear a los líderes enemigos, y la guarnición introduce su ciudad.",
-  "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
-    "A las 11:00 UTC del día de batalla, el propietario, los administradores y los coordinadores reciben un aviso para mapear a los líderes de rally enemigos. En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival, con la mejor puntuación del Laberinto primero: son sus probables líderes de rally. Pulsa Usar, introduce las coordenadas de la ciudad y añádelos. Las coordenadas se recuerdan: la próxima vez se rellenan solas, y los líderes conocidos se añaden al abrir la Batalla en vivo. Marca la mascota de un líder cuando esté activa.",
   "Map the enemy rally leaders":
     "Mapea a los líderes de rally enemigos",
   "Map enemy leaders":
@@ -76,8 +144,6 @@ const spanishInterface: Record<string, string> = {
     "24 horas antes: la guarnición y los rallies se crean con los votos. Los administradores pueden revisarlos y cambiarlos.",
   "6 hours before: the plan is published and everyone gets their rally, hero and formation.":
     "6 horas antes: se publica el plan y cada uno recibe su rally, héroe y formación.",
-  "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).":
-    "12:00–17:00 UTC: la batalla, en tres bloques de mascotas (12–14, 14–16 y 16–17).",
   "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.":
     "Después de la batalla: todos reciben Victoria o Derrota en cuanto WOSOracle tiene el resultado.",
   "Votes that come in after the rallies are built still get an open seat, and you are told at once.":
@@ -248,8 +314,6 @@ const spanishInterface: Record<string, string> = {
     "Pregunta a un administrador de tu estado. Te da un PIN de un solo uso y eliges uno nuevo al iniciar sesión. ¿Tu estado aún no está en Overwatch? Tu líder puede escribirnos en Discord: wosoverwatch.",
   "Under State management, make a join link and share it with its first-time PIN in your chats. Players get in right away when WOSOracle lists them in your state. Make a new link whenever the old one should stop working; players who already joined are not affected.":
     "En Gestión del estado, crea un enlace de acceso y compártelo con su PIN inicial en tus chats. Los jugadores entran al momento si WOSOracle los muestra en tu estado. Crea un enlace nuevo cuando quieras que el anterior deje de funcionar; quienes ya se unieron no se ven afectados.",
-  "The owner sets who is an admin; admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. Every change is sent to the member as a notification.":
-    "El propietario decide quién es administrador; los administradores dan el rol de Coordinador, pueden quitar Guarnición (todos los miembros la tienen por defecto) y eliminar miembros. Cada cambio se notifica al miembro.",
   "Reset PIN on a member gives them a one-time PIN and signs them out. Owners reset anyone, admins reset members. If someone joined with a WOS ID that is not theirs, reset its PIN and give the one-time PIN to the real player.":
     "Restablecer PIN en un miembro le da un PIN de un solo uso y cierra su sesión. El propietario restablece a cualquiera; los administradores, a los miembros. Si alguien se unió con un WOS ID que no es suyo, restablece su PIN y da el PIN de un solo uso al jugador real.",
   "Your state leader messages us on Discord (wosoverwatch) and we set the state up. The leader then shares a join link and first-time PIN in your chats; members open it, enter their WOS ID and choose their own PIN.":

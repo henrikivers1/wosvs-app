@@ -16,6 +16,8 @@ type StateMember = {
   wosAccountId: string;
   wosId: string;
   nickname: string | null;
+  // The in-game state from the last sync; differs when they moved away.
+  stateNumber: number | null;
   role: StateRole;
   capabilities: StateCapability[];
 };
@@ -123,7 +125,7 @@ export default function ManageStatePage() {
     const { data: accounts } = memberAccountIds.length
       ? await supabase
           .from("wos_accounts")
-          .select("id, user_id, wos_id, nickname")
+          .select("id, user_id, wos_id, nickname, state_number")
           .in("id", memberAccountIds)
       : { data: [] };
     const accountById = new Map(
@@ -138,6 +140,7 @@ export default function ManageStatePage() {
             wosAccountId: account.id,
             wosId: account.wos_id,
             nickname: account.nickname,
+            stateNumber: account.state_number,
             role: row.role as StateRole,
             capabilities: (capabilityRows ?? [])
               .filter((capability) => capability.wos_account_id === account.id)
@@ -394,6 +397,33 @@ export default function ManageStatePage() {
     if (memberships.some((item) => item.wosAccountId === wosAccountId)) {
       await refreshMemberships();
     }
+  }
+
+  // The owner hands the state to an admin and becomes an admin.
+  async function makeOwner(member: StateMember) {
+    if (!activeMembership) return;
+    const name = member.nickname || member.wosId;
+    if (
+      !window.confirm(
+        t(
+          "Make {player} the owner of {state}? You become an admin, and only the new owner can hand it back.",
+          { player: name, state: activeMembership.stateName },
+        ),
+      )
+    ) {
+      return;
+    }
+    const { error } = await supabase.rpc("transfer_state_ownership", {
+      target_state_id: activeMembership.stateId,
+      target_wos_account_id: member.wosAccountId,
+    });
+    if (error) {
+      setMessage(t(error.message));
+      return;
+    }
+    setMessage(t("{player} is now the owner.", { player: name }));
+    await loadStateManagement();
+    await refreshMemberships();
   }
 
   async function removeMember(wosAccountId: string) {
@@ -758,6 +788,15 @@ export default function ManageStatePage() {
                   <small>
                     {"WOS ID " + member.wosId}
                   </small>
+                  {member.stateNumber !== null &&
+                    gameStateNumber &&
+                    String(member.stateNumber) !== gameStateNumber && (
+                      <span className="member-moved">
+                        {t("Now in state {number}", {
+                          number: member.stateNumber,
+                        })}
+                      </span>
+                    )}
                 </span>
                 {member.role === "owner" ? (
                   <div className="member-actions">
@@ -823,6 +862,15 @@ export default function ManageStatePage() {
                         onClick={() => void resetMemberPin(member)}
                       >
                         {t("Reset PIN")}
+                      </button>
+                    )}
+                    {activeMembership.role === "owner" && member.role === "admin" && (
+                      <button
+                        type="button"
+                        className="secondary-link"
+                        onClick={() => void makeOwner(member)}
+                      >
+                        {t("Make owner")}
                       </button>
                     )}
                     {(activeMembership.role === "owner" ||

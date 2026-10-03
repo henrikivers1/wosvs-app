@@ -11,7 +11,15 @@ type OperatorState = {
   createdAt: string;
   memberCount: number;
   owner: { wosId: string; nickname: string | null } | null;
+  paidUntil: string | null;
 };
+
+const day = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
+function addMonths(from: string | null, months: number) {
+  const base = from && new Date(from) > new Date() ? new Date(from) : new Date();
+  base.setUTCMonth(base.getUTCMonth() + months);
+  return base.toISOString().slice(0, 10);
+}
 
 type Handout = { title: string; pin: string };
 
@@ -96,6 +104,17 @@ export default function OperatorPage() {
         `${result.name} is ready. ${result.owner?.nickname} already has a login and is now its owner.`,
       );
     }
+    await load();
+  }
+
+  async function setPaidUntil(state: OperatorState, paidUntil: string) {
+    const result = await post({ action: "set_paid_until", stateId: state.id, paidUntil });
+    if (!result) return;
+    setMessage(
+      paidUntil
+        ? `${state.name} is paid until ${paidUntil}.`
+        : `${state.name} is not billed.`,
+    );
     await load();
   }
 
@@ -208,6 +227,41 @@ export default function OperatorPage() {
                       {` · ${state.memberCount} members · ${formatDateTime(state.createdAt)}`}
                     </small>
                   </span>
+                  <div className="member-actions operator-billing">
+                    <span
+                      className={
+                        state.paidUntil && new Date(state.paidUntil) < new Date()
+                          ? "role-badge billing-lapsed"
+                          : "role-badge"
+                      }
+                    >
+                      {state.paidUntil ? `Paid until ${day(state.paidUntil)}` : "Not billed"}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void setPaidUntil(state, addMonths(state.paidUntil, 1))}
+                    >
+                      +1 month
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void setPaidUntil(state, addMonths(state.paidUntil, 12))}
+                    >
+                      +1 year
+                    </button>
+                    <input
+                      type="date"
+                      aria-label={`Paid until for ${state.name}`}
+                      defaultValue={day(state.paidUntil)}
+                      onBlur={(event) => {
+                        if (event.target.value !== day(state.paidUntil)) {
+                          void setPaidUntil(state, event.target.value);
+                        }
+                      }}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>

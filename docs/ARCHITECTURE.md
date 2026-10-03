@@ -18,12 +18,14 @@ the SQL uses the same values). The castle is at 599,599.
 | T−30 h | Remind members who have not voted | `runAutoPlan` → `remindVoters` |
 | T−24 h | **Generate the garrison and rallies** (pet blocks 12–14, 14–16, 16–17 UTC): the garrison gets one Castle Holder per block and is filled first with the strongest defenders who play the whole battle (troop FC, then troop tier, then troop skill; `castle.ts`). Each rally gets one Rally Lead per block (extra leads go where they cover missing blocks), lands in its first lead's alliance and gets the state's default formation and joiner heroes. Rallies are then filled by the auto-fill priorities; half voters join for their half. Rally Leads and Castle Holders are never joiners (database trigger). Admins get "Rallies are ready for review" | `runAutoPlan` → `createGarrison`, `createRallies`, `fillPlan` |
 | Every hour after that | Late voters are added to open slots, never moving anyone; after publishing they get their assignment message at once | `fillRallies` |
+| Any time after publishing | Someone whose new vote no longer fits their spot (joiner, garrison, lead or holder for a pet block): owners and admins get "X can't play their spot anymore" | `notify_late_attendance_change` trigger |
 | T−6 h | **Publish:** alliances and plan tags applied, every member gets "Hi X, you've been assigned to Y in Z…", leaders get "you're leading Y" | `publish_battle_plan_with_notifications` |
 | 11:00 UTC | Live Battle opens an hour before the start, to the minute (pg_cron), so garrison and coordinators can enter coordinates. Owners, admins and Coordinators get "Map the enemy rally leaders". It appears without a reload. Enemy leaders seen in earlier battles are pre-added with their coordinates. The battle itself still runs 12:00–17:00 | `automation_advance_battles`, `seed_enemy_leaders_on_start`, StateProvider realtime |
+| 11:55, 13:55, 15:55 | The Rally Lead or Castle Holder taking over the next pet block is reminded (not when the same lead keeps it) | `automation_pet_swap_reminders` (pg_cron, every minute) |
 | 12:00–17:00 | Coordinators call enemy rallies; garrison players get their send countdown between rallies (or right after the last one) | Live Battle pages |
 | 17:00 UTC | Battle ends; members get "Battle over" | `automation_advance_battles` |
-| Every 6 h for 7 days | Win/Loss read from WOSOracle; "Battle over" becomes **Victory!/Defeat** for every member | `saveResults` → `automation_set_battle_result` |
-| Mondays | Weekly player refresh from WOSOracle (power, FC, Labyrinth, alliance, state) in budget-limited batches; accounts that fail wait a day | `weeklyPlayerSync` |
+| Every 6 h for 7 days | Win/Loss read from WOSOracle; "Battle over" becomes **Victory!/Defeat** for every member. Owners and admins can set it on Stats & history when it never comes | `saveResults` → `automation_set_battle_result`; `set_battle_result` |
+| Mondays | Weekly player refresh from WOSOracle (power, FC, Labyrinth, alliance, state) in budget-limited batches; accounts that fail wait a day. A member whose state changed is marked in State management and owners/admins are told | `weeklyPlayerSync`, `notify_member_left_state` trigger |
 
 Every automatic step can be run early from the **Next SvS** checklist on
 Planning ("Generate now", "Publish now", and "Fill open seats" under Needs attention). Generating
@@ -31,6 +33,13 @@ and publishing can be switched off per state, and the rally count, rally
 size, default formation and joiner heroes can be changed, in **State
 management → SvS automation**. Nothing the automation does overwrites manual
 changes.
+
+### Billing
+
+`states.paid_until` (set on `/operator`; null = not billed). Five days before
+it, the owner gets a reminder (`automation_billing_reminders`, from the hourly
+job). After it, the hourly job skips the state (no draw checks, planning or
+publishing) and the app shows a banner; Live Battle still opens and closes.
 
 ### Signing in and joining a state
 
@@ -62,6 +71,7 @@ off in Supabase.
 |---|---|---|
 | `wos-automation` → `POST /api/automation/run` | hourly at :07 | `supabase/automation-cron.example.sql` (pg_cron + pg_net, secret in Vault) |
 | `wos-advance-battles` → `automation_advance_battles()` | every minute | created by migration `20261005120000` when pg_cron is enabled |
+| `wos-pet-swaps` → `automation_pet_swap_reminders()` | every minute | pet block swap reminders (migration `20261008090000`) |
 | `wos-housekeeping` → `automation_housekeeping()` | nightly at 03:17 UTC | old notifications (read after 30 days, all after 90), expired notices, WOSOracle cache and counters, wrong-PIN counters, unused rally tags |
 
 ## 3. WOSOracle usage
@@ -142,6 +152,7 @@ realtime, plus the synced server clock.
 | `POST /api/auth/reset-pin` | State management | One-time PIN for a member |
 | `GET/POST /api/operator/states` | `/operator` | List and create states, one-time PIN for anyone |
 | `POST /api/oracle/player-sync` | Account page | Sync your WOS account (once a day by hand) |
+| `GET /api/oracle/player` | Enemy leaders | One player by WOS ID (name, power, Labyrinth), counted against the caller's hourly budget |
 | `GET /api/oracle/opponent` | Enemy leaders | Opponent alliances and top players, from stored intel first |
 | `GET /api/oracle/roster` | Enemy leaders | One opponent alliance's members |
 | `GET /api/oracle/state-alliances`, `/alliance` | State management (admins) | Import alliances, add one by ID |
@@ -175,12 +186,12 @@ query in parallel.
 | Area | Functions |
 |---|---|
 | Accounts | `set_player_heroes` |
-| Membership | `create_state_join_link`, `get_state_join_link`, `authorize_pin_reset`, `set_state_member_role`, `set_state_member_capability`, `remove_state_member`, `set_state_rally_lead`, `set_state_castle_holder` |
+| Membership | `create_state_join_link`, `get_state_join_link`, `authorize_pin_reset`, `transfer_state_ownership`, `set_state_member_role`, `set_state_member_capability`, `remove_state_member`, `set_state_rally_lead`, `set_state_castle_holder` |
 | State settings | `set_state_hero_generation`, `set_state_automation`, `create/update/delete_state_alliance`, `create/update/delete_state_tag` |
 | SvS plan | `create_svs_plan`, `update_battle_plan`, `set_battle_plan_opponent`, `delete_battle_plan`, `get_upcoming_svs`, `set_battle_attendance` |
 | Rallies | `create/update/delete_battle_plan_group`, `create_garrison_group`, `set_battle_plan_group_rotation` (lead per pet block), `set_battle_plan_group_setup`, `set_battle_plan_assignment`, `set_assignment_details`, `apply_battle_plan_autofill`, `publish_battle_plan_with_notifications` |
 | Comments and notices | `create_battle_plan_comment`, `delete_battle_plan_comment`, `get_battle_plan_comments`, `create_state_announcement`, `delete_state_announcement`, `cleanup_expired_state_announcements` |
-| History | `get_state_battle_history_v2`, `get_state_overview` |
+| History | `get_state_battle_history_v2`, `get_state_overview`, `set_battle_result` |
 | Permission checks used by RLS | `is_state_member/admin/owner`, `is_state_member_account`, `is_state_admin_account`, `owns_wos_account`, `can_read_wos_account`, `shares_state_with`, `can_view_*`, `can_manage_battle`, `can_call_state_rallies` |
 
 ### Server only (service role)

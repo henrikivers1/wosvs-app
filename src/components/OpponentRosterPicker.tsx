@@ -11,6 +11,8 @@ import type {
 export type PickedEnemy = {
   member: RosterMember;
   alliance: OpponentAlliance;
+  // Known for the top players and WOS ID lookups; looked up on pick otherwise.
+  labyrinthScore?: number | null;
 };
 
 type OpponentResponse = {
@@ -42,6 +44,7 @@ export function OpponentRosterPicker({
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [lookupId, setLookupId] = useState("");
 
   async function loadOpponent() {
     setLoading(true);
@@ -103,6 +106,70 @@ export function OpponentRosterPicker({
       setMembers(result.members ?? []);
     } catch {
       setError(t("The roster could not be loaded."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Anyone outside the lists: their profile by WOS ID, with Labyrinth score.
+  async function lookUpPlayer() {
+    const wosId = lookupId.trim();
+    if (!/^[0-9]+$/.test(wosId)) {
+      setError(t("Enter a numeric WOS ID."));
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams({ stateId, wosId });
+      const response = await fetch(`/api/oracle/player?${params}`);
+      const result = (await response.json()) as {
+        error?: string;
+        player?: {
+          wosId: string;
+          name: string;
+          state: number | null;
+          power: number | null;
+          furnaceLevel: number;
+          labyrinthScore: number | null;
+          allianceAbbr: string;
+          allianceName: string;
+        };
+      };
+      if (!response.ok || !result.player) {
+        setError(result.error || t("That player could not be found."));
+        return;
+      }
+      const player = result.player;
+      if (opponent && player.state && player.state !== opponent) {
+        setError(
+          t("{name} is in state {state}, not the opponent's state {opponent}.", {
+            name: player.name,
+            state: player.state,
+            opponent,
+          }),
+        );
+      }
+      onPick({
+        member: {
+          wosId: player.wosId,
+          name: player.name,
+          power: player.power ?? 0,
+          furnaceLevel: player.furnaceLevel,
+          rank: 0,
+        },
+        alliance: alliances.find((alliance) => alliance.abbr === player.allianceAbbr) ?? {
+          id: 0,
+          abbr: player.allianceAbbr,
+          name: player.allianceName || player.allianceAbbr,
+          power: 0,
+          memberCount: 0,
+        },
+        labyrinthScore: player.labyrinthScore,
+      });
+      setLookupId("");
+    } catch {
+      setError(t("That player could not be found."));
     } finally {
       setLoading(false);
     }
@@ -187,6 +254,7 @@ export function OpponentRosterPicker({
                         furnaceLevel: player.furnaceLevel,
                         rank: 0,
                       },
+                      labyrinthScore: player.labyrinthScore ?? null,
                       alliance: alliances.find(
                         (alliance) => alliance.abbr === player.allianceAbbr,
                       ) ?? {
@@ -267,6 +335,21 @@ export function OpponentRosterPicker({
           )}
         </details>
       )}
+      <div className="invite-form roster-lookup">
+        <label>
+          {t("Add by WOS ID")}
+          <input
+            type="text"
+            inputMode="numeric"
+            value={lookupId}
+            onChange={(event) => setLookupId(event.target.value)}
+            placeholder={t("Their WOS ID from their in-game profile")}
+          />
+        </label>
+        <button type="button" disabled={loading} onClick={() => void lookUpPlayer()}>
+          {t("Look up")}
+        </button>
+      </div>
       {loading && <p>{t("Loading...")}</p>}
     </div>
   );
