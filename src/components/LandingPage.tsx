@@ -143,7 +143,7 @@ export function LandingPage() {
             </div>
             <ul className="preview-list">
               <li>
-                <span>Inferno</span>
+                <span>{t("Rally 1")}</span>
                 <time>12:31:05</time>
               </li>
               <li className="preview-you">
@@ -151,7 +151,7 @@ export function LandingPage() {
                 <time>12:31:41</time>
               </li>
               <li>
-                <span>Ember</span>
+                <span>{t("Rally 2")}</span>
                 <time>12:32:02</time>
               </li>
             </ul>
@@ -161,7 +161,7 @@ export function LandingPage() {
             <ul className="preview-steps">
               <li>{t("Draw: vs state 1234")}</li>
               <li>{t("41/48 voted")}</li>
-              <li>{t("6 rallies, 58 players")}</li>
+              <li>{t("6 rally groups, 58 players")}</li>
               <li>{t("Published")}</li>
             </ul>
           </div>

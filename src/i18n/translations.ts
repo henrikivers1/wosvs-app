@@ -32,6 +32,12 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Rally 1":
+    "Rally 1",
+  "Rally 2":
+    "Rally 2",
+  "6 rally groups, 58 players":
+    "6 grupos de rally, 58 jugadores",
   "Getting started":
     "Primeros pasos",
   "Everyone":
@@ -294,8 +300,6 @@ const spanishInterface: Record<string, string> = {
     "Sorteo: contra el estado 1234",
   "41/48 voted":
     "41/48 votaron",
-  "6 rallies, 58 players":
-    "6 rallies, 58 jugadores",
   "Live data from WOSOracle":
     "Datos en vivo de WOSOracle",
   "Works on any phone":

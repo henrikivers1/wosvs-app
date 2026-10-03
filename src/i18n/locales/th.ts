@@ -1073,7 +1073,6 @@ export const thaiInterface: Record<string, string> = {
   "Your garrison lands": "กองหนุนของคุณไปถึง",
   "Draw: vs state 1234": "จับคู่: พบสเตท 1234",
   "41/48 voted": "โหวตแล้ว 41/48",
-  "6 rallies, 58 players": "6 แรลลี่ 58 ผู้เล่น",
   "Live data from WOSOracle": "ข้อมูลสดจาก WOSOracle",
   "Works on any phone": "ใช้ได้บนมือถือทุกรุ่น",
   "5 languages": "5 ภาษา",
@@ -1101,4 +1100,7 @@ export const thaiInterface: Record<string, string> = {
   "On this page": "ในหน้านี้",
   "Common questions": "คำถามที่พบบ่อย",
   "Try every tool in the demo: no account needed, nothing leaves your browser.": "ลองทุกเครื่องมือในเดโม: ไม่ต้องใช้บัญชี ข้อมูลไม่ออกจากเบราว์เซอร์ของคุณ",
+  "Rally 1": "แรลลี่ 1",
+  "Rally 2": "แรลลี่ 2",
+  "6 rally groups, 58 players": "6 กลุ่มแรลลี่ ผู้เล่น 58 คน",
 };

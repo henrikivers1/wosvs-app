@@ -1056,7 +1056,6 @@ export const chineseInterface: Record<string, string> = {
   "Your garrison lands": "你的驻防抵达",
   "Draw: vs state 1234": "抽签：对战州 1234",
   "41/48 voted": "41/48 已投票",
-  "6 rallies, 58 players": "6 个集结，58 名玩家",
   "Live data from WOSOracle": "来自 WOSOracle 的实时数据",
   "Works on any phone": "任何手机都能用",
   "5 languages": "5 种语言",
@@ -1084,4 +1083,7 @@ export const chineseInterface: Record<string, string> = {
   "On this page": "本页内容",
   "Common questions": "常见问题",
   "Try every tool in the demo: no account needed, nothing leaves your browser.": "在演示中试用每个工具：无需账号，数据不会离开你的浏览器。",
+  "Rally 1": "集结 1",
+  "Rally 2": "集结 2",
+  "6 rally groups, 58 players": "6 个集结组，58 名玩家",
 };

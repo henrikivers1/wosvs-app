@@ -1073,7 +1073,6 @@ export const arabicInterface: Record<string, string> = {
   "Your garrison lands": "تصل حاميتك",
   "Draw: vs state 1234": "القرعة: ضد الولاية 1234",
   "41/48 voted": "صوّت 41/48",
-  "6 rallies, 58 players": "6 حشود، 58 لاعبًا",
   "Live data from WOSOracle": "بيانات مباشرة من WOSOracle",
   "Works on any phone": "يعمل على أي هاتف",
   "5 languages": "5 لغات",
@@ -1101,4 +1100,7 @@ export const arabicInterface: Record<string, string> = {
   "On this page": "في هذه الصفحة",
   "Common questions": "أسئلة شائعة",
   "Try every tool in the demo: no account needed, nothing leaves your browser.": "جرّب كل أداة في العرض التجريبي: بلا حساب، ولا شيء يغادر متصفحك.",
+  "Rally 1": "الحشد 1",
+  "Rally 2": "الحشد 2",
+  "6 rally groups, 58 players": "6 مجموعات حشد، 58 لاعبًا",
 };
