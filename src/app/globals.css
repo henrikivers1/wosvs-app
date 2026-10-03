@@ -2941,3 +2941,33 @@ article.tag-row {
 .hero-chip.added {
   border-color: #9b6bd6;
 }
+.demo-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 10px;
+  padding: 9px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+}
+.demo-banner strong {
+  color: var(--accent);
+}
+.demo-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-left: auto;
+}
+.demo-banner-actions button {
+  margin: 0;
+  padding: 6px 12px;
+}
+.demo-entry {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}

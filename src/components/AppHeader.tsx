@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { DemoBanner } from "@/components/DemoBanner";
+import { enterDemo, isDemoMode } from "@/lib/demo/mode";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
 import { isAppLocale, LANGUAGE_OPTIONS, type AppLocale } from "@/i18n/config";
@@ -162,6 +164,7 @@ export function AppHeader() {
 
   return (
     <header className="app-header">
+      <DemoBanner />
       <div className="header-top">
         <Link className="brand-link" href="/">
           <span className="brand-mark">WOS</span>
@@ -245,6 +248,11 @@ export function AppHeader() {
                 </span>
                 <Link href="/profile">{t("profile")}</Link>
                 <Link href="/account">{t("wosAccounts")}</Link>
+                {!isDemoMode() && (
+                  <button type="button" onClick={() => enterDemo()}>
+                    {t("Try the private demo")}
+                  </button>
+                )}
                 <button type="button" onClick={signOut}>
                   {t("signOut")}
                 </button>

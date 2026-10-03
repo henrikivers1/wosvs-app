@@ -83,6 +83,17 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "End the battle": "Terminar la batalla",
+  "Exit demo": "Salir de la demo",
+  "Fake players and data that live only in this browser. Nothing is saved to your state.":
+    "Jugadores y datos falsos que solo existen en este navegador. Nada se guarda en tu estado.",
+  "Private demo": "Demo privada",
+  "Reset demo": "Reiniciar demo",
+  "Reset the demo to its starting data?": "¿Reiniciar la demo con los datos iniciales?",
+  "Start the battle now": "Empezar la batalla ahora",
+  "Try the private demo": "Probar la demo privada",
+  "Want to look around first? The private demo has fake players and a fake SvS, lives only in your browser and never touches real data.":
+    "¿Quieres echar un vistazo primero? La demo privada tiene jugadores y un SvS falsos, vive solo en tu navegador y nunca toca datos reales.",
   "Change in State management": "Cambiar en Gestión del estado",
   "Hero generation": "Generación de héroes",
   "Hero generation not set: showing every generation.":

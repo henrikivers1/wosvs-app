@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import { enterDemo } from "@/lib/demo/mode";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -170,6 +171,21 @@ export default function LoginPage() {
             ? t("Need an account? Sign up")
             : t("Already have an account? Sign in")}
         </button>
+
+        <div className="demo-entry">
+          <p>
+            {t(
+              "Want to look around first? The private demo has fake players and a fake SvS, lives only in your browser and never touches real data.",
+            )}
+          </p>
+          <button
+            type="button"
+            className="secondary-link"
+            onClick={() => enterDemo()}
+          >
+            {t("Try the private demo")}
+          </button>
+        </div>
       </section>
     </main>
   );
