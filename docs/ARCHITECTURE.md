@@ -13,13 +13,13 @@ the SQL uses the same values). The castle is at 599,599.
 |---|---|---|
 | Every 6 h, hourly from a day before the expected draw | Look up the SvS draw on WOSOracle. Before the draw, store the expected draw time for the countdown | `runAutomation` → `refreshDraw` |
 | Draw published | Create the SvS plan and battle row, tell every member ("SvS opponent drawn") | `automation_ensure_svs_plan` |
-| With the draw check, at most daily until the battle | Opponent intel: summary, SvS record, 20 strongest players, our own summary | `refreshIntel` |
+| With the draw check, at most daily until the battle | Opponent intel: summary, SvS record, 20 strongest players with their Labyrinth score (one profile lookup each, once per SvS; sorted by Labyrinth, the best sign of a rally lead), our own summary | `refreshIntel` → `addLabyrinthScores` |
 | Any time | Members vote attendance (Whole / First half / Second half / Can't) and voice call | Members, `set_battle_attendance` |
 | T−30 h | Remind members who have not voted | `runAutoPlan` → `remindVoters` |
 | T−24 h | **Generate the garrison and rallies** (pet blocks 12–14, 14–16, 16–17 UTC): the garrison gets one Castle Holder per block and is filled first with the strongest defenders who play the whole battle (troop FC, then troop tier, then troop skill; `castle.ts`). Each rally gets one Rally Lead per block (extra leads go where they cover missing blocks), lands in its first lead's alliance and gets the state's default formation and joiner heroes. Rallies are then filled by the auto-fill priorities; half voters join for their half. Rally Leads and Castle Holders are never joiners (database trigger). Admins get "Rallies are ready for review" | `runAutoPlan` → `createGarrison`, `createRallies`, `fillPlan` |
 | Every hour after that | Late voters are added to open slots, never moving anyone; after publishing they get their assignment message at once | `fillRallies` |
 | T−6 h | **Publish:** alliances and plan tags applied, every member gets "Hi X, you've been assigned to Y in Z…", leaders get "you're leading Y" | `publish_battle_plan_with_notifications` |
-| 11:00 UTC | Live Battle opens an hour before the start, to the minute (pg_cron), so garrison and coordinators can enter coordinates. It appears without a reload. Enemy leaders seen in earlier battles are pre-added with their coordinates. The battle itself still runs 12:00–17:00 | `automation_advance_battles`, `seed_enemy_leaders_on_start`, StateProvider realtime |
+| 11:00 UTC | Live Battle opens an hour before the start, to the minute (pg_cron), so garrison and coordinators can enter coordinates. Owners, admins and Coordinators get "Map the enemy rally leaders". It appears without a reload. Enemy leaders seen in earlier battles are pre-added with their coordinates. The battle itself still runs 12:00–17:00 | `automation_advance_battles`, `seed_enemy_leaders_on_start`, StateProvider realtime |
 | 12:00–17:00 | Coordinators call enemy rallies; garrison players get their send countdown between rallies (or right after the last one) | Live Battle pages |
 | 17:00 UTC | Battle ends; members get "Battle over" | `automation_advance_battles` |
 | Every 6 h for 7 days | Win/Loss read from WOSOracle; "Battle over" becomes **Victory!/Defeat** for every member | `saveResults` → `automation_set_battle_result` |
@@ -98,7 +98,7 @@ Typical cost per state:
 
 - **Before the draw:** 2 requests per check (8/day; hourly on draw day).
 - **After the draw:** 4/day.
-- **Intel:** 4 requests with Premium, 9 on the base plan, once a day.
+- **Intel:** 4 requests with Premium, 9 on the base plan, once a day, plus one profile per opponent top player for the Labyrinth score (about 20 per SvS; known scores are reused).
 - **Results:** 1 per 6 h.
 - **Player sync:** 1 per account per week.
 - **Enemy-leader opponent list:** free, because it reads the stored intel.
@@ -213,7 +213,7 @@ query in parallel.
 | Category | Colour | Types |
 |---|---|---|
 | victory / defeat | green / red | `battle_result` |
-| battle | orange | `svs_drawn`, `attendance_reminder`, `rallies_generated`, `battle_started` ("Live Battle is open" at 11:00), `battle_completed`, `battle_cancelled` |
+| battle | orange | `svs_drawn`, `attendance_reminder`, `rallies_generated`, `battle_started` ("Live Battle is open" at 11:00), `map_enemy_leaders` (owners, admins, Coordinators at 11:00), `battle_completed`, `battle_cancelled` |
 | assignment | blue | `battle_plan_assignment`, `battle_plan_published`, `battle_plan_assignment_changed` |
 | role | purple | `member_role_changed`, `capability_granted` |
 | tag | the tag's colour | `state_tag_awarded` |

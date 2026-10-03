@@ -1,4 +1,5 @@
 import {
+  fetchOraclePlayer,
   OraclePlayerError,
   optionalText,
   oracleRequest,
@@ -111,6 +112,8 @@ export type StateSummary = {
     power: number;
     furnaceLevel: number;
     allianceAbbr: string;
+    // From the player's own WOSOracle profile (addLabyrinthScores).
+    labyrinthScore?: number | null;
   }[];
   alliances: OpponentAlliance[];
   stats: {
@@ -375,4 +378,56 @@ export async function fetchTopPlayers(
   return [...players.values()]
     .sort((first, second) => second.power - first.power)
     .slice(0, TOP_PLAYER_COUNT);
+}
+
+// Labyrinth score is the best sign of an enemy rally lead, and only the
+// player's own profile has it: one lookup per player. Scores already known
+// (from an earlier refresh) are reused, so each player costs one request per
+// SvS. Players that fail keep null.
+export async function addLabyrinthScores(
+  players: StateSummary["topPlayers"],
+  known: StateSummary["topPlayers"] = [],
+  options: Background = {},
+): Promise<StateSummary["topPlayers"]> {
+  const previous = new Map(
+    known
+      .filter((player) => player.wosId && typeof player.labyrinthScore === "number")
+      .map((player) => [player.wosId!, player.labyrinthScore!]),
+  );
+  const result: StateSummary["topPlayers"] = [];
+  for (const player of players) {
+    if (!player.wosId || !/^[0-9]+$/.test(player.wosId)) {
+      result.push({ ...player, labyrinthScore: null });
+      continue;
+    }
+    if (previous.has(player.wosId)) {
+      result.push({ ...player, labyrinthScore: previous.get(player.wosId)! });
+      continue;
+    }
+    try {
+      const profile = await fetchOraclePlayer(player.wosId, options);
+      result.push({
+        ...player,
+        labyrinthScore: profile.labyrinthScore ?? null,
+        furnaceLevel: player.furnaceLevel || profile.furnaceLevel || 0,
+      });
+    } catch (error) {
+      // Out of budget: stop asking, keep what we have.
+      if (error instanceof OraclePlayerError && error.status === 429) {
+        result.push(...players.slice(result.length).map((rest) => ({ ...rest, labyrinthScore: previous.get(rest.wosId ?? "") ?? null })));
+        break;
+      }
+      result.push({ ...player, labyrinthScore: null });
+    }
+  }
+  return result;
+}
+
+// Likely rally leads first: Labyrinth score, then power.
+export function byLabyrinth(players: StateSummary["topPlayers"]) {
+  return [...players].sort(
+    (first, second) =>
+      (second.labyrinthScore ?? -1) - (first.labyrinthScore ?? -1) ||
+      second.power - first.power,
+  );
 }

@@ -4614,3 +4614,17 @@ li button.lead-toggle.on:not(.holder) {
 .landing-video-sound:hover {
   background: var(--accent-hover);
 }
+
+/* Enemy leaders: the Labyrinth score marks likely rally leads */
+.roster-labyrinth {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 1px 8px;
+  color: var(--violet-text);
+  background: var(--violet-soft);
+  border: 1px solid var(--violet-line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}

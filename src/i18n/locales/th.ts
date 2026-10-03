@@ -481,7 +481,6 @@ export const thaiInterface: Record<string, string> = {
   "The selected WOS accounts are saved as the recipient list when you send. Notices expire automatically Sunday at 23:59 UTC.":
     "บัญชี WOS ที่เลือกจะถูกบันทึกเป็นรายชื่อผู้รับเมื่อส่ง ประกาศจะหมดอายุอัตโนมัติวันอาทิตย์ 23:59 UTC",
   "Their SvS record": "สถิติ SvS ของเขา",
-  "Their strongest players": "ผู้เล่นที่แข็งแกร่งที่สุดของเขา",
   "Their {count} strongest players":
     "ผู้เล่นที่แข็งแกร่งที่สุด {count} คนของเขา",
   "There is no upcoming battle plan. It is normally created automatically from the SvS draw; if it was deleted, create it again here. A state can only have one upcoming plan.":
@@ -799,7 +798,6 @@ export const thaiInterface: Record<string, string> = {
   "You can change your answer until the battle starts. If you have not voted 30 hours before, you get a reminder.": "คุณเปลี่ยนคำตอบได้จนกว่าการรบจะเริ่ม ถ้ายังไม่โหวตภายใน 30 ชั่วโมงก่อนรบ คุณจะได้รับการเตือน",
   "Get your rally": "รับแรลลี่ของคุณ",
   "Check the opponent": "ส่องคู่ต่อสู้",
-  "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.": "ข่าวกรองแสดงผู้เล่นที่แข็งแกร่งที่สุดของคู่ต่อสู้ พันธมิตร และสถิติ SvS ของพวกเขา เทียบกับตัวเลขของสเตทคุณ",
   "During the battle": "ระหว่างการรบ",
   "Garrison and coordinators": "กองหนุนและผู้ประสานงาน",
   "Garrison: when to send": "กองหนุน: ส่งเมื่อไร",
@@ -1075,7 +1073,6 @@ export const thaiInterface: Record<string, string> = {
   "Where do I get help?": "ขอความช่วยเหลือได้ที่ไหน?",
   "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.": "ส่งข้อความหาเราทาง Discord: wosoverwatch แอดมินของรัฐคุณก็ช่วยเรื่องภายในรัฐได้เช่นกัน",
   "Live Battle opens by itself at 11:00 UTC, an hour before the battle. Every member has the Garrison role, and coordinators also call rallies. Use that hour to enter coordinates.": "Live Battle เปิดเองเวลา 11:00 UTC หนึ่งชั่วโมงก่อนการต่อสู้ สมาชิกทุกคนมีบทบาท Garrison และผู้ประสานงานเรียกแรลลี่ด้วย ใช้ชั่วโมงนั้นกรอกพิกัด",
-  "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.": "ในหน้าผู้นำฝ่ายศัตรู ผู้เล่นที่แข็งแกร่งที่สุด 20 คนของคู่แข่งถูกแสดงไว้แล้ว แตะใช้ กรอกพิกัดเมืองแล้วเพิ่ม พิกัดจะถูกจดจำ ครั้งต่อไปผู้เล่นคนนั้นจะถูกเติมให้ และผู้นำที่รู้จักจะถูกเพิ่มอัตโนมัติเมื่อ Live Battle เปิด ทำเครื่องหมายสัตว์เลี้ยงของผู้นำเมื่อทำงานอยู่",
   "Mark Rally Leads and Castle Holders under Leads & holders in Planning, and give the Coordinator role to the players who call rallies. Every member has Garrison already.": "กำหนด Rally Lead และผู้ยึดปราสาทที่ผู้นำและผู้ยึดในหน้าวางแผน และให้บทบาท Coordinator แก่ผู้ที่เรียกแรลลี่ สมาชิกทุกคนมี Garrison อยู่แล้ว",
   "In State management, SvS automation decides how many rallies are built, how many players each takes, the garrison size, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.": "ในการจัดการรัฐ ระบบอัตโนมัติ SvS กำหนดจำนวนแรลลี่ที่สร้าง จำนวนผู้เล่นต่อแรลลี่ ขนาดกองหนุน รูปขบวนเริ่มต้น ฮีโร่ผู้เข้าร่วมเริ่มต้นสี่ตัว และลำดับที่การเติมอัตโนมัติใช้จัดผู้เล่น ปิดแรลลี่อัตโนมัติหรือการเผยแพร่อัตโนมัติได้หากอยากทำเอง",
   "Under the checklist, Needs attention lists what to check before publishing: a pet block without a lead or castle holder, no garrison, a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.": "ใต้รายการตรวจสอบ ส่วน “ต้องตรวจสอบ” แสดงสิ่งที่ควรดูก่อนเผยแพร่: ช่วงสัตว์เลี้ยงที่ไม่มีผู้นำหรือผู้ยึดปราสาท ไม่มีกองหนุน แรลลี่ที่ไม่มีพันธมิตรหรือฮีโร่ ผู้เล่นที่อยู่ผิดครึ่งเวลา ผู้เล่นที่ไม่มีฮีโร่ผู้เข้าร่วม หรือที่ว่างขณะที่มีผู้เล่นรอ แต่ละบรรทัดมีปุ่มแก้ไข เมื่อรายการว่างแล้วให้เผยแพร่",
@@ -1173,7 +1170,6 @@ export const thaiInterface: Record<string, string> = {
   "30 hours before the battle: a reminder goes to everyone who has not voted.": "30 ชั่วโมงก่อนการต่อสู้: ส่งการแจ้งเตือนถึงทุกคนที่ยังไม่โหวต",
   "24 hours before: the garrison and rallies are built from the votes. Admins can review and change them.": "24 ชั่วโมงก่อน: สร้างกองรักษาการณ์และแรลลี่จากผลโหวต แอดมินตรวจและแก้ไขได้",
   "6 hours before: the plan is published and everyone gets their rally, hero and formation.": "6 ชั่วโมงก่อน: เผยแพร่แผน ทุกคนได้รับแรลลี่ ฮีโร่ และรูปขบวนของตัวเอง",
-  "11:00 UTC: Live Battle opens, so the garrison and coordinators can enter coordinates.": "11:00 UTC: เปิดการต่อสู้สด ให้กองรักษาการณ์และผู้ประสานงานใส่พิกัด",
   "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).": "12:00–17:00 UTC: การต่อสู้ แบ่งเป็นสามช่วงสัตว์เลี้ยง (12–14, 14–16 และ 16–17)",
   "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.": "หลังการต่อสู้: ทุกคนได้รับชนะหรือแพ้ทันทีที่ WOSOracle มีผล",
   "Votes that come in after the rallies are built still get an open seat, and you are told at once.": "โหวตที่มาหลังสร้างแรลลี่แล้วยังได้ที่ว่าง และคุณจะได้รับแจ้งทันที",
@@ -1193,4 +1189,15 @@ export const thaiInterface: Record<string, string> = {
   "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "บันทึกจากเดโม: แผนสร้างและเผยแพร่เอง ผู้ประสานงานเรียกแรลลี่ศัตรูสองครั้ง และกองรักษาการณ์ได้นับถอยหลังเพื่อไปถึงระหว่างสองแรลลี่นั้น",
   "One minute tour of Overwatch": "ทัวร์ Overwatch หนึ่งนาที",
   "Play with sound": "เล่นพร้อมเสียง",
+  "Their likely rally leads": "ผู้นำแรลลี่ที่น่าจะเป็นของฝ่ายตรงข้าม",
+  "Their strongest players, best Labyrinth score first: the best sign of who leads their rallies.": "ผู้เล่นที่แข็งแกร่งที่สุดของพวกเขา เรียงตามคะแนนเขาวงกตสูงสุดก่อน: สัญญาณที่ดีที่สุดว่าใครเป็นผู้นำแรลลี่",
+  "Player": "ผู้เล่น",
+  "Their {count} strongest players, best Labyrinth score first": "ผู้เล่นที่แข็งแกร่งที่สุด {count} คน เรียงตามคะแนนเขาวงกตสูงสุดก่อน",
+  "Labyrinth {score}": "เขาวงกต {score}",
+  "Map the enemy rally leaders": "ทำแผนที่ผู้นำแรลลี่ของศัตรู",
+  "Map enemy leaders": "ทำแผนที่ผู้นำศัตรู",
+  "Intel shows the opponent's likely rally leads, sorted by Labyrinth score, their alliances and their SvS record next to your own state's numbers. It is all imported from WOSOracle after the draw.": "หน้าข่าวกรองแสดงผู้นำแรลลี่ที่น่าจะเป็นของคู่แข่ง เรียงตามคะแนนเขาวงกต พันธมิตร และสถิติ SvS เทียบกับตัวเลขของรัฐคุณ ทั้งหมดนำเข้าจาก WOSOracle หลังการจับคู่",
+  "11:00 UTC: Live Battle opens. Admins and coordinators are told to map the enemy rally leads, and the garrison enters their city.": "11:00 UTC: เปิดการต่อสู้สด แอดมินและผู้ประสานงานได้รับแจ้งให้ทำแผนที่ผู้นำแรลลี่ศัตรู และกองรักษาการณ์ใส่ตำแหน่งเมือง",
+  "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.": "เวลา 11:00 UTC ของวันต่อสู้ เจ้าของ แอดมิน และผู้ประสานงานจะได้รับแจ้งให้ทำแผนที่ผู้นำแรลลี่ศัตรู ในหน้า ผู้นำศัตรู มีรายชื่อผู้เล่นที่แข็งแกร่งที่สุด 20 คนของคู่แข่งอยู่แล้ว เรียงตามคะแนนเขาวงกตสูงสุดก่อน: นั่นคือผู้นำแรลลี่ที่น่าจะเป็น กด ใช้ ใส่พิกัดเมืองแล้วเพิ่ม ระบบจำพิกัดไว้: ครั้งหน้าจะกรอกให้อัตโนมัติ และผู้นำที่รู้จักจะถูกเพิ่มเมื่อเปิดการต่อสู้สด ทำเครื่องหมายสัตว์เลี้ยงของผู้นำเมื่อใช้งานอยู่",
+  "Live Battle is open. Add their likely rally leads (best Labyrinth score first) and their city coordinates under Enemy leaders before the battle starts ({start}).": "การต่อสู้สดเปิดแล้ว เพิ่มผู้นำแรลลี่ที่น่าจะเป็นของพวกเขา (คะแนนเขาวงกตสูงสุดก่อน) และพิกัดเมืองในหน้า ผู้นำศัตรู ก่อนการต่อสู้เริ่ม ({start})",
 };

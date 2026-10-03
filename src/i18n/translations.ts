@@ -28,6 +28,28 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Live Battle is open. Add their likely rally leads (best Labyrinth score first) and their city coordinates under Enemy leaders before the battle starts ({start}).":
+    "La Batalla en vivo está abierta. Añade sus probables líderes de rally (mejor puntuación del Laberinto primero) y las coordenadas de sus ciudades en Líderes enemigos antes de que empiece la batalla ({start}).",
+  "11:00 UTC: Live Battle opens. Admins and coordinators are told to map the enemy rally leads, and the garrison enters their city.":
+    "11:00 UTC: se abre la Batalla en vivo. Se avisa a administradores y coordinadores para mapear a los líderes enemigos, y la guarnición introduce su ciudad.",
+  "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
+    "A las 11:00 UTC del día de batalla, el propietario, los administradores y los coordinadores reciben un aviso para mapear a los líderes de rally enemigos. En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival, con la mejor puntuación del Laberinto primero: son sus probables líderes de rally. Pulsa Usar, introduce las coordenadas de la ciudad y añádelos. Las coordenadas se recuerdan: la próxima vez se rellenan solas, y los líderes conocidos se añaden al abrir la Batalla en vivo. Marca la mascota de un líder cuando esté activa.",
+  "Map the enemy rally leaders":
+    "Mapea a los líderes de rally enemigos",
+  "Map enemy leaders":
+    "Mapear líderes enemigos",
+  "Intel shows the opponent's likely rally leads, sorted by Labyrinth score, their alliances and their SvS record next to your own state's numbers. It is all imported from WOSOracle after the draw.":
+    "Inteligencia muestra los probables líderes de rally del rival, ordenados por puntuación del Laberinto, sus alianzas y su historial de SvS junto a los números de tu estado. Todo se importa de WOSOracle tras el sorteo.",
+  "Their likely rally leads":
+    "Sus probables líderes de rally",
+  "Their strongest players, best Labyrinth score first: the best sign of who leads their rallies.":
+    "Sus jugadores más fuertes, con la mejor puntuación del Laberinto primero: la mejor pista de quién lidera sus rallies.",
+  "Player":
+    "Jugador",
+  "Their {count} strongest players, best Labyrinth score first":
+    "Sus {count} jugadores más fuertes, con la mejor puntuación del Laberinto primero",
+  "Labyrinth {score}":
+    "Laberinto {score}",
   "Play with sound":
     "Reproducir con sonido",
   "One minute tour":
@@ -54,8 +76,6 @@ const spanishInterface: Record<string, string> = {
     "24 horas antes: la guarnición y los rallies se crean con los votos. Los administradores pueden revisarlos y cambiarlos.",
   "6 hours before: the plan is published and everyone gets their rally, hero and formation.":
     "6 horas antes: se publica el plan y cada uno recibe su rally, héroe y formación.",
-  "11:00 UTC: Live Battle opens, so the garrison and coordinators can enter coordinates.":
-    "11:00 UTC: se abre la Batalla en vivo para que la guarnición y los coordinadores introduzcan coordenadas.",
   "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).":
     "12:00–17:00 UTC: la batalla, en tres bloques de mascotas (12–14, 14–16 y 16–17).",
   "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.":
@@ -246,8 +266,6 @@ const spanishInterface: Record<string, string> = {
     "Los avisos caducados se eliminan automáticamente, y los contadores de PIN incorrectos al cabo de un día.",
   "Live Battle opens by itself at 11:00 UTC, an hour before the battle. Every member has the Garrison role, and coordinators also call rallies. Use that hour to enter coordinates.":
     "La batalla en vivo se abre sola a las 11:00 UTC, una hora antes de la batalla. Todos los miembros tienen el rol de Guarnición y los coordinadores además lanzan rallies. Usa esa hora para introducir coordenadas.",
-  "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
-    "En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival. Pulsa Usar, introduce las coordenadas de la ciudad y añádelos. Las coordenadas se recuerdan: la próxima vez ese jugador aparece relleno y los líderes conocidos se añaden solos cuando se abre la batalla en vivo. Marca la mascota de un líder cuando esté activa.",
   "Mark Rally Leads and Castle Holders under Leads & holders in Planning, and give the Coordinator role to the players who call rallies. Every member has Garrison already.":
     "Marca a los líderes de rally y defensores del castillo en Líderes y defensores de Planificación, y da el rol de Coordinador a quienes lanzan rallies. Todos los miembros ya tienen Guarnición.",
   "In State management, SvS automation decides how many rallies are built, how many players each takes, the garrison size, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
@@ -638,8 +656,6 @@ const spanishInterface: Record<string, string> = {
     "Recibe tu rally",
   "Check the opponent":
     "Revisa al rival",
-  "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.":
-    "Inteligencia muestra los jugadores más fuertes del rival, sus alianzas y su historial de SvS junto a las cifras de tu propio estado.",
   "During the battle":
     "Durante la batalla",
   "Garrison and coordinators":
@@ -1182,7 +1198,6 @@ const spanishInterface: Record<string, string> = {
   "The opponent is drawn but intel has not been collected yet. It appears after the next automatic WOSOracle check.":
     "El rival está sorteado pero aún no se ha recopilado información. Aparecerá tras la próxima comprobación automática de WOSOracle.",
   "Their SvS record": "Su historial de SvS",
-  "Their strongest players": "Sus jugadores más fuertes",
   "Top alliances": "Mejores alianzas",
   Voice: "Voz",
   "Voice call only": "Solo chat de voz",

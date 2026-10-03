@@ -1,11 +1,20 @@
 // node anim.mjs <scratch> <scene> <seconds> [stills ms,ms]
 import { chromium } from "playwright";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 const [S, scene, seconds, stills] = process.argv.slice(2);
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+// The castle replays the recorded battle (written by record.mjs).
+const marksFile = `${S}/vid/marks.json`;
+if (existsSync(marksFile)) {
+  const marks = JSON.parse(readFileSync(marksFile, "utf8"));
+  await page.addInitScript((m) => { window.MARKS = m; }, marks);
+}
 await page.goto(`file://${new URL("./anim.html", import.meta.url).pathname}`);
 await page.evaluate(() => window.ready);
+if (scene === "castle") {
+  writeFileSync(`${S}/vid/castle-events.json`, JSON.stringify(await page.evaluate(() => window.castleEvents())));
+}
 const grab = (ms) => page.evaluate(([s, t]) => { window.render(s, t); return document.getElementById("c").toDataURL("image/jpeg", 0.95); }, [scene, ms]);
 if (stills) {
   for (const ms of stills.split(",").map(Number)) {

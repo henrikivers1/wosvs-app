@@ -3,11 +3,14 @@ import { syncWosAccount } from "@/lib/playerSync";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { OraclePlayerError, oracleDailyBudget } from "@/lib/wosOracle";
 import {
+  addLabyrinthScores,
+  byLabyrinth,
   fetchStateSummary,
   fetchTopPlayers,
   fetchSvsForecast,
   fetchSvsMatchup,
   fetchSvsRecord,
+  type StateSummary,
 } from "@/lib/wosOracleState";
 import { BATTLE_DURATION_MS, svsBattleStart } from "@/lib/svsTime";
 
@@ -168,7 +171,7 @@ async function refreshIntel(
 ) {
   const { data: existing } = await admin
     .from("battle_intel")
-    .select("opponent_state, fetched_at")
+    .select("opponent_state, fetched_at, opponent")
     .eq("plan_id", target.planId)
     .maybeSingle();
   if (
@@ -187,8 +190,19 @@ async function refreshIntel(
     fetchStateSummary(target.stateNumber, background),
   ]);
   opponentSvs.recent = opponentSvs.recent.slice(0, 10);
-  // Their 20 strongest players, the likely rally leaders.
-  opponent.topPlayers = await fetchTopPlayers(opponent, background);
+  // Their 20 strongest players, the likely rally leaders, with the Labyrinth
+  // score from each one's profile (kept from the last refresh when known).
+  const previous =
+    existing?.opponent_state === target.opponent
+      ? ((existing.opponent as StateSummary | null)?.topPlayers ?? [])
+      : [];
+  opponent.topPlayers = byLabyrinth(
+    await addLabyrinthScores(
+      await fetchTopPlayers(opponent, background),
+      previous,
+      background,
+    ),
+  );
   const { error } = await admin.from("battle_intel").upsert({
     plan_id: target.planId,
     state_id: target.stateId,

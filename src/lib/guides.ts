@@ -78,7 +78,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           "30 hours before the battle: a reminder goes to everyone who has not voted.",
           "24 hours before: the garrison and rallies are built from the votes. Admins can review and change them.",
           "6 hours before: the plan is published and everyone gets their rally, hero and formation.",
-          "11:00 UTC: Live Battle opens, so the garrison and coordinators can enter coordinates.",
+          "11:00 UTC: Live Battle opens. Admins and coordinators are told to map the enemy rally leads, and the garrison enters their city.",
           "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17).",
           "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.",
         ],
@@ -99,7 +99,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Check the opponent",
-        body: "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.",
+        body: "Intel shows the opponent's likely rally leads, sorted by Labyrinth score, their alliances and their SvS record next to your own state's numbers. It is all imported from WOSOracle after the draw.",
       },
     ],
   },
@@ -128,7 +128,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Coordinators: enemy leaders",
-        body: "Under Enemy leaders the opponent's 20 strongest players are already listed. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.",
+        body: "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.",
       },
       {
         title: "Coordinators: call a rally",

@@ -65,6 +65,7 @@ const NOTIFICATION_LINKS: Record<string, { href: string; label: string }> = {
     label: "Open comments",
   },
   battle_started: { href: "/battle", label: "Open Live Battle" },
+  map_enemy_leaders: { href: "/admin/leaders", label: "Map enemy leaders" },
   battle_completed: HISTORY,
   battle_result: HISTORY,
   battle_cancelled: HISTORY,

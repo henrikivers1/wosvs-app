@@ -2,6 +2,7 @@ import {
   emitDemoMemberNotifications,
   snapshotDemoMembers,
 } from "@/lib/demo/notify";
+import { notifyDemoUser } from "@/lib/demo/notify";
 import { demoTable, nowIso, saveDemoTables } from "@/lib/demo/store";
 
 // Demo time controls: jump straight to the live battle or end it, so the
@@ -33,6 +34,18 @@ export function demoStartBattleNow() {
       svs_next_battle_at: startIso,
     });
   }
+  // As at 11:00 UTC: the owner (the demo user) is told to map enemy leaders.
+  const owner = demoTable("state_members").find(
+    (row) => row.state_id === battle.state_id && row.role === "owner",
+  );
+  notifyDemoUser(
+    "map_enemy_leaders",
+    "Map the enemy rally leaders",
+    "Live Battle is open. Add their likely rally leads (best Labyrinth score first) and their city coordinates under Enemy leaders before the battle starts.",
+    { battle_id: battle.id, battle_name: battle.name, battle_start: startIso },
+    battle.state_id,
+    owner?.wos_account_id ?? null,
+  );
   saveDemoTables();
 }
 

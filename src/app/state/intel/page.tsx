@@ -102,6 +102,9 @@ export default function IntelPage() {
   const opponentPower = totalPower(opponent.alliances);
   const ownPower = totalPower(own.alliances);
   const rows = Math.max(opponent.alliances.length, own.alliances.length);
+  const hasLabyrinth = opponent.topPlayers.some(
+    (player) => typeof player.labyrinthScore === "number",
+  );
 
   return (
     <main>
@@ -162,18 +165,50 @@ export default function IntelPage() {
       </section>
 
       <section>
-        <h2>{t("Their strongest players")}</h2>
+        <h2>{t("Their likely rally leads")}</h2>
         {opponent.topPlayers.length === 0 ? (
           <p>{t("No player data yet.")}</p>
         ) : (
-          <ol>
-            {opponent.topPlayers.map((player) => (
-              <li key={player.wosId ?? player.name}>
-                {player.allianceAbbr && `[${player.allianceAbbr}] `}
-                <strong>{player.name}</strong> — {formatNumber(player.power)}
-              </li>
-            ))}
-          </ol>
+          <>
+            {hasLabyrinth && (
+              <p>
+                {t(
+                  "Their strongest players, best Labyrinth score first: the best sign of who leads their rallies.",
+                )}
+              </p>
+            )}
+            <div className="intel-table-wrap">
+              <table className="intel-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>{t("Player")}</th>
+                    {hasLabyrinth && <th>{t("Labyrinth score")}</th>}
+                    <th>{t("Power")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {opponent.topPlayers.map((player, index) => (
+                    <tr key={player.wosId ?? player.name}>
+                      <td>{index + 1}</td>
+                      <td>
+                        {player.allianceAbbr && `[${player.allianceAbbr}] `}
+                        <strong>{player.name}</strong>
+                      </td>
+                      {hasLabyrinth && (
+                        <td>
+                          {typeof player.labyrinthScore === "number"
+                            ? formatNumber(player.labyrinthScore)
+                            : "—"}
+                        </td>
+                      )}
+                      <td>{formatNumber(player.power)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 

@@ -60,6 +60,7 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   battle_started: "battle",
   battle_completed: "battle",
   battle_cancelled: "battle",
+  map_enemy_leaders: "battle",
   attendance_reminder: "battle",
   rallies_generated: "battle",
   svs_drawn: "battle",
@@ -195,6 +196,15 @@ export function localizedNotificationText(
         body: t(
           "{battle} has ended. The win or loss follows as soon as the result is in.",
           { battle: data.battle_name },
+        ),
+      };
+    case "map_enemy_leaders":
+      if (!data.battle_start) return null;
+      return {
+        title: t("Map the enemy rally leaders"),
+        body: t(
+          "Live Battle is open. Add their likely rally leads (best Labyrinth score first) and their city coordinates under Enemy leaders before the battle starts ({start}).",
+          { start },
         ),
       };
     case "battle_cancelled":

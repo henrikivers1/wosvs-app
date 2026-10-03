@@ -143,7 +143,7 @@ seg("intel", 9.0);
 await wait(400);
 await point(page.locator("a.main-nav-link", { hasText: "Intel" }));
 await page.waitForURL("**/state/intel"); await wait(1500);
-const players = page.locator("section", { hasText: "Their strongest players" }).first();
+const players = page.locator("section", { hasText: "Their likely rally leads" }).first();
 await scrollToEl(players, 120); await wait(700);
 await caption({ k: "Automatic imports", t: "So do your own stats.", s: "Power, Furnace, Labyrinth score and alliance from WOSOracle, refreshed every Monday." });
 await point(page.locator(".profile-menu summary, .header-profile summary, summary:has(.profile-avatar)").first());
@@ -180,8 +180,8 @@ await caption(null, true);
 await page.evaluate(() => [...document.querySelectorAll(".demo-banner button")].find((b) => b.textContent.includes("Start the battle"))?.click());
 await page.waitForLoadState("load"); await wait(2500);
 await page.goto(base + "/admin/leaders"); await wait(2000);
-for (const [i, xy] of [[0, [612, 588]], [1, [596, 611]]]) {
-  await page.getByRole("button", { name: "Use" }).nth(i).click(); await wait(300);
+for (const [name, xy] of [["Inferno", [612, 588]], ["Ember", [596, 611]]]) {
+  await page.locator(".roster-list li").filter({ hasText: new RegExp(`\\] ${name} —`) }).getByRole("button", { name: "Use" }).click(); await wait(300);
   await page.getByLabel("X coordinate").first().fill(String(xy[0]));
   await page.getByLabel("Y coordinate").first().fill(String(xy[1]));
   await page.getByRole("button", { name: "Add leader" }).click(); await wait(600);
@@ -198,11 +198,36 @@ const leader = page.getByLabel("Rally leader");
 await point(leader, { click: false }); await leader.selectOption({ label: "Inferno" }); await wait(300);
 await type(page.getByLabel("Rally minutes remaining"), "0");
 await type(page.getByLabel("Rally seconds remaining"), "25");
-await point(page.getByRole("button", { name: "Call rally" })); await wait(500);
-await point(leader, { click: false }); await leader.selectOption({ label: "Ember" }); await wait(300);
-await type(page.getByLabel("Rally seconds remaining"), "35");
+const marchOf = async () => Number((await page.locator("main").innerText()).match(/March: (\d+) seconds/)[1]);
+const infernoMarch = await marchOf();
 await point(page.getByRole("button", { name: "Call rally" }));
+const infernoCalledAt = Date.now() / 1000;
+await wait(500);
+await point(leader, { click: false }); await leader.selectOption({ label: "Ember" }); await wait(300);
+const emberMarch = await marchOf();
+// Ember must land GAP seconds before Inferno: call it at exactly the right moment.
+const GAP = 1.08;
+const emberTimer = 40;
+await type(page.getByLabel("Rally seconds remaining"), String(emberTimer));
+const callButton = page.getByRole("button", { name: "Call rally" });
+await point(callButton, { click: false });
+const emberAt = infernoCalledAt + 25 + infernoMarch - GAP - emberTimer - emberMarch;
+const early = emberAt * 1000 - Date.now();
+if (early < 0) throw new Error(`Too slow to call Ember on time (${early} ms)`);
+await wait(early);
+await page.evaluate(() => window.__owPress()); await callButton.click();
 await endSeg();
+const window1 = await page.locator("article", { hasText: "Window 1" }).first().innerText();
+const timeOf = (text) => { const [h, m, sec] = text.split(":").map(Number); return h * 3600 + m * 60 + sec; };
+const between = window1.match(/between ([\d:.]+) and ([\d:.]+) UTC \(([\d.]+) s gap\)/);
+const sendAt = window1.match(/Send reinforcement at: ([\d:.]+)/);
+const ownMarch = Number((await page.locator("main").innerText()).match(/Your march time: (\d+) seconds/)[1]);
+const marks = {
+  send: sendAt[1], first: { name: "Ember", hit: timeOf(between[1]) - timeOf(sendAt[1]), march: emberMarch },
+  second: { name: "Inferno", hit: timeOf(between[2]) - timeOf(sendAt[1]), march: infernoMarch },
+  ownMarch, gap: Number(between[3]),
+};
+console.log("marks", JSON.stringify(marks));
 
 // ---- Garrison countdown: it starts so SEND NOW comes about 8 s into the scene
 const firstStatus = page.locator(".send-status").first();
@@ -219,6 +244,8 @@ await scrollToEl(windowCard, 230);
 await windowCard.evaluate((el) => el.classList.add("ow-spot"));
 await page.evaluate(() => window.__owCursor(1150, 700));
 await windowCard.locator(".send-status.send-now").waitFor({ timeout: 30000 });
+marks.sendNowInGarrison = (Date.now() - current.started) / 1000;
+writeFileSync(`${S}/vid/marks.json`, JSON.stringify(marks, null, 1));
 await caption({ k: "Garrison", t: "Send now.", s: "Land in the gap between Ember and Inferno." }, true);
 await wait(500); await shot("6-sendnow");
 await endSeg();

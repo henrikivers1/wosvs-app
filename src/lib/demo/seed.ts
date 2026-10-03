@@ -440,13 +440,15 @@ export function buildDemoSeed(now: Date): DemoTables {
           stateNumber: DEMO_OPPONENT_NUMBER,
           trackedPlayers: 1180,
           // Their 20 strongest players, the likely rally leaders.
+          // Labyrinth score does not follow power: that is the point.
           topPlayers: Array.from({ length: 20 }, (_, index) => ({
             wosId: String(400_000_000 + index),
             name: `${ENEMY_NAMES[index % ENEMY_NAMES.length]}${index < ENEMY_NAMES.length ? "" : index + 1}`,
             power: 320_000_000 - index * 9_000_000,
             furnaceLevel: 80 - Math.floor(index / 4),
             allianceAbbr: enemyAlliances[index % 5].abbr,
-          })),
+            labyrinthScore: 3400 - ((index * 7) % 20) * 110 - index * 12,
+          })).sort((first, second) => second.labyrinthScore - first.labyrinthScore),
           alliances: enemyAlliances,
           stats: [
             {

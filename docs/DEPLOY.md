@@ -45,7 +45,7 @@ Vercel in step 4.
 3. **Database:** in the SQL Editor run, in filename order, every file in
    `supabase/migrations/` that has not been run on this project yet. A brand
    new project runs `supabase/schema.sql` first.
-   - The last one is `20261007090000_wos_id_pin_login.sql`.
+   - The last one is `20261007120000_map_enemy_leaders_notice.sql`.
    - Check: `select jobname, schedule from cron.job;` lists
      `wos-advance-battles` and `wos-housekeeping`. If not, pg_cron was off:
      enable it and run `20261005120000_…` and `20261005150000_…` again.

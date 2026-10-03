@@ -150,9 +150,13 @@ export function OpponentRosterPicker({
       {topPlayers.length > 0 && (
         <>
           <p>
-            {t("Their {count} strongest players", {
-              count: topPlayers.length,
-            })}
+            {topPlayers.some((player) => typeof player.labyrinthScore === "number")
+              ? t("Their {count} strongest players, best Labyrinth score first", {
+                  count: topPlayers.length,
+                })
+              : t("Their {count} strongest players", {
+                  count: topPlayers.length,
+                })}
           </p>
           <ul className="roster-list">
             {topPlayers.map((player, index) => (
@@ -161,6 +165,13 @@ export function OpponentRosterPicker({
                   {index + 1}.{" "}
                   {player.allianceAbbr && `[${player.allianceAbbr}] `}
                   <strong>{player.name}</strong> — {formatNumber(player.power)}
+                  {typeof player.labyrinthScore === "number" && (
+                    <span className="roster-labyrinth">
+                      {t("Labyrinth {score}", {
+                        score: formatNumber(player.labyrinthScore),
+                      })}
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"
