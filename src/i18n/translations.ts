@@ -28,6 +28,8 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Play with sound":
+    "Reproducir con sonido",
   "One minute tour":
     "Recorrido de un minuto",
   "Watch a whole SvS run itself":

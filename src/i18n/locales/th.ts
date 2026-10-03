@@ -1192,4 +1192,5 @@ export const thaiInterface: Record<string, string> = {
   "Watch a whole SvS run itself": "ดู SvS ทั้งศึกดำเนินไปเอง",
   "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "บันทึกจากเดโม: แผนสร้างและเผยแพร่เอง ผู้ประสานงานเรียกแรลลี่ศัตรูสองครั้ง และกองรักษาการณ์ได้นับถอยหลังเพื่อไปถึงระหว่างสองแรลลี่นั้น",
   "One minute tour of Overwatch": "ทัวร์ Overwatch หนึ่งนาที",
+  "Play with sound": "เล่นพร้อมเสียง",
 };

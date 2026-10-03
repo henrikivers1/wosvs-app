@@ -1,0 +1,301 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: Archivo; src: url(archivo.woff2) format("woff2"); font-weight: 400 800; }
+  @font-face { font-family: "IBM Plex Mono"; src: url(plexmono.woff2) format("woff2"); font-weight: 500; }
+</style>
+<style>
+  html, body { margin: 0; background: #0b1d31; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// Deterministic animations for the landing video: render(scene, ms) draws one frame.
+const C = document.getElementById("c");
+const g = C.getContext("2d");
+const W = 1920, H = 1080;
+const COL = {
+  navy: "#0b1d31", deep: "#081524", raised: "#132b44", line: "#1e3a57", lineStrong: "#2b4c6e",
+  frost: "#eaf4fb", muted: "#86a5bf", mutedStrong: "#c2d7e7", ice: "#8ec4e6",
+  gold: "#f2b33d", goldText: "#f8d48c", aurora: "#5fe0c0", violet: "#9a7cf0", rose: "#f07c7c", roseText: "#ffc2c1",
+};
+const DISPLAY = "Archivo, Arial, sans-serif";
+const MONO = "'IBM Plex Mono', monospace";
+
+const logo = new Image();
+logo.src = "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M4,20 Q14,10 26,15" fill="none" stroke="#9A7CF0" stroke-width="2.2" stroke-linecap="round"/><path d="M4,30 Q15,21 28,25" fill="none" stroke="#5FE0C0" stroke-width="2.2" stroke-linecap="round"/><polygon points="6,88 30,46 54,88" fill="#1A3654"/><polygon points="30,46 37.2,58 33,55 29,60 25,55 22.8,58" fill="#C9DFEE"/><polygon points="18,88 54,22 92,88" fill="#24456A"/><polygon points="54,22 65.6,42 60,38 55,44 49,38 43.1,42" fill="#EAF4FB"/><line x1="54" y1="22" x2="54" y2="13" stroke="#EAF4FB" stroke-width="2.5"/><rect x="49.5" y="3" width="9" height="9" fill="#F2B33D"/><line x1="2" y1="89" x2="98" y2="89" stroke="#EAF4FB" stroke-width="3"/></svg>`);
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeOut = (t) => 1 - Math.pow(1 - clamp(t), 3);
+const span = (ms, from, to) => clamp((ms - from) / (to - from));
+function rng(seed) { let s = seed; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
+
+// Drifting snow, the same for every frame at a given time.
+const flakes = (() => { const r = rng(7); return Array.from({ length: 140 }, () => ({ x: r() * W, y: r() * H, s: 1 + r() * 2.6, v: 18 + r() * 40, w: r() * 6.28 })); })();
+function snow(ms, alpha = 1) {
+  const t = ms / 1000;
+  g.save();
+  for (const f of flakes) {
+    const y = (f.y + f.v * t) % H;
+    const x = (f.x + Math.sin(t * 0.6 + f.w) * 24 + W) % W;
+    g.globalAlpha = alpha * (0.25 + f.s / 5);
+    g.fillStyle = COL.frost;
+    g.beginPath(); g.arc(x, y, f.s, 0, 6.283); g.fill();
+  }
+  g.restore();
+}
+function backdrop() {
+  const grad = g.createRadialGradient(W / 2, H * 0.38, 60, W / 2, H * 0.45, W * 0.75);
+  grad.addColorStop(0, "#163352"); grad.addColorStop(0.55, COL.navy); grad.addColorStop(1, COL.deep);
+  g.fillStyle = grad; g.fillRect(0, 0, W, H);
+}
+function text(str, x, y, { size = 40, weight = 700, color = COL.frost, font = DISPLAY, align = "center", alpha = 1, spacing = 0, stretch = "normal" } = {}) {
+  g.save();
+  g.globalAlpha = alpha;
+  g.font = `${stretch === "normal" ? "" : stretch + " "}${weight} ${size}px ${font}`;
+  g.fillStyle = color; g.textAlign = align; g.textBaseline = "middle";
+  if (spacing) g.letterSpacing = spacing + "px";
+  g.fillText(str, x, y);
+  g.restore();
+}
+function pill(x, y, w, h, fill, stroke) {
+  g.beginPath(); g.roundRect(x, y, w, h, h / 2);
+  if (fill) { g.fillStyle = fill; g.fill(); }
+  if (stroke) { g.strokeStyle = stroke; g.lineWidth = 2; g.stroke(); }
+}
+
+// ---------- Title and end cards ----------
+function card(ms, { title, sub, cta, url, outAt }) {
+  backdrop();
+  snow(ms, 0.8);
+  const fadeOut = outAt ? 1 - span(ms, outAt, outAt + 500) : 1;
+  const a = easeOut(span(ms, 0, 900));
+  const s = 0.82 + 0.18 * a;
+  g.save();
+  g.globalAlpha = a * fadeOut;
+  const size = 150 * s;
+  if (logo.complete) g.drawImage(logo, W / 2 - size / 2, 300 - size / 2 - 20 * (1 - a), size, size);
+  g.restore();
+  // Wordmark: letters rise in one after another.
+  const word = title;
+  g.save();
+  g.font = `800 132px ${DISPLAY}`;
+  const total = g.measureText(word).width;
+  let x = W / 2 - total / 2;
+  for (let i = 0; i < word.length; i++) {
+    const p = easeOut(span(ms, 350 + i * 55, 950 + i * 55));
+    const w = g.measureText(word[i]).width;
+    text(word[i], x + w / 2, 500 + 40 * (1 - p), { size: 132, weight: 800, alpha: p * fadeOut });
+    x += w;
+  }
+  g.restore();
+  text(sub, W / 2, 610, { size: 40, weight: 500, color: COL.mutedStrong, alpha: easeOut(span(ms, 1100, 1700)) * fadeOut });
+  if (cta) {
+    const p = easeOut(span(ms, 1500, 2100));
+    g.save(); g.globalAlpha = p * fadeOut;
+    g.font = `700 40px ${DISPLAY}`;
+    const w = g.measureText(cta).width + 80;
+    g.beginPath(); g.roundRect(W / 2 - w / 2, 690 + 20 * (1 - p), w, 84, 18); g.fillStyle = COL.gold; g.fill();
+    g.restore();
+    text(cta, W / 2, 732 + 20 * (1 - p), { size: 40, weight: 700, color: COL.navy, alpha: p * fadeOut });
+    text(url, W / 2, 830, { size: 34, weight: 500, font: MONO, color: COL.ice, alpha: easeOut(span(ms, 1900, 2500)) * fadeOut, spacing: 2 });
+  }
+}
+
+// ---------- The castle: a garrison landing between two enemy rallies ----------
+// Game seconds after SEND NOW (19:42:24.2 UTC) from the recorded battle.
+const SEND = { h: 19, m: 42, s: 24.2 };
+const EMBER = { name: "Ember", coords: "596:611", march: 59, hit: 33.0, from: [430, 700], color: COL.rose };
+const INFERNO = { name: "Inferno", coords: "612:588", march: 79, hit: 39.1, from: [1540, 330], color: COL.rose };
+const YOU = { name: "Your garrison", coords: "600:606", march: 36, hit: 36.0, from: [690, 760], color: COL.aurora };
+const CASTLE = [1010, 470];
+const LAPSE = { start: 900, end: 8100, from: -1, to: 41 }; // ms → game seconds
+
+function gameTime(ms) {
+  const p = span(ms, LAPSE.start, LAPSE.end);
+  return LAPSE.from + (LAPSE.to - LAPSE.from) * p;
+}
+function clock(sec) {
+  let total = SEND.h * 3600 + SEND.m * 60 + SEND.s + sec;
+  const h = Math.floor(total / 3600); total -= h * 3600;
+  const m = Math.floor(total / 60); const s = total - m * 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
+}
+function grid() {
+  g.save();
+  g.strokeStyle = "rgba(142,196,230,0.07)"; g.lineWidth = 1.5;
+  for (let i = -30; i < 60; i++) {
+    g.beginPath(); g.moveTo(i * 70, 0); g.lineTo(i * 70 + H * 1.15, H); g.stroke();
+    g.beginPath(); g.moveTo(i * 70, 0); g.lineTo(i * 70 - H * 1.15, H); g.stroke();
+  }
+  g.restore();
+}
+function drawCastle(glow) {
+  const [cx, cy] = CASTLE;
+  g.save();
+  if (glow) {
+    const rad = g.createRadialGradient(cx, cy, 10, cx, cy, 220);
+    rad.addColorStop(0, `rgba(95,224,192,${0.35 * glow})`); rad.addColorStop(1, "rgba(95,224,192,0)");
+    g.fillStyle = rad; g.beginPath(); g.arc(cx, cy, 220, 0, 6.283); g.fill();
+  }
+  // Platform
+  g.fillStyle = "#16324f"; g.beginPath();
+  g.moveTo(cx, cy - 120); g.lineTo(cx + 210, cy); g.lineTo(cx, cy + 120); g.lineTo(cx - 210, cy); g.closePath(); g.fill();
+  g.strokeStyle = COL.lineStrong; g.lineWidth = 3; g.stroke();
+  // Walls
+  g.fillStyle = "#24456a";
+  g.fillRect(cx - 120, cy - 70, 240, 90);
+  g.fillStyle = "#2f5a86"; g.fillRect(cx - 120, cy - 82, 240, 14);
+  for (let i = 0; i < 9; i++) { g.fillStyle = "#2f5a86"; g.fillRect(cx - 120 + i * 28, cy - 96, 16, 16); }
+  // Towers
+  for (const tx of [-130, 130]) {
+    g.fillStyle = "#1f3d5f"; g.fillRect(cx + tx - 26, cy - 130, 52, 150);
+    g.fillStyle = COL.frost; g.beginPath(); g.moveTo(cx + tx - 32, cy - 130); g.lineTo(cx + tx, cy - 172); g.lineTo(cx + tx + 32, cy - 130); g.closePath(); g.fill();
+  }
+  // Keep
+  g.fillStyle = "#2a5078"; g.fillRect(cx - 50, cy - 170, 100, 190);
+  g.fillStyle = COL.frost; g.beginPath(); g.moveTo(cx - 60, cy - 170); g.lineTo(cx, cy - 235); g.lineTo(cx + 60, cy - 170); g.closePath(); g.fill();
+  g.strokeStyle = COL.frost; g.lineWidth = 4; g.beginPath(); g.moveTo(cx, cy - 235); g.lineTo(cx, cy - 275); g.stroke();
+  g.fillStyle = COL.gold; g.fillRect(cx + 2, cy - 275, 34, 22);
+  // Gate
+  g.fillStyle = COL.deep; g.beginPath(); g.roundRect(cx - 22, cy - 30, 44, 50, [22, 22, 0, 0]); g.fill();
+  g.restore();
+  text("SUNFIRE CASTLE · 599,599", cx, cy + 150, { size: 22, weight: 500, font: MONO, color: COL.mutedStrong, spacing: 3 });
+}
+function city(p, label, coords, color, alpha) {
+  const [x, y] = p;
+  g.save(); g.globalAlpha = alpha;
+  g.fillStyle = COL.raised; g.strokeStyle = color; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(x, y - 34); g.lineTo(x + 46, y); g.lineTo(x, y + 34); g.lineTo(x - 46, y); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = color; g.fillRect(x - 12, y - 18, 24, 22);
+  g.beginPath(); g.moveTo(x - 16, y - 18); g.lineTo(x, y - 32); g.lineTo(x + 16, y - 18); g.closePath(); g.fill();
+  g.restore();
+  text(label, x, y + 62, { size: 28, weight: 700, color, alpha });
+  text(coords, x, y + 94, { size: 20, weight: 500, font: MONO, color: COL.muted, alpha });
+}
+function march(unit, sec, alpha) {
+  const [x0, y0] = unit.from; const [x1, y1] = CASTLE;
+  const departed = unit.hit - unit.march;
+  const p = clamp((sec - departed) / unit.march);
+  g.save(); g.globalAlpha = alpha;
+  g.setLineDash([14, 14]); g.lineDashOffset = -sec * 30;
+  g.strokeStyle = unit.color === COL.aurora ? "rgba(95,224,192,0.55)" : "rgba(240,124,124,0.5)";
+  g.lineWidth = 4; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+  g.setLineDash([]);
+  if (sec >= departed && sec <= unit.hit + 0.2) {
+    const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p;
+    // Trail
+    const tx = x0 + (x1 - x0) * clamp(p - 0.12), ty = y0 + (y1 - y0) * clamp(p - 0.12);
+    const tg = g.createLinearGradient(tx, ty, x, y);
+    tg.addColorStop(0, "rgba(0,0,0,0)"); tg.addColorStop(1, unit.color);
+    g.strokeStyle = tg; g.lineWidth = 10; g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke();
+    g.fillStyle = unit.color; g.beginPath(); g.arc(x, y, 15, 0, 6.283); g.fill();
+    g.strokeStyle = COL.navy; g.lineWidth = 4; g.stroke();
+    const left = Math.max(0, unit.hit - sec);
+    pill(x + 24, y - 22, 132, 44, "rgba(8,21,36,0.92)", unit.color);
+    text(`${left.toFixed(1)} s`, x + 90, y, { size: 24, weight: 500, font: MONO, color: unit.color === COL.aurora ? COL.aurora : COL.roseText });
+  }
+  g.restore();
+}
+function impact(sec, at, color, label, sub, side) {
+  const d = sec - at;
+  if (d < 0) return;
+  const [cx, cy] = CASTLE;
+  const ring = clamp(d / 1.6);
+  g.save();
+  g.globalAlpha = 1 - ring;
+  g.strokeStyle = color; g.lineWidth = 10 * (1 - ring) + 2;
+  g.beginPath(); g.ellipse(cx, cy + 10, 60 + ring * 300, 34 + ring * 170, 0, 0, 6.283); g.stroke();
+  g.restore();
+  const a = clamp(d / 0.4) * (1 - clamp((d - 4.5) / 0.6)) * (1 - window.__labelFade);
+  const x = side === "left" ? cx - 300 : cx + 300;
+  const y = cy - 260 + (side === "left" ? 0 : 0);
+  g.save(); g.globalAlpha = a;
+  g.font = `700 34px ${DISPLAY}`;
+  const w = Math.max(g.measureText(label).width, 300) + 60;
+  g.beginPath(); g.roundRect(x - w / 2, y - 50, w, sub ? 108 : 76, 16); g.fillStyle = "rgba(8,21,36,0.94)"; g.fill();
+  g.strokeStyle = color; g.lineWidth = 3; g.stroke();
+  g.restore();
+  text(label, x, y - 12, { size: 34, weight: 700, color, alpha: a });
+  if (sub) text(sub, x, y + 28, { size: 22, weight: 500, font: MONO, color: COL.mutedStrong, alpha: a });
+}
+function timeline(sec, alpha) {
+  // Impact times around the gap, to scale.
+  const x0 = 360, x1 = 1560, y = 990, from = 30, to = 42;
+  const X = (s) => x0 + ((s - from) / (to - from)) * (x1 - x0);
+  g.save(); g.globalAlpha = alpha;
+  g.beginPath(); g.roundRect(x0 - 40, y - 64, x1 - x0 + 80, 112, 18); g.fillStyle = "rgba(8,21,36,0.9)"; g.fill();
+  g.strokeStyle = COL.lineStrong; g.lineWidth = 2; g.stroke();
+  // Gap
+  g.fillStyle = "rgba(95,224,192,0.16)"; g.fillRect(X(EMBER.hit), y - 26, X(INFERNO.hit) - X(EMBER.hit), 30);
+  g.strokeStyle = COL.line; g.lineWidth = 3; g.beginPath(); g.moveTo(x0, y - 11); g.lineTo(x1, y - 11); g.stroke();
+  g.restore();
+  text("6.1 s gap", (X(EMBER.hit) + X(INFERNO.hit)) / 2, y + 26, { size: 20, weight: 500, font: MONO, color: COL.aurora, alpha });
+  for (const [s, label, color] of [[EMBER.hit, "Ember", COL.rose], [YOU.hit, "You land", COL.aurora], [INFERNO.hit, "Inferno", COL.rose]]) {
+    const done = sec >= s;
+    g.save(); g.globalAlpha = alpha;
+    g.fillStyle = done ? color : COL.raised; g.strokeStyle = color; g.lineWidth = 3;
+    g.beginPath(); g.arc(X(s), y - 11, 11, 0, 6.283); g.fill(); g.stroke();
+    g.restore();
+    text(label, X(s), y - 44, { size: 20, weight: 700, color, alpha });
+  }
+  const px = X(clamp(sec, from, to));
+  g.save(); g.globalAlpha = alpha * (sec > from - 1 ? 1 : 0.4);
+  g.fillStyle = COL.frost; g.fillRect(px - 2, y - 30, 4, 38);
+  g.restore();
+}
+function castle(ms) {
+  backdrop();
+  grid();
+  snow(ms, 0.45);
+  const sec = gameTime(ms);
+  window.__labelFade = easeOut(span(ms, 8000, 8400));
+  const intro = easeOut(span(ms, 0, 600));
+  const landed = sec >= YOU.hit;
+  const glow = landed ? clamp((sec - YOU.hit) / 0.6) : 0;
+  for (const u of [EMBER, INFERNO, YOU]) march(u, sec, intro);
+  drawCastle(glow);
+  city(EMBER.from, "Ember", EMBER.coords, COL.rose, intro);
+  city(INFERNO.from, "Inferno", INFERNO.coords, COL.rose, intro);
+  city(YOU.from, "You", YOU.coords, COL.aurora, intro);
+  // SEND NOW at the start, from your city.
+  const sendA = clamp(1 - span(ms, 1800, 2300)) * intro;
+  if (sendA > 0) {
+    const [x, y] = YOU.from;
+    const pulse = 1 + 0.06 * Math.sin(ms / 70);
+    g.save(); g.globalAlpha = sendA;
+    g.beginPath(); g.roundRect(x - 120 * pulse, y - 120, 240 * pulse, 64, 14); g.fillStyle = COL.aurora; g.fill();
+    g.restore();
+    text("SEND NOW", x, y - 88, { size: 30, weight: 600, font: MONO, color: COL.navy, alpha: sendA, spacing: 2 });
+  }
+  impact(sec, EMBER.hit, COL.rose, "Ember hits", clock(EMBER.hit), "left");
+  impact(sec, YOU.hit, COL.aurora, "Your reinforcements land", clock(YOU.hit), "right");
+  impact(sec, INFERNO.hit, COL.rose, "Inferno hits a full garrison", clock(INFERNO.hit), "left");
+  // Clock and time-lapse badge
+  pill(64, 56, 360, 64, "rgba(8,21,36,0.9)", COL.lineStrong);
+  text(`${clock(Math.max(0, sec))} UTC`, 244, 89, { size: 30, weight: 500, font: MONO, color: COL.frost });
+  pill(440, 64, 190, 48, "rgba(242,179,61,0.14)", COL.gold);
+  text("TIME-LAPSE ×6", 535, 89, { size: 18, weight: 500, font: MONO, color: COL.goldText, spacing: 1 });
+  text("Illustration", W - 70, 89, { size: 20, weight: 500, font: MONO, color: COL.muted, align: "right" });
+  timeline(sec, intro);
+  // Closing line
+  const endA = easeOut(span(ms, 8300, 8800));
+  if (endA > 0) text("The castle stays yours.", CASTLE[0], 140, { size: 52, weight: 800, color: COL.aurora, alpha: endA });
+}
+
+window.__labelFade = 0;
+window.render = (scene, ms) => {
+  g.clearRect(0, 0, W, H);
+  if (scene === "title") card(ms, { title: "Overwatch", sub: "Your whole SvS, planned and timed for you." });
+  else if (scene === "end") card(ms, { title: "Overwatch", sub: "Free to try. No account needed.", cta: "Try the free demo", url: "wosoverwatch.com" });
+  else if (scene === "castle") castle(ms);
+};
+window.ready = Promise.all([document.fonts.load(`800 132px Archivo`), document.fonts.load(`500 30px 'IBM Plex Mono'`), new Promise((r) => (logo.complete ? r() : (logo.onload = r)))]);
+</script>
+</body>
+</html>

@@ -1179,4 +1179,5 @@ export const chineseInterface: Record<string, string> = {
   "Watch a whole SvS run itself": "看一整场 SvS 自动运转",
   "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "录制自演示：计划自动生成并发布，协调员呼叫两次敌方集结，驻防获得倒计时，在两次集结之间落地。",
   "One minute tour of Overwatch": "Overwatch 一分钟导览",
+  "Play with sound": "开声音播放",
 };

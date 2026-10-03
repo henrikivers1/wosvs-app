@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 
-// The one-minute tour, recorded from the demo. Plays muted while it is on
-// screen; people who prefer reduced motion start it themselves.
+// The one-minute tour, recorded from the demo with narration and music.
+// Browsers only autoplay muted video, so it plays silently while on screen
+// and "Sound on" restarts it with sound. People who prefer reduced motion
+// start it themselves.
 export function LandingVideo() {
   const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -23,6 +26,14 @@ export function LandingVideo() {
     observer.observe(video);
     return () => observer.disconnect();
   }, []);
+
+  function soundOn() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    video.currentTime = 0;
+    void video.play().catch(() => {});
+  }
 
   return (
     <section className="landing-section landing-video-section">
@@ -44,10 +55,20 @@ export function LandingVideo() {
           controls
           preload="none"
           aria-label={t("One minute tour of Overwatch")}
+          onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
         >
           <source src="/video/overwatch-tour.webm" type="video/webm" />
           <source src="/video/overwatch-tour.mp4" type="video/mp4" />
         </video>
+        {muted && (
+          <button type="button" className="landing-video-sound" onClick={soundOn}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+              <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+            </svg>
+            {t("Play with sound")}
+          </button>
+        )}
       </div>
     </section>
   );

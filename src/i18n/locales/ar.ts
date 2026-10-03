@@ -1191,4 +1191,5 @@ export const arabicInterface: Record<string, string> = {
   "Watch a whole SvS run itself": "شاهد معركة SvS كاملة تسير وحدها",
   "Recorded in the demo: the plan builds and publishes itself, coordinators call two enemy rallies, and the garrison gets its countdown to land between them.": "مسجّل في العرض التجريبي: تُبنى الخطة وتُنشر وحدها، ويستدعي المنسقون حشدين للعدو، وتحصل الحامية على عدّها التنازلي لتصل بينهما.",
   "One minute tour of Overwatch": "جولة في Overwatch خلال دقيقة",
+  "Play with sound": "تشغيل مع الصوت",
 };

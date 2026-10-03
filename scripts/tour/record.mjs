@@ -1,7 +1,4 @@
-// Records the landing video (public/video/overwatch-tour.*) from the real demo.
-// Needs a production build running on :3125 and Playwright with Chromium:
-//   node scripts/tour/record.mjs <work dir> [debug]
-//   scripts/tour/encode.sh <work dir>/vid public/video
+// Records the app scenes of the landing video from the real demo (see README.md).
 import { chromium } from "playwright";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 const S = process.argv[2];
@@ -85,26 +82,27 @@ await context.addInitScript(() => {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount); else mount();
 });
 
-// Frame capture straight from the compositor.
+// Frame capture straight from the compositor, one clip per scene.
 const cdp = await context.newCDPSession(page);
-const frames = []; let recording = false; let cutPending = false; let n = 0;
+const segments = []; let current = null; let n = 0;
 cdp.on("Page.screencastFrame", async ({ data, metadata, sessionId }) => {
   cdp.send("Page.screencastFrameAck", { sessionId }).catch(() => {});
-  if (!recording) return;
+  if (!current || current.paused) return;
   const file = `${OUT}/f${String(n++).padStart(5, "0")}.jpg`;
   writeFileSync(file, Buffer.from(data, "base64"));
-  frames.push({ file, ts: metadata.timestamp, cut: cutPending }); cutPending = false;
+  current.frames.push({ file, ts: metadata.timestamp, cut: current.cutPending }); current.cutPending = false;
 });
 const startCast = () => cdp.send("Page.startScreencast", { format: "jpeg", quality: 92, maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 });
 page.on("load", () => { startCast().catch(() => {}); });
-const rec = () => { recording = true; };
-const cut = () => { recording = false; cutPending = true; };
-// Freezes the last captured frame for a while (the cut after it removes the real wait).
-const hold = (seconds) => { if (frames.length) frames.at(-1).hold = seconds; };
-
+// A scene lasts exactly `seconds`: it ends early with its last frame held.
+function seg(name, seconds) { current = { name, seconds, frames: [], started: Date.now(), paused: false }; segments.push(current); }
+async function endSeg() {
+  const left = current.seconds * 1000 - (Date.now() - current.started);
+  if (left > 0) await page.waitForTimeout(left);
+  current.paused = true; current = null;
+}
 const wait = (ms) => page.waitForTimeout(ms);
 const caption = (cap, instant) => page.evaluate(([c, i]) => window.__owCaption(c, i), [cap, Boolean(instant)]);
-const card = (c) => page.evaluate((x) => window.__owCard(x), c);
 const shot = async (name) => { if (DEBUG) await page.screenshot({ path: `${S}/vid/r-${name}.png` }); };
 async function point(locator, { click = true, dx = 0.5, dy = 0.5 } = {}) {
   await locator.scrollIntoViewIfNeeded();
@@ -127,44 +125,41 @@ await page.getByRole("button", { name: "Try the private demo" }).click();
 await page.waitForURL("**/state/overwatch"); await wait(2500);
 await startCast();
 
-// ---- 1. Title card
-await card({ t: "Overwatch", s: "Whiteout Survival SvS, planned and timed for your whole state." });
-await wait(400); rec(); await wait(3200);
-await card(null); await wait(700);
-
-// ---- 2. The draw and the vote
-await caption({ k: "Automatic draw", t: "The draw lands. Overwatch finds your opponent.", s: "Every member votes when they can play: the whole battle or one half." });
+// ---- Vote
 const attendance = page.locator(".overwatch-card, section, article", { hasText: "When can you play" }).last();
 await scrollToEl(attendance, 110);
-await wait(600);
-const firstHalf = page.locator("button, label").filter({ hasText: "First half" }).first();
-await point(firstHalf); await wait(900);
-const whole = page.locator("button, label").filter({ hasText: "Whole battle" }).first();
-await point(whole); await wait(1600); await shot("2-vote");
+await caption({ k: "Automatic draw", t: "The draw lands. Overwatch finds your opponent.", s: "Every member votes when they can play: the whole battle or one half." }, true);
+await wait(400);
+seg("vote", 6.0);
+await wait(900);
+await point(page.locator("button, label").filter({ hasText: "First half" }).first()); await wait(800);
+await point(page.locator("button, label").filter({ hasText: "Whole battle" }).first());
+await endSeg();
 
-// ---- 3. Rallies build themselves
+// ---- Plan builds itself
+seg("plan", 9.0);
 await caption({ k: "Automation", t: "24 hours before, the plan builds itself.", s: "The garrison first, then every rally, from who can play." });
 await point(page.locator("a.main-nav-link", { hasText: "Planning" }));
-await page.waitForURL("**/state/planning"); await wait(1500);
-await point(page.getByRole("button", { name: "Generate now" })); await wait(1800);
+await page.waitForURL("**/state/planning"); await wait(900);
+await point(page.getByRole("button", { name: "Generate now" })); await wait(1200);
 await caption({ k: "Garrison and rallies", t: "Strongest defenders hold the castle.", s: "Rally leads swap every pet block, and nobody leads and joins at once." });
 const board = page.locator(".rally-board, .planning-board, [class*='rally-column']").first();
 if (await board.count()) await scrollToEl(board, 120); else await scrollTo(900);
-await wait(2600); await shot("3-board");
-await scrollTo(0); await wait(400);
+await endSeg();
 
-// ---- 4. Publish
-await caption({ k: "Automation", t: "6 hours before, everyone gets their orders.", s: "Their rally, hero and formation, and when their lead swaps." });
-await point(page.getByRole("button", { name: "Publish now" })); await wait(1400);
+// ---- Publish (setup off camera: back to the top)
+await scrollTo(0);
+await caption({ k: "Automation", t: "6 hours before, everyone gets their orders.", s: "Their rally, hero and formation, and when their lead swaps." }, true);
+seg("publish", 6.5);
+await point(page.getByRole("button", { name: "Publish now" })); await wait(900);
 await point(page.locator("a.main-nav-link", { hasText: "Overwatch" }));
-await page.waitForURL("**/state/overwatch"); await wait(1200);
+await page.waitForURL("**/state/overwatch"); await wait(900);
 const yours = page.locator(".overwatch-card", { hasText: "Your assignment" }).first();
 if (await yours.count()) { await scrollToEl(yours, 150); await yours.evaluate((el) => el.classList.add("ow-spot")); }
-await wait(2600); await shot("4-assignment");
+await endSeg();
 
-// ---- (cut) Start the battle and add two enemy leaders
-cut();
-await caption(null);
+// ---- Off camera: start the battle and add two enemy leaders
+await caption(null, true);
 await page.evaluate(() => [...document.querySelectorAll(".demo-banner button")].find((b) => b.textContent.includes("Start the battle"))?.click());
 await page.waitForLoadState("load"); await wait(2500);
 await page.goto(base + "/admin/leaders"); await wait(2000);
@@ -177,74 +172,68 @@ for (const [i, xy] of [[0, [612, 588]], [1, [596, 611]]]) {
 await page.goto(base + "/admin/call-rally"); await wait(2000);
 await page.evaluate(() => window.scrollTo(0, 0));
 await page.evaluate(() => window.__owCursor(1000, 600));
+await caption({ k: "Live battle", t: "Coordinators call the enemy rallies they see.", s: "Pick the leader, type the in-game rally timer, press Call." }, true);
+await wait(500);
 
-// ---- 5. Coordinators call enemy rallies
-await caption({ k: "Live battle", t: "Coordinators call the enemy rallies they see.", s: "Pick the leader, type the in-game rally timer, press Call." });
-rec(); await wait(1500);
+// ---- Coordinators call two rallies
+seg("call", 7.5);
 const leader = page.getByLabel("Rally leader");
-await point(leader, { click: false }); await leader.selectOption({ label: "Inferno" }); await wait(500);
+await point(leader, { click: false }); await leader.selectOption({ label: "Inferno" }); await wait(300);
 await type(page.getByLabel("Rally minutes remaining"), "0");
 await type(page.getByLabel("Rally seconds remaining"), "25");
-await point(page.getByRole("button", { name: "Call rally" })); await wait(900);
-await point(leader, { click: false }); await leader.selectOption({ label: "Ember" }); await wait(400);
+await point(page.getByRole("button", { name: "Call rally" })); await wait(500);
+await point(leader, { click: false }); await leader.selectOption({ label: "Ember" }); await wait(300);
 await type(page.getByLabel("Rally seconds remaining"), "35");
-await point(page.getByRole("button", { name: "Call rally" })); await wait(1300); await shot("5-called");
+await point(page.getByRole("button", { name: "Call rally" }));
+await endSeg();
 
-// ---- 6. The garrison countdown (the hero moment)
-// Skip the wait so the countdown starts at about 13 s when the page opens.
+// ---- Garrison countdown: it starts so SEND NOW comes about 8 s into the scene
 const firstStatus = page.locator(".send-status").first();
-const msLeft = async (loc) => {
-  const m = (await loc.innerText()).match(/([\d.]+) seconds/); return m ? Number(m[1]) * 1000 : 0;
-};
-let left = await msLeft(firstStatus);
+const msLeft = async (loc) => { const m = (await loc.innerText()).match(/([\d.]+) seconds/); return m ? Number(m[1]) * 1000 : 0; };
+const left = await msLeft(firstStatus);
 console.log("countdown after calls:", left);
-if (left > 14500) { cut(); await wait(left - 14500); rec(); }
-await caption({ k: "Garrison", t: "Every garrison player gets their own countdown.", s: "Their reinforcements land in the gap between two enemy rallies." });
+if (left > 8300) await wait(left - 8300);
+await caption({ k: "Garrison", t: "Every garrison player gets their own countdown.", s: "From their own march time, on one shared clock." }, true);
+seg("garrison", 9.5);
 await point(page.locator(".state-section-nav a, nav a", { hasText: "Garrison" }).last());
-await page.waitForURL("**/garrison"); await wait(500);
+await page.waitForURL("**/garrison"); await wait(300);
 const windowCard = page.locator("article", { hasText: "Window 1" }).first();
 await scrollToEl(windowCard, 230);
 await windowCard.evaluate((el) => el.classList.add("ow-spot"));
 await page.evaluate(() => window.__owCursor(1150, 700));
-await wait(3800);
-await caption({ k: "Garrison", t: "Timed to the second, on one shared clock.", s: "March time from your city, ping compensation, sound and phone alerts." });
 await windowCard.locator(".send-status.send-now").waitFor({ timeout: 30000 });
-await caption({ k: "Garrison", t: "Send now.", s: "Reinforcements land between Ember and Inferno, never into a rally." }, true);
-await wait(700); await shot("6-sendnow");
-hold(2.2); cut();
+await caption({ k: "Garrison", t: "Send now.", s: "Land in the gap between Ember and Inferno." }, true);
+await wait(500); await shot("6-sendnow");
+await endSeg();
 
-// ---- 7. Result
-cut();
-await caption(null);
+// ---- Victory
+await caption(null, true);
 await page.evaluate(() => [...document.querySelectorAll(".demo-banner button")].find((b) => b.textContent.includes("win"))?.click());
 await page.waitForLoadState("load"); await wait(1500);
 await page.goto(base + "/notifications"); await wait(2000);
 await page.evaluate(() => window.scrollTo(0, 0));
-await caption({ k: "After the battle", t: "Victory or Defeat, for everyone.", s: "Results come from WOSOracle and go into your state's history." });
+await caption({ k: "After the battle", t: "Victory or Defeat, for everyone.", s: "Results come from WOSOracle and go into your state's history." }, true);
 const victory = page.locator(".notification-card", { hasText: "Victory" }).first();
 if (await victory.count()) await victory.evaluate((el) => el.classList.add("ow-spot"));
-rec(); await wait(3600); await shot("7-victory");
-
-// ---- 8. End card
-await caption(null);
-await card({ t: "Overwatch", s: "Free to try. No account needed.", cta: "Try the free demo", url: "wosoverwatch.com" });
-await wait(4200);
-recording = false;
+await wait(300);
+seg("victory", 3.5);
+await endSeg();
 await cdp.send("Page.stopScreencast").catch(() => {});
 
-// Frame list for ffmpeg: real durations, cuts shortened to one frame.
-let list = "";
-for (let i = 0; i < frames.length; i++) {
-  const next = frames[i + 1];
-  let d = next ? next.ts - frames[i].ts : 0.5;
-  if (next?.cut) d = 1 / 30;
-  if (frames[i].hold) d = frames[i].hold;
-  d = Math.min(Math.max(d, 1 / 60), 4);
-  list += `file '${frames[i].file}'\nduration ${d.toFixed(4)}\n`;
+// One ffmpeg list per scene; each lasts exactly its planned length.
+for (const segment of segments) {
+  const f = segment.frames;
+  let list = ""; let used = 0;
+  for (let i = 0; i < f.length; i++) {
+    const next = f[i + 1];
+    let d = next ? (next.cut ? 1 / 30 : next.ts - f[i].ts) : Math.max(1 / 30, segment.seconds - used);
+    d = Math.max(d, 1 / 120);
+    used += d;
+    list += `file '${f[i].file}'\nduration ${d.toFixed(4)}\n`;
+  }
+  list += `file '${f.at(-1).file}'\n`;
+  writeFileSync(`${S}/vid/seg-${segment.name}.txt`, list);
+  console.log(segment.name, f.length, "frames", used.toFixed(2), "s");
 }
-list += `file '${frames.at(-1).file}'\n`;
-writeFileSync(`${S}/vid/frames.txt`, list);
-const total = frames.reduce((sum, f, i) => { const nx = frames[i + 1]; return sum + (f.hold ? f.hold : nx ? (nx.cut ? 1 / 30 : nx.ts - f.ts) : 0.5); }, 0);
-console.log("frames:", frames.length, "seconds:", total.toFixed(1));
 console.log("errors:", errors.join(" | ") || "none");
 await browser.close();
