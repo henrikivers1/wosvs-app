@@ -322,7 +322,7 @@ export function buildDemoSeed(now: Date): DemoTables {
         rally_count: 6,
         rally_size: 10,
         default_formation: "50/20/30",
-        default_joiner_heroes: [],
+        default_joiner_heroes: ["Jessie", "Jasser", "Seo-yoon", "Sergey"],
         autofill_priorities: ["hero_match", "equal_power", "fc"],
       },
     ],

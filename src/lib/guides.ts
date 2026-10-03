@@ -143,11 +143,15 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "SvS automation settings",
-        body: "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation and the four default joiner heroes. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.",
+        body: "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.",
       },
       {
         title: "The Next SvS checklist",
-        body: "Planning opens with a checklist: the draw, votes, rallies, publishing and the battle, each with when it happens automatically. The gold button runs the next step now: Generate now, Fill open slots now or Publish now.",
+        body: "Planning opens with a checklist: the draw, votes, rallies, publishing and Live Battle, each with when it happens automatically. The gold button runs the next step now: Generate now, then Publish now.",
+      },
+      {
+        title: "Needs attention",
+        body: "Under the checklist, Needs attention lists what to check before publishing: a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.",
       },
       {
         title: "How rallies are built",
@@ -155,11 +159,11 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Adjust by hand",
-        body: "Drag players between rallies, or tick several and move them at once. Rally setup changes a rally's formation, half and joiner heroes; Assign heroes shares the heroes out again. Nothing you change is undone by the automation.",
+        body: "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.",
       },
       {
         title: "Rally Leads",
-        body: "Open Top 20 Labyrinth in Planning to mark or unmark Rally Leads. Only Rally Leads can lead a rally.",
+        body: "Press Rally Leads in Planning to see your 20 best Labyrinth players and mark or unmark Rally Leads. Only Rally Leads can lead a rally.",
       },
       {
         title: "Members and join requests",

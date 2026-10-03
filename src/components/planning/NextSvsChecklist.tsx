@@ -29,7 +29,7 @@ export function NextSvsChecklist({
   availableCount,
   rallyCount,
   assignedCount,
-  waitingCount,
+  issueCount,
   missingAlliance,
   busy,
   now,
@@ -49,8 +49,8 @@ export function NextSvsChecklist({
   availableCount: number;
   rallyCount: number;
   assignedCount: number;
-  // Players who can play but have no rally yet.
-  waitingCount: number;
+  // Things listed under Needs attention.
+  issueCount: number;
   missingAlliance: number;
   busy: boolean;
   now: number;
@@ -89,7 +89,8 @@ export function NextSvsChecklist({
     },
     {
       key: "rallies",
-      done: rallyCount > 0 && waitingCount === 0,
+      done: rallyCount > 0 && issueCount === 0,
+      warning: rallyCount > 0 && issueCount > 0,
       title:
         rallyCount > 0
           ? t("Rallies: {rallies} with {players} players", {
@@ -105,18 +106,12 @@ export function NextSvsChecklist({
                 { time: at(GENERATE_BEFORE_MS) },
               )
             : t("Automatic rallies are off for this state.")
-          : waitingCount > 0
-            ? t(
-                "{count} players who can play have no rally yet. They are added to open slots every hour.",
-                { count: waitingCount },
-              )
-            : t("Late voters are added to open slots every hour."),
+          : issueCount > 0
+            ? t("{count} things to check below.", { count: issueCount })
+            : t("Ready. Late voters are added to open seats every hour."),
       action:
-        !published || waitingCount > 0
-          ? {
-              label: rallyCount ? t("Fill open slots now") : t("Generate now"),
-              onClick: onGenerate,
-            }
+        rallyCount === 0
+          ? { label: t("Generate now"), onClick: onGenerate }
           : undefined,
     },
     {

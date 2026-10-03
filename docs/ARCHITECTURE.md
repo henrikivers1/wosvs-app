@@ -26,7 +26,7 @@ the SQL uses the same values). The castle is at 599,599.
 | Mondays | Weekly player refresh from WOSOracle (power, FC, Labyrinth, alliance, state) in budget-limited batches; accounts that fail wait a day | `weeklyPlayerSync` |
 
 Every automatic step can be run early from the **Next SvS** checklist on
-Planning ("Generate now", "Fill open slots now", "Publish now"). Generating
+Planning ("Generate now", "Publish now", and "Fill open seats" under Needs attention). Generating
 and publishing can be switched off per state, and the rally count, rally
 size, default formation and joiner heroes can be changed, in **State
 management → SvS automation**. Nothing the automation does overwrites manual
@@ -101,7 +101,7 @@ Typical cost per state:
 | `/notifications` | everyone | Inbox, colour per action, filters, invitation accept/decline |
 | `/state/overwatch` | members | Next SvS, attendance vote, own rally/hero/formation, notices, plan comments |
 | `/state/intel` | members | Opponent and own state from the stored intel |
-| `/state/planning` | admins | Next SvS checklist, rally board (drag/assign, setup, heroes, auto-fill), Labyrinth top 20 / Rally Leads, comments, plan history |
+| `/state/planning` | admins | Next SvS checklist (one gold button per step), Needs attention (`planIssues.ts`: each problem with a one-tap fix), waiting list beside compact rally columns (drag, player sheet, rally ⋯ menu for setup/heroes/edit/delete), plan ⋯ menu (add rally, rebuild all, edit, delete), Rally Leads panel, folded comments, plan history. Auto-fill priorities live in State management → SvS automation |
 | `/state/manage` | admins | Alliances, invitations and approvals, in-game number and hero generation, SvS automation settings, release a claimed WOS ID, members (role, Coordinator/Garrison, remove) |
 | `/state/alliances` | members | Published alliance rosters and alliance notices |
 | `/state/announcements` | admins | Send and remove notices |

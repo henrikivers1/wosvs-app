@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { AutofillPriorityEditor } from "@/components/planning/AutofillPriorityEditor";
 import { FORMATION_PRESETS } from "@/components/planning/RallySetupEditor";
+import { AUTOFILL_CRITERIA, type AutofillCriterion } from "@/lib/autofill";
 import { HEROES, LATEST_HERO_GENERATION } from "@/lib/heroes";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +15,7 @@ type Settings = {
   rally_size: number;
   default_formation: string | null;
   default_joiner_heroes: string[];
+  autofill_priorities: string[] | null;
 };
 
 const FORMATION = /^(\d{1,3})\/(\d{1,3})\/(\d{1,3})$/;
@@ -36,7 +39,7 @@ export function AutomationSettingsCard({
     void supabase
       .from("states")
       .select(
-        "auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes",
+        "auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes, autofill_priorities",
       )
       .eq("id", stateId)
       .maybeSingle()
@@ -212,6 +215,20 @@ export function AutomationSettingsCard({
           </select>
         ))}
       </div>
+      <h3>{t("Who goes in which rally")}</h3>
+      <p className="form-hint">
+        {t(
+          "Auto-fill only places players who can play the rally's half, and gives each a joiner hero they have at 4★. Then it weighs players in this order:",
+        )}
+      </p>
+      <AutofillPriorityEditor
+        priorities={(
+          settings.autofill_priorities ?? ["hero_match", "equal_power", "fc"]
+        ).filter((value): value is AutofillCriterion =>
+          AUTOFILL_CRITERIA.some((criterion) => criterion.value === value),
+        )}
+        onChange={(next) => void save({ autofill_priorities: next })}
+      />
       {message && <p className="page-message">{message}</p>}
     </section>
   );

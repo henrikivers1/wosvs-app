@@ -26,12 +26,162 @@ const english = {
   roleOwner: "owner",
   roleAdmin: "admin",
   roleMember: "member",
-  closed: "Closed",
-  open: "Open",
   delete: "Delete",
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
+    "En Gestión del estado, la automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, la formación por defecto, los cuatro héroes de unión por defecto y el orden en que el autorrelleno valora a los jugadores. Desactiva los rallies o la publicación automáticos si prefieres hacerlo tú.",
+  "Planning opens with a checklist: the draw, votes, rallies, publishing and Live Battle, each with when it happens automatically. The gold button runs the next step now: Generate now, then Publish now.":
+    "Planificación empieza con una lista: el sorteo, los votos, los rallies, la publicación y la batalla en vivo, cada uno con cuándo ocurre automáticamente. El botón dorado ejecuta ya el siguiente paso: Generar ahora y luego Publicar ahora.",
+  "Under the checklist, Needs attention lists what to check before publishing: a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.":
+    "Bajo la lista, Requiere atención muestra qué revisar antes de publicar: un rally sin alianza o sin héroes, un jugador en la mitad equivocada, jugadores sin héroe de unión o plazas libres mientras hay jugadores esperando. Cada línea tiene un botón que lo arregla. Cuando la lista quede vacía, publica.",
+  "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.":
+    "Arrastra jugadores entre rallies o desde la lista de espera. Toca a un jugador para cambiar su rally o el héroe que lleva. El menú ⋯ de cada rally tiene Configuración del rally (formación, mitad y héroes de unión), Asignar héroes, Editar y Eliminar. La automatización nunca deshace tus cambios.",
+  "Press Rally Leads in Planning to see your 20 best Labyrinth players and mark or unmark Rally Leads. Only Rally Leads can lead a rally.":
+    "Pulsa Líderes de rally en Planificación para ver a tus 20 mejores jugadores del Laberinto y marcar o desmarcar líderes. Solo los líderes de rally pueden liderar un rally.",
+  "Add rally":
+    "Añadir rally",
+  "Auto-fill only places players who can play the rally's half, and gives each a joiner hero they have at 4★. Then it weighs players in this order:":
+    "El autorrelleno solo coloca a jugadores que pueden jugar la mitad del rally y da a cada uno un héroe de unión que tenga a 4★. Después ordena a los jugadores así:",
+  "Availability":
+    "Disponibilidad",
+  "Choose heroes":
+    "Elegir héroes",
+  "Close":
+    "Cerrar",
+  "Delete rally":
+    "Eliminar rally",
+  "Delete “{name}”? Its {count} players go back to the waiting list.":
+    "¿Eliminar «{name}»? Sus {count} jugadores vuelven a la lista de espera.",
+  "Done":
+    "Listo",
+  "Drag players here.":
+    "Arrastra jugadores aquí.",
+  "Edit plan":
+    "Editar plan",
+  "Edit rally":
+    "Editar rally",
+  "Every rally has its alliance, its half and its heroes.":
+    "Cada rally tiene su alianza, su mitad y sus héroes.",
+  "Fill open seats":
+    "Llenar plazas libres",
+  "Lead":
+    "Líder",
+  "Leads {rally}. Change the leader under the rally's ⋯ menu.":
+    "Lidera {rally}. Cambia el líder en el menú ⋯ del rally.",
+  "Mark Rally Leads first: Rally Leads button above the board.":
+    "Marca primero a los líderes de rally: botón Líderes de rally encima del tablero.",
+  "More actions":
+    "Más acciones",
+  "More filters":
+    "Más filtros",
+  "More options":
+    "Más opciones",
+  "Move to {rally}":
+    "Mover a {rally}",
+  "Move {count} selected here":
+    "Mover aquí {count} seleccionados",
+  "Needs attention":
+    "Requiere atención",
+  "No formation":
+    "Sin formación",
+  "No hero":
+    "Sin héroe",
+  "No joiner heroes":
+    "Sin héroes de unión",
+  "No players waiting.":
+    "No hay jugadores esperando.",
+  "No rallies yet":
+    "Aún no hay rallies",
+  "Not in a rally":
+    "Sin rally",
+  "Not in a rally yet":
+    "Aún sin rally",
+  "Nothing to check":
+    "Nada que revisar",
+  "Only players who can play":
+    "Solo quienes pueden jugar",
+  "Plan actions":
+    "Acciones del plan",
+  "Press Generate now above, or add a rally from the ⋯ menu.":
+    "Pulsa Generar ahora arriba o añade un rally desde el menú ⋯.",
+  "Rallies rebuilt: {count} players placed.":
+    "Rallies reconstruidos: {count} jugadores colocados.",
+  "Rally Leads ({count})":
+    "Líderes de rally ({count})",
+  "Rally Leads stay with their rally. Change the leader instead.":
+    "Los líderes se quedan en su rally. Cambia el líder en su lugar.",
+  "Rally actions":
+    "Acciones del rally",
+  "Rally added.":
+    "Rally añadido.",
+  "Rally updated.":
+    "Rally actualizado.",
+  "Ready. Late voters are added to open seats every hour.":
+    "Listo. Quienes voten tarde se añaden a plazas libres cada hora.",
+  "Rebuild all rallies":
+    "Reconstruir todos los rallies",
+  "Rebuild every rally from scratch? Leaders stay; everyone else is placed again by your auto-fill priorities, and hand-made changes are lost.":
+    "¿Reconstruir cada rally desde cero? Los líderes se quedan; el resto se coloca de nuevo según tus prioridades de autorrelleno y se pierden los cambios manuales.",
+  "Republish “{name}”? Every member gets their updated assignment.":
+    "¿Volver a publicar «{name}»? Cada miembro recibe su asignación actualizada.",
+  "Republished. {count} accounts notified.":
+    "Publicado de nuevo. {count} cuentas avisadas.",
+  "Save rally":
+    "Guardar rally",
+  "Search players":
+    "Buscar jugadores",
+  "Select {name}":
+    "Seleccionar a {name}",
+  "Show all {count}":
+    "Mostrar los {count}",
+  "Show fewer":
+    "Mostrar menos",
+  "Showing the first {shown} of {count}. Search to find others.":
+    "Se muestran los primeros {shown} de {count}. Busca para encontrar a otros.",
+  "TED Rally":
+    "Rally de TED",
+  "Take out of rally":
+    "Sacar del rally",
+  "The automation builds and publishes the plan. Check what needs attention, adjust anything by hand, and publish.":
+    "La automatización crea y publica el plan. Revisa lo que requiere atención, ajusta lo que quieras a mano y publica.",
+  "Total power {power} · Avg furnace {furnace}":
+    "Poder total {power} · Horno medio {furnace}",
+  "Troops":
+    "Tropas",
+  "Waiting":
+    "En espera",
+  "Waiting players":
+    "Jugadores en espera",
+  "Who goes in which rally":
+    "Quién va en cada rally",
+  "Your admins have not set up the rallies yet.":
+    "Tus administradores aún no han preparado los rallies.",
+  "{count} players have none of the joiner heroes in any rally with room. They join without a hero.":
+    "{count} jugadores no tienen ninguno de los héroes de unión de los rallies con plazas. Se unen sin héroe.",
+  "{count} players haven't entered their heroes. They can add them on Account.":
+    "{count} jugadores no han indicado sus héroes. Pueden añadirlos en Cuenta.",
+  "{count} players in {rally} have no joiner hero yet.":
+    "{count} jugadores de {rally} aún no tienen héroe de unión.",
+  "{count} rallies have no joiner heroes. Set default heroes under State management → SvS automation, or choose them per rally.":
+    "{count} rallies no tienen héroes de unión. Define héroes por defecto en Gestión del estado → Automatización SvS, o elígelos en cada rally.",
+  "{count} things to check below.":
+    "{count} cosas que revisar abajo.",
+  "{name} can't join but is in {rally}.":
+    "{name} no puede unirse pero está en {rally}.",
+  "{name} has none of {rally}'s joiner heroes at 4★.":
+    "{name} no tiene ninguno de los héroes de unión de {rally} a 4★.",
+  "{name} hasn't voted but is in {rally}.":
+    "{name} no ha votado pero está en {rally}.",
+  "{name} voted {voted}, but {rally} fights {half}.":
+    "{name} votó {voted}, pero {rally} combate en {half}.",
+  "{rally} has no destination alliance.":
+    "{rally} no tiene alianza de destino.",
+  "{rally} has no joiner heroes chosen.":
+    "{rally} no tiene héroes de unión elegidos.",
+  "{slots} open seats, and {waiting} players who can play are waiting.":
+    "{slots} plazas libres y {waiting} jugadores que pueden jugar esperando.",
   "Live Battle is open: SvS vs state {opponent} {when}":
     "Batalla en vivo abierta: SvS contra el estado {opponent} {when}",
   "Live Battle opens automatically at 11:00 UTC on battle day, an hour before the battle starts. Live tools appear here then.":
@@ -238,24 +388,16 @@ const spanishInterface: Record<string, string> = {
     "Da los roles de Coordinador y Guarnición a los miembros adecuados.",
   "SvS automation settings":
     "Ajustes de automatización SvS",
-  "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation and the four default joiner heroes. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
-    "En Gestión del estado, Automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, la formación por defecto y los cuatro héroes de apoyo por defecto. Desactiva los rallies automáticos o la publicación automática si prefieres hacerlo tú.",
   "The Next SvS checklist":
     "La lista de la próxima SvS",
-  "Planning opens with a checklist: the draw, votes, rallies, publishing and the battle, each with when it happens automatically. The gold button runs the next step now: Generate now, Fill open slots now or Publish now.":
-    "Planificación empieza con una lista de pasos: el sorteo, los votos, los rallies, la publicación y la batalla, cada uno con cuándo ocurre automáticamente. El botón dorado ejecuta ahora el siguiente paso: Generar ahora, Llenar huecos ahora o Publicar ahora.",
   "How rallies are built":
     "Cómo se crean los rallies",
   "Rally Leads who can play come first, topped up with the best Labyrinth players who voted. Each rally goes into its leader's own alliance and fights in the half the leader voted for. Players are then added by your auto-fill priorities, and only get a joiner hero they own at 4★.":
     "Primero van los líderes de rally que pueden jugar, completados con los mejores jugadores del Laberinto que votaron. Cada rally va a la alianza de su líder y lucha en la mitad que votó el líder. Después se añaden jugadores según tus prioridades de autorrelleno, y solo reciben un héroe de apoyo que tengan con 4★.",
   "Adjust by hand":
     "Ajusta a mano",
-  "Drag players between rallies, or tick several and move them at once. Rally setup changes a rally's formation, half and joiner heroes; Assign heroes shares the heroes out again. Nothing you change is undone by the automation.":
-    "Arrastra jugadores entre rallies, o marca varios y muévelos a la vez. Configurar rally cambia la formación, la mitad y los héroes de apoyo de un rally; Asignar héroes vuelve a repartir los héroes. La automatización nunca deshace lo que cambies.",
   "Rally Leads":
     "Líderes de rally",
-  "Open Top 20 Labyrinth in Planning to mark or unmark Rally Leads. Only Rally Leads can lead a rally.":
-    "Abre Top 20 del Laberinto en Planificación para marcar o desmarcar líderes de rally. Solo los líderes de rally pueden liderar un rally.",
   "Members and join requests":
     "Miembros y solicitudes de unión",
   "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins can give the Coordinator or Garrison role and remove members. Every change is sent to the member as a notification.":
@@ -445,7 +587,6 @@ const spanishInterface: Record<string, string> = {
   "State management": "Gestión del estado",
   "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
     "Miembros, alianzas y cómo la automatización prepara cada SvS. La planificación y las batallas funcionan solas.",
-  "{count} Rally Leads": "{count} líderes de rally",
   "Rally from {name} called.": "Rally de {name} registrado.",
   "Cancel the rally from {name} for everyone?":
     "¿Cancelar el rally de {name} para todos?",
@@ -469,9 +610,6 @@ const spanishInterface: Record<string, string> = {
     "Publicado. Cada miembro recibió su asignación.",
   "{rallies} rallies created, {players} players added.":
     "{rallies} rallies creados, {players} jugadores añadidos.",
-  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.":
-    "Todo lo de abajo funciona solo: el plan se crea en el sorteo, los rallies se arman y llenan con la asistencia 24 horas antes y se publican 6 horas antes. Ajusta lo que quieras; la automatización nunca deshace tus cambios.",
-  "No upcoming battle plan.": "No hay plan de batalla próximo.",
   "Earlier plans ({count})": "Planes anteriores ({count})",
   "Delete the “{name}” tag? It is removed from {count} WOS accounts.":
     "¿Eliminar la etiqueta “{name}”? Se quita de {count} cuentas WOS.",
@@ -512,11 +650,6 @@ const spanishInterface: Record<string, string> = {
     "Se generan solos el {time} con tus líderes de rally y los mejores del Laberinto, y se llenan según tus prioridades de autollenado.",
   "Automatic rallies are off for this state.":
     "Los rallies automáticos están desactivados en este estado.",
-  "{count} players who can play have no rally yet. They are added to open slots every hour.":
-    "{count} jugadores que pueden jugar aún no tienen rally. Se añaden a huecos libres cada hora.",
-  "Late voters are added to open slots every hour.":
-    "Quienes votan tarde se añaden a huecos libres cada hora.",
-  "Fill open slots now": "Llenar huecos ahora",
   "Generate now": "Generar ahora",
   "Not published yet": "Aún no publicado",
   "Every member got their rally, hero and formation.":
@@ -651,36 +784,25 @@ const spanishInterface: Record<string, string> = {
   "Heroes assigned in {group}: {covered} of {total} joiner heroes covered.":
     "Héroes asignados en {group}: {covered} de {total} héroes de apoyo cubiertos.",
   "Assign heroes": "Asignar héroes",
-  "Only players who have one of the rally's joiner heroes at 4★":
-    "Solo jugadores con uno de los héroes de apoyo del rally con 4★",
   "Pick an enemy rally leader": "Elige un líder de rally enemigo",
   "Load their top players": "Cargar sus mejores jugadores",
   "Their {count} strongest players": "Sus {count} jugadores más fuertes",
   "Not in the top {count}? Search an alliance roster":
     "¿No está en el top {count}? Busca en la lista de una alianza",
   "Add a priority": "Añadir una prioridad",
-  "Add at least one rally group first.":
-    "Primero añade al menos un grupo de rally.",
   "Add from WOSOracle": "Añadir desde WOSOracle",
   "Add manually": "Añadir manualmente",
   Added: "Añadida",
   "Alliance ID": "ID de alianza",
   "Alliance added. It can now be selected in Battle Planning.":
     "Alianza añadida. Ya se puede elegir en la planificación.",
-  "Auto-fill": "Autorrelleno",
-  "Auto-fill placed {count} players. Review the rallies, then publish.":
-    "El autorrelleno colocó a {count} jugadores. Revisa los rallies y publica.",
-  "Auto-fill rallies": "Autorrellenar rallies",
   "Battle half": "Mitad de la batalla",
   "Clear selection": "Quitar selección",
-  "Drop players here, or select them and use Move selected here.":
-    "Suelta jugadores aquí, o selecciónalos y usa Mover selección aquí.",
   "Each joiner hero can only be used once per rally.":
     "Cada héroe de apoyo solo se puede usar una vez por rally.",
   "Enter a numeric alliance ID.": "Introduce un ID de alianza numérico.",
   "Equal power across rallies": "Poder igualado entre rallies",
   "FC level": "Nivel FC",
-  "Fill the rallies for me": "Rellenar los rallies por mí",
   "Formation (Inf/Lan/Mark %)": "Formación (Inf/Lan/Tir %)",
   "Formation:": "Formación:",
   "Four unique joiner heroes. Each member brings one of them.":
@@ -700,35 +822,24 @@ const spanishInterface: Record<string, string> = {
   "Load your state's alliances": "Cargar las alianzas de tu estado",
   "Look up": "Buscar",
   "Move down": "Bajar",
-  "Move selected here ({count})": "Mover selección aquí ({count})",
   "Move up": "Subir",
   "Move {count} selected to…": "Mover {count} seleccionados a…",
   "No 4★ joiner heroes": "Sin héroes de apoyo 4★",
   "No hero yet": "Sin héroe aún",
-  "No joiner heroes chosen yet.": "Aún no hay héroes de apoyo elegidos.",
   "Not assigned yet": "Aún sin asignar",
   "Not filled in yet": "Aún sin rellenar",
   "Not set": "Sin configurar",
-  "Pick players for the rallies": "Elige jugadores para los rallies",
   "Rally setup": "Configurar rally",
   "Save heroes": "Guardar héroes",
   "Save rally setup": "Guardar configuración",
-  Select: "Seleccionar",
   "Select all shown": "Seleccionar todos los mostrados",
-  "Showing the first 80 of {count}. Use the filters to narrow the list.":
-    "Mostrando los primeros 80 de {count}. Usa los filtros para acotar.",
   "Sort by": "Ordenar por",
-  "Start from empty rallies (keeps the leaders)":
-    "Empezar con rallies vacíos (mantiene a los líderes)",
   "Tick every hero you have at 4 stars or more. Admins use this to give you a hero to join rallies with.":
     "Marca cada héroe que tengas con 4 estrellas o más. Los administradores lo usan para darte un héroe con el que unirte a los rallies.",
   "Troop tier": "Nivel de tropa",
-  "Unassigned players": "Jugadores sin asignar",
   "Update them on your account page": "Actualízalos en tu página de cuenta",
   "Use Infantry/Lancer/Marksman percentages that add up to 100, like 50/20/30.":
     "Usa porcentajes de Infantería/Lancero/Tirador que sumen 100, como 50/20/30.",
-  "Uses players who voted they can play each rally's half, and gives each one a joiner hero they have at 4★. Nothing is sent until you publish.":
-    "Usa a los jugadores que votaron que pueden jugar la mitad de cada rally y da a cada uno un héroe de apoyo que tenga con 4★. No se envía nada hasta que publiques.",
   "Voice call first": "Chat de voz primero",
   "WOSOracle could not be reached.": "No se pudo contactar con WOSOracle.",
   "WOSOracle lists no alliances for your state yet.":
@@ -737,7 +848,6 @@ const spanishInterface: Record<string, string> = {
     "WOSOracle solo lista las alianzas más fuertes de tu estado. Añade alianzas vacías por su ID o escribe un nombre abajo.",
   "Your 4★ joiner heroes are not filled in yet.":
     "Aún no has rellenado tus héroes de apoyo 4★.",
-  "not set": "sin configurar",
   "{count} heroes": "{count} héroes",
   "{count} members": "{count} miembros",
   "Exit demo": "Salir de la demo",
@@ -770,7 +880,6 @@ const spanishInterface: Record<string, string> = {
   Rally: "Rally",
   "Rally tags are also given to the whole group when the battle plan is published.":
     "Las etiquetas de rally también se dan a todo el grupo cuando se publica el plan.",
-  "· Lab": "· Lab",
   "Delete plan": "Eliminar plan",
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
     "¿Eliminar «{name}», todos sus grupos y su próxima batalla? Las batallas terminadas se quedan en el historial.",
@@ -778,10 +887,8 @@ const spanishInterface: Record<string, string> = {
   "Make Rally Lead": "Hacer líder de rally",
   "No Labyrinth scores yet. They appear after members' accounts are synced.":
     "Aún no hay puntuaciones de Laberinto. Aparecen cuando se sincronizan las cuentas de los miembros.",
-  "Rally leads": "Líderes de rally",
   "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.":
     "Clasificado con los datos sincronizados de WOSOracle de tus miembros. Marca a quienes lideran rallies; solo los líderes de rally pueden liderar un grupo.",
-  "Remove Rally Lead": "Quitar líder de rally",
   "Top 20 Labyrinth in your state": "Top 20 del Laberinto en tu estado",
   "Expected draw {date}.": "Sorteo previsto {date}.",
   "Next battle {date}.": "Próxima batalla {date}.",
@@ -909,7 +1016,6 @@ const spanishInterface: Record<string, string> = {
   "The WOS ID could not be released.": "No se pudo liberar el WOS ID.",
   "WOS ID {wosId} was released.": "El WOS ID {wosId} fue liberado.",
   "— March:": "— Marcha:",
-  "· Troops": "· Tropas",
   "/2000 characters": "/2000 caracteres",
   Accept: "Aceptar",
   Account: "Cuenta",
@@ -917,7 +1023,6 @@ const spanishInterface: Record<string, string> = {
   "Add a public comment": "Añadir un comentario público",
   "Add another WOS account": "Añadir otra cuenta de WOS",
   "Add leader": "Añadir líder",
-  "Add rally group": "Añadir grupo de rally",
   "Add WOS account": "Añadir cuenta de WOS",
   "Automatic player data has not been synchronized yet.":
     "Los datos automáticos del jugador aún no se han sincronizado.",
@@ -946,17 +1051,10 @@ const spanishInterface: Record<string, string> = {
     "Los anuncios enviados a esta cuenta aparecerán aquí.",
   "Any tag": "Cualquier etiqueta",
   Archive: "Archivo",
-  "Assign Rally Lead tags from State members first.":
-    "Primero asigna etiquetas de líder de rally desde Miembros del estado.",
   "Assign these accounts to a rally group in Battle Planning, then publish the plan.":
     "Asigna estas cuentas a un grupo de rally en Planificación de batalla y después publica el plan.",
   assigned: "asignado",
-  Assignment: "Asignación",
   Audience: "Destinatarios",
-  "Avg furnace": "Promedio de horno",
-  "Avg power": "Potencia media",
-  "Avg T12 skill": "Promedio de habilidad T12",
-  "Avg troop": "Promedio de tropas",
   "Battle activity retained across every battle period.":
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
@@ -993,7 +1091,6 @@ const spanishInterface: Record<string, string> = {
   "Completed battles": "Batallas completadas",
   Coordinator: "Coordinador",
   Coordinators: "Coordinadores",
-  "Create group": "Crear grupo",
   "Create tag": "Crear etiqueta",
   "Create the alliances available to battle planners. Member assignments are managed only from Battle Planning and become visible in Alliance Overview after publishing.":
     "Crea las alianzas disponibles para los planificadores. Las asignaciones de miembros solo se administran desde Planificación de batalla y aparecen en el resumen después de publicar.",
@@ -1031,7 +1128,6 @@ const spanishInterface: Record<string, string> = {
   "Expires automatically": "Caduca automáticamente",
   "Formation update": "Actualización de formación",
   "Full Battle": "Batalla completa",
-  "Group name": "Nombre del grupo",
   "Incoming rally schedule": "Programa de rallies entrantes",
   Kills: "Bajas",
   "Labyrinth score": "Puntuación de Laberinto",
@@ -1052,7 +1148,6 @@ const spanishInterface: Record<string, string> = {
   "Loading tags...": "Cargando etiquetas...",
   "Loading your battle overview...": "Cargando tu resumen de batalla...",
   "Loading...": "Cargando...",
-  "Leader:": "Líder:",
   Leaders: "Líderes",
   Loss: "Derrota",
   Manage: "Administrar",
@@ -1063,15 +1158,12 @@ const spanishInterface: Record<string, string> = {
   members: "miembros",
   Members: "Miembros",
   "Members & setup": "Miembros y configuración",
-  "Mention another state member with their account username, for example @Henrik. They receive a notification. Owners and Admins are notified about new comments.":
-    "Menciona a otro miembro con su nombre de usuario, por ejemplo @Henrik. Recibirá una notificación. Los propietarios y administradores también reciben avisos de comentarios nuevos.",
   Message: "Mensaje",
   Messages: "Mensajes",
   "Minimum all troop tiers": "Nivel mínimo de todas las tropas",
   "Minimum Fire Crystal Furnace": "Horno de Cristal de Fuego mínimo",
   "My pet is active": "Mi mascota está activa",
   Name: "Nombre",
-  "Name, username, or WOS ID": "Nombre, usuario o ID de WOS",
   "No active battle": "No hay batalla activa",
   "No active messages for this account.":
     "No hay mensajes activos para esta cuenta.",
@@ -1080,7 +1172,6 @@ const spanishInterface: Record<string, string> = {
   "No alliances configured": "No hay alianzas configuradas",
   "No battle periods have been recorded yet.":
     "Todavía no se ha registrado ningún periodo de batalla.",
-  "No battle plans yet": "Todavía no hay planes de batalla",
   "No battle tags assigned.": "No hay etiquetas de batalla asignadas.",
   "No comments yet.": "Todavía no hay comentarios.",
   "No enemy leaders added.": "No se han añadido líderes enemigos.",
@@ -1102,8 +1193,6 @@ const spanishInterface: Record<string, string> = {
   Notices: "Avisos",
   Notifications: "Notificaciones",
   "Numeric WOS ID": "ID de WOS numérico",
-  "Only accounts with the permanent Rally Lead tag appear as leaders.":
-    "Solo las cuentas con la etiqueta permanente de líder de rally aparecen como líderes.",
   "Only state Owners and Admins can manage tags.":
     "Solo los propietarios y administradores pueden gestionar etiquetas.",
   "Only state owners and admins can manage this page.":
@@ -1146,10 +1235,6 @@ const spanishInterface: Record<string, string> = {
   "published assignments": "asignaciones publicadas",
   Rallies: "Rallies",
   "Rallies called": "Rallies registrados",
-  "Rally group created and its leader assigned.":
-    "Grupo de rally creado y líder asignado.",
-  "Rally group updated. Republish to apply assignments.":
-    "Grupo de rally actualizado. Vuelve a publicar para aplicar las asignaciones.",
   "Rally Lead": "Líder de rally",
   "Rally Lead:": "Líder de rally:",
   "Rally leader": "Líder de rally",
@@ -1164,11 +1249,9 @@ const spanishInterface: Record<string, string> = {
   "Review request": "Revisar solicitud",
   Save: "Guardar",
   "Save combat profile": "Guardar perfil de combate",
-  "Save group": "Guardar grupo",
   "Save plan": "Guardar plan",
   "Saved leaders": "Líderes guardados",
   Scheduled: "Programada",
-  "Scheduled operations": "Operaciones programadas",
   seconds: "segundos",
   "Synchronizing...": "Sincronizando...",
   "Select a state before opening battle planning.":
@@ -1219,7 +1302,6 @@ const spanishInterface: Record<string, string> = {
     "Esta cuenta de WOS no ha sido asignada a ningún grupo de rally.",
   Title: "Título",
   Type: "Tipo",
-  Unassigned: "Sin asignar",
   "Unassigned accounts": "Cuentas sin asignar",
   "Until Sunday 23:59 UTC": "Hasta el domingo a las 23:59 UTC",
   "Use a six-digit color code such as #4f8fba.":
@@ -1239,8 +1321,6 @@ const spanishInterface: Record<string, string> = {
   "WOSOracle does not provide troop tiers, camp FC levels or T12 skills, so these fields remain manual.":
     "WOSOracle no proporciona los niveles de tropas, niveles FC de campamento ni habilidades T12, por lo que estos campos siguen siendo manuales.",
   "WOS ID": "ID de WOS",
-  "Write a comment before posting.":
-    "Escribe un comentario antes de publicarlo.",
   "Write a comment. Use @username to mention and notify someone.":
     "Escribe un comentario. Usa @usuario para mencionar y notificar a alguien.",
   "Write a comment. Use @username to notify another member.":
@@ -1269,7 +1349,6 @@ const spanishInterface: Record<string, string> = {
   "Your Y coordinate": "Tu coordenada Y",
   " — Pet active": " — Mascota activa",
   " — Pet inactive": " — Mascota inactiva",
-  "· Power": "· Potencia",
   " — Pet remaining: {time}": " — Mascota restante: {time}",
   account: "cuenta",
   accounts: "cuentas",
@@ -1282,7 +1361,6 @@ const spanishInterface: Record<string, string> = {
   "Complete setup": "Completar configuración",
   "Create account": "Crear cuenta",
   "Create alliance": "Crear alianza",
-  "Draft and published plans": "Planes borrador y publicados",
   "Enable notifications": "Activar notificaciones",
   "Former member": "Antiguo miembro",
   Inactive: "Inactivo",
@@ -1297,13 +1375,10 @@ const spanishInterface: Record<string, string> = {
   "Post comment": "Publicar comentario",
   "Posting...": "Publicando...",
   Public: "Público",
-  "Publish & schedule": "Publicar y programar",
-  "Published plans": "Planes publicados",
   rally: "rally",
   rallies: "rallies",
   Republish: "Volver a publicar",
   "Saving...": "Guardando...",
-  "Select before publishing": "Seleccionar antes de publicar",
   "Send announcement": "Enviar anuncio",
   "Send in {seconds} seconds": "Enviar en {seconds} segundos",
   "Send now": "Enviar ahora",
@@ -1377,8 +1452,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "州主",
     roleAdmin: "管理员",
     roleMember: "成员",
-    closed: "已结束",
-    open: "开放中",
     delete: "删除",
   },
   es: {
@@ -1404,8 +1477,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "propietario",
     roleAdmin: "administrador",
     roleMember: "miembro",
-    closed: "Cerrada",
-    open: "Abierta",
     delete: "Eliminar",
   },
   ar: {
@@ -1430,8 +1501,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "المالك",
     roleAdmin: "المسؤول",
     roleMember: "عضو",
-    closed: "مغلق",
-    open: "مفتوح",
     delete: "حذف",
   },
   th: {
@@ -1456,8 +1525,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "เจ้าของ",
     roleAdmin: "ผู้ดูแล",
     roleMember: "สมาชิก",
-    closed: "ปิดแล้ว",
-    open: "เปิดอยู่",
     delete: "ลบ",
   },
 };
