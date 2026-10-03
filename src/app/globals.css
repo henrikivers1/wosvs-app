@@ -3104,3 +3104,71 @@ article.tag-row {
   align-items: center;
   gap: 6px;
 }
+
+/* Next SvS checklist (Planning). */
+.next-svs-steps {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.next-svs-steps li {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.next-svs-steps li p {
+  margin: 2px 0 0;
+  color: var(--muted-strong);
+  font-size: 0.86rem;
+}
+.next-svs-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 800;
+  background: var(--surface);
+  color: var(--muted-strong);
+}
+.next-svs-steps li.done .next-svs-mark {
+  background: #3fb950;
+  color: #0d1117;
+}
+.next-svs-steps li.warning .next-svs-mark {
+  background: #f0883e;
+  color: #0d1117;
+}
+@media (max-width: 640px) {
+  .next-svs-steps li {
+    grid-template-columns: 26px 1fr;
+  }
+  .next-svs-steps li button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+.plan-history {
+  margin-top: 14px;
+}
+.plan-history ul {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.automation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px 16px;
+  align-items: end;
+  margin-top: 10px;
+}

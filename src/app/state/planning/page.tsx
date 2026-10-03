@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { SvsStatus } from "@/components/SvsStatus";
 import { AutoFillPanel } from "@/components/planning/AutoFillPanel";
+import { NextSvsChecklist } from "@/components/planning/NextSvsChecklist";
 import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
 import {
+  AUTOFILL_CRITERIA,
   computeAutofill,
   distributeGroupHeroes,
   pickHero,
@@ -38,7 +40,22 @@ type BattlePlan = {
   status: "draft" | "published";
   opponent_state_number: number | null;
   auto_created: boolean;
+  attendance_reminder_sent_at: string | null;
+  auto_planned_at: string | null;
 };
+export type AutomationSettings = {
+  auto_plan: boolean;
+  auto_publish: boolean;
+  rally_count: number;
+  rally_size: number;
+  default_formation: string | null;
+  default_joiner_heroes: string[];
+  autofill_priorities: string[];
+};
+// Plans this long after their battle start move to the history list.
+const PLAN_HISTORY_AFTER_MS = 5 * 60 * 60 * 1000;
+const ACCOUNT_COLUMNS =
+  "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, labyrinth_score, heroes_updated_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill, alliance_abbr";
 type PlanGroup = {
   id: string;
   plan_id: string;
@@ -155,6 +172,11 @@ export default function BattlePlanningPage() {
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [heroGeneration, setHeroGeneration] = useState<number | null>(null);
+  const [automation, setAutomation] = useState<AutomationSettings | null>(
+    null,
+  );
+  // When the data was loaded; used instead of reading the clock in render.
+  const [loadedAt, setLoadedAt] = useState(0);
   // Shown when the state has no upcoming plan (e.g. it was deleted).
   const [hasUpcomingPlan, setHasUpcomingPlan] = useState(true);
   const [newPlanOpponent, setNewPlanOpponent] = useState("");
@@ -209,7 +231,6 @@ export default function BattlePlanningPage() {
 
   const isAdmin =
     activeMembership?.role === "owner" || activeMembership?.role === "admin";
-  const rallyLeadTag = tags.find((tag) => tag.system_key === "rally_lead");
   const regularTags = tags.filter((tag) => !tag.system_key);
   const rallyLeaders = members.filter((member) =>
     member.tags.some((tag) => tag.system_key === "rally_lead"),
@@ -229,9 +250,8 @@ export default function BattlePlanningPage() {
       setLoading(false);
       return;
     }
-    setLoading(true);
-    setMessage(t(""));
     const stateId = activeMembership.stateId;
+    // Round 1: everything that only needs the state id.
     const [
       planResult,
       memberResult,
@@ -239,17 +259,18 @@ export default function BattlePlanningPage() {
       allianceResult,
       attendanceResult,
       battleResult,
+      stateResult,
     ] = await Promise.all([
       supabase
         .from("battle_plans")
         .select(
-          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created",
+          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created, attendance_reminder_sent_at, auto_planned_at",
         )
         .eq("state_id", stateId)
         .order("scheduled_at", { ascending: true }),
       supabase
         .from("state_members")
-        .select("wos_account_id, role")
+        .select(`wos_account_id, role, wos_accounts!inner(${ACCOUNT_COLUMNS})`)
         .eq("state_id", stateId),
       supabase
         .from("state_tags")
@@ -270,6 +291,13 @@ export default function BattlePlanningPage() {
         .select("id, plan_id, status, scheduled_at")
         .eq("state_id", stateId)
         .in("status", ["scheduled", "active", "completed"]),
+      supabase
+        .from("states")
+        .select(
+          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at, auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes, autofill_priorities",
+        )
+        .eq("id", stateId)
+        .maybeSingle(),
     ]);
     const firstError =
       planResult.error ||
@@ -277,7 +305,8 @@ export default function BattlePlanningPage() {
       tagResult.error ||
       allianceResult.error ||
       attendanceResult.error ||
-      battleResult.error;
+      battleResult.error ||
+      stateResult.error;
     if (firstError) {
       setMessage(firstError.message);
       setLoading(false);
@@ -285,19 +314,33 @@ export default function BattlePlanningPage() {
     }
 
     const planRows = (planResult.data ?? []) as BattlePlan[];
-    const memberRows = (memberResult.data ?? []) as Array<{
+    const memberRows = (memberResult.data ?? []) as unknown as Array<{
       wos_account_id: string;
       role: string;
+      wos_accounts: AccountRow | AccountRow[];
     }>;
+    const accountRows = memberRows.map((row) =>
+      Array.isArray(row.wos_accounts) ? row.wos_accounts[0] : row.wos_accounts,
+    );
     const stateTags = (tagResult.data ?? []) as StateTag[];
-    const planIds = planRows.map((plan) => plan.id);
-    const accountIds = memberRows.map((member) => member.wos_account_id);
+    // Full detail only for current plans; older ones are listed as history.
+    const now = Date.now();
+    setLoadedAt(now);
+    const historyBefore = now - PLAN_HISTORY_AFTER_MS;
+    const planIds = planRows
+      .filter((plan) => new Date(plan.scheduled_at).getTime() > historyBefore)
+      .map((plan) => plan.id);
+    const accountIds = accountRows.map((account) => account.id);
+    const userIds = [...new Set(accountRows.map((account) => account.user_id))];
+
+    // Round 2: rows that hang off the plans and members found above.
     const [
       groupResult,
       assignmentResult,
-      accountResult,
       tagAssignmentResult,
       commentResult,
+      heroResult,
+      profileResult,
     ] = await Promise.all([
       planIds.length
         ? supabase
@@ -316,14 +359,6 @@ export default function BattlePlanningPage() {
         : Promise.resolve({ data: [], error: null }),
       accountIds.length
         ? supabase
-            .from("wos_accounts")
-            .select(
-              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, labyrinth_score, heroes_updated_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
-            )
-            .in("id", accountIds)
-        : Promise.resolve({ data: [], error: null }),
-      accountIds.length
-        ? supabase
             .from("state_member_tags")
             .select("tag_id, wos_account_id")
             .in("wos_account_id", accountIds)
@@ -334,58 +369,50 @@ export default function BattlePlanningPage() {
             viewer_wos_account_id: activeMembership.wosAccountId,
           })
         : Promise.resolve({ data: [], error: null }),
-    ]);
-    const secondError =
-      groupResult.error ||
-      assignmentResult.error ||
-      accountResult.error ||
-      tagAssignmentResult.error ||
-      commentResult.error;
-    if (secondError) {
-      setMessage(secondError.message);
-      setLoading(false);
-      return;
-    }
-
-    const accountRows = (accountResult.data ?? []) as AccountRow[];
-    const [{ data: heroRows }, { data: stateRow }] = await Promise.all([
       accountIds.length
         ? supabase
             .from("player_heroes")
             .select("wos_account_id, hero")
             .in("wos_account_id", accountIds)
         : Promise.resolve({ data: [], error: null }),
-      supabase
-        .from("states")
-        .select(
-          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at",
-        )
-        .eq("id", stateId)
-        .maybeSingle(),
+      userIds.length
+        ? supabase.from("profiles").select("id, username").in("id", userIds)
+        : Promise.resolve({ data: [], error: null }),
     ]);
+    const secondError =
+      groupResult.error ||
+      assignmentResult.error ||
+      tagAssignmentResult.error ||
+      commentResult.error ||
+      heroResult.error ||
+      profileResult.error;
+    if (secondError) {
+      setMessage(secondError.message);
+      setLoading(false);
+      return;
+    }
+
+    const stateRow = stateResult.data;
     const heroesByAccount = new Map<string, string[]>();
-    ((heroRows ?? []) as { wos_account_id: string; hero: string }[]).forEach(
-      (row) =>
-        heroesByAccount.set(row.wos_account_id, [
-          ...(heroesByAccount.get(row.wos_account_id) ?? []),
-          row.hero,
-        ]),
+    (
+      (heroResult.data ?? []) as { wos_account_id: string; hero: string }[]
+    ).forEach((row) =>
+      heroesByAccount.set(row.wos_account_id, [
+        ...(heroesByAccount.get(row.wos_account_id) ?? []),
+        row.hero,
+      ]),
     );
     setHeroGeneration(stateRow?.hero_generation_max ?? null);
+    setAutomation(
+      stateRow && "auto_plan" in stateRow
+        ? (stateRow as unknown as AutomationSettings)
+        : null,
+    );
     const nextBattle = stateRow?.svs_battle_at ?? stateRow?.svs_next_battle_at;
     setNewPlanOpponent(
       stateRow?.svs_opponent ? String(stateRow.svs_opponent) : "",
     );
     setNewPlanDate(nextBattle ? String(nextBattle).slice(0, 10) : "");
-    const userIds = [...new Set(accountRows.map((account) => account.user_id))];
-    const profileResult = userIds.length
-      ? await supabase.from("profiles").select("id, username").in("id", userIds)
-      : { data: [], error: null };
-    if (profileResult.error) {
-      setMessage(profileResult.error.message);
-      setLoading(false);
-      return;
-    }
     const membershipById = new Map(
       memberRows.map((member) => [member.wos_account_id, member]),
     );
@@ -447,7 +474,7 @@ export default function BattlePlanningPage() {
     setPlanComments((commentResult.data ?? []) as PlanComment[]);
     setScheduledBattles((battleResult.data ?? []) as ScheduledBattle[]);
     setLoading(false);
-  }, [activeMembership, supabase, t]);
+  }, [activeMembership, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -458,62 +485,34 @@ export default function BattlePlanningPage() {
     return () => window.clearTimeout(loadId);
   }, [loadPlanning, loadingStates, router, signedIn]);
 
+  // One reload for a burst of changes (an auto-fill writes a row per
+  // player), and only for this state's rows.
   useEffect(() => {
     if (!activeMembership) return;
-    const channel = supabase
-      .channel(`plan-comments-${activeMembership.key}`)
-      .on(
+    let timer: number | undefined;
+    const reload = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void loadPlanning(), 400);
+    };
+    const stateFilter = `state_id=eq.${activeMembership.stateId}`;
+    const channel = supabase.channel(`planning-${activeMembership.key}`);
+    for (const table of [
+      "battle_plans",
+      "battle_plan_groups",
+      "battle_plan_assignments",
+      "battle_plan_comments",
+      "battle_attendance",
+      "battles",
+    ]) {
+      channel.on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "battle_plans",
-          filter: `state_id=eq.${activeMembership.stateId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "battle_plan_groups" },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "battle_plan_assignments" },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "battle_plan_comments",
-          filter: `state_id=eq.${activeMembership.stateId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "battles",
-          filter: `state_id=eq.${activeMembership.stateId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `wos_account_id=eq.${activeMembership.wosAccountId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .subscribe();
+        { event: "*", schema: "public", table, filter: stateFilter },
+        reload,
+      );
+    }
+    channel.subscribe();
     return () => {
+      window.clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
   }, [activeMembership, loadPlanning, supabase]);
@@ -1050,6 +1049,108 @@ export default function BattlePlanningPage() {
       return next;
     });
   }
+  const autofillPriorities = (
+    automation?.autofill_priorities ?? ["hero_match", "equal_power", "fc"]
+  ).filter((value): value is AutofillCriterion =>
+    AUTOFILL_CRITERIA.some((criterion) => criterion.value === value),
+  );
+
+  async function saveAutofillPriorities(next: AutofillCriterion[]) {
+    if (!activeMembership || !automation) return;
+    setAutomation({ ...automation, autofill_priorities: next });
+    const { error } = await supabase.rpc("set_state_automation", {
+      target_state_id: activeMembership.stateId,
+      settings: { autofill_priorities: next },
+    });
+    if (error) setMessage(error.message);
+  }
+
+  // Runs the automation's next step now ("generate" also fills open slots).
+  async function runPlanStep(planId: string, action: "generate" | "publish") {
+    if (!activeMembership || saving) return;
+    if (
+      action === "publish" &&
+      !window.confirm(
+        t("Publish now? Every member gets their rally assignment."),
+      )
+    ) {
+      return;
+    }
+    setSaving(true);
+    setMessage(t(""));
+    try {
+      const response = await fetch("/api/automation/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stateId: activeMembership.stateId,
+          planId,
+          action,
+        }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        ralliesCreated?: number;
+        playersAssigned?: number;
+        published?: boolean;
+      };
+      if (!response.ok) throw new Error(result.error ?? "Planning failed.");
+      setMessage(
+        result.published
+          ? t("Published. Every member got their assignment.")
+          : t("{rallies} rallies created, {players} players added.", {
+              rallies: result.ralliesCreated ?? 0,
+              players: result.playersAssigned ?? 0,
+            }),
+      );
+      await loadPlanning();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function renderChecklist() {
+    const plan = plans.find((item) => item.id === upcomingPlanId);
+    if (!plan) return null;
+    const planGroups = getPlanGroups(plan.id);
+    const answers = attendance.filter((row) => row.plan_id === plan.id);
+    const assigned = new Set(
+      assignments
+        .filter((item) => item.plan_id === plan.id)
+        .map((item) => item.wos_account_id),
+    );
+    const available = answers.filter(
+      (row) => row.availability !== "unavailable",
+    );
+    return (
+      <NextSvsChecklist
+        plan={plan}
+        autoPlan={automation?.auto_plan ?? true}
+        autoPublish={automation?.auto_publish ?? true}
+        memberCount={members.length}
+        votedCount={answers.length}
+        availableCount={available.length}
+        rallyCount={planGroups.length}
+        assignedCount={assigned.size}
+        waitingCount={
+          planGroups.length
+            ? available.filter((row) => !assigned.has(row.wos_account_id))
+                .length
+            : 0
+        }
+        missingAlliance={
+          planGroups.filter((group) => !group.alliance_id).length
+        }
+        busy={saving}
+        now={loadedAt}
+        onGenerate={() => void runPlanStep(plan.id, "generate")}
+        onPublish={() => void runPlanStep(plan.id, "publish")}
+      />
+    );
+  }
+
   async function createSvsPlan() {
     if (!activeMembership || !isAdmin) return;
     setSaving(true);
@@ -1345,6 +1446,14 @@ export default function BattlePlanningPage() {
       </main>
     );
 
+  const historyBefore = loadedAt - PLAN_HISTORY_AFTER_MS;
+  const currentPlans = plans.filter(
+    (plan) => new Date(plan.scheduled_at).getTime() > historyBefore,
+  );
+  const historyPlans = plans
+    .filter((plan) => new Date(plan.scheduled_at).getTime() <= historyBefore)
+    .reverse();
+
   return (
     <main>
       <AppHeader />
@@ -1360,11 +1469,12 @@ export default function BattlePlanningPage() {
             <h1>{t("Battle planning")}</h1>
             <p>
               {t(
-                "The SvS plan is created automatically as soon as the draw is made. Build rally groups, assign members, then publish the alliance roster and optional tags.",
+                "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.",
               )}
             </p>
           </section>
           <SvsStatus stateId={activeMembership.stateId} />
+          {isAdmin && !loading && renderChecklist()}
           {isAdmin && !loading && !hasUpcomingPlan && (
             <section>
               <p className="section-label">{t("No SvS plan")}</p>
@@ -1423,7 +1533,10 @@ export default function BattlePlanningPage() {
               </div>
             ) : (
               <div className="battle-plan-list">
-                {plans.map((plan) => {
+                {currentPlans.length === 0 && (
+                  <p>{t("No upcoming battle plan.")}</p>
+                )}
+                {currentPlans.map((plan) => {
                   const planGroups = getPlanGroups(plan.id);
                   const candidates = getCandidates(plan.id);
                   const comments = planComments.filter(
@@ -1713,6 +1826,10 @@ export default function BattlePlanningPage() {
                       {isAdmin && (
                         <AutoFillPanel
                           disabled={saving || !planGroups.length}
+                          priorities={autofillPriorities}
+                          onPrioritiesChange={(next) =>
+                            void saveAutofillPriorities(next)
+                          }
                           onRun={(priorities, replaceExisting, requireHero) =>
                             void runAutofill(
                               plan.id,
@@ -2327,19 +2444,39 @@ export default function BattlePlanningPage() {
                     </article>
                   );
                 })}
+                {historyPlans.length > 0 && (
+                  <details className="plan-history">
+                    <summary>
+                      {t("Earlier plans ({count})", {
+                        count: historyPlans.length,
+                      })}
+                    </summary>
+                    <ul>
+                      {historyPlans.map((plan) => {
+                        const battle = scheduledBattles.find(
+                          (item) => item.plan_id === plan.id,
+                        );
+                        return (
+                          <li key={plan.id}>
+                            <strong>{plan.name}</strong>{" "}
+                            <time>{formatDateTime(plan.scheduled_at)}</time>{" "}
+                            <span className="battle-type-badge">
+                              {t(
+                                (battle?.status ?? plan.status)
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                  (battle?.status ?? plan.status).slice(1),
+                              )}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
+                )}
               </div>
             )}
           </section>
-          {isAdmin && !rallyLeadTag && (
-            <section className="empty-state">
-              <h2>{t("Rally Lead tag missing")}</h2>
-              <p>
-                {t(
-                  "Run the Battle Planning V2 SQL upgrade before using this page.",
-                )}
-              </p>
-            </section>
-          )}
         </>
       )}
     </main>

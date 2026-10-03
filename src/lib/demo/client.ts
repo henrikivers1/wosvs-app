@@ -133,6 +133,27 @@ function demoApiResponse(url: URL): Response | null {
   }
 }
 
+// "Generate now" / "Publish now": the real planning code, run against the
+// demo tables instead of the database.
+async function demoAutoPlan(body: string) {
+  const { runAutoPlan } = await import("@/lib/autoPlan");
+  const request = JSON.parse(body) as { planId?: string; action?: string };
+  const plan = demoTable("battle_plans").find((row) => row.id === request.planId);
+  const state = demoTable("states").find((row) => row.id === plan?.state_id);
+  if (!plan || !state) return json({ error: "Battle plan not found." }, 404);
+  try {
+    const result = await runAutoPlan(
+      createDemoClient() as unknown as Parameters<typeof runAutoPlan>[0],
+      plan as unknown as Parameters<typeof runAutoPlan>[1],
+      state as unknown as Parameters<typeof runAutoPlan>[2],
+      request.action === "publish" ? { publishNow: true } : { generateNow: true },
+    );
+    return json(result);
+  } catch (error) {
+    return json({ error: error instanceof Error ? error.message : String(error) }, 500);
+  }
+}
+
 let fetchInstalled = false;
 
 function installDemoFetch() {
@@ -148,6 +169,9 @@ function installDemoFetch() {
           : input.url;
     const url = new URL(raw, window.location.origin);
     if (url.origin === window.location.origin) {
+      if (url.pathname === "/api/automation/plan") {
+        return demoAutoPlan(String(init?.body ?? "{}"));
+      }
       const response = demoApiResponse(url);
       if (response) return response;
     }

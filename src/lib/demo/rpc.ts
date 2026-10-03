@@ -565,7 +565,23 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         battle_start: plan.scheduled_at,
         player,
       };
-      if (mine && myGroup) {
+      if (ledGroup) {
+        const alliance = byId("state_alliances", ledGroup.alliance_id);
+        notifyDemoUser(
+          "battle_plan_assignment",
+          "You lead a rally",
+          `Hi ${player}, you're leading ${ledGroup.name}.`,
+          {
+            ...base,
+            group_id: ledGroup.id,
+            group_name: ledGroup.name,
+            alliance_name: alliance?.name ?? null,
+            leader: true,
+          },
+          plan.state_id,
+          accountId,
+        );
+      } else if (mine && myGroup) {
         const alliance = byId("state_alliances", myGroup.alliance_id);
         notifyDemoUser(
           "battle_plan_assignment",
@@ -578,22 +594,6 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
             alliance_name: alliance?.name ?? null,
             hero: mine.hero ?? null,
             formation: mine.formation ?? myGroup.formation ?? null,
-          },
-          plan.state_id,
-          accountId,
-        );
-      } else if (ledGroup) {
-        const alliance = byId("state_alliances", ledGroup.alliance_id);
-        notifyDemoUser(
-          "battle_plan_assignment",
-          "You lead a rally",
-          `Hi ${player}, you're leading ${ledGroup.name}.`,
-          {
-            ...base,
-            group_id: ledGroup.id,
-            group_name: ledGroup.name,
-            alliance_name: alliance?.name ?? null,
-            leader: true,
           },
           plan.state_id,
           accountId,
@@ -656,6 +656,13 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       return fail("System tags are permanent and cannot be deleted.");
     remove("state_member_tags", (row) => row.tag_id === target_tag_id);
     remove("state_tags", (row) => row.id === target_tag_id);
+    return ok();
+  },
+
+  set_state_automation: ({ target_state_id, settings }) => {
+    const state = byId("states", target_state_id);
+    if (!state) return fail("State not found.");
+    Object.assign(state, settings as Row);
     return ok();
   },
 

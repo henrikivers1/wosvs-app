@@ -25,8 +25,6 @@ export const REMIND_BEFORE_MS = 30 * HOUR_MS;
 export const GENERATE_BEFORE_MS = 24 * HOUR_MS;
 export const PUBLISH_BEFORE_MS = 6 * HOUR_MS;
 
-const RALLY_LEAD_COLOR = "#4f8fba";
-
 export type AutoPlanSettings = {
   auto_plan: boolean;
   auto_publish: boolean;

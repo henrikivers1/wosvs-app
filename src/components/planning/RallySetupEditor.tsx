@@ -6,7 +6,7 @@ import type { GroupShift } from "@/lib/autofill";
 import { HEROES, LATEST_HERO_GENERATION } from "@/lib/heroes";
 import { createClient } from "@/lib/supabase/client";
 
-const FORMATION_PRESETS = ["50/20/30", "40/20/40", "60/20/20", "34/33/33"];
+export const FORMATION_PRESETS = ["50/20/30", "40/20/40", "60/20/20", "34/33/33"];
 const FORMATION = /^(\d{1,3})\/(\d{1,3})\/(\d{1,3})$/;
 
 export type RallySetup = {

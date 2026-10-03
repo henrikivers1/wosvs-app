@@ -6,6 +6,7 @@ import {
   saveDemoTables,
   type Row,
 } from "@/lib/demo/store";
+import { DEMO_USER_ID } from "@/lib/demo/seed";
 import {
   emitDemoMemberNotifications,
   snapshotDemoMembers,
@@ -260,7 +261,14 @@ export class DemoQuery implements PromiseLike<DemoResult> {
     const rows = demoTable(this.table);
 
     if (this.action === "select") {
-      return this.finish(rows.filter((row) => this.matches(row)));
+      return this.finish(
+        rows.filter(
+          (row) =>
+            this.matches(row) &&
+            // Like row-level security: only your own notifications.
+            (this.table !== "notifications" || row.user_id === DEMO_USER_ID),
+        ),
+      );
     }
 
     if (this.action === "insert" || this.action === "upsert") {

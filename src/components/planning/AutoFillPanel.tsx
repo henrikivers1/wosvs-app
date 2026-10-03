@@ -1,23 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { AUTOFILL_CRITERIA, type AutofillCriterion } from "@/lib/autofill";
 
-const STORAGE_KEY = "wosoverwatch-autofill-priorities";
-const DEFAULT_PRIORITIES: AutofillCriterion[] = [
-  "hero_match",
-  "equal_power",
-  "fc",
-];
-
-// The admin picks which criteria count and in which order; auto-fill then
-// drafts every rally for review before publishing.
+// The admin picks which criteria count and in which order. The order is a
+// state setting: the automatic planning uses the same priorities.
 export function AutoFillPanel({
   disabled,
+  priorities,
+  onPrioritiesChange,
   onRun,
 }: {
   disabled: boolean;
+  priorities: AutofillCriterion[];
+  onPrioritiesChange: (next: AutofillCriterion[]) => void;
   onRun: (
     priorities: AutofillCriterion[],
     replaceExisting: boolean,
@@ -25,33 +22,9 @@ export function AutoFillPanel({
   ) => void;
 }) {
   const { t } = useLanguage();
-  const [priorities, setPriorities] =
-    useState<AutofillCriterion[]>(DEFAULT_PRIORITIES);
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [requireHero, setRequireHero] = useState(false);
-
-  useEffect(() => {
-    const loadId = window.setTimeout(() => {
-      try {
-        const stored = JSON.parse(
-          window.localStorage.getItem(STORAGE_KEY) ?? "null",
-        ) as AutofillCriterion[] | null;
-        if (Array.isArray(stored) && stored.length) setPriorities(stored);
-      } catch {
-        // Keep the defaults.
-      }
-    }, 0);
-    return () => window.clearTimeout(loadId);
-  }, []);
-
-  function update(next: AutofillCriterion[]) {
-    setPriorities(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // Preference only lives for this visit.
-    }
-  }
+  const update = onPrioritiesChange;
 
   function move(index: number, direction: -1 | 1) {
     const next = [...priorities];
