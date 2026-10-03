@@ -126,6 +126,12 @@ export type NotificationTextData = {
   formation?: string | null;
   changed?: boolean;
   leader?: boolean;
+  // castle_holder | garrison | rally_lead | joiner (plans with pet blocks)
+  role?: string;
+  // "12:00–14:00 and 16:00–17:00": the blocks this player leads or holds.
+  blocks?: string | null;
+  // "Ted 12:00–14:00, Ice 14:00–16:00": the group's lead order.
+  leads?: string | null;
   battle_start?: string;
 };
 
@@ -292,6 +298,49 @@ export function localizedNotificationText(
     case "battle_plan_assignment_changed": {
       if (!data.player || !data.group_name) return null;
       const alliance = data.alliance_name ?? t("an alliance not yet selected");
+      const leads = data.leads
+        ? " " + t("Leads: {leads}.", { leads: data.leads })
+        : "";
+      if (data.role === "castle_holder") {
+        return {
+          title: t("You hold the castle"),
+          body:
+            t(
+              "Hi {player}, you're a castle holder {blocks} UTC. When it's your turn, swap to the alliance holding the castle and take over the garrison.",
+              { player, blocks: data.blocks ?? "" },
+            ) +
+            (data.leads
+              ? " " + t("Holders: {leads}.", { leads: data.leads })
+              : ""),
+        };
+      }
+      if (data.role === "garrison") {
+        return {
+          title: t("You're in the garrison"),
+          body:
+            t(
+              "Hi {player}, you're in the garrison holding the castle in {alliance}. Stay in the castle the whole battle.",
+              { player, alliance },
+            ) +
+            (data.leads
+              ? " " + t("Holders: {leads}.", { leads: data.leads })
+              : "") +
+            " " +
+            t("Please be there by battle start ({start}).", { start }),
+        };
+      }
+      if (data.leader && data.blocks) {
+        return {
+          title: t("You lead a rally"),
+          body:
+            t("Hi {player}, you lead {group} {blocks} UTC in {alliance}.", {
+              player,
+              group: data.group_name,
+              blocks: data.blocks,
+              alliance,
+            }) + leads,
+        };
+      }
       if (data.leader) {
         return {
           title: t("You lead a rally"),
@@ -325,6 +374,7 @@ export function localizedNotificationText(
             alliance,
           }) +
           joining +
+          leads +
           " " +
           t("Please be there by battle start ({start}).", { start }),
       };

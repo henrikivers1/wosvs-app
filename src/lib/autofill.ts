@@ -50,7 +50,8 @@ export type AutofillDraft = {
   hero: string | null;
 };
 
-// Players who said they can play the half this group fights in.
+// Players who can play while this rally fights. A rally that runs the whole
+// battle takes half voters too: they join for their half.
 export function canPlayShift(
   availability: Availability | null,
   shift: GroupShift,
@@ -58,7 +59,7 @@ export function canPlayShift(
   if (availability === "whole") return true;
   if (shift === "first_half") return availability === "first_half";
   if (shift === "second_half") return availability === "second_half";
-  return false;
+  return availability === "first_half" || availability === "second_half";
 }
 
 // The rally's joiner hero this player should bring: one they own at 4★,
@@ -184,11 +185,11 @@ export function computeAutofill(
 
 // Gives every member of one rally a joiner hero they have at 4★ so that all
 // of the rally's heroes are covered: players with the fewest options pick
-// first, each taking the least-used hero they own. The leader is skipped
+// first, each taking the least-used hero they own. Leads are skipped
 // because they lead with their own heroes.
 export function distributeGroupHeroes(
   memberIds: string[],
-  leaderId: string,
+  leadIds: string[],
   joinerHeroes: string[],
   heroesOf: (memberId: string) => string[],
 ): Record<string, string | null> {
@@ -199,7 +200,7 @@ export function distributeGroupHeroes(
     return joinerHeroes.filter((hero) => mine.has(hero.toLowerCase()));
   };
   [...memberIds]
-    .filter((memberId) => memberId !== leaderId)
+    .filter((memberId) => !leadIds.includes(memberId))
     .sort((first, second) => owned(first).length - owned(second).length)
     .forEach((memberId) => {
       const hero = pickHero(joinerHeroes, heroesOf(memberId), usage);

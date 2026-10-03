@@ -1,3 +1,4 @@
+import { blockLabel } from "@/lib/castle";
 import type { DemoResult } from "@/lib/demo/query";
 import { DEMO_USER_ID } from "@/lib/demo/seed";
 import {
@@ -39,7 +40,10 @@ function accountName(accountId: unknown) {
 
 // Same rule as the database trigger: every group gets "<leader> rally".
 function rallyTagFor(stateId: unknown, leaderId: unknown) {
-  const name = `${accountName(leaderId).slice(0, 26)} rally`;
+  const name =
+    leaderId === "garrison"
+      ? "Garrison"
+      : `${accountName(leaderId).slice(0, 26)} rally`;
   const tags = demoTable("state_tags");
   let tag = tags.find(
     (row) =>
@@ -62,28 +66,67 @@ function rallyTagFor(stateId: unknown, leaderId: unknown) {
   return tag.id;
 }
 
-function isRallyLead(stateId: unknown, accountId: unknown) {
+function hasSystemTag(stateId: unknown, accountId: unknown, key: string) {
   const tag = demoTable("state_tags").find(
-    (row) => row.state_id === stateId && row.system_key === "rally_lead",
+    (row) => row.state_id === stateId && row.system_key === key,
   );
   return demoTable("state_member_tags").some(
     (row) => row.tag_id === tag?.id && row.wos_account_id === accountId,
   );
 }
 
+function isRallyLead(stateId: unknown, accountId: unknown) {
+  return hasSystemTag(stateId, accountId, "rally_lead");
+}
+
+// Same rules as the database: everyone who leads or holds in a group, the
+// seats it uses (joiners plus one lead), and leads never join.
+function groupLeads(group: Row) {
+  return new Set(
+    [group.leader_wos_account_id, ...((group.lead_rotation as unknown[]) ?? [])].filter(
+      Boolean,
+    ),
+  );
+}
+
+function seatCount(group: Row) {
+  const leads = groupLeads(group);
+  return (
+    demoTable("battle_plan_assignments").filter(
+      (row) => row.group_id === group.id && !leads.has(row.wos_account_id),
+    ).length + 1
+  );
+}
+
+function leadsInPlan(planId: unknown, accountId: unknown) {
+  return demoTable("battle_plan_groups").find(
+    (group) => group.plan_id === planId && groupLeads(group).has(accountId),
+  );
+}
+
+function joinBlocked(group: Row, accountId: unknown) {
+  if (groupLeads(group).has(accountId)) return null;
+  return hasSystemTag(group.state_id, accountId, "rally_lead") ||
+    hasSystemTag(group.state_id, accountId, "castle_holder")
+    ? `Rally Leads and Castle Holders only lead or hold; they cannot join ${group.name}.`
+    : null;
+}
+
 function assign(planId: unknown, groupId: unknown, accountId: unknown) {
   const group = byId("battle_plan_groups", groupId);
+  if (!group) return null;
+  const blocked = joinBlocked(group, accountId);
+  if (blocked) return blocked;
+  const alreadyHere = demoTable("battle_plan_assignments").some(
+    (row) => row.group_id === groupId && row.wos_account_id === accountId,
+  );
+  if (!alreadyHere && !groupLeads(group).has(accountId) && seatCount(group) >= (group.max_members as number)) {
+    return "This rally group is full.";
+  }
   remove(
     "battle_plan_assignments",
     (row) => row.plan_id === planId && row.wos_account_id === accountId,
   );
-  if (!group) return null;
-  const count = demoTable("battle_plan_assignments").filter(
-    (row) => row.group_id === groupId,
-  ).length;
-  if (count >= (group.max_members as number)) {
-    return "This rally group is full.";
-  }
   demoTable("battle_plan_assignments").push({
     plan_id: planId,
     group_id: groupId,
@@ -92,6 +135,55 @@ function assign(planId: unknown, groupId: unknown, accountId: unknown) {
     assigned_at: nowIso(),
   });
   return null;
+}
+
+function setRotation(group: Row, leads: unknown[]) {
+  const key = group.kind === "garrison" ? "castle_holder" : "rally_lead";
+  const first = leads.find(Boolean);
+  if (!first) return "Choose at least one lead.";
+  for (const lead of leads.filter(Boolean)) {
+    if (!hasSystemTag(group.state_id, lead, key)) {
+      return key === "castle_holder"
+        ? "Only Castle Holders can hold the castle."
+        : "Only Rally Leads can lead a rally.";
+    }
+    const other = leadsInPlan(group.plan_id, lead);
+    if (other && other.id !== group.id) {
+      return "That player already leads another group in this plan.";
+    }
+  }
+  const previous = groupLeads(group);
+  Object.assign(group, { lead_rotation: leads, leader_wos_account_id: first });
+  remove(
+    "battle_plan_assignments",
+    (row) =>
+      row.group_id === group.id &&
+      previous.has(row.wos_account_id) &&
+      !leads.includes(row.wos_account_id),
+  );
+  for (const lead of new Set(leads.filter(Boolean))) {
+    remove(
+      "battle_plan_assignments",
+      (row) => row.plan_id === group.plan_id && row.wos_account_id === lead,
+    );
+    demoTable("battle_plan_assignments").push({
+      plan_id: group.plan_id,
+      group_id: group.id,
+      state_id: group.state_id,
+      wos_account_id: lead,
+      hero: null,
+      assigned_at: nowIso(),
+    });
+  }
+  return null;
+}
+
+// "Ted 12:00–14:00, Ice 14:00–16:00" for a group's rotation.
+function rotationText(group: Row) {
+  return ((group.lead_rotation as unknown[]) ?? [])
+    .map((lead, block) => (lead ? `${accountName(lead)} ${blockLabel(block)}` : null))
+    .filter(Boolean)
+    .join(", ");
 }
 
 function nextSundayEnd() {
@@ -199,7 +291,7 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     const groups = demoTable("battle_plan_groups").filter(
       (row) => row.plan_id === planId,
     );
-    const leaders = new Set(groups.map((group) => group.leader_wos_account_id));
+    const leaders = new Set(groups.flatMap((group) => [...groupLeads(group)]));
     if (args.replace_existing) {
       remove(
         "battle_plan_assignments",
@@ -209,7 +301,10 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     let applied = 0;
     for (const draft of (args.new_assignments as Row[]) ?? []) {
       if (leaders.has(draft.wos_account_id)) continue;
-      if (!groups.some((group) => group.id === draft.group_id)) continue;
+      const group = groups.find((row) => row.id === draft.group_id);
+      if (!group) continue;
+      const blocked = joinBlocked(group, draft.wos_account_id);
+      if (blocked) return fail(blocked);
       remove(
         "battle_plan_assignments",
         (row) =>
@@ -227,10 +322,7 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       applied += 1;
     }
     const full = groups.find(
-      (group) =>
-        demoTable("battle_plan_assignments").filter(
-          (row) => row.group_id === group.id,
-        ).length > (group.max_members as number),
+      (group) => seatCount(group) > (group.max_members as number),
     );
     if (full) return fail(`Rally group ${full.name} would be over capacity.`);
     return ok(applied);
@@ -353,7 +445,13 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       plan_id: plan.id,
       state_id: plan.state_id,
       name: String(args.group_name ?? "").trim() || "Rally group",
+      kind: "rally",
       leader_wos_account_id: args.leader_account_id,
+      lead_rotation: [
+        args.leader_account_id,
+        args.leader_account_id,
+        args.leader_account_id,
+      ],
       alliance_id: args.destination_alliance_id,
       assignment_tag_id:
         args.publish_tag_id ??
@@ -365,6 +463,70 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     };
     groups.push(group);
     assign(plan.id, group.id, args.leader_account_id);
+    return ok(group.id);
+  },
+
+  set_state_castle_holder: ({ target_state_id, target_wos_account_id, enabled }) => {
+    const tag = demoTable("state_tags").find(
+      (row) => row.state_id === target_state_id && row.system_key === "castle_holder",
+    );
+    if (!tag) return fail("The Castle Holder system tag is missing.");
+    remove(
+      "state_member_tags",
+      (row) => row.tag_id === tag.id && row.wos_account_id === target_wos_account_id,
+    );
+    if (enabled) {
+      demoTable("state_member_tags").push({
+        tag_id: tag.id,
+        wos_account_id: target_wos_account_id,
+        source: "manual",
+        assigned_at: nowIso(),
+      });
+    }
+    return ok();
+  },
+
+  set_battle_plan_group_rotation: ({ target_group_id, leads }) => {
+    const group = byId("battle_plan_groups", target_group_id);
+    if (!group) return fail("Rally group not found.");
+    const error = setRotation(group, (leads as unknown[]) ?? []);
+    return error ? fail(error) : ok();
+  },
+
+  create_garrison_group: ({ target_plan_id, holders, destination_alliance_id }) => {
+    const plan = byId("battle_plans", target_plan_id);
+    if (!plan) return fail("Battle plan not found.");
+    const groups = demoTable("battle_plan_groups");
+    if (groups.some((row) => row.plan_id === plan.id && row.kind === "garrison")) {
+      return fail("This plan already has a garrison.");
+    }
+    const list = (holders as unknown[]) ?? [];
+    const first = list.find(Boolean);
+    if (!first) return fail("Choose at least one Castle Holder.");
+    const state = byId("states", plan.state_id);
+    const group: Row = {
+      id: newUuid(),
+      plan_id: plan.id,
+      state_id: plan.state_id,
+      name: "Garrison",
+      kind: "garrison",
+      leader_wos_account_id: first,
+      lead_rotation: [],
+      alliance_id: destination_alliance_id,
+      assignment_tag_id: rallyTagFor(plan.state_id, "garrison"),
+      max_members: Number(state?.garrison_size ?? 15) + 1,
+      notes: null,
+      sort_order: -1,
+      shift: "whole",
+      joiner_heroes: [],
+      created_at: nowIso(),
+    };
+    groups.push(group);
+    const error = setRotation(group, list);
+    if (error) {
+      remove("battle_plan_groups", (row) => row.id === group.id);
+      return fail(error);
+    }
     return ok(group.id);
   },
 
@@ -385,7 +547,10 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         (leaderChanged &&
           args.publish_tag_id === group.assignment_tag_id &&
           oldTag?.kind === "rally")
-          ? rallyTagFor(group.state_id, args.leader_account_id)
+          ? rallyTagFor(
+              group.state_id,
+              group.kind === "garrison" ? "garrison" : args.leader_account_id,
+            )
           : args.publish_tag_id,
     });
     if (leaderChanged) assign(group.plan_id, group.id, args.leader_account_id);
@@ -402,6 +567,10 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
   },
 
   set_battle_plan_assignment: (args) => {
+    const led = leadsInPlan(args.target_plan_id, args.target_wos_account_id);
+    if (led && led.id !== args.target_group_id) {
+      return fail("Leads and holders stay with their group. Change its leads first.");
+    }
     if (!args.target_group_id) {
       remove(
         "battle_plan_assignments",
@@ -546,9 +715,7 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       const player = accountName(accountId);
       const mine = assignments.find((row) => row.wos_account_id === accountId);
       const myGroup = groups.find((group) => group.id === mine?.group_id);
-      const ledGroup = groups.find(
-        (group) => group.leader_wos_account_id === accountId,
-      );
+      const ledGroup = groups.find((group) => groupLeads(group).has(accountId));
       const base = {
         plan_id: plan.id,
         plan_name: plan.name,
@@ -557,16 +724,25 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       };
       if (ledGroup) {
         const alliance = byId("state_alliances", ledGroup.alliance_id);
+        const blocks = ((ledGroup.lead_rotation as unknown[]) ?? [])
+          .flatMap((lead, block) => (lead === accountId ? [blockLabel(block)] : []))
+          .join(" and ");
+        const holder = ledGroup.kind === "garrison";
         notifyDemoUser(
           "battle_plan_assignment",
-          "You lead a rally",
-          `Hi ${player}, you're leading ${ledGroup.name}.`,
+          holder ? "You hold the castle" : "You lead a rally",
+          holder
+            ? `Hi ${player}, you're a castle holder ${blocks} UTC.`
+            : `Hi ${player}, you lead ${ledGroup.name} ${blocks} UTC.`,
           {
             ...base,
             group_id: ledGroup.id,
             group_name: ledGroup.name,
             alliance_name: alliance?.name ?? null,
             leader: true,
+            role: holder ? "castle_holder" : "rally_lead",
+            blocks,
+            leads: rotationText(ledGroup),
           },
           plan.state_id,
           accountId,
@@ -576,12 +752,16 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
         notifyDemoUser(
           "battle_plan_assignment",
           "Your rally assignment",
-          `Hi ${player}, you've been assigned to ${myGroup.name}.`,
+          myGroup.kind === "garrison"
+            ? `Hi ${player}, you're in the garrison holding the castle.`
+            : `Hi ${player}, you've been assigned to ${myGroup.name}.`,
           {
             ...base,
             group_id: myGroup.id,
             group_name: myGroup.name,
             alliance_name: alliance?.name ?? null,
+            role: myGroup.kind === "garrison" ? "garrison" : "joiner",
+            leads: rotationText(myGroup),
             hero: mine.hero ?? null,
             formation: mine.formation ?? myGroup.formation ?? null,
           },

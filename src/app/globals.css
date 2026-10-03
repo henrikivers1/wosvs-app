@@ -4299,3 +4299,157 @@ li.member-row button.danger-button:hover:not(:disabled) {
     justify-self: start;
   }
 }
+
+/* ==========================================================================
+   Planning: pet-block rotation, garrison, leads & holders
+   ========================================================================== */
+.rotation-list {
+  display: grid;
+  padding: 0;
+  margin: 0;
+  gap: 3px;
+}
+.rotation-list li {
+  display: grid;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+}
+.rotation-list time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+.rotation-list button {
+  overflow: hidden;
+  min-height: 0;
+  padding: 3px 8px;
+  justify-content: flex-start;
+  color: var(--on-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--accent);
+  border: 0;
+  border-radius: 6px;
+}
+.rotation-list button:hover:not(:disabled) {
+  color: var(--on-accent);
+  background: var(--accent-hover);
+}
+.rotation-list button.is-flagged {
+  box-shadow: 0 0 0 2px var(--danger);
+}
+.rotation-list button.is-missing {
+  color: var(--danger-text);
+  font-weight: 500;
+  background: var(--danger-soft);
+  border: 1px dashed rgba(240, 124, 124, 0.5);
+}
+.rally-column.is-garrison {
+  border-color: var(--success-line);
+  box-shadow: inset 0 3px 0 var(--success);
+}
+.rally-column.is-garrison .rotation-list button:not(.is-missing) {
+  color: var(--navy);
+  background: var(--success);
+}
+.rally-column .rotation-editor {
+  padding: 10px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+.rotation-editor {
+  display: grid;
+  gap: 8px;
+}
+.rotation-editor .section-label {
+  margin: 0;
+}
+.rotation-editor label {
+  margin: 0;
+  font-size: 0.8rem;
+}
+.rotation-warning {
+  color: var(--danger-text);
+}
+.rally-form-panel .rotation-editor {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  align-items: end;
+}
+.rally-form-panel .rotation-editor .section-label,
+.rally-form-panel .rotation-editor .button-row,
+.rally-form-panel .rotation-editor .form-hint {
+  grid-column: 1 / -1;
+}
+
+/* Leads & holders panel */
+.segmented {
+  display: inline-flex;
+  margin: 4px 0 10px;
+  padding: 3px;
+  gap: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.segmented button {
+  min-height: 32px;
+  padding: 5px 12px;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+.segmented button[aria-pressed="true"] {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.lead-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* Rally Lead in gold, Castle Holder in green, like their rotation chips. */
+.lead-toggle.on:not(.holder),
+li button.lead-toggle.on:not(.holder) {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border-color: rgba(242, 179, 61, 0.45);
+}
+@media (max-width: 640px) {
+  .labyrinth-leaders li .lead-toggles {
+    grid-column: 2;
+  }
+}
+
+/* Overwatch: the member's rotation */
+.assignment-role {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.assignment-rotation {
+  display: grid;
+  padding: 0;
+  margin: 8px 0;
+  gap: 4px;
+}
+.assignment-rotation li {
+  display: flex;
+  min-height: 0;
+  padding: 6px 10px;
+  margin: 0;
+  gap: 10px;
+}
+.assignment-rotation time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}

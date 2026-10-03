@@ -1,3 +1,4 @@
+import { compareDefense, type DefenseStats } from "@/lib/castle";
 import type { DemoTables, Row } from "@/lib/demo/store";
 
 export const DEMO_USER_ID = "00000000-0000-4000-8000-00000000d3e0";
@@ -157,9 +158,9 @@ export function buildDemoSeed(now: Date): DemoTables {
       infantry_fc_level: Math.floor(rand() * 6),
       lancer_fc_level: Math.floor(rand() * 6),
       marksman_fc_level: Math.floor(rand() * 6),
-      infantry_t12_skill: null,
-      lancer_t12_skill: null,
-      marksman_t12_skill: null,
+      infantry_t12_skill: 1 + Math.floor(rand() * 9),
+      lancer_t12_skill: 1 + Math.floor(rand() * 9),
+      marksman_t12_skill: 1 + Math.floor(rand() * 9),
     });
     if (index !== memberViewIndex)
       profiles.push({
@@ -209,10 +210,21 @@ export function buildDemoSeed(now: Date): DemoTables {
     (first, second) =>
       (second.labyrinth_score as number) - (first.labyrinth_score as number),
   );
-  // The demo user's own accounts never lead a rally.
+  // The demo user's own accounts never lead a rally or hold the castle.
+  // Two Rally Leads per rally, so the leads visibly swap between pet blocks.
   const leaders = byLabyrinth
     .filter((account) => account.user_id !== DEMO_USER_ID)
-    .slice(0, 4);
+    .slice(0, 8);
+  const leaderIds = new Set(leaders.map((leader) => leader.id));
+  // The three strongest defenders hold the castle.
+  const holders = accounts
+    .filter(
+      (account) => account.user_id !== DEMO_USER_ID && !leaderIds.has(account.id),
+    )
+    .sort((first, second) =>
+      compareDefense(first as DefenseStats, second as DefenseStats),
+    )
+    .slice(0, 3);
 
   const rallyLeadTag = {
     id: id("7a", 1),
@@ -220,6 +232,16 @@ export function buildDemoSeed(now: Date): DemoTables {
     name: "Rally Lead",
     color: "#e4a853",
     system_key: "rally_lead",
+    kind: "custom",
+    hero_generation: null,
+    created_at: iso,
+  };
+  const castleHolderTag = {
+    id: id("7a", 2),
+    state_id: DEMO_STATE_ID,
+    name: "Castle Holder",
+    color: "#5fe0c0",
+    system_key: "castle_holder",
     kind: "custom",
     hero_generation: null,
     created_at: iso,
@@ -238,6 +260,12 @@ export function buildDemoSeed(now: Date): DemoTables {
     ...leaders.map((leader) => ({
       tag_id: rallyLeadTag.id,
       wos_account_id: leader.id,
+      source: "manual",
+      assigned_at: iso,
+    })),
+    ...holders.map((holder) => ({
+      tag_id: castleHolderTag.id,
+      wos_account_id: holder.id,
       source: "manual",
       assigned_at: iso,
     })),
@@ -265,7 +293,28 @@ export function buildDemoSeed(now: Date): DemoTables {
       voice_call: true,
       updated_at: iso,
     },
-    ...accounts.slice(1).flatMap((account) =>
+    // The four main Rally Leads play the first half and the four extra
+    // leads the second, so every rally swaps lead at 14:00; the Castle
+    // Holders play the whole battle.
+    ...leaders.map((leader, index) => ({
+      plan_id: planId,
+      state_id: DEMO_STATE_ID,
+      wos_account_id: leader.id,
+      availability: index < 4 ? "first_half" : "second_half",
+      voice_call: true,
+      updated_at: iso,
+    })),
+    ...holders.map((holder) => ({
+      plan_id: planId,
+      state_id: DEMO_STATE_ID,
+      wos_account_id: holder.id,
+      availability: "whole",
+      voice_call: true,
+      updated_at: iso,
+    })),
+    ...accounts.slice(1).filter(
+      (account) => !leaderIds.has(account.id) && !holders.includes(account),
+    ).flatMap((account) =>
       rand() < 0.7
         ? [
             {
@@ -319,8 +368,9 @@ export function buildDemoSeed(now: Date): DemoTables {
         oracle_checked_at: iso,
         auto_plan: true,
         auto_publish: true,
-        rally_count: 6,
+        rally_count: 4,
         rally_size: 10,
+        garrison_size: 8,
         default_formation: "50/20/30",
         default_joiner_heroes: ["Jessie", "Jasser", "Seo-yoon", "Sergey"],
         autofill_priorities: ["hero_match", "equal_power", "fc"],
@@ -340,7 +390,7 @@ export function buildDemoSeed(now: Date): DemoTables {
         capability: "rally_caller",
       },
     ],
-    state_tags: [rallyLeadTag, ...heroTags],
+    state_tags: [rallyLeadTag, castleHolderTag, ...heroTags],
     state_member_tags: memberTags,
     state_alliances: alliances,
     state_alliance_members: allianceMembers,

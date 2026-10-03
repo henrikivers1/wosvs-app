@@ -1,5 +1,6 @@
 "use client";
 
+import { blockLabel } from "@/lib/castle";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -45,7 +46,9 @@ type PlanGroup = {
   id: string;
   plan_id: string;
   name: string;
+  kind: "rally" | "garrison";
   leader_wos_account_id: string;
+  lead_rotation: Array<string | null> | null;
   alliance_id: string | null;
   notes: string | null;
   formation: string | null;
@@ -204,7 +207,7 @@ export default function OverwatchPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, leader_wos_account_id, alliance_id, notes, formation",
+              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, alliance_id, notes, formation",
             )
             .in("plan_id", planIds)
         : Promise.resolve({ data: [], error: null }),
@@ -251,7 +254,10 @@ export default function OverwatchPage() {
     ).filter((comment) => comment.visibility === "public");
     const accountIds = [
       ...new Set([
-        ...loadedGroups.map((group) => group.leader_wos_account_id),
+        ...loadedGroups.flatMap((group) => [
+          group.leader_wos_account_id,
+          ...((group.lead_rotation ?? []).filter(Boolean) as string[]),
+        ]),
         ...loadedComments.flatMap((comment) =>
           comment.author_wos_account_id ? [comment.author_wos_account_id] : [],
         ),
@@ -389,9 +395,18 @@ export default function OverwatchPage() {
     (assignment) => assignment.plan_id === featuredPlan?.id,
   );
   const ownGroup = groups.find((group) => group.id === ownAssignment?.group_id);
-  const leader = accountLabels.find(
-    (account) => account.id === ownGroup?.leader_wos_account_id,
-  );
+  const labelOf = (accountId: string) => {
+    const account = accountLabels.find((item) => item.id === accountId);
+    return account?.nickname ?? account?.wos_id ?? t("Unknown");
+  };
+  // Who leads (or holds) each pet block, and the blocks that are mine.
+  const rotation = (ownGroup?.lead_rotation ?? [])
+    .map((id, block) => (id ? { block, id } : null))
+    .filter((slot): slot is { block: number; id: string } => slot !== null);
+  const myBlocks = rotation
+    .filter((slot) => slot.id === activeMembership.wosAccountId)
+    .map((slot) => blockLabel(slot.block));
+  const isGarrison = ownGroup?.kind === "garrison";
   const publicComments = comments.filter(
     (comment) => comment.plan_id === featuredPlan?.id,
   );
@@ -463,31 +478,53 @@ export default function OverwatchPage() {
               <p className="section-label">{t("Your assignment")}</p>
               {ownGroup ? (
                 <>
-                  <h2>{ownGroup.name}</h2>
-                  <p>
-                    {t("Rally Lead:")}{" "}
-                    <strong>
-                      {leader?.nickname ?? leader?.wos_id ?? t("Unknown")}
-                    </strong>
-                  </p>
+                  <h2>{isGarrison ? t("Garrison") : ownGroup.name}</h2>
+                  {myBlocks.length > 0 && (
+                    <p className="assignment-role">
+                      {isGarrison
+                        ? t("You hold the castle {blocks} UTC.", {
+                            blocks: myBlocks.join(", "),
+                          })
+                        : t("You lead {blocks} UTC.", {
+                            blocks: myBlocks.join(", "),
+                          })}
+                    </p>
+                  )}
+                  {isGarrison && myBlocks.length === 0 && (
+                    <p className="assignment-role">
+                      {t("Stay in the castle the whole battle.")}
+                    </p>
+                  )}
+                  <ul className="assignment-rotation">
+                    {rotation.map((slot) => (
+                      <li key={slot.block}>
+                        <time>{blockLabel(slot.block)}</time>
+                        <strong>{labelOf(slot.id)}</strong>
+                      </li>
+                    ))}
+                  </ul>
                   <p>
                     {t("Alliance:")}{" "}
                     <strong>{alliance?.name ?? t("Not selected")}</strong>
                   </p>
-                  <p>
-                    {t("Join with:")}{" "}
-                    <strong>
-                      {ownAssignment?.hero ?? t("Not assigned yet")}
-                    </strong>
-                  </p>
-                  <p>
-                    {t("Formation:")}{" "}
-                    <strong>
-                      {ownAssignment?.formation ??
-                        ownGroup.formation ??
-                        t("Not set")}
-                    </strong>
-                  </p>
+                  {!isGarrison && myBlocks.length === 0 && (
+                    <>
+                      <p>
+                        {t("Join with:")}{" "}
+                        <strong>
+                          {ownAssignment?.hero ?? t("Not assigned yet")}
+                        </strong>
+                      </p>
+                      <p>
+                        {t("Formation:")}{" "}
+                        <strong>
+                          {ownAssignment?.formation ??
+                            ownGroup.formation ??
+                            t("Not set")}
+                        </strong>
+                      </p>
+                    </>
+                  )}
                   {ownGroup.notes && <p>{ownGroup.notes}</p>}
                 </>
               ) : (

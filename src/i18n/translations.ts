@@ -30,6 +30,124 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
+    "La batalla tiene tres bloques de mascotas: 12–14, 14–16 y 16–17 UTC. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se agotan sus mascotas y los participantes se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autorrelleno y solo reciben un héroe de unión que tengan a 4★.",
+  "The garrison":
+    "La guarnición",
+  "One garrison holds the castle the whole battle. It is filled first, with the strongest defenders who play the whole battle: highest troop FC, then troop tier, then troop skill. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.":
+    "Una guarnición defiende el castillo toda la batalla. Se llena primero con los mejores defensores que juegan toda la batalla: mayor FC de tropas, luego nivel de tropas y luego habilidad. Hasta tres defensores del castillo se turnan, uno por bloque de mascotas. Cuando les toca, se cambian a la alianza que tiene el castillo y toman el mando, sin traer participantes. Ajusta el tamaño de la guarnición en Automatización SvS.",
+  "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.":
+    "Pulsa Líderes y defensores en Planificación para marcar líderes de rally (por Laberinto) y defensores del castillo (por defensa). Solo lideran o defienden y nunca se colocan como participantes. Cambia quién lidera cada bloque en ⋯ del rally → Líderes por bloque de mascotas, o en ⋯ de la guarnición → Defensores del castillo por bloque de mascotas.",
+  "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation. Leads: Ted 12:00–14:00, Ice 14:00–16:00.” Rally Leads are told which blocks they lead, Castle Holders when to take over, and the garrison to stay in the castle. Overwatch shows the same details, and you are told about every change.":
+    "Seis horas antes de la batalla se publica el plan y recibes un mensaje como «Hola Frost, te han asignado al rally de Ted en Frost Wolves. Te unes con Jessie y formación 50/20/30. Líderes: Ted 12:00–14:00, Ice 14:00–16:00.» Los líderes de rally saben qué bloques lideran, los defensores del castillo cuándo tomar el mando y la guarnición que debe quedarse en el castillo. Overwatch muestra lo mismo y te avisamos de cada cambio.",
+  "Add garrison":
+    "Añadir guarnición",
+  "After the draw, the app reminds members to vote 30 hours before the battle. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (your Rally Leads, swapping each pet block), then fills the garrison with the strongest defenders and the rallies with everyone else. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.":
+    "Tras el sorteo, la app recuerda a los miembros que voten 30 horas antes de la batalla. 24 horas antes prepara la guarnición (tus defensores del castillo, uno por bloque de mascotas) y los rallies (tus líderes de rally, que se turnan en cada bloque), y llena la guarnición con los mejores defensores y los rallies con el resto. Quienes votan tarde se añaden cada hora y el plan se publica 6 horas antes. Puedes cambiar cualquier cosa a mano en Planificación.",
+  "Alliance holding the castle":
+    "Alianza que tiene el castillo",
+  "Castle Holder":
+    "Defensor del castillo",
+  "Castle holders":
+    "Defensores del castillo",
+  "Castle holders by pet block":
+    "Defensores del castillo por bloque de mascotas",
+  "Castle holders saved.":
+    "Defensores del castillo guardados.",
+  "Choose holder":
+    "Elegir defensor",
+  "Choose holders":
+    "Elegir defensores",
+  "Choose lead":
+    "Elegir líder",
+  "Choose leads":
+    "Elegir líderes",
+  "Choose the alliance holding the castle.":
+    "Elige la alianza que tiene el castillo.",
+  "Delete garrison":
+    "Eliminar guarnición",
+  "Edit garrison":
+    "Editar guarnición",
+  "Garrison actions":
+    "Acciones de la guarnición",
+  "Garrison added. Fill open seats to put your strongest defenders in it.":
+    "Guarnición añadida. Llena las plazas libres para poner a tus mejores defensores.",
+  "Garrison size (without holders)":
+    "Tamaño de la guarnición (sin defensores del castillo)",
+  "Hi {player}, you lead {group} {blocks} UTC in {alliance}.":
+    "Hola {player}, lideras {group} {blocks} UTC en {alliance}.",
+  "Hi {player}, you're a castle holder {blocks} UTC. When it's your turn, swap to the alliance holding the castle and take over the garrison.":
+    "Hola {player}, defiendes el castillo {blocks} UTC. Cuando te toque, cámbiate a la alianza que tiene el castillo y toma el mando de la guarnición.",
+  "Hi {player}, you're in the garrison holding the castle in {alliance}. Stay in the castle the whole battle.":
+    "Hola {player}, estás en la guarnición que defiende el castillo en {alliance}. Quédate en el castillo toda la batalla.",
+  "Holders: {leads}.":
+    "Defensores: {leads}.",
+  "Holds the castle all battle":
+    "Defiende el castillo toda la batalla",
+  "Leads & holders":
+    "Líderes y defensores",
+  "Leads & holders ({count})":
+    "Líderes y defensores ({count})",
+  "Leads and holders stay with their group. Change its leads under ⋯ → Leads by pet block.":
+    "Líderes y defensores se quedan en su grupo. Cambia sus líderes en ⋯ → Líderes por bloque de mascotas.",
+  "Leads by pet block":
+    "Líderes por bloque de mascotas",
+  "Leads or holds in {rally}. Change who leads each pet block under the group's ⋯ menu.":
+    "Lidera o defiende en {rally}. Cambia quién lidera cada bloque en el menú ⋯ del grupo.",
+  "Leads saved.":
+    "Líderes guardados.",
+  "Leads: {leads}.":
+    "Líderes: {leads}.",
+  "Mark Rally Leads first: Leads & holders button above the board.":
+    "Marca primero a los líderes de rally: botón Líderes y defensores encima del tablero.",
+  "Nobody":
+    "Nadie",
+  "Nobody holds the castle {blocks}.":
+    "Nadie defiende el castillo {blocks}.",
+  "Nobody is marked yet. Use Leads & holders above the board.":
+    "Aún no hay nadie marcado. Usa Líderes y defensores encima del tablero.",
+  "Rally Leads and Castle Holders only lead or hold, so they can't join. Set them under a rally's ⋯ → Leads by pet block.":
+    "Los líderes de rally y defensores del castillo solo lideran o defienden, así que no pueden unirse. Asígnalos en ⋯ del rally → Líderes por bloque de mascotas.",
+  "Rally Leads and Castle Holders only lead or hold, so they never join. Put them in a rally's or the garrison's pet blocks under its ⋯ menu.":
+    "Los líderes de rally y defensores del castillo solo lideran o defienden, nunca se unen. Ponlos en los bloques de un rally o de la guarnición desde su menú ⋯.",
+  "Rally Leads lead rallies and swap each pet block; Castle Holders take turns holding the castle. Neither is ever placed as a joiner.":
+    "Los líderes de rally lideran rallies y se turnan en cada bloque de mascotas; los defensores del castillo se turnan para defenderlo. Ninguno se coloca nunca como participante.",
+  "Rally leads":
+    "Líderes de rally",
+  "Rank by":
+    "Ordenar por",
+  "Stay in the castle the whole battle.":
+    "Quédate en el castillo toda la batalla.",
+  "Strongest defenders":
+    "Mejores defensores",
+  "There is no garrison to hold the castle yet.":
+    "Aún no hay guarnición que defienda el castillo.",
+  "There is no garrison yet. Mark your Castle Holders first.":
+    "Aún no hay guarnición. Marca primero a tus defensores del castillo.",
+  "Top Labyrinth":
+    "Mejor Laberinto",
+  "Total power {power}":
+    "Poder total {power}",
+  "You hold the castle":
+    "Defiendes el castillo",
+  "You hold the castle {blocks} UTC.":
+    "Defiendes el castillo {blocks} UTC.",
+  "You lead {blocks} UTC.":
+    "Lideras {blocks} UTC.",
+  "You're in the garrison":
+    "Estás en la guarnición",
+  "hasn't voted for this time":
+    "no votó para esta hora",
+  "nothing yet":
+    "nada aún",
+  "{leads} Rally Leads · {holders} Castle Holders":
+    "{leads} líderes de rally · {holders} defensores del castillo",
+  "{name} is a Rally Lead or Castle Holder but joins {rally}. Leads and holders never join.":
+    "{name} es líder de rally o defensor del castillo pero se une a {rally}. Líderes y defensores nunca se unen.",
+  "{name} leads {rally} {block}, but voted {voted}.":
+    "{name} lidera {rally} {block}, pero votó {voted}.",
+  "{rally} has no lead {blocks}.":
+    "{rally} no tiene líder {blocks}.",
   "In State management, SvS automation decides how many rallies are built, how many players each takes, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.":
     "En Gestión del estado, la automatización SvS decide cuántos rallies se crean, cuántos jugadores lleva cada uno, la formación por defecto, los cuatro héroes de unión por defecto y el orden en que el autorrelleno valora a los jugadores. Desactiva los rallies o la publicación automáticos si prefieres hacerlo tú.",
   "Planning opens with a checklist: the draw, votes, rallies, publishing and Live Battle, each with when it happens automatically. The gold button runs the next step now: Generate now, then Publish now.":
@@ -38,8 +156,6 @@ const spanishInterface: Record<string, string> = {
     "Bajo la lista, Requiere atención muestra qué revisar antes de publicar: un rally sin alianza o sin héroes, un jugador en la mitad equivocada, jugadores sin héroe de unión o plazas libres mientras hay jugadores esperando. Cada línea tiene un botón que lo arregla. Cuando la lista quede vacía, publica.",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.":
     "Arrastra jugadores entre rallies o desde la lista de espera. Toca a un jugador para cambiar su rally o el héroe que lleva. El menú ⋯ de cada rally tiene Configuración del rally (formación, mitad y héroes de unión), Asignar héroes, Editar y Eliminar. La automatización nunca deshace tus cambios.",
-  "Press Rally Leads in Planning to see your 20 best Labyrinth players and mark or unmark Rally Leads. Only Rally Leads can lead a rally.":
-    "Pulsa Líderes de rally en Planificación para ver a tus 20 mejores jugadores del Laberinto y marcar o desmarcar líderes. Solo los líderes de rally pueden liderar un rally.",
   "Add rally":
     "Añadir rally",
   "Auto-fill only places players who can play the rally's half, and gives each a joiner hero they have at 4★. Then it weighs players in this order:":
@@ -66,12 +182,6 @@ const spanishInterface: Record<string, string> = {
     "Cada rally tiene su alianza, su mitad y sus héroes.",
   "Fill open seats":
     "Llenar plazas libres",
-  "Lead":
-    "Líder",
-  "Leads {rally}. Change the leader under the rally's ⋯ menu.":
-    "Lidera {rally}. Cambia el líder en el menú ⋯ del rally.",
-  "Mark Rally Leads first: Rally Leads button above the board.":
-    "Marca primero a los líderes de rally: botón Líderes de rally encima del tablero.",
   "More actions":
     "Más acciones",
   "More filters":
@@ -108,10 +218,6 @@ const spanishInterface: Record<string, string> = {
     "Pulsa Generar ahora arriba o añade un rally desde el menú ⋯.",
   "Rallies rebuilt: {count} players placed.":
     "Rallies reconstruidos: {count} jugadores colocados.",
-  "Rally Leads ({count})":
-    "Líderes de rally ({count})",
-  "Rally Leads stay with their rally. Change the leader instead.":
-    "Los líderes se quedan en su rally. Cambia el líder en su lugar.",
   "Rally actions":
     "Acciones del rally",
   "Rally added.":
@@ -146,8 +252,6 @@ const spanishInterface: Record<string, string> = {
     "Sacar del rally",
   "The automation builds and publishes the plan. Check what needs attention, adjust anything by hand, and publish.":
     "La automatización crea y publica el plan. Revisa lo que requiere atención, ajusta lo que quieras a mano y publica.",
-  "Total power {power} · Avg furnace {furnace}":
-    "Poder total {power} · Horno medio {furnace}",
   "Troops":
     "Tropas",
   "Waiting":
@@ -324,8 +428,6 @@ const spanishInterface: Record<string, string> = {
     "Puedes cambiar tu respuesta hasta que empiece la batalla. Si no has votado 30 horas antes, te llega un recordatorio.",
   "Get your rally":
     "Recibe tu rally",
-  "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation.” Overwatch shows the same details, and you are told about every change.":
-    "Seis horas antes de la batalla se publica el plan y te llega un mensaje como “Hola Frost, te asignaron al rally de Ted en Frost Wolves. Te unes con Jessie y formación 50/20/30.” Overwatch muestra los mismos detalles y te avisa de cada cambio.",
   "Check the opponent":
     "Revisa al rival",
   "Intel shows the opponent's strongest players, their alliances and their SvS record next to your own state's numbers.":
@@ -392,12 +494,8 @@ const spanishInterface: Record<string, string> = {
     "La lista de la próxima SvS",
   "How rallies are built":
     "Cómo se crean los rallies",
-  "Rally Leads who can play come first, topped up with the best Labyrinth players who voted. Each rally goes into its leader's own alliance and fights in the half the leader voted for. Players are then added by your auto-fill priorities, and only get a joiner hero they own at 4★.":
-    "Primero van los líderes de rally que pueden jugar, completados con los mejores jugadores del Laberinto que votaron. Cada rally va a la alianza de su líder y lucha en la mitad que votó el líder. Después se añaden jugadores según tus prioridades de autorrelleno, y solo reciben un héroe de apoyo que tengan con 4★.",
   "Adjust by hand":
     "Ajusta a mano",
-  "Rally Leads":
-    "Líderes de rally",
   "Members and join requests":
     "Miembros y solicitudes de unión",
   "Approve join requests under Waiting for your verification. The owner sets who is an admin; admins can give the Coordinator or Garrison role and remove members. Every change is sent to the member as a notification.":
@@ -622,8 +720,6 @@ const spanishInterface: Record<string, string> = {
     "Ejecuta la última migración de la base de datos para usar la planificación automática.",
   "Automation saved.": "Automatización guardada.",
   "SvS automation": "Automatización SvS",
-  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.":
-    "Tras el sorteo, la app recuerda votar 30 horas antes, arma y llena los rallies 24 horas antes, añade a quienes votan tarde cada hora y publica 6 horas antes. Puedes cambiar todo a mano en Planificación.",
   "Set up and fill rallies automatically":
     "Armar y llenar rallies automáticamente",
   "Publish automatically 6 hours before the battle":
@@ -884,12 +980,8 @@ const spanishInterface: Record<string, string> = {
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
     "¿Eliminar «{name}», todos sus grupos y su próxima batalla? Las batallas terminadas se quedan en el historial.",
   Lab: "Lab",
-  "Make Rally Lead": "Hacer líder de rally",
   "No Labyrinth scores yet. They appear after members' accounts are synced.":
     "Aún no hay puntuaciones de Laberinto. Aparecen cuando se sincronizan las cuentas de los miembros.",
-  "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.":
-    "Clasificado con los datos sincronizados de WOSOracle de tus miembros. Marca a quienes lideran rallies; solo los líderes de rally pueden liderar un grupo.",
-  "Top 20 Labyrinth in your state": "Top 20 del Laberinto en tu estado",
   "Expected draw {date}.": "Sorteo previsto {date}.",
   "Next battle {date}.": "Próxima batalla {date}.",
   "Start (UTC)": "Inicio (UTC)",
@@ -1236,7 +1328,6 @@ const spanishInterface: Record<string, string> = {
   Rallies: "Rallies",
   "Rallies called": "Rallies registrados",
   "Rally Lead": "Líder de rally",
-  "Rally Lead:": "Líder de rally:",
   "Rally leader": "Líder de rally",
   "Rally minutes remaining": "Minutos restantes del rally",
   "Rally seconds remaining": "Segundos restantes del rally",

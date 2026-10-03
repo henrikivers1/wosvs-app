@@ -65,20 +65,22 @@ export function RallyForm({
           onChange={(event) => set({ name: event.target.value })}
         />
       </label>
-      <label>
-        {t("Rally Lead")}
-        <select
-          value={values.leaderId}
-          onChange={(event) => set({ leaderId: event.target.value })}
-        >
-          <option value="">{t("Choose tagged leader")}</option>
-          {leaders.map((member) => (
-            <option key={member.id} value={member.id}>
-              {memberName(member)}
-            </option>
-          ))}
-        </select>
-      </label>
+      {!group && (
+        <label>
+          {t("Rally Lead")}
+          <select
+            value={values.leaderId}
+            onChange={(event) => set({ leaderId: event.target.value })}
+          >
+            <option value="">{t("Choose tagged leader")}</option>
+            {leaders.map((member) => (
+              <option key={member.id} value={member.id}>
+                {memberName(member)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label>
         {t("Destination alliance")}
         <select
@@ -127,9 +129,9 @@ export function RallyForm({
           />
         </label>
       </details>
-      {leaders.length === 0 && (
+      {!group && leaders.length === 0 && (
         <p className="form-hint">
-          {t("Mark Rally Leads first: Rally Leads button above the board.")}
+          {t("Mark Rally Leads first: Leads & holders button above the board.")}
         </p>
       )}
       <div className="button-row">

@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     access.admin
       .from("states")
       .select(
-        "auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes, autofill_priorities",
+        "auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
       )
       .eq("id", body.stateId!)
       .maybeSingle(),

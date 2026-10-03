@@ -16,6 +16,7 @@ export function PlayerSheet({
   hero,
   answer,
   isLeader,
+  isLeadTagged,
   isAdmin,
   busy,
   onMove,
@@ -29,6 +30,8 @@ export function PlayerSheet({
   hero: string | null;
   answer: AttendanceRow | undefined;
   isLeader: boolean;
+  // Rally Lead or Castle Holder: leads or holds, never joins.
+  isLeadTagged: boolean;
   isAdmin: boolean;
   busy: boolean;
   onMove: (groupId: string | null) => void;
@@ -132,7 +135,7 @@ export function PlayerSheet({
             ))}
         </div>
 
-        {isAdmin && !isLeader && (
+        {isAdmin && !isLeader && !isLeadTagged && (
           <div className="player-sheet-controls">
             <label>
               {t("Rally")}
@@ -177,11 +180,13 @@ export function PlayerSheet({
             )}
           </div>
         )}
-        {isLeader && (
+        {(isLeader || isLeadTagged) && (
           <p className="form-hint">
-            {t("Leads {rally}. Change the leader under the rally's ⋯ menu.", {
-              rally: group?.name ?? "",
-            })}
+            {isLeader
+              ? t("Leads or holds in {rally}. Change who leads each pet block under the group's ⋯ menu.", {
+                  rally: group?.name ?? "",
+                })
+              : t("Rally Leads and Castle Holders only lead or hold, so they never join. Put them in a rally's or the garrison's pet blocks under its ⋯ menu.")}
           </p>
         )}
       </aside>

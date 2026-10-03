@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { availabilityLabel } from "@/lib/attendance";
+import { blockLabel, PET_BLOCKS } from "@/lib/castle";
 import { furnaceLabel } from "@/lib/furnace";
 import { MoreMenu } from "./MoreMenu";
 import { memberName, type PlanGroup, type StateMember } from "./types";
@@ -18,10 +19,37 @@ export function useCompactNumber() {
   return (value: number | null) => (value === null ? "—" : format.format(value));
 }
 
-// One rally: a short header and one line per player. Players open in the
-// player sheet; drag a line to another rally to move them.
+function average(values: Array<number | null>) {
+  const numbers = values.filter((value): value is number => value !== null);
+  return numbers.length
+    ? Math.round((numbers.reduce((sum, value) => sum + value, 0) / numbers.length) * 10) / 10
+    : null;
+}
+
+// "FC 9.3 · T11 · S6": troop FC level, troop tier and troop skill, the
+// numbers that decide the garrison.
+export function defenseLine(member: StateMember) {
+  const fc = average([member.infantry_fc_level, member.lancer_fc_level, member.marksman_fc_level]);
+  const tier = average([member.infantry_tier, member.lancer_tier, member.marksman_tier]);
+  const skill = average([
+    member.infantry_t12_skill,
+    member.lancer_t12_skill,
+    member.marksman_t12_skill,
+  ]);
+  return [
+    fc === null ? null : `FC ${fc}`,
+    tier === null ? null : `T${tier}`,
+    skill === null ? null : `S${skill}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+// One rally (or the garrison): who leads each pet block, then one line per
+// joiner. Players open in the player sheet; drag a line to move them.
 export function RallyColumn({
   group,
+  leads,
   members,
   heroByMember,
   allianceName,
@@ -33,13 +61,16 @@ export function RallyColumn({
   onOpenPlayer,
   onDropPlayer,
   onMoveSelected,
+  onEditRotation,
   onSetup,
   onAssignHeroes,
   onEdit,
   onDelete,
 }: {
   group: PlanGroup;
-  // Leader first.
+  // The lead (or holder) of each pet block.
+  leads: Array<StateMember | null>;
+  // Joiners only.
   members: StateMember[];
   heroByMember: Map<string, string | null>;
   allianceName: string | null;
@@ -48,11 +79,12 @@ export function RallyColumn({
   isAdmin: boolean;
   busy: boolean;
   selectedCount: number;
-  // Rally setup or edit form, when open.
+  // Rally setup, rotation or edit form, when open.
   editor: ReactNode;
   onOpenPlayer: (member: StateMember) => void;
   onDropPlayer: (accountId: string) => void;
   onMoveSelected: () => void;
+  onEditRotation: () => void;
   onSetup: () => void;
   onAssignHeroes: () => void;
   onEdit: () => void;
@@ -60,17 +92,33 @@ export function RallyColumn({
 }) {
   const { t } = useLanguage();
   const compact = useCompactNumber();
-  const full = members.length >= group.max_members;
-  const heroes = group.joiner_heroes ?? [];
+  const garrison = group.kind === "garrison";
+  const seats = members.length + 1;
+  const full = seats >= group.max_members;
+  const heroes = garrison ? [] : (group.joiner_heroes ?? []);
   const totalPower = members.reduce((sum, member) => sum + (member.power ?? 0), 0);
-  const averageFurnace = members.length
-    ? members.reduce((sum, member) => sum + (member.furnace_level ?? 0), 0) /
-      members.length
-    : 0;
+
+  const menu = garrison
+    ? [
+        { label: t("Castle holders by pet block"), onSelect: onEditRotation },
+        { label: t("Edit garrison"), onSelect: onEdit },
+        { label: t("Delete garrison"), onSelect: onDelete, danger: true },
+      ]
+    : [
+        { label: t("Leads by pet block"), onSelect: onEditRotation },
+        { label: t("Rally setup"), onSelect: onSetup },
+        {
+          label: t("Assign heroes"),
+          onSelect: onAssignHeroes,
+          disabled: busy || !heroes.length,
+        },
+        { label: t("Edit rally"), onSelect: onEdit },
+        { label: t("Delete rally"), onSelect: onDelete, danger: true },
+      ];
 
   return (
     <section
-      className="rally-column"
+      className={`rally-column${garrison ? " is-garrison" : ""}`}
       aria-label={group.name}
       onDragOver={(event) => {
         if (isAdmin) event.preventDefault();
@@ -83,91 +131,106 @@ export function RallyColumn({
     >
       <header className="rally-column-heading">
         <div className="rally-column-title">
-          <h3>{group.name}</h3>
+          <h3>{garrison ? t("Garrison") : group.name}</h3>
           <span className={`count-pill${full ? " is-full" : ""}`}>
-            {members.length}/{group.max_members}
+            {seats}/{group.max_members}
           </span>
           {isAdmin && (
             <MoreMenu
-              label={t("Rally actions")}
-              items={[
-                { label: t("Rally setup"), onSelect: onSetup },
-                {
-                  label: t("Assign heroes"),
-                  onSelect: onAssignHeroes,
-                  disabled: busy || !heroes.length,
-                },
-                { label: t("Edit rally"), onSelect: onEdit },
-                { label: t("Delete rally"), onSelect: onDelete, danger: true },
-              ]}
+              label={garrison ? t("Garrison actions") : t("Rally actions")}
+              items={menu}
             />
           )}
         </div>
         <p
           className="rally-column-meta"
-          title={t("Total power {power} · Avg furnace {furnace}", {
-            power: compact(totalPower),
-            furnace: averageFurnace.toFixed(1),
-          })}
+          title={t("Total power {power}", { power: compact(totalPower) })}
         >
           <span className={allianceName ? undefined : "is-missing"}>
             {allianceName ?? t("No alliance")}
           </span>
-          {" · "}
-          {group.formation ?? t("No formation")}
-          {" · "}
-          {t(availabilityLabel(group.shift ?? "whole"))}
-        </p>
-        <div className="rally-hero-chips">
-          {heroes.length ? (
-            heroes.map((hero) => {
-              const covered = members.filter(
-                (member) => heroByMember.get(member.id) === hero,
-              ).length;
-              return (
-                <span
-                  key={hero}
-                  className={covered ? "hero-chip" : "hero-chip is-empty"}
-                >
-                  {hero} ×{covered}
-                </span>
-              );
-            })
+          {garrison ? (
+            <>
+              {" · "}
+              {t("Holds the castle all battle")}
+            </>
           ) : (
-            <span className="hero-chip is-empty">{t("No joiner heroes")}</span>
+            <>
+              {" · "}
+              {group.formation ?? t("No formation")}
+              {" · "}
+              {t(availabilityLabel(group.shift ?? "whole"))}
+            </>
           )}
-        </div>
+        </p>
+        <ol className="rotation-list" aria-label={garrison ? t("Castle holders") : t("Rally leads")}>
+          {PET_BLOCKS.map((_, block) => {
+            const lead = leads[block] ?? null;
+            return (
+              <li key={block} className={lead ? undefined : "is-empty"}>
+                <time>{blockLabel(block)}</time>
+                {lead ? (
+                  <button
+                    type="button"
+                    className={flagged.has(lead.id) ? "is-flagged" : undefined}
+                    onClick={() => onOpenPlayer(lead)}
+                  >
+                    {memberName(lead)}
+                  </button>
+                ) : isAdmin ? (
+                  <button type="button" className="is-missing" onClick={onEditRotation}>
+                    {garrison ? t("Choose holder") : t("Choose lead")}
+                  </button>
+                ) : (
+                  <span>—</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        {!garrison && (
+          <div className="rally-hero-chips">
+            {heroes.length ? (
+              heroes.map((hero) => {
+                const covered = members.filter(
+                  (member) => heroByMember.get(member.id) === hero,
+                ).length;
+                return (
+                  <span key={hero} className={covered ? "hero-chip" : "hero-chip is-empty"}>
+                    {hero} ×{covered}
+                  </span>
+                );
+              })
+            ) : (
+              <span className="hero-chip is-empty">{t("No joiner heroes")}</span>
+            )}
+          </div>
+        )}
       </header>
 
       {editor}
 
       <ol className="rally-players">
-        {members.map((member, index) => {
+        {members.map((member) => {
           const hero = heroByMember.get(member.id) ?? null;
-          const isLeader = index === 0 && member.id === group.leader_wos_account_id;
           return (
             <li
               key={member.id}
               className={flagged.has(member.id) ? "is-flagged" : undefined}
-              draggable={isAdmin && !busy && !isLeader}
+              draggable={isAdmin && !busy}
               onDragStart={(event) => {
                 event.dataTransfer.setData(DRAG_TYPE, member.id);
                 event.dataTransfer.effectAllowed = "move";
               }}
             >
               <button type="button" onClick={() => onOpenPlayer(member)}>
-                <span className="rally-player-name">
-                  {isLeader && (
-                    <span className="lead-badge" title={t("Rally Lead")}>
-                      {t("Lead")}
-                    </span>
-                  )}
-                  {memberName(member)}
-                </span>
+                <span className="rally-player-name">{memberName(member)}</span>
                 <span className="rally-player-meta">
-                  {compact(member.power)} · {furnaceLabel(member.furnace_level_raw)}
+                  {garrison
+                    ? defenseLine(member) || furnaceLabel(member.furnace_level_raw)
+                    : `${compact(member.power)} · ${furnaceLabel(member.furnace_level_raw)}`}
                 </span>
-                {!isLeader && heroes.length > 0 && (
+                {heroes.length > 0 && (
                   <span className={hero ? "hero-chip" : "hero-chip is-empty"}>
                     {hero ?? t("No hero")}
                   </span>
@@ -187,7 +250,7 @@ export function RallyColumn({
           {t("Move {count} selected here", { count: selectedCount })}
         </button>
       )}
-      {isAdmin && members.length <= 1 && (
+      {isAdmin && members.length === 0 && (
         <p className="plan-drop-hint">{t("Drag players here.")}</p>
       )}
     </section>

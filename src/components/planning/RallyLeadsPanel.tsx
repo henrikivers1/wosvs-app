@@ -1,40 +1,62 @@
 "use client";
 
+import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { availabilityLabel, type AttendanceRow } from "@/lib/attendance";
+import { compareDefense } from "@/lib/castle";
 import { furnaceLabel } from "@/lib/furnace";
+import { defenseLine } from "./RallyColumn";
 import { memberName, type StateMember } from "./types";
 
-// Labyrinth score is the best strength signal WOSOracle offers, so the
-// strongest Labyrinth players are the natural Rally Lead candidates.
+type Ranking = "labyrinth" | "defense";
+
+// Mark who leads rallies and who holds the castle. Rally Leads are usually
+// the best Labyrinth players; Castle Holders the strongest defenders.
+// Neither ever joins a rally or the garrison.
 export function RallyLeadsPanel({
   members,
   answers,
   busy,
-  onToggle,
+  onToggleLead,
+  onToggleHolder,
   onClose,
 }: {
   members: StateMember[];
   answers: Map<string, AttendanceRow>;
   busy: boolean;
-  onToggle: (member: StateMember, enabled: boolean) => void;
+  onToggleLead: (member: StateMember, enabled: boolean) => void;
+  onToggleHolder: (member: StateMember, enabled: boolean) => void;
   onClose: () => void;
 }) {
   const { t, formatNumber } = useLanguage();
-  const ranked = members
-    .filter((member) => (member.labyrinth_score ?? 0) > 0)
-    .sort(
-      (first, second) =>
-        (second.labyrinth_score ?? 0) - (first.labyrinth_score ?? 0),
+  const [ranking, setRanking] = useState<Ranking>("labyrinth");
+  const has = (member: StateMember, key: string) =>
+    member.tags.some((tag) => tag.system_key === key);
+
+  const ranked = [...members]
+    .filter((member) =>
+      ranking === "labyrinth" ? (member.labyrinth_score ?? 0) > 0 : true,
+    )
+    .sort((first, second) =>
+      ranking === "labyrinth"
+        ? (second.labyrinth_score ?? 0) - (first.labyrinth_score ?? 0)
+        : compareDefense(first, second),
     )
     .slice(0, 20);
+  const leadCount = members.filter((member) => has(member, "rally_lead")).length;
+  const holderCount = members.filter((member) => has(member, "castle_holder")).length;
 
   return (
     <section className="rally-leads-panel">
       <div className="rally-leads-heading">
         <div>
-          <p className="section-label">{t("Rally Leads")}</p>
-          <h2>{t("Top 20 Labyrinth in your state")}</h2>
+          <p className="section-label">{t("Leads & holders")}</p>
+          <h2>
+            {t("{leads} Rally Leads · {holders} Castle Holders", {
+              leads: leadCount,
+              holders: holderCount,
+            })}
+          </h2>
         </div>
         <button type="button" className="secondary-link" onClick={onClose}>
           {t("Done")}
@@ -42,9 +64,25 @@ export function RallyLeadsPanel({
       </div>
       <p className="form-hint">
         {t(
-          "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.",
+          "Rally Leads lead rallies and swap each pet block; Castle Holders take turns holding the castle. Neither is ever placed as a joiner.",
         )}
       </p>
+      <div className="segmented" role="group" aria-label={t("Rank by")}>
+        <button
+          type="button"
+          aria-pressed={ranking === "labyrinth"}
+          onClick={() => setRanking("labyrinth")}
+        >
+          {t("Top Labyrinth")}
+        </button>
+        <button
+          type="button"
+          aria-pressed={ranking === "defense"}
+          onClick={() => setRanking("defense")}
+        >
+          {t("Strongest defenders")}
+        </button>
+      </div>
       {ranked.length === 0 ? (
         <p>
           {t(
@@ -54,34 +92,45 @@ export function RallyLeadsPanel({
       ) : (
         <ol className="labyrinth-leaders">
           {ranked.map((member, index) => {
-            const isLead = member.tags.some(
-              (tag) => tag.system_key === "rally_lead",
-            );
+            const isLead = has(member, "rally_lead");
+            const isHolder = has(member, "castle_holder");
             const answer = answers.get(member.id);
             return (
-              <li key={member.id} className={isLead ? "is-lead" : undefined}>
+              <li
+                key={member.id}
+                className={isLead || isHolder ? "is-lead" : undefined}
+              >
                 <span className="labyrinth-rank">{index + 1}</span>
                 <span className="labyrinth-player">
                   <strong>{memberName(member)}</strong>
                   <small>
-                    {t("Lab")} {formatNumber(member.labyrinth_score ?? 0)} ·{" "}
-                    {furnaceLabel(member.furnace_level_raw)} ·{" "}
-                    {member.power === null ? "—" : formatNumber(member.power)}
+                    {ranking === "labyrinth"
+                      ? `${t("Lab")} ${formatNumber(member.labyrinth_score ?? 0)} · ${furnaceLabel(member.furnace_level_raw)}`
+                      : defenseLine(member) || furnaceLabel(member.furnace_level_raw)}
                     {answer &&
-                      ` · ${t(availabilityLabel(answer.availability))}${
-                        answer.voice_call ? ` · ${t("Voice")}` : ""
-                      }`}
+                      ` · ${t(availabilityLabel(answer.availability))}`}
                   </small>
                 </span>
-                <button
-                  type="button"
-                  disabled={busy}
-                  aria-pressed={isLead}
-                  className={isLead ? "lead-toggle on" : "lead-toggle"}
-                  onClick={() => onToggle(member, !isLead)}
-                >
-                  {isLead ? t("Rally Lead") : t("Make Rally Lead")}
-                </button>
+                <span className="lead-toggles">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    aria-pressed={isLead}
+                    className={isLead ? "lead-toggle on" : "lead-toggle"}
+                    onClick={() => onToggleLead(member, !isLead)}
+                  >
+                    {t("Rally Lead")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    aria-pressed={isHolder}
+                    className={isHolder ? "lead-toggle holder on" : "lead-toggle holder"}
+                    onClick={() => onToggleHolder(member, !isHolder)}
+                  >
+                    {t("Castle Holder")}
+                  </button>
+                </span>
               </li>
             );
           })}

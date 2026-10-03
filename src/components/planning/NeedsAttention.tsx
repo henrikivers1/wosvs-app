@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { availabilityLabel } from "@/lib/attendance";
+import { blockLabel } from "@/lib/castle";
 import { issueSeverity, type PlanIssue } from "./planIssues";
 import { memberName, type PlanGroup, type StateMember } from "./types";
 
@@ -17,6 +18,9 @@ export function NeedsAttention({
   onMove,
   onEditGroup,
   onSetupGroup,
+  onEditRotation,
+  onAddGarrison,
+  onOpenLeads,
   onOpenPlayer,
 }: {
   issues: PlanIssue[];
@@ -27,6 +31,9 @@ export function NeedsAttention({
   onMove: (member: StateMember, target: PlanGroup | null) => void;
   onEditGroup: (group: PlanGroup) => void;
   onSetupGroup: (group: PlanGroup) => void;
+  onEditRotation: (group: PlanGroup) => void;
+  onAddGarrison: () => void;
+  onOpenLeads: () => void;
   onOpenPlayer: (member: StateMember) => void;
 }) {
   const { t } = useLanguage();
@@ -169,6 +176,68 @@ export function NeedsAttention({
             { count: issue.members.length },
           ),
           detail: names(issue.members),
+        };
+      case "no_garrison":
+        return issue.hasHolders
+          ? {
+              text: t("There is no garrison to hold the castle yet."),
+              fix: { label: t("Add garrison"), run: onAddGarrison },
+            }
+          : {
+              text: t(
+                "There is no garrison yet. Mark your Castle Holders first.",
+              ),
+              fix: { label: t("Leads & holders"), run: onOpenLeads },
+            };
+      case "rotation_gap": {
+        const blocks = issue.blocks.map(blockLabel).join(", ");
+        return {
+          text:
+            issue.group.kind === "garrison"
+              ? t("Nobody holds the castle {blocks}.", { blocks })
+              : t("{rally} has no lead {blocks}.", {
+                  rally: issue.group.name,
+                  blocks,
+                }),
+          fix: {
+            label:
+              issue.group.kind === "garrison"
+                ? t("Choose holders")
+                : t("Choose leads"),
+            run: () => onEditRotation(issue.group),
+          },
+        };
+      }
+      case "rotation_unavailable":
+        return {
+          text: t("{name} leads {rally} {block}, but voted {voted}.", {
+            name: memberName(issue.member),
+            rally: issue.group.name,
+            block: blockLabel(issue.block),
+            voted: issue.availability
+              ? half(issue.availability)
+              : t("nothing yet"),
+          }),
+          player: issue.member,
+          fix: {
+            label:
+              issue.group.kind === "garrison"
+                ? t("Choose holders")
+                : t("Choose leads"),
+            run: () => onEditRotation(issue.group),
+          },
+        };
+      case "lead_as_joiner":
+        return {
+          text: t(
+            "{name} is a Rally Lead or Castle Holder but joins {rally}. Leads and holders never join.",
+            { name: memberName(issue.member), rally: issue.group.name },
+          ),
+          player: issue.member,
+          fix: {
+            label: t("Take out of rally"),
+            run: () => onMove(issue.member, null),
+          },
         };
       case "heroes_unknown":
         return {

@@ -16,7 +16,7 @@ the SQL uses the same values). The castle is at 599,599.
 | Daily until the battle | Opponent intel: summary, SvS record, 20 strongest players, our own summary | `refreshIntel` |
 | Any time | Members vote attendance (Whole / First half / Second half / Can't) and voice call | Members, `set_battle_attendance` |
 | T−30 h | Remind members who have not voted | `runAutoPlan` → `remindVoters` |
-| T−24 h | **Generate rallies:** Rally Lead tag holders who can play, topped up with the best Labyrinth players who voted (they get the Rally Lead tag). Each rally goes into the leader's own in-game alliance (created in the app if missing), takes its half from the leader's vote, and gets the state's default formation and joiner heroes. Then rallies are **filled** by the state's auto-fill priorities. Admins get "Rallies are ready for review" | `runAutoPlan` → `createRallies`, `fillRallies` |
+| T−24 h | **Generate the garrison and rallies** (pet blocks 12–14, 14–16, 16–17 UTC): the garrison gets one Castle Holder per block and is filled first with the strongest defenders who play the whole battle (troop FC, then troop tier, then troop skill; `castle.ts`). Each rally gets one Rally Lead per block (extra leads go where they cover missing blocks), lands in its first lead's alliance and gets the state's default formation and joiner heroes. Rallies are then filled by the auto-fill priorities; half voters join for their half. Rally Leads and Castle Holders are never joiners (database trigger). Admins get "Rallies are ready for review" | `runAutoPlan` → `createGarrison`, `createRallies`, `fillPlan` |
 | Every hour after that | Late voters are added to open slots, never moving anyone; after publishing they get their assignment message at once | `fillRallies` |
 | T−6 h | **Publish:** alliances and plan tags applied, every member gets "Hi X, you've been assigned to Y in Z…", leaders get "you're leading Y" | `publish_battle_plan_with_notifications` |
 | 11:00 UTC | Live Battle opens an hour before the start, to the minute (pg_cron), so garrison and coordinators can enter coordinates. It appears without a reload. Enemy leaders seen in earlier battles are pre-added with their coordinates. The battle itself still runs 12:00–17:00 | `automation_advance_battles`, `seed_enemy_leaders_on_start`, StateProvider realtime |
@@ -156,10 +156,10 @@ query in parallel.
 | Area | Functions |
 |---|---|
 | Accounts | `complete_account_setup`, `set_player_heroes` |
-| Membership | `create_state_join_invite`, `respond_to_state_invite`, `review_state_invite`, `set_state_member_role`, `set_state_member_capability`, `remove_state_member`, `set_state_rally_lead` |
+| Membership | `create_state_join_invite`, `respond_to_state_invite`, `review_state_invite`, `set_state_member_role`, `set_state_member_capability`, `remove_state_member`, `set_state_rally_lead`, `set_state_castle_holder` |
 | State settings | `set_state_hero_generation`, `set_state_automation`, `create/update/delete_state_alliance`, `create/update/delete_state_tag` |
 | SvS plan | `create_svs_plan`, `update_battle_plan`, `set_battle_plan_opponent`, `delete_battle_plan`, `get_upcoming_svs`, `set_battle_attendance` |
-| Rallies | `create/update/delete_battle_plan_group`, `set_battle_plan_group_setup`, `set_battle_plan_assignment`, `set_assignment_details`, `apply_battle_plan_autofill`, `publish_battle_plan_with_notifications` |
+| Rallies | `create/update/delete_battle_plan_group`, `create_garrison_group`, `set_battle_plan_group_rotation` (lead per pet block), `set_battle_plan_group_setup`, `set_battle_plan_assignment`, `set_assignment_details`, `apply_battle_plan_autofill`, `publish_battle_plan_with_notifications` |
 | Comments and notices | `create_battle_plan_comment`, `delete_battle_plan_comment`, `get_battle_plan_comments`, `create_state_announcement`, `delete_state_announcement`, `cleanup_expired_state_announcements` |
 | History | `get_state_battle_history_v2`, `get_state_overview` |
 | Permission checks used by RLS | `is_state_member/admin/owner`, `is_state_member_account`, `is_state_admin_account`, `owns_wos_account`, `can_read_wos_account`, `shares_state_with`, `can_view_*`, `can_manage_battle`, `can_call_state_rallies` |

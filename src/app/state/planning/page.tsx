@@ -16,10 +16,12 @@ import { RallyColumn } from "@/components/planning/RallyColumn";
 import { RallyForm, type RallyFormValues } from "@/components/planning/RallyForm";
 import { RallyLeadsPanel } from "@/components/planning/RallyLeadsPanel";
 import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
+import { RotationEditor } from "@/components/planning/RotationEditor";
 import { UnassignedList } from "@/components/planning/UnassignedList";
 import { findPlanIssues, type PlanIssue } from "@/components/planning/planIssues";
 import {
   averageTroopTier,
+  groupLeadIds,
   type AccountRow,
   type BattlePlan,
   type PlanAssignment,
@@ -30,14 +32,13 @@ import {
 } from "@/components/planning/types";
 import {
   AUTOFILL_CRITERIA,
-  computeAutofill,
   distributeGroupHeroes,
   pickHero,
   type AutofillCriterion,
   type AutofillDraft,
   type AutofillGroup,
-  type AutofillMember,
 } from "@/lib/autofill";
+import { fillPlan, seatMemberIds, type FillMember } from "@/lib/castle";
 import type { AttendanceRow } from "@/lib/attendance";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -62,7 +63,10 @@ type ScheduledBattle = {
   status: "scheduled" | "active" | "completed" | "cancelled";
   scheduled_at: string | null;
 };
-type RallyEditor = { groupId: string; mode: "setup" | "edit" } | null;
+type RallyEditor = {
+  groupId: string;
+  mode: "setup" | "edit" | "rotation";
+} | null;
 
 function parseOpponent(value: string) {
   const trimmed = value.trim();
@@ -124,6 +128,9 @@ export default function BattlePlanningPage() {
     string | null
   >(null);
   const [rallyEditor, setRallyEditor] = useState<RallyEditor>(null);
+  const [addingGarrisonToPlanId, setAddingGarrisonToPlanId] = useState<
+    string | null
+  >(null);
   const [showRallyLeads, setShowRallyLeads] = useState(false);
   const [openPlayer, setOpenPlayer] = useState<{
     planId: string;
@@ -139,6 +146,12 @@ export default function BattlePlanningPage() {
   const rallyLeaders = members.filter((member) =>
     member.tags.some((tag) => tag.system_key === "rally_lead"),
   );
+  const castleHolders = members.filter((member) =>
+    member.tags.some((tag) => tag.system_key === "castle_holder"),
+  );
+  // Rally Leads and Castle Holders only lead or hold; they never join.
+  const leadTagged = new Set(rallyLeaders.map((member) => member.id));
+  const holderTagged = new Set(castleHolders.map((member) => member.id));
 
   const loadPlanning = useCallback(async () => {
     if (!activeMembership) {
@@ -198,7 +211,7 @@ export default function BattlePlanningPage() {
       supabase
         .from("states")
         .select(
-          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at, auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes, autofill_priorities",
+          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
         )
         .eq("id", stateId)
         .maybeSingle(),
@@ -250,7 +263,7 @@ export default function BattlePlanningPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, leader_wos_account_id, alliance_id, assignment_tag_id, max_members, notes, sort_order, formation, joiner_heroes, shift",
+              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, alliance_id, assignment_tag_id, max_members, notes, sort_order, formation, joiner_heroes, shift",
             )
             .in("plan_id", planIds)
             .order("sort_order")
@@ -624,9 +637,13 @@ export default function BattlePlanningPage() {
     return {
       id: group.id,
       maxMembers: group.max_members,
-      memberIds: groupAssignments.map((item) => item.wos_account_id),
+      memberIds: seatMemberIds(
+        group.leader_wos_account_id,
+        group.lead_rotation ?? [],
+        groupAssignments.map((item) => item.wos_account_id),
+      ),
       shift: group.shift ?? "whole",
-      joinerHeroes: group.joiner_heroes ?? [],
+      joinerHeroes: group.kind === "garrison" ? [] : (group.joiner_heroes ?? []),
       heroUsage,
       totalPower: groupAssignments.reduce(
         (sum, item) =>
@@ -648,8 +665,9 @@ export default function BattlePlanningPage() {
       replace_existing: replaceExisting,
     });
   }
-  // Empties every rally (leaders stay) and fills them again by the state's
-  // auto-fill priorities.
+  // Empties every rally and the garrison (leads and holders stay) and fills
+  // them again: the garrison with the strongest defenders, then the rallies
+  // by the state's auto-fill priorities.
   async function rebuildRallies(planId: string) {
     const planGroups = groups.filter((group) => group.plan_id === planId);
     if (!planGroups.length) return;
@@ -666,27 +684,26 @@ export default function BattlePlanningPage() {
     ).filter((value): value is AutofillCriterion =>
       AUTOFILL_CRITERIA.some((criterion) => criterion.value === value),
     );
-    const leaderIds = new Set(planGroups.map((group) => group.leader_wos_account_id));
     const answers = new Map(
       attendance
         .filter((row) => row.plan_id === planId)
         .map((row) => [row.wos_account_id, row]),
     );
-    const pool: AutofillMember[] = members
-      .filter((member) => !leaderIds.has(member.id))
-      .map((member) => ({
-        id: member.id,
-        power: member.power ?? 0,
-        fc: member.furnace_level_raw ?? 0,
-        troop: averageTroopTier(member),
-        labyrinth: member.labyrinth_score ?? 0,
-        voice: Boolean(answers.get(member.id)?.voice_call),
-        availability: answers.get(member.id)?.availability ?? null,
-        heroes: member.heroes,
-      }));
-    const drafts = computeAutofill(
+    const pool: FillMember[] = members.map((member) => ({
+      id: member.id,
+      power: member.power ?? 0,
+      fc: member.furnace_level_raw ?? 0,
+      troop: averageTroopTier(member),
+      labyrinth: member.labyrinth_score ?? 0,
+      voice: Boolean(answers.get(member.id)?.voice_call),
+      availability: answers.get(member.id)?.availability ?? null,
+      heroes: member.heroes,
+      defense: member,
+    }));
+    const drafts = fillPlan(
       planGroups.map((group) => ({
         ...toAutofillGroup(group),
+        kind: group.kind ?? "rally",
         memberIds: [group.leader_wos_account_id],
         heroUsage: {},
         totalPower:
@@ -695,7 +712,11 @@ export default function BattlePlanningPage() {
       })),
       pool,
       priorities,
-      { requireHero: false },
+      new Set([
+        ...planGroups.flatMap(groupLeadIds),
+        ...leadTagged,
+        ...holderTagged,
+      ]),
     );
     await run(
       () => applyDrafts(planId, drafts, true),
@@ -706,6 +727,16 @@ export default function BattlePlanningPage() {
     if (!isAdmin || saving || !ids.length) return;
     const group = groups.find((item) => item.id === groupId);
     if (!group) return;
+    const leads = ids.filter((id) => leadTagged.has(id) || holderTagged.has(id));
+    if (leads.length) {
+      setMessage(
+        t(
+          "Rally Leads and Castle Holders only lead or hold, so they can't join. Set them under a rally's ⋯ → Leads by pet block.",
+        ),
+      );
+      ids = ids.filter((id) => !leads.includes(id));
+      if (!ids.length) return;
+    }
     const current = toAutofillGroup(group);
     const drafts: AutofillDraft[] = ids.map((id) => {
       const member = members.find((item) => item.id === id);
@@ -722,8 +753,10 @@ export default function BattlePlanningPage() {
   }
   async function moveMember(planId: string, accountId: string, groupId: string | null) {
     if (!isAdmin || saving) return;
-    if (groups.some((group) => group.leader_wos_account_id === accountId)) {
-      setMessage(t("Rally Leads stay with their rally. Change the leader instead."));
+    if (groups.some((group) => groupLeadIds(group).includes(accountId))) {
+      setMessage(
+        t("Leads and holders stay with their group. Change its leads under ⋯ → Leads by pet block."),
+      );
       return;
     }
     if (groupId) {
@@ -762,7 +795,7 @@ export default function BattlePlanningPage() {
       .map((item) => item.wos_account_id);
     const heroes = distributeGroupHeroes(
       memberIds,
-      group.leader_wos_account_id,
+      groupLeadIds(group),
       joinerHeroes,
       (memberId) =>
         members.find((member) => member.id === memberId)?.heroes ?? [],
@@ -790,6 +823,62 @@ export default function BattlePlanningPage() {
         enabled,
       }),
     );
+  }
+  async function toggleCastleHolder(member: StateMember, enabled: boolean) {
+    if (!activeMembership) return;
+    await run(() =>
+      supabase.rpc("set_state_castle_holder", {
+        target_state_id: activeMembership.stateId,
+        target_wos_account_id: member.id,
+        enabled,
+      }),
+    );
+  }
+  // Who leads (or holds) each pet block; the garrison may move alliance too.
+  async function saveRotation(
+    group: PlanGroup,
+    leads: Array<string | null>,
+    allianceId: string | null,
+  ) {
+    const saved = await run(async () => {
+      const { error } = await supabase.rpc("set_battle_plan_group_rotation", {
+        target_group_id: group.id,
+        leads,
+      });
+      if (error || !allianceId || allianceId === group.alliance_id) {
+        return { error };
+      }
+      return supabase.rpc("update_battle_plan_group", {
+        target_group_id: group.id,
+        group_name: group.name,
+        leader_account_id: leads.find(Boolean)!,
+        destination_alliance_id: allianceId,
+        publish_tag_id: group.assignment_tag_id,
+        group_max_members: group.max_members,
+        group_notes: group.notes,
+      });
+    }, group.kind === "garrison" ? t("Castle holders saved.") : t("Leads saved."));
+    if (saved) setRallyEditor(null);
+  }
+  async function addGarrison(
+    planId: string,
+    holders: Array<string | null>,
+    allianceId: string | null,
+  ) {
+    if (!allianceId) {
+      setMessage(t("Choose the alliance holding the castle."));
+      return;
+    }
+    const added = await run(
+      () =>
+        supabase.rpc("create_garrison_group", {
+          target_plan_id: planId,
+          holders,
+          destination_alliance_id: allianceId,
+        }),
+      t("Garrison added. Fill open seats to put your strongest defenders in it."),
+    );
+    if (added) setAddingGarrisonToPlanId(null);
   }
 
   // --- Comments -----------------------------------------------------------
@@ -855,6 +944,8 @@ export default function BattlePlanningPage() {
           assignments: planAssignments,
           members,
           attendance: planAttendance,
+          leadTagged,
+          holderTagged,
         })
       : [];
     const flagged = new Set(
@@ -869,7 +960,16 @@ export default function BattlePlanningPage() {
     const heroByMember = new Map(
       planAssignments.map((item) => [item.wos_account_id, item.hero]),
     );
-    const waiting = members.filter((member) => !assignmentById.has(member.id));
+    // Leads and holders never join, so they are not waiting for a seat.
+    const waiting = members.filter(
+      (member) =>
+        !assignmentById.has(member.id) &&
+        !leadTagged.has(member.id) &&
+        !holderTagged.has(member.id),
+    );
+    const garrison = planGroups.find((group) => group.kind === "garrison");
+    const rallyCount = planGroups.filter((group) => group.kind !== "garrison").length;
+    const memberById = new Map(members.map((member) => [member.id, member]));
     const scheduledBattle = scheduledBattles.find(
       (battle) => battle.plan_id === plan.id,
     );
@@ -881,7 +981,7 @@ export default function BattlePlanningPage() {
       (group) =>
         group.id === assignmentById.get(activeMembership.wosAccountId)?.group_id,
     );
-    const leadCount = rallyLeaders.length;
+    const leadCount = rallyLeaders.length + castleHolders.length;
 
     const openSheet = (member: StateMember) =>
       setOpenPlayer({ planId: plan.id, memberId: member.id });
@@ -899,7 +999,7 @@ export default function BattlePlanningPage() {
               planAttendance.filter((row) => row.availability !== "unavailable")
                 .length
             }
-            rallyCount={planGroups.length}
+            rallyCount={rallyCount}
             assignedCount={planAssignments.length}
             issueCount={
               issues.filter(
@@ -934,7 +1034,7 @@ export default function BattlePlanningPage() {
                 aria-expanded={showRallyLeads}
                 onClick={() => setShowRallyLeads((value) => !value)}
               >
-                {t("Rally Leads ({count})", { count: leadCount })}
+                {t("Leads & holders ({count})", { count: leadCount })}
               </button>
               {plan.status === "published" && (
                 <button
@@ -950,6 +1050,14 @@ export default function BattlePlanningPage() {
                 label={t("Plan actions")}
                 items={[
                   { label: t("Add rally"), onSelect: () => setAddingRallyToPlanId(plan.id) },
+                  ...(garrison
+                    ? []
+                    : [
+                        {
+                          label: t("Add garrison"),
+                          onSelect: () => setAddingGarrisonToPlanId(plan.id),
+                        },
+                      ]),
                   {
                     label: t("Rebuild all rallies"),
                     onSelect: () => void rebuildRallies(plan.id),
@@ -1031,7 +1139,10 @@ export default function BattlePlanningPage() {
             members={members}
             answers={answers}
             busy={saving}
-            onToggle={(member, enabled) => void toggleRallyLead(member, enabled)}
+            onToggleLead={(member, enabled) => void toggleRallyLead(member, enabled)}
+            onToggleHolder={(member, enabled) =>
+              void toggleCastleHolder(member, enabled)
+            }
             onClose={() => setShowRallyLeads(false)}
           />
         )}
@@ -1047,6 +1158,25 @@ export default function BattlePlanningPage() {
               busy={saving}
               onSubmit={(values) => void saveRally(plan.id, null, values)}
               onCancel={() => setAddingRallyToPlanId(null)}
+            />
+          </section>
+        )}
+
+        {isAdmin && addingGarrisonToPlanId === plan.id && (
+          <section className="rally-form-panel">
+            <h3>{t("Add garrison")}</h3>
+            <RotationEditor
+              title={t("Castle holders by pet block")}
+              candidates={castleHolders}
+              initial={[]}
+              answers={answers}
+              alliances={alliances}
+              initialAllianceId={null}
+              busy={saving}
+              onSave={(holders, allianceId) =>
+                void addGarrison(plan.id, holders, allianceId)
+              }
+              onCancel={() => setAddingGarrisonToPlanId(null)}
             />
           </section>
         )}
@@ -1068,6 +1198,12 @@ export default function BattlePlanningPage() {
               setRallyEditor({ groupId: group.id, mode: "setup" });
               scrollToRally(group.id);
             }}
+            onEditRotation={(group) => {
+              setRallyEditor({ groupId: group.id, mode: "rotation" });
+              scrollToRally(group.id);
+            }}
+            onAddGarrison={() => setAddingGarrisonToPlanId(plan.id)}
+            onOpenLeads={() => setShowRallyLeads(true)}
             onOpenPlayer={openSheet}
           />
         )}
@@ -1120,24 +1256,43 @@ export default function BattlePlanningPage() {
             )}
             <div className="rally-board">
               {planGroups.map((group) => {
-                const groupMembers = planAssignments
-                  .filter((item) => item.group_id === group.id)
+                const leadIds = new Set(groupLeadIds(group));
+                const joiners = planAssignments
+                  .filter(
+                    (item) =>
+                      item.group_id === group.id && !leadIds.has(item.wos_account_id),
+                  )
                   .flatMap((item) => {
-                    const member = members.find(
-                      (candidate) => candidate.id === item.wos_account_id,
-                    );
+                    const member = memberById.get(item.wos_account_id);
                     return member ? [member] : [];
                   })
-                  .sort((first, second) =>
-                    first.id === group.leader_wos_account_id
-                      ? -1
-                      : second.id === group.leader_wos_account_id
-                        ? 1
-                        : (second.power ?? 0) - (first.power ?? 0),
-                  );
+                  .sort((first, second) => (second.power ?? 0) - (first.power ?? 0));
+                const leads = [0, 1, 2].map((block) => {
+                  const id = group.lead_rotation?.[block] ?? null;
+                  return id ? (memberById.get(id) ?? null) : null;
+                });
+                const garrisonGroup = group.kind === "garrison";
                 const editor =
                   isAdmin && rallyEditor?.groupId === group.id ? (
-                    rallyEditor.mode === "setup" ? (
+                    rallyEditor.mode === "rotation" ? (
+                      <RotationEditor
+                        title={
+                          garrisonGroup
+                            ? t("Castle holders by pet block")
+                            : t("Leads by pet block")
+                        }
+                        candidates={garrisonGroup ? castleHolders : rallyLeaders}
+                        initial={group.lead_rotation ?? []}
+                        answers={answers}
+                        alliances={garrisonGroup ? alliances : undefined}
+                        initialAllianceId={group.alliance_id}
+                        busy={saving}
+                        onSave={(rotation, allianceId) =>
+                          void saveRotation(group, rotation, allianceId)
+                        }
+                        onCancel={() => setRallyEditor(null)}
+                      />
+                    ) : rallyEditor.mode === "setup" ? (
                       <RallySetupEditor
                         group={group}
                         heroGeneration={heroGeneration}
@@ -1150,7 +1305,7 @@ export default function BattlePlanningPage() {
                     ) : (
                       <RallyForm
                         group={group}
-                        leaders={rallyLeaders}
+                        leaders={garrisonGroup ? castleHolders : rallyLeaders}
                         alliances={alliances}
                         tags={regularTags}
                         busy={saving}
@@ -1163,7 +1318,8 @@ export default function BattlePlanningPage() {
                   <div key={group.id} id={`rally-${group.id}`} className="rally-board-cell">
                     <RallyColumn
                       group={group}
-                      members={groupMembers}
+                      leads={leads}
+                      members={joiners}
                       heroByMember={heroByMember}
                       allianceName={
                         alliances.find((item) => item.id === group.alliance_id)
@@ -1181,6 +1337,9 @@ export default function BattlePlanningPage() {
                       }
                       onMoveSelected={() =>
                         void moveMembers(plan.id, group.id, [...selectedIds])
+                      }
+                      onEditRotation={() =>
+                        setRallyEditor({ groupId: group.id, mode: "rotation" })
                       }
                       onSetup={() => setRallyEditor({ groupId: group.id, mode: "setup" })}
                       onAssignHeroes={() => void assignGroupHeroes(plan.id, group)}
@@ -1347,8 +1506,11 @@ export default function BattlePlanningPage() {
           isLeader={groups.some(
             (group) =>
               group.plan_id === sheetPlan.id &&
-              group.leader_wos_account_id === sheetMember.id,
+              groupLeadIds(group).includes(sheetMember.id),
           )}
+          isLeadTagged={
+            leadTagged.has(sheetMember.id) || holderTagged.has(sheetMember.id)
+          }
           isAdmin={isAdmin}
           busy={saving}
           onMove={(groupId) => void moveMember(sheetPlan.id, sheetMember.id, groupId)}

@@ -2,7 +2,7 @@
 // only. Nothing is read from or written to Supabase or WOSOracle.
 const DEMO_FLAG_KEY = "wosoverwatch-demo";
 // Bump the version when the seed changes so old demo data is replaced.
-const DEMO_DATA_KEY = "wosoverwatch-demo-data-v7";
+const DEMO_DATA_KEY = "wosoverwatch-demo-data-v8";
 
 export function isDemoMode() {
   if (typeof window === "undefined") return false;

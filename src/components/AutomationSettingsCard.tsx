@@ -13,6 +13,7 @@ type Settings = {
   auto_publish: boolean;
   rally_count: number;
   rally_size: number;
+  garrison_size: number;
   default_formation: string | null;
   default_joiner_heroes: string[];
   autofill_priorities: string[] | null;
@@ -39,7 +40,7 @@ export function AutomationSettingsCard({
     void supabase
       .from("states")
       .select(
-        "auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes, autofill_priorities",
+        "auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
       )
       .eq("id", stateId)
       .maybeSingle()
@@ -117,7 +118,7 @@ export function AutomationSettingsCard({
       <h2>{t("SvS automation")}</h2>
       <p>
         {t(
-          "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.",
+          "After the draw, the app reminds members to vote 30 hours before the battle. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (your Rally Leads, swapping each pet block), then fills the garrison with the strongest defenders and the rallies with everyone else. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.",
         )}
       </p>
       <div className="automation-grid">
@@ -169,6 +170,23 @@ export function AutomationSettingsCard({
             onBlur={(event) =>
               void save({
                 rally_size: Math.min(100, Math.max(2, Number(event.target.value) || 2)),
+              })
+            }
+          />
+        </label>
+        <label>
+          {t("Garrison size (without holders)")}
+          <input
+            type="number"
+            min={1}
+            max={99}
+            value={settings.garrison_size ?? 15}
+            onChange={(event) =>
+              setSettings({ ...settings, garrison_size: Number(event.target.value) })
+            }
+            onBlur={(event) =>
+              void save({
+                garrison_size: Math.min(99, Math.max(1, Number(event.target.value) || 1)),
               })
             }
           />

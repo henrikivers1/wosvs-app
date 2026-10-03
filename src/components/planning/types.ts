@@ -19,7 +19,11 @@ export type PlanGroup = {
   id: string;
   plan_id: string;
   name: string;
+  // A rally, or the garrison that holds the castle.
+  kind: "rally" | "garrison";
   leader_wos_account_id: string;
+  // Who leads (or holds) in each pet block: 12–14, 14–16, 16–17.
+  lead_rotation: Array<string | null>;
   alliance_id: string | null;
   assignment_tag_id: string | null;
   max_members: number;
@@ -53,6 +57,7 @@ export type StateAlliance = {
 };
 
 export type AccountRow = {
+  alliance_abbr?: string | null;
   id: string;
   user_id: string;
   wos_id: string;
@@ -80,6 +85,17 @@ export type StateMember = AccountRow & {
   // Joiner heroes the player has at 4★ or higher.
   heroes: string[];
 };
+
+// Everyone who leads or holds in this group, in block order, no repeats.
+export function groupLeadIds(group: PlanGroup) {
+  return [
+    ...new Set(
+      [group.leader_wos_account_id, ...(group.lead_rotation ?? [])].filter(
+        (id): id is string => Boolean(id),
+      ),
+    ),
+  ];
+}
 
 export function memberName(member: Pick<StateMember, "nickname" | "wos_id">) {
   return member.nickname || member.wos_id;

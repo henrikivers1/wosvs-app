@@ -74,7 +74,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Get your rally",
-        body: "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation.” Overwatch shows the same details, and you are told about every change.",
+        body: "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation. Leads: Ted 12:00–14:00, Ice 14:00–16:00.” Rally Leads are told which blocks they lead, Castle Holders when to take over, and the garrison to stay in the castle. Overwatch shows the same details, and you are told about every change.",
       },
       {
         title: "Check the opponent",
@@ -155,15 +155,19 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "How rallies are built",
-        body: "Rally Leads who can play come first, topped up with the best Labyrinth players who voted. Each rally goes into its leader's own alliance and fights in the half the leader voted for. Players are then added by your auto-fill priorities, and only get a joiner hero they own at 4★.",
+        body: "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.",
+      },
+      {
+        title: "The garrison",
+        body: "One garrison holds the castle the whole battle. It is filled first, with the strongest defenders who play the whole battle: highest troop FC, then troop tier, then troop skill. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.",
       },
       {
         title: "Adjust by hand",
         body: "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.",
       },
       {
-        title: "Rally Leads",
-        body: "Press Rally Leads in Planning to see your 20 best Labyrinth players and mark or unmark Rally Leads. Only Rally Leads can lead a rally.",
+        title: "Leads & holders",
+        body: "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
       },
       {
         title: "Members and join requests",
