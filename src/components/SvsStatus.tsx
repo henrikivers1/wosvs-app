@@ -43,6 +43,7 @@ export function SvsStatus({
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState("");
   const [now, setNow] = useState(0);
+  const [battleActive, setBattleActive] = useState(false);
 
   useEffect(() => {
     const tick = () => setNow(Date.now());
@@ -63,6 +64,12 @@ export function SvsStatus({
       .eq("id", stateId)
       .maybeSingle();
     setState((data as SvsState | null) ?? null);
+    const { count } = await supabase
+      .from("battles")
+      .select("id", { count: "exact", head: true })
+      .eq("state_id", stateId)
+      .eq("status", "active");
+    setBattleActive((count ?? 0) > 0);
   }, [stateId, supabase]);
 
   useEffect(() => {
@@ -101,8 +108,10 @@ export function SvsStatus({
     detail = t("Set the in-game state number on State management.");
   } else if (state?.svs_opponent && state.svs_battle_at) {
     const battleStart = new Date(state.svs_battle_at).getTime();
+    // Live once the battle has been started (automatically at 12:00 UTC).
     const live =
-      now >= battleStart && now < battleStart + BATTLE_DURATION_MS;
+      battleActive ||
+      (now >= battleStart && now < battleStart + BATTLE_DURATION_MS);
     headline = live
       ? t("SvS battle vs state {opponent} is live", {
           opponent: state.svs_opponent,

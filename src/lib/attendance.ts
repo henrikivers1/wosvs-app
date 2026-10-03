@@ -1,4 +1,8 @@
-export type Availability = "whole" | "first_half" | "second_half" | "unavailable";
+export type Availability =
+  | "whole"
+  | "first_half"
+  | "second_half"
+  | "unavailable";
 
 export type AttendanceRow = {
   plan_id: string;
@@ -34,9 +38,18 @@ export function availabilityLabel(value: Availability) {
   );
 }
 
-// "12:00–14:30 UTC" for a window relative to the battle start.
+// SvS castle battles always run 12:00–17:00 UTC on battle day.
+export const SVS_START_HOUR_UTC = 12;
+
+export function svsBattleStart(battleAt: string) {
+  const start = new Date(battleAt);
+  start.setUTCHours(SVS_START_HOUR_UTC, 0, 0, 0);
+  return start;
+}
+
+// "12:00–14:30 UTC" for a window relative to the official battle start.
 export function windowLabel(battleAt: string, window: [number, number]) {
-  const start = new Date(battleAt).getTime();
+  const start = svsBattleStart(battleAt).getTime();
   const format = (offsetHours: number) =>
     new Date(start + offsetHours * 3_600_000).toLocaleTimeString("en-GB", {
       timeZone: "UTC",
