@@ -851,4 +851,8 @@ export const arabicInterface: Record<string, string> = {
   "· Troops": "· القوات",
   "—": "—",
   "— March:": "— المسيرة:",
+  "after the last rally": "بعد آخر حشد",
+  "Land right after {name} hits at {impact} UTC.": "اهبط مباشرة بعد اصطدام {name} في {impact} UTC.",
+  "Land right after {name} hits.": "اهبط مباشرة بعد اصطدام {name}.",
+  "No landing windows yet. A window appears as soon as an enemy rally is called.": "لا توجد نوافذ هبوط بعد. تظهر نافذة بمجرد الإبلاغ عن حشد للعدو.",
 };

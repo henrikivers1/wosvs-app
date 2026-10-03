@@ -86,6 +86,16 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "after the last rally":
+    "después del último rally",
+  "Land right after {name} hits at {impact} UTC.":
+    "Llega justo después del impacto de {name} a las {impact} UTC.",
+  "Land right after {name} hits.":
+    "Llega justo después del impacto de {name}.",
+  "No landing windows yet. A window appears as soon as an enemy rally is called.":
+    "Aún no hay ventanas de llegada. Aparece una en cuanto se llama un rally enemigo.",
+  "Garrison":
+    "Guarnición",
   "No SvS plan": "Sin plan de SvS",
   "Create the SvS plan": "Crear el plan de SvS",
   "There is no upcoming battle plan. It is normally created automatically from the SvS draw; if it was deleted, create it again here. A state can only have one upcoming plan.":
@@ -595,7 +605,6 @@ const spanishInterface: Record<string, string> = {
   "Find accounts worth assigning": "Buscar cuentas para asignar",
   "Formation update": "Actualización de formación",
   "Full Battle": "Batalla completa",
-  Garrison: "Guarnición",
   "Garrison players": "Jugadores de guarnición",
   "Garrison timing": "Tiempo de guarnición",
   "Group name": "Nombre del grupo",

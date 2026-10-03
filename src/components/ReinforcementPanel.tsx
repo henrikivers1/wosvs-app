@@ -148,7 +148,7 @@ export function ReinforcementSchedule({
     return (
       <p>
         {t(
-          "No landing windows yet. A window appears once two enemy rallies are called.",
+          "No landing windows yet. A window appears as soon as an enemy rally is called.",
         )}
       </p>
     );
@@ -157,25 +157,36 @@ export function ReinforcementSchedule({
   return (
     <>
       {timing.landingWindows.map((landingWindow, index) => {
-        const windowMs =
-          landingWindow.closesAt.getTime() - landingWindow.opensAt.getTime();
+        const windowMs = landingWindow.closesAt
+          ? landingWindow.closesAt.getTime() - landingWindow.opensAt.getTime()
+          : null;
         const msUntilSend = timing.getMsUntilSend(landingWindow);
 
         return (
           <article key={landingWindow.id}>
             <h3>
               {t("Window {number}", { number: index + 1 })}
-              {t(":")} {landingWindow.after.enemyName} → {""}
-              {landingWindow.before.enemyName}
+              {t(":")} {landingWindow.after.enemyName}
+              {landingWindow.before
+                ? ` → ${landingWindow.before.enemyName}`
+                : ` → ${t("after the last rally")}`}
             </h3>
             <p>
-              {t("Land between {opens} and {closes} UTC ({seconds} s gap).", {
-                opens: formatUtcTimePrecise(landingWindow.opensAt),
-                closes: formatUtcTimePrecise(landingWindow.closesAt),
-                seconds: (windowMs / 1000).toFixed(1),
-              })}
+              {landingWindow.closesAt && windowMs !== null
+                ? t(
+                    "Land between {opens} and {closes} UTC ({seconds} s gap).",
+                    {
+                      opens: formatUtcTimePrecise(landingWindow.opensAt),
+                      closes: formatUtcTimePrecise(landingWindow.closesAt),
+                      seconds: (windowMs / 1000).toFixed(1),
+                    },
+                  )
+                : t("Land right after {name} hits at {impact} UTC.", {
+                    name: landingWindow.after.enemyName,
+                    impact: formatUtcTimePrecise(landingWindow.opensAt),
+                  })}
             </p>
-            {windowMs < 1000 && (
+            {windowMs !== null && windowMs < 1000 && (
               <p className="auth-message">
                 {t(
                   "Under one second between these rallies — very hard to hit.",

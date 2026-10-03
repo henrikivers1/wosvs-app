@@ -6,13 +6,18 @@ import type { EnemyRally } from "@/types/rally";
 export type LandingWindow = {
   id: string;
   after: EnemyRally;
-  before: EnemyRally;
+  // null after the last called rally: land right after it hits.
+  before: EnemyRally | null;
   opensAt: Date;
-  closesAt: Date;
+  closesAt: Date | null;
   // Aim for the middle of the gap: it tolerates the most timing error in
   // either direction (caller reaction, game ping, rounding of march times).
   targetTime: Date;
 };
+
+// After the last rally (or when only one is called) there is no next rally
+// to fit between, so aim just after its impact.
+export const AFTER_LAST_RALLY_MS = 500;
 
 export function buildLandingWindows(rallies: EnemyRally[]): LandingWindow[] {
   const ordered = [...rallies].sort(
@@ -34,6 +39,19 @@ export function buildLandingWindows(rallies: EnemyRally[]): LandingWindow[] {
       opensAt: new Date(opensAt),
       closesAt: new Date(closesAt),
       targetTime: new Date(opensAt + (closesAt - opensAt) / 2),
+    });
+  }
+
+  const last = ordered[ordered.length - 1];
+  if (last) {
+    const opensAt = last.impactTime.getTime();
+    windows.push({
+      id: `${last.id}-after`,
+      after: last,
+      before: null,
+      opensAt: new Date(opensAt),
+      closesAt: null,
+      targetTime: new Date(opensAt + AFTER_LAST_RALLY_MS),
     });
   }
 

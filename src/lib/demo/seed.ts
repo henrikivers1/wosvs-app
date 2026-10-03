@@ -118,9 +118,13 @@ export function buildDemoSeed(now: Date): DemoTables {
   const profiles: Row[] = [];
   const members: Row[] = [];
   const allianceMembers: Row[] = [];
-  const everyone = ["You (demo)", ...NAMES];
+  // The demo user owns two accounts: the state owner, and a plain member
+  // (last) so the member view can be tried from the workspace switcher.
+  const everyone = ["You (demo)", ...NAMES, "You (member view)"];
+  const memberViewIndex = everyone.length - 1;
   everyone.forEach((name, index) => {
-    const userId = index === 0 ? DEMO_USER_ID : id("u0", index);
+    const userId =
+      index === 0 || index === memberViewIndex ? DEMO_USER_ID : id("u0", index);
     const accountId = id("ac", index);
     const furnaceRaw = 55 + Math.floor(rand() * 26);
     const alliance = alliances[index % alliances.length];
@@ -157,13 +161,14 @@ export function buildDemoSeed(now: Date): DemoTables {
       lancer_t12_skill: null,
       marksman_t12_skill: null,
     });
-    profiles.push({
-      id: userId,
-      username: index === 0 ? "demo_commander" : name.toLowerCase(),
-      display_name: name,
-      preferred_language: "en",
-      created_at: iso,
-    });
+    if (index !== memberViewIndex)
+      profiles.push({
+        id: userId,
+        username: index === 0 ? "demo_commander" : name.toLowerCase(),
+        display_name: name,
+        preferred_language: "en",
+        created_at: iso,
+      });
     members.push({
       state_id: DEMO_STATE_ID,
       wos_account_id: accountId,
@@ -208,7 +213,10 @@ export function buildDemoSeed(now: Date): DemoTables {
     (first, second) =>
       (second.labyrinth_score as number) - (first.labyrinth_score as number),
   );
-  const leaders = byLabyrinth.slice(0, 4);
+  // The demo user's own accounts never lead a rally.
+  const leaders = byLabyrinth
+    .filter((account) => account.user_id !== DEMO_USER_ID)
+    .slice(0, 4);
 
   const rallyLeadTag = {
     id: id("7a", 1),
@@ -280,7 +288,7 @@ export function buildDemoSeed(now: Date): DemoTables {
     const groupMembers = [
       accounts.find((account) => account.id === group.leader_wos_account_id)!,
       // The demo user sits in the first rally so publishing shows their message.
-      ...(groupIndex === 0 ? [accounts[0]] : []),
+      ...(groupIndex === 0 ? [accounts[0]] : [accounts[memberViewIndex]]),
       ...accounts.slice(6 + groupIndex * 5, 10 + groupIndex * 5),
     ];
     const unique = groupMembers.filter((account) => {
@@ -374,6 +382,12 @@ export function buildDemoSeed(now: Date): DemoTables {
     ],
     state_members: members,
     state_member_capabilities: [
+      // The member view can open the Garrison timer during the battle.
+      {
+        state_id: DEMO_STATE_ID,
+        wos_account_id: accounts[memberViewIndex].id,
+        capability: "garrison",
+      },
       {
         state_id: DEMO_STATE_ID,
         wos_account_id: accounts[0].id,

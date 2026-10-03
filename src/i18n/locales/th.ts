@@ -851,4 +851,8 @@ export const thaiInterface: Record<string, string> = {
   "· Troops": "· ทหาร",
   "—": "—",
   "— March:": "— เดินทัพ:",
+  "after the last rally": "หลังแรลลี่สุดท้าย",
+  "Land right after {name} hits at {impact} UTC.": "ไปถึงทันทีหลัง {name} ปะทะเวลา {impact} UTC",
+  "Land right after {name} hits.": "ไปถึงทันทีหลัง {name} ปะทะ",
+  "No landing windows yet. A window appears as soon as an enemy rally is called.": "ยังไม่มีช่วงเวลาไปถึง จะแสดงทันทีที่มีการแจ้งแรลลี่ศัตรู",
 };

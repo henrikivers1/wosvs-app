@@ -851,4 +851,8 @@ export const chineseInterface: Record<string, string> = {
   "· Troops": "· 部队",
   "—": "—",
   "— March:": "— 行军：",
+  "after the last rally": "最后一次集结之后",
+  "Land right after {name} hits at {impact} UTC.": "在 {name} 于 {impact} UTC 冲击后立即抵达。",
+  "Land right after {name} hits.": "在 {name} 冲击后立即抵达。",
+  "No landing windows yet. A window appears as soon as an enemy rally is called.": "还没有抵达窗口。一旦通报敌方集结就会出现窗口。",
 };

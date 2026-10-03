@@ -5,6 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DemoBanner } from "@/components/DemoBanner";
+
+const BATTLE_SECTION_PATHS = [
+  "/battle",
+  "/admin/leaders",
+  "/admin/call-rally",
+  "/garrison",
+];
 import {
   STATE_SECTION_PATHS,
   StateSectionNav,
@@ -302,7 +309,16 @@ export function AppHeader() {
             )}
             {activeMembership?.battleId &&
               (canCallRallies || canUseGarrison) && (
-                <Link className={navClassName("/battle")} href="/battle">
+                <Link
+                  className={
+                    BATTLE_SECTION_PATHS.some((path) =>
+                      pathname.startsWith(path),
+                    )
+                      ? "nav-link active-nav-link"
+                      : "nav-link"
+                  }
+                  href="/battle"
+                >
                   {t("liveBattle")}
                 </Link>
               )}
@@ -345,6 +361,36 @@ export function AppHeader() {
         </div>
       )}
       <StateSectionNav />
+      {BATTLE_SECTION_PATHS.some((path) => pathname.startsWith(path)) &&
+        (canCallRallies || canUseGarrison) && (
+          // Live Battle sub-navigation, so callers can jump between enemy
+          // leaders, calling rallies and the garrison timer directly.
+          <nav className="state-section-nav" aria-label={t("Live Battle")}>
+            {[
+              {
+                href: "/admin/leaders",
+                label: t("Enemy leaders"),
+                show: canCallRallies,
+              },
+              {
+                href: "/admin/call-rally",
+                label: t("Call rally"),
+                show: canCallRallies,
+              },
+              { href: "/garrison", label: t("Garrison"), show: canUseGarrison },
+            ]
+              .filter((link) => link.show)
+              .map((link) => (
+                <Link
+                  key={link.href}
+                  className={navClassName(link.href)}
+                  href={link.href}
+                >
+                  {link.label}
+                </Link>
+              ))}
+          </nav>
+        )}
       {signedIn === true && !loadingStates && memberships.length === 0 && (
         <p className="state-status">{t("noStateSelected")}</p>
       )}

@@ -137,10 +137,14 @@ export function useReinforcementTiming(
         Notification.permission === "granted"
       ) {
         new Notification(t("SEND REINFORCEMENTS NOW"), {
-          body: t("Land between {first} and {second}.", {
-            first: landingWindow.after.enemyName,
-            second: landingWindow.before.enemyName,
-          }),
+          body: landingWindow.before
+            ? t("Land between {first} and {second}.", {
+                first: landingWindow.after.enemyName,
+                second: landingWindow.before.enemyName,
+              })
+            : t("Land right after {name} hits.", {
+                name: landingWindow.after.enemyName,
+              }),
           tag: `window-${landingWindow.id}`,
         });
       }

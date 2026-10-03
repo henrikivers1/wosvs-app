@@ -388,7 +388,7 @@ export default function OverwatchPage() {
           <span
             className={`battle-state ${featuredBattle.status === "active" ? "battle-state-active" : ""}`}
           >
-            {featuredBattle.status}
+            {featuredBattle.status === "active" ? t("Active") : t("Scheduled")}
           </span>
         )}
       </section>
