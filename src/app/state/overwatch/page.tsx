@@ -24,6 +24,7 @@ type Tag = {
   name: string;
   color: string;
   system_key: string | null;
+  kind: "custom" | "rally" | "hero";
 };
 
 type Alliance = {
@@ -184,7 +185,7 @@ export default function OverwatchPage() {
       tagIds.length
         ? supabase
             .from("state_tags")
-            .select("id, name, color, system_key")
+            .select("id, name, color, system_key, kind")
             .in("id", tagIds)
             .order("name")
         : Promise.resolve({ data: [], error: null }),
@@ -470,6 +471,13 @@ export default function OverwatchPage() {
 
             <article className="overwatch-card">
               <p className="section-label">{t("Your tags")}</p>
+              {tags
+                .filter((tag) => tag.kind === "hero")
+                .map((tag) => (
+                  <p key={`hero-${tag.id}`} className="join-hero">
+                    {t("Join with: {hero}", { hero: tag.name })}
+                  </p>
+                ))}
               {tags.length ? (
                 <div className="overwatch-tags">
                   {tags.map((tag) => (

@@ -2902,3 +2902,33 @@ article.plan-comment-admins {
   gap: 9px;
   padding: 4px 0;
 }
+article.tag-row {
+  flex-wrap: wrap;
+}
+.tag-row > .tag-players-panel {
+  flex: 1 1 100%;
+}
+.tag-players-panel ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tag-players-panel li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 3px 0;
+}
+.hero-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.tag-row strong .role-badge {
+  margin-left: 7px;
+}
+.join-hero {
+  font-weight: 700;
+}

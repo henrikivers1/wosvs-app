@@ -14,11 +14,22 @@ type StateTag = {
   bulk_move_limit: number;
   system_key: string | null;
   created_at: string;
+  kind: "custom" | "rally" | "hero";
 };
 
 type TagAssignment = {
   tag_id: string;
+  wos_account_id: string;
 };
+
+type MemberOption = {
+  id: string;
+  label: string;
+};
+
+// Heroes commonly used to join rallies; admins can add any other hero.
+const PRESET_HEROES = ["Jessie", "Jasser", "Seo-yoon", "Sergey"];
+const HERO_TAG_COLOR = "#9b6bd6";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -31,6 +42,11 @@ export default function TagsPage() {
   const [assignmentCounts, setAssignmentCounts] = useState<
     Record<string, number>
   >({});
+  const [assignments, setAssignments] = useState<TagAssignment[]>([]);
+  const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
+  const [playersTagId, setPlayersTagId] = useState<string | null>(null);
+  const [memberToAdd, setMemberToAdd] = useState("");
+  const [customHero, setCustomHero] = useState("");
   const [name, setName] = useState("");
   const [color, setColor] = useState("#e4a853");
   const [bulkMoveLimit, setBulkMoveLimit] = useState(100);
@@ -54,13 +70,19 @@ export default function TagsPage() {
     }
 
     setLoading(true);
-    const [tagResult, assignmentResult] = await Promise.all([
+    const [tagResult, assignmentResult, memberResult] = await Promise.all([
       supabase
         .from("state_tags")
-        .select("id, name, color, bulk_move_limit, system_key, created_at")
+        .select(
+          "id, name, color, bulk_move_limit, system_key, created_at, kind",
+        )
         .eq("state_id", activeMembership.stateId)
         .order("name"),
-      supabase.from("state_member_tags").select("tag_id"),
+      supabase.from("state_member_tags").select("tag_id, wos_account_id"),
+      supabase
+        .from("state_members")
+        .select("wos_account_id, wos_accounts(nickname, wos_id)")
+        .eq("state_id", activeMembership.stateId),
     ]);
 
     const firstError = tagResult.error || assignmentResult.error;
@@ -84,6 +106,26 @@ export default function TagsPage() {
 
     setTags(stateTags);
     setAssignmentCounts(counts);
+    setAssignments(
+      ((assignmentResult.data ?? []) as TagAssignment[]).filter((assignment) =>
+        tagIds.has(assignment.tag_id),
+      ),
+    );
+    setMemberOptions(
+      (memberResult.data ?? [])
+        .map((row) => {
+          const account = (
+            Array.isArray(row.wos_accounts)
+              ? row.wos_accounts[0]
+              : row.wos_accounts
+          ) as { nickname: string | null; wos_id: string } | null;
+          return {
+            id: row.wos_account_id as string,
+            label: account?.nickname || `WOS ID ${account?.wos_id ?? "?"}`,
+          };
+        })
+        .sort((first, second) => first.label.localeCompare(second.label)),
+    );
     setLoading(false);
   }, [activeMembership, isAdmin, supabase]);
 
@@ -121,6 +163,122 @@ export default function TagsPage() {
       return false;
     }
     return true;
+  }
+
+  async function addHeroTag(heroName: string) {
+    if (!activeMembership || !isAdmin) return;
+    const trimmed = heroName.trim().slice(0, 32);
+    if (!trimmed) return;
+    setSaving(true);
+    setMessage(t(""));
+    const { error } = await supabase.from("state_tags").insert({
+      state_id: activeMembership.stateId,
+      name: trimmed,
+      color: HERO_TAG_COLOR,
+      kind: "hero",
+    });
+    setSaving(false);
+    if (error) {
+      setMessage(
+        error.code === "23505"
+          ? t("A tag with that name already exists.")
+          : error.message,
+      );
+      return;
+    }
+    setCustomHero("");
+    await loadTags();
+  }
+
+  async function setPlayerTag(
+    tagId: string,
+    wosAccountId: string,
+    enabled: boolean,
+  ) {
+    setSaving(true);
+    setMessage(t(""));
+    const { error } = enabled
+      ? await supabase.from("state_member_tags").insert({
+          tag_id: tagId,
+          wos_account_id: wosAccountId,
+          source: "manual",
+        })
+      : await supabase
+          .from("state_member_tags")
+          .delete()
+          .eq("tag_id", tagId)
+          .eq("wos_account_id", wosAccountId);
+    setSaving(false);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setMemberToAdd("");
+    await loadTags();
+  }
+
+  function renderPlayersPanel(tag: StateTag) {
+    const assignedIds = new Set(
+      assignments
+        .filter((assignment) => assignment.tag_id === tag.id)
+        .map((assignment) => assignment.wos_account_id),
+    );
+    const assigned = memberOptions.filter((member) =>
+      assignedIds.has(member.id),
+    );
+    const available = memberOptions.filter(
+      (member) => !assignedIds.has(member.id),
+    );
+    return (
+      <div className="tag-players-panel">
+        {assigned.length === 0 ? (
+          <p>{t("No players have this tag.")}</p>
+        ) : (
+          <ul>
+            {assigned.map((member) => (
+              <li key={member.id}>
+                <span>{member.label}</span>
+                <button
+                  type="button"
+                  className="secondary-link"
+                  disabled={saving}
+                  onClick={() => void setPlayerTag(tag.id, member.id, false)}
+                >
+                  {t("Remove")}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="invite-form">
+          <select
+            value={memberToAdd}
+            onChange={(event) => setMemberToAdd(event.target.value)}
+          >
+            <option value="">{t("Choose a player")}</option>
+            {available.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            disabled={saving || !memberToAdd}
+            onClick={() => void setPlayerTag(tag.id, memberToAdd, true)}
+          >
+            {t("Add player")}
+          </button>
+        </div>
+        {tag.kind === "rally" && (
+          <p>
+            {t(
+              "Rally tags are also given to the whole group when the battle plan is published.",
+            )}
+          </p>
+        )}
+      </div>
+    );
   }
 
   async function createTag() {
@@ -247,7 +405,7 @@ export default function TagsPage() {
               <h1>{t("Tags")}</h1>
               <p>
                 {t(
-                  "Create reusable labels for votes, alliances, and battle plans.",
+                  "Labels for rallies, joiner heroes and announcements. Rally tags are created automatically for each rally group.",
                 )}
               </p>
             </div>
@@ -305,6 +463,52 @@ export default function TagsPage() {
               </button>
             </div>
             {message && <p className="page-message">{message}</p>}
+          </section>
+
+          <section>
+            <p className="section-label">{t("Joiner heroes")}</p>
+            <h2>{t("Hero tags")}</h2>
+            <p>
+              {t(
+                "Tag players with the hero they join rallies with. Players see it on Overwatch as “Join with”.",
+              )}
+            </p>
+            <div className="hero-presets">
+              {PRESET_HEROES.filter(
+                (hero) =>
+                  !tags.some(
+                    (tag) => tag.name.toLowerCase() === hero.toLowerCase(),
+                  ),
+              ).map((hero) => (
+                <button
+                  key={hero}
+                  type="button"
+                  className="secondary-link"
+                  disabled={saving}
+                  onClick={() => void addHeroTag(hero)}
+                >
+                  {t("+ {hero}", { hero })}
+                </button>
+              ))}
+            </div>
+            <div className="invite-form">
+              <label>
+                {t("Other hero")}
+                <input
+                  type="text"
+                  maxLength={32}
+                  value={customHero}
+                  onChange={(event) => setCustomHero(event.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={saving || !customHero.trim()}
+                onClick={() => void addHeroTag(customHero)}
+              >
+                {t("Add hero tag")}
+              </button>
+            </div>
           </section>
 
           <section>
@@ -406,7 +610,15 @@ export default function TagsPage() {
                         style={{ backgroundColor: tag.color }}
                       />
                       <div>
-                        <strong>{tag.name}</strong>
+                        <strong>
+                          {tag.name}
+                          {tag.kind === "hero" && (
+                            <span className="role-badge">{t("Hero")}</span>
+                          )}
+                          {tag.kind === "rally" && (
+                            <span className="role-badge">{t("Rally")}</span>
+                          )}
+                        </strong>
                         <small>
                           {tag.color.toUpperCase()} {t("·")}{" "}
                           {assignmentCounts[tag.id] ?? 0} {t("assigned")}
@@ -424,6 +636,18 @@ export default function TagsPage() {
                           <button
                             type="button"
                             className="secondary-link"
+                            onClick={() => {
+                              setMemberToAdd("");
+                              setPlayersTagId(
+                                playersTagId === tag.id ? null : tag.id,
+                              );
+                            }}
+                          >
+                            {t("Players")}
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-link"
                             onClick={() => beginEditing(tag)}
                           >
                             {t("Edit")}
@@ -438,6 +662,9 @@ export default function TagsPage() {
                           </button>
                         </div>
                       )}
+                      {playersTagId === tag.id &&
+                        !tag.system_key &&
+                        renderPlayersPanel(tag)}
                     </article>
                   ),
                 )}

@@ -1276,7 +1276,7 @@ export default function BattlePlanningPage() {
                                 setGroupTagId(event.target.value)
                               }
                             >
-                              <option value="">{t("No automatic tag")}</option>
+                              <option value="">{t("Automatic: leader’s rally tag")}</option>
                               {regularTags.map((tag) => (
                                 <option key={tag.id} value={tag.id}>
                                   {tag.name}
@@ -1542,7 +1542,7 @@ export default function BattlePlanningPage() {
                                       }
                                     >
                                       <option value="">
-                                        {t("No automatic tag")}
+                                        {t("Automatic: leader’s rally tag")}
                                       </option>
                                       {regularTags.map((tag) => (
                                         <option key={tag.id} value={tag.id}>

@@ -83,6 +83,25 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "+ {hero}": "+ {hero}",
+  "A tag with that name already exists.": "Ya existe una etiqueta con ese nombre.",
+  "Add hero tag": "Añadir etiqueta de héroe",
+  "Add player": "Añadir jugador",
+  "Automatic: leader’s rally tag": "Automática: etiqueta del rally del líder",
+  "Choose a player": "Elige un jugador",
+  Hero: "Héroe",
+  "Hero tags": "Etiquetas de héroe",
+  "Join with: {hero}": "Únete con: {hero}",
+  "Joiner heroes": "Héroes de apoyo",
+  "Labels for rallies, joiner heroes and announcements. Rally tags are created automatically for each rally group.":
+    "Etiquetas para rallies, héroes de apoyo y anuncios. Las etiquetas de rally se crean automáticamente para cada grupo.",
+  "No players have this tag.": "Ningún jugador tiene esta etiqueta.",
+  "Other hero": "Otro héroe",
+  Rally: "Rally",
+  "Rally tags are also given to the whole group when the battle plan is published.":
+    "Las etiquetas de rally también se dan a todo el grupo cuando se publica el plan.",
+  "Tag players with the hero they join rallies with. Players see it on Overwatch as “Join with”.":
+    "Etiqueta a los jugadores con el héroe con el que se unen a los rallies. Lo verán en Overwatch como «Únete con».",
   "· Lab": "· Lab",
   "Delete plan": "Eliminar plan",
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
