@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
+import { DiscordHandle } from "@/components/DiscordHandle";
 import { useLanguage } from "@/components/LanguageProvider";
 
 const CONTACT_EMAIL = "privacy@wosoverwatch.com";
@@ -105,6 +106,9 @@ export default function PrivacyPage() {
           <p>
             {t("Questions or requests:")}{" "}
             <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          </p>
+          <p>
+            <DiscordHandle />
           </p>
           <p className="guide-tip">
             {t(

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
+import { DiscordHandle } from "@/components/DiscordHandle";
 import { useLanguage } from "@/components/LanguageProvider";
 import { NavIcon, type NavIconName } from "@/components/NavIcon";
 import { enterDemo } from "@/lib/demo/mode";
@@ -84,6 +85,10 @@ const QUESTIONS = [
   {
     q: "How does my state get started?",
     a: "Your state owner signs up and gets the state set up. After that, members join by adding their WOS ID: the join request goes to the owner and admins automatically.",
+  },
+  {
+    q: "How do I get help or get my state set up?",
+    a: "Message us on Discord: wosoverwatch. We help states get started and answer questions there.",
   },
   {
     q: "Which languages are supported?",
@@ -296,6 +301,7 @@ export function LandingPage() {
             {t("Free demo")}
           </button>
         </nav>
+        <DiscordHandle />
         <p>
           {t(
             "A fan-made companion tool for Whiteout Survival. Not affiliated with Century Games.",

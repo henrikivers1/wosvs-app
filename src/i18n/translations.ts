@@ -30,6 +30,22 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Discord":
+    "Discord",
+  "Copy Discord name":
+    "Copiar nombre de Discord",
+  "Copied":
+    "Copiado",
+  "Copy":
+    "Copiar",
+  "How do I get help or get my state set up?":
+    "¿Cómo consigo ayuda o pongo en marcha mi estado?",
+  "Message us on Discord: wosoverwatch. We help states get started and answer questions there.":
+    "Escríbenos en Discord: wosoverwatch. Allí ayudamos a los estados a empezar y respondemos preguntas.",
+  "Where do I get help?":
+    "¿Dónde consigo ayuda?",
+  "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.":
+    "Escríbenos en Discord: wosoverwatch. Los administradores de tu estado también pueden ayudarte con todo lo de tu estado.",
   "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
     "La batalla tiene tres bloques de mascotas: 12–14, 14–16 y 16–17 UTC. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se agotan sus mascotas y los participantes se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autorrelleno y solo reciben un héroe de unión que tengan a 4★.",
   "The garrison":

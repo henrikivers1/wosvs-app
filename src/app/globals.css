@@ -4453,3 +4453,27 @@ li button.lead-toggle.on:not(.holder) {
   font-family: var(--font-mono);
   font-size: 0.78rem;
 }
+
+/* Official Discord name with a copy button */
+.discord-handle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-strong);
+  font-size: 0.88rem;
+}
+.discord-handle strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.discord-handle .text-button {
+  width: auto;
+  min-height: 28px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+}
+.landing-footer .discord-handle {
+  grid-column: 1 / -1;
+}

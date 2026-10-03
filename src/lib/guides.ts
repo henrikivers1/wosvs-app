@@ -187,6 +187,10 @@ export const GUIDE_SECTIONS: GuideSection[] = [
 
 export const GUIDE_FAQ: { q: string; a: string }[] = [
   {
+    q: "Where do I get help?",
+    a: "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.",
+  },
+  {
     q: "My WOS ID is already registered.",
     a: "Someone else claimed it. Ask an admin of your state to release it, then add it again.",
   },

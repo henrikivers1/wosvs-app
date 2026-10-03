@@ -1168,4 +1168,12 @@ export const chineseInterface: Record<string, string> = {
   "One garrison holds the castle the whole battle. It is filled first, with the strongest defenders who play the whole battle: highest troop FC, then troop tier, then troop skill. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "一支驻防整场守城。它最先被填满，人选是能打完整场的最强防守者：部队 FC 最高，其次部队等级，再次部队技能。最多三名守城者轮流，每个宠物时段一人。轮到他们时，切换到守城联盟并接管，不带加入者。可在 SvS 自动化中设置驻防人数。",
   "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.": "在规划页点击“队长与守城者”，标记集结队长（按迷宫排名）和守城者（按防守排名）。他们只带队或守城，从不作为加入者。可在集结的 ⋯ → 按宠物时段的队长，或驻防的 ⋯ → 按宠物时段的守城者中更改各时段人选。",
   "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation. Leads: Ted 12:00–14:00, Ice 14:00–16:00.” Rally Leads are told which blocks they lead, Castle Holders when to take over, and the garrison to stay in the castle. Overwatch shows the same details, and you are told about every change.": "战斗前六小时计划发布，你会收到类似消息：“你好 Frost，你被分配到 Frost Wolves 的 Ted 集结。你携带 Jessie，使用 50/20/30 阵型。队长：Ted 12:00–14:00，Ice 14:00–16:00。”集结队长会收到自己带队的时段，守城者会知道何时接管，驻防会被告知留在城堡。Overwatch 显示相同信息，每次变更都会通知你。",
+  "Discord": "Discord",
+  "Copy Discord name": "复制 Discord 用户名",
+  "Copied": "已复制",
+  "Copy": "复制",
+  "How do I get help or get my state set up?": "如何获得帮助或为我的州开通？",
+  "Message us on Discord: wosoverwatch. We help states get started and answer questions there.": "在 Discord 上联系我们：wosoverwatch。我们会在那里帮助各州开通并解答问题。",
+  "Where do I get help?": "在哪里获得帮助？",
+  "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.": "在 Discord 上联系我们：wosoverwatch。你所在州的管理员也能帮助处理州内的任何事务。",
 };
