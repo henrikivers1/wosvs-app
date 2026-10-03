@@ -5,10 +5,12 @@ export type StateAccess = {
   userId: string;
   admin: ReturnType<typeof createAdminClient>;
   gameStateNumber: number | null;
+  oracleCheckedAt: string | null;
   isAdmin: boolean;
 };
 
 // Confirms the signed-in user has a WOS account in the given app state.
+// Used by every /api route that acts for a state.
 // Returns an error Response to send back when they do not.
 export async function requireStateMember(
   stateId: string | null,
@@ -34,23 +36,20 @@ export async function requireStateMember(
   }
 
   const admin = createAdminClient();
-  const { data: ownAccounts, error: accountsError } = await admin
-    .from("wos_accounts")
-    .select("id")
-    .eq("user_id", user.id);
-  if (accountsError) {
-    console.error("[state-access] Account lookup failed:", accountsError);
-    return Response.json({ error: accountsError.message }, { status: 500 });
-  }
-
-  const accountIds = (ownAccounts ?? []).map((account) => account.id);
-  const { data: memberships, error: membershipError } = accountIds.length
-    ? await admin
-        .from("state_members")
-        .select("wos_account_id, role")
-        .eq("state_id", stateId)
-        .in("wos_account_id", accountIds)
-    : { data: [], error: null };
+  // Membership (via the user's own accounts) and the state row in parallel.
+  const [membershipResult, stateResult] = await Promise.all([
+    admin
+      .from("state_members")
+      .select("role, wos_accounts!inner(user_id)")
+      .eq("state_id", stateId)
+      .eq("wos_accounts.user_id", user.id),
+    admin
+      .from("states")
+      .select("game_state_number, oracle_checked_at")
+      .eq("id", stateId)
+      .maybeSingle(),
+  ]);
+  const { data: memberships, error: membershipError } = membershipResult;
   if (membershipError) {
     console.error("[state-access] Membership lookup failed:", membershipError);
     return Response.json({ error: membershipError.message }, { status: 500 });
@@ -61,19 +60,14 @@ export async function requireStateMember(
       { status: 403 },
     );
   }
-
-  const { data: state, error: stateError } = await admin
-    .from("states")
-    .select("game_state_number")
-    .eq("id", stateId)
-    .maybeSingle();
+  const { data: state, error: stateError } = stateResult;
   if (stateError) {
     console.error("[state-access] State lookup failed:", stateError);
     return Response.json(
       {
         error:
           stateError.code === "42703"
-            ? "Database is missing the WOSOracle columns. Run the latest migration in Supabase."
+            ? "The database is missing columns. Run the latest files in supabase/migrations in Supabase."
             : stateError.message,
       },
       { status: 500 },
@@ -84,6 +78,7 @@ export async function requireStateMember(
     userId: user.id,
     admin,
     gameStateNumber: state?.game_state_number ?? null,
+    oracleCheckedAt: state?.oracle_checked_at ?? null,
     isAdmin: memberships.some((membership) =>
       ["owner", "admin"].includes(membership.role),
     ),

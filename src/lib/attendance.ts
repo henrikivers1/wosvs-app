@@ -1,3 +1,5 @@
+import { svsBattleStart } from "@/lib/svsTime";
+
 export type Availability =
   | "whole"
   | "first_half"
@@ -17,8 +19,6 @@ export type UpcomingSvs = {
   battle_at: string;
 };
 
-export const BATTLE_DURATION_MS = 5 * 60 * 60 * 1000;
-
 export const AVAILABILITY_OPTIONS: {
   value: Availability;
   label: string;
@@ -36,15 +36,6 @@ export function availabilityLabel(value: Availability) {
     AVAILABILITY_OPTIONS.find((option) => option.value === value)?.label ??
     value
   );
-}
-
-// SvS castle battles always run 12:00–17:00 UTC on battle day.
-export const SVS_START_HOUR_UTC = 12;
-
-export function svsBattleStart(battleAt: string) {
-  const start = new Date(battleAt);
-  start.setUTCHours(SVS_START_HOUR_UTC, 0, 0, 0);
-  return start;
 }
 
 // "12:00–14:30 UTC" for a window relative to the official battle start.

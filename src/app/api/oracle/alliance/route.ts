@@ -1,6 +1,6 @@
 import { oracleErrorResponse, positiveInteger } from "@/lib/oracleRouteError";
 import { requireStateMember } from "@/lib/stateAccess";
-import { fetchAllianceProfile } from "@/lib/wosOracleState";
+import { fetchAlliance } from "@/lib/wosOracleState";
 
 // Looks up one alliance by WOSOracle id, e.g. a shell alliance with no
 // power yet that never appears in the state's top list.
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   }
   try {
     return Response.json({
-      alliance: await fetchAllianceProfile(allianceId, access.gameStateNumber),
+      alliance: (await fetchAlliance(allianceId, access.gameStateNumber)).profile,
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-alliance");

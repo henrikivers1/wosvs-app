@@ -1,3 +1,4 @@
+import { runAutoPlan, type AutoPlanSettings } from "@/lib/autoPlan";
 import { syncWosAccount } from "@/lib/playerSync";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { OraclePlayerError, oracleDailyBudget } from "@/lib/wosOracle";
@@ -7,25 +8,12 @@ import {
   fetchSvsForecast,
   fetchSvsMatchup,
   fetchSvsRecord,
-  fetchSvsResults,
 } from "@/lib/wosOracleState";
+import { BATTLE_DURATION_MS, svsBattleStart } from "@/lib/svsTime";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
 const HOUR_MS = 60 * 60 * 1000;
-const BATTLE_DURATION_MS = 5 * HOUR_MS;
-// WOSOracle reports when the battle *phase* opens (00:00 UTC on battle day);
-// the castle fight itself runs 12:00-17:00 UTC that day.
-const SVS_BATTLE_START_HOUR_UTC = 12;
-
-function svsBattleStart(phaseOpensAt: string | null) {
-  if (!phaseOpensAt) return null;
-  const start = new Date(phaseOpensAt);
-  if (start.getUTCHours() < SVS_BATTLE_START_HOUR_UTC) {
-    start.setUTCHours(SVS_BATTLE_START_HOUR_UTC, 0, 0, 0);
-  }
-  return start;
-}
 // Normal draw check cadence; hourly when the draw is due within a day.
 const DRAW_CHECK_INTERVAL_MS = 6 * HOUR_MS;
 const DRAW_CHECK_INTERVAL_NEAR_DRAW_MS = HOUR_MS;
@@ -36,8 +24,10 @@ const INTEL_REFRESH_INTERVAL_MS = 24 * HOUR_MS;
 const WEEKLY_SYNC_DAY = 1;
 const WEEKLY_SYNC_MAX_AGE_MS = 6 * 24 * HOUR_MS;
 const PLAYER_SYNCS_PER_RUN = 30;
-// Stay under WOSOracle's 50 requests per minute.
-const PLAYER_SYNC_SPACING_MS = 1_300;
+// The job must answer within the 60 s cron/HTTP timeout.
+const PLAYER_SYNC_TIME_BUDGET_MS = 40_000;
+// Failed accounts (bad ID, not tracked) are retried a day later.
+const PLAYER_SYNC_RETRY_AFTER_MS = 24 * HOUR_MS;
 // Requests kept free for people using the app during the day.
 const INTERACTIVE_RESERVE = 100;
 
@@ -48,16 +38,23 @@ export type AutomationReport = {
   battlesAdvanced: number;
   resultsSaved: number;
   playersSynced: number;
+  remindersSent: number;
+  ralliesCreated: number;
+  playersAssigned: number;
+  plansPublished: number;
   errors: string[];
 };
 
-type StateRow = {
+type StateRow = AutoPlanSettings & {
   id: string;
   name: string;
   game_state_number: number | null;
   svs_draw_expected_at: string | null;
   oracle_checked_at: string | null;
 };
+
+const STATE_COLUMNS =
+  "id, name, game_state_number, svs_draw_expected_at, oracle_checked_at, auto_plan, auto_publish, rally_count, rally_size, default_formation, default_joiner_heroes, autofill_priorities";
 
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -87,8 +84,14 @@ async function refreshDraw(
 ) {
   const stateNumber = state.game_state_number!;
   const now = Date.now();
-  const matchup = await fetchSvsMatchup(stateNumber);
-  const battleAt = svsBattleStart(matchup?.battleAt ?? null);
+  // Mark the check first, so a failing WOSOracle call is not retried on
+  // every run and the manual cooldown still applies.
+  await admin
+    .from("states")
+    .update({ oracle_checked_at: new Date().toISOString() })
+    .eq("id", state.id);
+  const matchup = await fetchSvsMatchup(stateNumber, { waitForMinute: true });
+  const battleAt = matchup?.battleAt ? svsBattleStart(matchup.battleAt) : null;
   const upcoming =
     matchup?.opponent &&
     battleAt &&
@@ -121,7 +124,7 @@ async function refreshDraw(
       }
     }
 
-    await admin
+    const { error: saveError } = await admin
       .from("states")
       .update({
         svs_season: matchup.season,
@@ -129,29 +132,31 @@ async function refreshDraw(
         svs_battle_at: battleAt.toISOString(),
         svs_draw_expected_at: null,
         svs_next_battle_at: battleAt.toISOString(),
-        oracle_checked_at: new Date().toISOString(),
       })
       .eq("id", state.id);
+    if (saveError) throw new Error(saveError.message);
     return;
   }
 
-  const forecast = await fetchSvsForecast(stateNumber);
-  await admin
+  const forecast = await fetchSvsForecast(stateNumber, { waitForMinute: true });
+  const { error: saveError } = await admin
     .from("states")
     .update({
       svs_season: matchup?.season ?? null,
       svs_opponent: null,
       svs_battle_at: null,
       svs_draw_expected_at: forecast.drawExpectedAt,
-      svs_next_battle_at:
-        svsBattleStart(forecast.nextBattleAt)?.toISOString() ?? null,
-      oracle_checked_at: new Date().toISOString(),
+      svs_next_battle_at: forecast.nextBattleAt
+        ? svsBattleStart(forecast.nextBattleAt).toISOString()
+        : null,
     })
     .eq("id", state.id);
+  if (saveError) throw new Error(saveError.message);
 }
 
 // Stores the opponent's state summary and SvS record next to our own
-// summary for the Intel page. About eight WOSOracle requests, at most daily.
+// summary for the Intel page. 4 WOSOracle requests with Premium (9 on the
+// base plan), at most daily.
 async function refreshIntel(
   admin: AdminClient,
   target: {
@@ -175,13 +180,15 @@ async function refreshIntel(
     return;
   }
 
+  const background = { waitForMinute: true };
   const [opponent, opponentSvs, own] = await Promise.all([
-    fetchStateSummary(target.opponent),
-    fetchSvsRecord(target.opponent),
-    fetchStateSummary(target.stateNumber),
+    fetchStateSummary(target.opponent, background),
+    fetchSvsRecord(target.opponent, background),
+    fetchStateSummary(target.stateNumber, background),
   ]);
+  opponentSvs.recent = opponentSvs.recent.slice(0, 10);
   // Their 20 strongest players, the likely rally leaders.
-  opponent.topPlayers = await fetchTopPlayers(opponent);
+  opponent.topPlayers = await fetchTopPlayers(opponent, background);
   const { error } = await admin.from("battle_intel").upsert({
     plan_id: target.planId,
     state_id: target.stateId,
@@ -219,18 +226,22 @@ async function saveResults(
   );
   if (due.length === 0) return;
 
-  const results = await fetchSvsResults(state.game_state_number!);
+  const { recent } = await fetchSvsRecord(state.game_state_number!, {
+    fresh: true,
+    waitForMinute: true,
+  });
   for (const battle of due) {
     const battleAt = new Date(battle.scheduled_at!).getTime();
-    const match = results.find(
+    const match = recent.find(
       (result) =>
         Math.abs(new Date(result.battleAt).getTime() - battleAt) < 24 * HOUR_MS,
     );
-    if (match?.won !== null && match?.won !== undefined) {
-      await admin.rpc("automation_set_battle_result", {
+    if (match?.battleWon !== null && match?.battleWon !== undefined) {
+      const { error } = await admin.rpc("automation_set_battle_result", {
         target_battle_id: battle.id,
-        battle_result: match.won ? "win" : "loss",
+        battle_result: match.battleWon ? "win" : "loss",
       });
+      if (error) throw new Error(error.message);
       report.resultsSaved += 1;
     }
     await admin
@@ -251,7 +262,9 @@ async function requestsUsedToday(admin: AdminClient) {
 }
 
 // Refreshes accounts not synced for 6 days, a batch per run, on Mondays.
+// Stops after PLAYER_SYNC_TIME_BUDGET_MS; failed accounts wait a day.
 async function weeklyPlayerSync(admin: AdminClient, report: AutomationReport) {
+  const startedAt = Date.now();
   const remaining =
     oracleDailyBudget() -
     INTERACTIVE_RESERVE -
@@ -259,14 +272,15 @@ async function weeklyPlayerSync(admin: AdminClient, report: AutomationReport) {
   const batchSize = Math.min(PLAYER_SYNCS_PER_RUN, remaining);
   if (batchSize <= 0) return;
 
+  const staleBefore = new Date(Date.now() - WEEKLY_SYNC_MAX_AGE_MS).toISOString();
+  const failedBefore = new Date(Date.now() - PLAYER_SYNC_RETRY_AFTER_MS).toISOString();
   const { data: accounts, error } = await admin
     .from("wos_accounts")
-    .select("id, wos_id")
+    .select("id, wos_id, state_number, player_data_synced_at")
     .eq("is_configured", true)
+    .or(`player_data_synced_at.is.null,player_data_synced_at.lt.${staleBefore}`)
     .or(
-      `player_data_synced_at.is.null,player_data_synced_at.lt.${new Date(
-        Date.now() - WEEKLY_SYNC_MAX_AGE_MS,
-      ).toISOString()}`,
+      `player_data_sync_failed_at.is.null,player_data_sync_failed_at.lt.${failedBefore}`,
     )
     .order("player_data_synced_at", { ascending: true, nullsFirst: true })
     .limit(batchSize);
@@ -275,14 +289,11 @@ async function weeklyPlayerSync(admin: AdminClient, report: AutomationReport) {
     return;
   }
 
-  for (const [index, account] of (accounts ?? []).entries()) {
-    if (index > 0) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, PLAYER_SYNC_SPACING_MS),
-      );
-    }
+  for (const account of accounts ?? []) {
+    if (Date.now() - startedAt > PLAYER_SYNC_TIME_BUDGET_MS) return;
     try {
-      await syncWosAccount(admin, account);
+      // The per-minute budget in oracleRequest paces the batch.
+      await syncWosAccount(admin, account, { background: true });
       report.playersSynced += 1;
     } catch (syncError) {
       report.errors.push(`Player ${account.wos_id}: ${errorText(syncError)}`);
@@ -290,6 +301,41 @@ async function weeklyPlayerSync(admin: AdminClient, report: AutomationReport) {
       if (syncError instanceof OraclePlayerError && syncError.status === 429) {
         return;
       }
+    }
+  }
+}
+
+// Reminders, rally generation, late-voter fill and publishing for every
+// upcoming SvS plan (no WOSOracle requests).
+async function planUpcomingBattles(
+  admin: AdminClient,
+  states: StateRow[],
+  report: AutomationReport,
+) {
+  const byId = new Map(states.map((state) => [state.id, state]));
+  if (!byId.size) return;
+  const { data: plans, error } = await admin
+    .from("battle_plans")
+    .select(
+      "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at",
+    )
+    .in("state_id", [...byId.keys()])
+    .eq("battle_type", "svs")
+    .gt("scheduled_at", new Date().toISOString());
+  if (error) {
+    report.errors.push(`Plans: ${error.message}`);
+    return;
+  }
+  for (const plan of plans ?? []) {
+    const state = byId.get(plan.state_id)!;
+    try {
+      const result = await runAutoPlan(admin, plan, state);
+      report.remindersSent += result.reminded;
+      report.ralliesCreated += result.ralliesCreated;
+      report.playersAssigned += result.playersAssigned;
+      if (result.published) report.plansPublished += 1;
+    } catch (planError) {
+      report.errors.push(`${state.name} plan: ${errorText(planError)}`);
     }
   }
 }
@@ -305,22 +351,24 @@ export async function runAutomation(
     battlesAdvanced: 0,
     resultsSaved: 0,
     playersSynced: 0,
+    remindersSent: 0,
+    ralliesCreated: 0,
+    playersAssigned: 0,
+    plansPublished: 0,
     errors: [],
   };
   const now = Date.now();
 
   let query = admin
     .from("states")
-    .select(
-      "id, name, game_state_number, svs_draw_expected_at, oracle_checked_at",
-    )
+    .select(STATE_COLUMNS)
     .not("game_state_number", "is", null);
   if (options.stateId) query = query.eq("id", options.stateId);
   const { data: states, error } = await query;
   if (error) {
     report.errors.push(
       error.code === "42703"
-        ? "The database is missing the SvS automation columns. Run supabase/migrations/20261003090000_svs_automation.sql in the Supabase SQL Editor."
+        ? "The database is missing automation columns. Run the latest files in supabase/migrations in the Supabase SQL Editor."
         : `States: ${error.message}`,
     );
     return report;
@@ -338,7 +386,10 @@ export async function runAutomation(
     }
   }
 
-  // Start and end battles on time; no WOSOracle requests involved.
+  await planUpcomingBattles(admin, (states ?? []) as StateRow[], report);
+
+  // Start and end battles. pg_cron also runs this every minute in the
+  // database; this is the fallback when pg_cron is not enabled.
   const { data: advanced, error: advanceError } = await admin.rpc(
     "automation_advance_battles",
   );

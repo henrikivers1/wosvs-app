@@ -1,6 +1,6 @@
 import { oracleErrorResponse, positiveInteger } from "@/lib/oracleRouteError";
 import { requireStateMember } from "@/lib/stateAccess";
-import { fetchAllianceRoster } from "@/lib/wosOracleState";
+import { fetchAlliance } from "@/lib/wosOracleState";
 
 // Member list of one enemy alliance, strongest first.
 export async function GET(request: Request) {
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
   try {
     return Response.json({
-      members: await fetchAllianceRoster(allianceId, stateNumber),
+      members: (await fetchAlliance(allianceId, stateNumber)).members,
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-roster");

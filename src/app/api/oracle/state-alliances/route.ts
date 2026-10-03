@@ -1,6 +1,6 @@
 import { oracleErrorResponse } from "@/lib/oracleRouteError";
 import { requireStateMember } from "@/lib/stateAccess";
-import { fetchStateAlliances } from "@/lib/wosOracleState";
+import { fetchStateSummary } from "@/lib/wosOracleState";
 
 // Our own state's alliances on WOSOracle (top list on the current plan).
 export async function GET(request: Request) {
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   }
   try {
     return Response.json({
-      alliances: await fetchStateAlliances(access.gameStateNumber),
+      alliances: (await fetchStateSummary(access.gameStateNumber)).alliances,
     });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-state-alliances");

@@ -22,14 +22,38 @@ export type JoinRequestResult = {
 // OraclePlayerError for WOSOracle problems and Error for database problems.
 export async function syncWosAccount(
   admin: AdminClient,
-  account: { id: string; wos_id: string },
+  account: {
+    id: string;
+    wos_id: string;
+    // Pass these when already loaded to skip a lookup.
+    state_number?: number | null;
+    player_data_synced_at?: string | null;
+  },
+  options: { background?: boolean } = {},
 ) {
-  const player = await fetchOraclePlayer(account.wos_id);
-  const { data: previous } = await admin
-    .from("wos_accounts")
-    .select("state_number, player_data_synced_at")
-    .eq("id", account.id)
-    .maybeSingle();
+  let player;
+  try {
+    player = await fetchOraclePlayer(account.wos_id, {
+      waitForMinute: options.background,
+    });
+  } catch (error) {
+    // Remember the failure so the weekly queue moves on to other accounts.
+    await admin
+      .from("wos_accounts")
+      .update({ player_data_sync_failed_at: new Date().toISOString() })
+      .eq("id", account.id);
+    throw error;
+  }
+  const previous =
+    account.player_data_synced_at !== undefined
+      ? account
+      : (
+          await admin
+            .from("wos_accounts")
+            .select("state_number, player_data_synced_at")
+            .eq("id", account.id)
+            .maybeSingle()
+        ).data;
   const syncedAt = new Date().toISOString();
   const { error } = await admin
     .from("wos_accounts")
@@ -51,6 +75,7 @@ export async function syncWosAccount(
       player_data_source: "wosoracle",
       player_data_updated_at: player.updatedAt,
       player_data_synced_at: syncedAt,
+      player_data_sync_failed_at: null,
     })
     .eq("id", account.id);
 

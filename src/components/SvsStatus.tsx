@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
+import { BATTLE_DURATION_MS } from "@/lib/svsTime";
 
 type SvsState = {
   game_state_number: number | null;
@@ -13,7 +14,6 @@ type SvsState = {
   oracle_checked_at: string | null;
 };
 
-const BATTLE_DURATION_MS = 5 * 60 * 60 * 1000;
 
 function timeUntil(
   target: string,

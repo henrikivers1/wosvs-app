@@ -2,12 +2,17 @@ import {
   OraclePlayerError,
   optionalText,
   oracleRequest,
+  record,
   toNumber,
+  type OracleRequestOptions,
 } from "@/lib/wosOracle";
 
-// Free-tier WOSOracle endpoints used to prepare a battle. All of them read
-// WOSOracle's stored data, so a 10-minute cache is plenty.
+// WOSOracle endpoints used to prepare a battle: one fetcher per endpoint.
+// They read WOSOracle's stored data, so most answers are cached for ten
+// minutes in the database (shared by every server instance).
 const CACHE_SECONDS = 600;
+
+type Background = Pick<OracleRequestOptions, "waitForMinute">;
 
 export type SvsMatchup = {
   season: number | null;
@@ -33,13 +38,6 @@ export type RosterMember = {
   rank: number;
 };
 
-function objectOf(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new OraclePlayerError("WOSOracle returned an invalid response.", 502);
-  }
-  return value as Record<string, unknown>;
-}
-
 function listOf(value: unknown) {
   return Array.isArray(value)
     ? value.filter(
@@ -49,13 +47,19 @@ function listOf(value: unknown) {
     : [];
 }
 
+function isoFromUnix(value: unknown) {
+  const seconds = toNumber(value);
+  return seconds ? new Date(seconds * 1000).toISOString() : null;
+}
+
+// GET /svs/matchups. Never cached: the hourly draw check must see a new
+// draw as soon as WOSOracle publishes it.
 export async function fetchSvsMatchup(
   stateNumber: number,
+  options: Background = {},
 ): Promise<SvsMatchup | null> {
-  const body = objectOf(
-    await oracleRequest(`/svs/matchups?sid=${stateNumber}`, {
-      revalidateSeconds: CACHE_SECONDS,
-    }),
+  const body = record(
+    await oracleRequest(`/svs/matchups?sid=${stateNumber}`, options),
   );
 
   const matchup = listOf(body.matchups).find((entry) =>
@@ -68,66 +72,12 @@ export async function fetchSvsMatchup(
   const states = (Array.isArray(matchup.states) ? matchup.states : [])
     .map(toNumber)
     .filter((state): state is number => state !== null);
-  const opponent = states.find((state) => state !== stateNumber) ?? null;
-  const battleTs = toNumber(matchup.battle_ts);
-
   return {
     season: toNumber(body.season),
     stateNumber,
-    opponent,
-    battleAt: battleTs ? new Date(battleTs * 1000).toISOString() : null,
+    opponent: states.find((state) => state !== stateNumber) ?? null,
+    battleAt: isoFromUnix(matchup.battle_ts),
   };
-}
-
-export async function fetchStateAlliances(
-  stateNumber: number,
-): Promise<OpponentAlliance[]> {
-  const body = objectOf(
-    await oracleRequest(`/states/${stateNumber}`, {
-      revalidateSeconds: CACHE_SECONDS,
-      notFoundMessage: `WOSOracle does not track state ${stateNumber}.`,
-    }),
-  );
-
-  return listOf(body.alliances).flatMap((alliance) => {
-    const id = toNumber(alliance.id);
-    if (!id) return [];
-    return [
-      {
-        id,
-        abbr: optionalText(alliance.abbr) ?? "",
-        name: optionalText(alliance.name) ?? "",
-        power: toNumber(alliance.power) ?? 0,
-        memberCount: toNumber(alliance.member_count) ?? 0,
-      },
-    ];
-  });
-}
-
-export async function fetchAllianceRoster(
-  allianceId: number,
-  stateNumber: number,
-): Promise<RosterMember[]> {
-  const body = objectOf(
-    await oracleRequest(`/alliances/${allianceId}?kid=${stateNumber}`, {
-      revalidateSeconds: CACHE_SECONDS,
-      notFoundMessage: "WOSOracle does not track that alliance.",
-    }),
-  );
-
-  return listOf(body.members)
-    .map((member) => {
-      const id = optionalText(member.id);
-      return {
-        wosId: id && /^[0-9]+$/.test(id) ? id : null,
-        name: optionalText(member.name) ?? "",
-        power: toNumber(member.power) ?? 0,
-        furnaceLevel: toNumber(member.furnace_level) ?? 0,
-        rank: toNumber(member.rank) ?? 0,
-      };
-    })
-    .filter((member) => member.name)
-    .sort((first, second) => second.power - first.power);
 }
 
 export type SvsForecast = {
@@ -135,48 +85,21 @@ export type SvsForecast = {
   nextBattleAt: string | null;
 };
 
-function isoFromUnix(value: unknown) {
-  const seconds = toNumber(value);
-  return seconds ? new Date(seconds * 1000).toISOString() : null;
-}
-
-// When the next draw and battle are expected (free, stored data).
+// GET /states/{n}/svs/forecast: when the next draw and battle are expected.
 export async function fetchSvsForecast(
   stateNumber: number,
+  options: Background = {},
 ): Promise<SvsForecast> {
-  const body = objectOf(
-    await oracleRequest(`/states/${stateNumber}/svs/forecast`),
+  const body = record(
+    await oracleRequest(`/states/${stateNumber}/svs/forecast`, {
+      ...options,
+      maxAgeSeconds: CACHE_SECONDS,
+    }),
   );
   return {
     drawExpectedAt: isoFromUnix(body.draw_expected_at),
     nextBattleAt: isoFromUnix(body.next_battle_at),
   };
-}
-
-export type SvsResult = {
-  battleAt: string;
-  opponent: number | null;
-  // null until WOSOracle has decided the battle.
-  won: boolean | null;
-};
-
-// This state's SvS record, newest first (free, stored data).
-export async function fetchSvsResults(
-  stateNumber: number,
-): Promise<SvsResult[]> {
-  const body = objectOf(await oracleRequest(`/states/${stateNumber}/svs`));
-  return listOf(body.matches).flatMap((match) => {
-    const battleAt = isoFromUnix(match.ts);
-    if (!battleAt) return [];
-    const winner = toNumber(match.battle_winner);
-    return [
-      {
-        battleAt,
-        opponent: toNumber(match.opponent_state_id),
-        won: winner === null ? null : winner === stateNumber,
-      },
-    ];
-  });
 }
 
 export type StateSummary = {
@@ -199,12 +122,15 @@ export type StateSummary = {
   }[];
 };
 
-// State summary: top players, top alliances and stat rankings.
+// GET /states/{n}: top players, alliances and stat rankings.
 export async function fetchStateSummary(
   stateNumber: number,
+  options: Background = {},
 ): Promise<StateSummary> {
-  const body = objectOf(
+  const body = record(
     await oracleRequest(`/states/${stateNumber}`, {
+      ...options,
+      maxAgeSeconds: CACHE_SECONDS,
       notFoundMessage: `WOSOracle does not track state ${stateNumber}.`,
     }),
   );
@@ -247,53 +173,66 @@ export async function fetchStateSummary(
   };
 }
 
-export type SvsRecord = {
-  record: Record<string, number>;
-  recent: {
-    battleAt: string;
-    opponent: number | null;
-    outcome: string;
-    prepWon: boolean | null;
-    battleWon: boolean | null;
-  }[];
+export type SvsMatch = {
+  battleAt: string;
+  opponent: number | null;
+  outcome: string;
+  prepWon: boolean | null;
+  // null until WOSOracle has decided the battle.
+  battleWon: boolean | null;
 };
 
-// A state's SvS history: totals plus the most recent engagements.
-export async function fetchSvsRecord(stateNumber: number): Promise<SvsRecord> {
-  const body = objectOf(await oracleRequest(`/states/${stateNumber}/svs`));
+export type SvsRecord = {
+  record: Record<string, number>;
+  // Newest first.
+  recent: SvsMatch[];
+};
+
+// GET /states/{n}/svs: SvS totals and every recorded match. Used for the
+// Intel page and to fill in Win/Loss after a battle.
+export async function fetchSvsRecord(
+  stateNumber: number,
+  options: Background & { fresh?: boolean } = {},
+): Promise<SvsRecord> {
+  const body = record(
+    await oracleRequest(`/states/${stateNumber}/svs`, {
+      waitForMinute: options.waitForMinute,
+      maxAgeSeconds: options.fresh ? 0 : CACHE_SECONDS,
+    }),
+  );
   const rawRecord =
     body.record &&
     typeof body.record === "object" &&
     !Array.isArray(body.record)
       ? (body.record as Record<string, unknown>)
       : {};
-  const record = Object.fromEntries(
-    Object.entries(rawRecord).flatMap(([key, value]) => {
-      const number = toNumber(value);
-      return number === null ? [] : [[key, number]];
-    }),
-  );
   const outcomeFor = (winner: unknown) => {
     const number = toNumber(winner);
     return number === null ? null : number === stateNumber;
   };
-  const recent = listOf(body.matches)
-    .flatMap((match) => {
-      const battleAt = isoFromUnix(match.ts);
-      if (!battleAt) return [];
-      return [
-        {
-          battleAt,
-          opponent: toNumber(match.opponent_state_id),
-          outcome: optionalText(match.outcome) ?? "",
-          prepWon: outcomeFor(match.prep_winner),
-          battleWon: outcomeFor(match.battle_winner),
-        },
-      ];
-    })
-    .sort((first, second) => second.battleAt.localeCompare(first.battleAt))
-    .slice(0, 10);
-  return { record, recent };
+  return {
+    record: Object.fromEntries(
+      Object.entries(rawRecord).flatMap(([key, value]) => {
+        const number = toNumber(value);
+        return number === null ? [] : [[key, number]];
+      }),
+    ),
+    recent: listOf(body.matches)
+      .flatMap((match) => {
+        const battleAt = isoFromUnix(match.ts);
+        if (!battleAt) return [];
+        return [
+          {
+            battleAt,
+            opponent: toNumber(match.opponent_state_id),
+            outcome: optionalText(match.outcome) ?? "",
+            prepWon: outcomeFor(match.prep_winner),
+            battleWon: outcomeFor(match.battle_winner),
+          },
+        ];
+      })
+      .sort((first, second) => second.battleAt.localeCompare(first.battleAt)),
+  };
 }
 
 export type AllianceProfile = {
@@ -305,55 +244,65 @@ export type AllianceProfile = {
   power: number;
 };
 
-// One alliance by its WOSOracle id; works for shell alliances that are not
-// in a state's top list.
-export async function fetchAllianceProfile(
+// GET /alliances/{id}: profile and member roster. Works for shell alliances
+// that are not in a state's top list.
+export async function fetchAlliance(
   allianceId: number,
   stateNumber: number | null,
-): Promise<AllianceProfile> {
+  options: Background = {},
+): Promise<{ profile: AllianceProfile; members: RosterMember[] }> {
   const query = stateNumber ? `?kid=${stateNumber}` : "";
-  const body = objectOf(
+  const body = record(
     await oracleRequest(`/alliances/${allianceId}${query}`, {
-      revalidateSeconds: CACHE_SECONDS,
+      ...options,
+      maxAgeSeconds: CACHE_SECONDS,
       notFoundMessage: "WOSOracle does not know that alliance ID.",
     }),
   );
   return {
-    id: toNumber(body.id) ?? allianceId,
-    abbr: optionalText(body.abbr) ?? "",
-    name: optionalText(body.name) ?? "",
-    state: toNumber(body.state),
-    memberCount: toNumber(body.member_count) ?? 0,
-    power: toNumber(body.power) ?? 0,
+    profile: {
+      id: toNumber(body.id) ?? allianceId,
+      abbr: optionalText(body.abbr) ?? "",
+      name: optionalText(body.name) ?? "",
+      state: toNumber(body.state),
+      memberCount: toNumber(body.member_count) ?? 0,
+      power: toNumber(body.power) ?? 0,
+    },
+    members: listOf(body.members)
+      .map((member) => {
+        const id = optionalText(member.id);
+        return {
+          wosId: id && /^[0-9]+$/.test(id) ? id : null,
+          name: optionalText(member.name) ?? "",
+          power: toNumber(member.power) ?? 0,
+          furnaceLevel: toNumber(member.furnace_level) ?? 0,
+          rank: toNumber(member.rank) ?? 0,
+        };
+      })
+      .filter((member) => member.name)
+      .sort((first, second) => second.power - first.power),
   };
 }
 
 const TOP_PLAYER_COUNT = 20;
 const ROSTERS_FOR_TOP_PLAYERS = 5;
+const PERSONAL_POWER_BOARD = 3;
 
-export type LeaderboardEntry = {
-  rank: number;
-  wosId: string | null;
-  name: string;
-  allianceAbbr: string;
-  power: number;
-  score: number;
-};
-
-// Premium: a state's ranking board, top 100 (3 = Personal Power,
-// 20 = Labyrinth). Throws OraclePlayerError 402 on the base plan.
-export async function fetchLeaderboard(
+// Premium: GET /states/{n}/leaderboards/{type}, top 100 (3 = Personal
+// Power). Throws OraclePlayerError 402 on the base plan; that answer is
+// remembered for a day, so it costs one request a day at most.
+async function fetchLeaderboard(
   stateNumber: number,
   boardType: number,
-): Promise<LeaderboardEntry[]> {
-  const body = objectOf(
+  options: Background,
+) {
+  const body = record(
     await oracleRequest(
       `/states/${stateNumber}/leaderboards/${boardType}?cached=1`,
-      { revalidateSeconds: CACHE_SECONDS },
+      { ...options, maxAgeSeconds: CACHE_SECONDS },
     ),
   );
   return listOf(body.entries).map((entry) => ({
-    rank: toNumber(entry.rank) ?? 0,
     wosId: optionalText(entry.player_id),
     name: optionalText(entry.name) ?? "",
     allianceAbbr: optionalText(entry.alliance) ?? "",
@@ -362,17 +311,17 @@ export async function fetchLeaderboard(
   }));
 }
 
-const PERSONAL_POWER_BOARD = 3;
-
 // A state's strongest players. With Premium this is the Personal Power
 // board; on the base plan the strongest alliance rosters are merged.
 export async function fetchTopPlayers(
   summary: StateSummary,
+  options: Background = {},
 ): Promise<StateSummary["topPlayers"]> {
   try {
     const board = await fetchLeaderboard(
       summary.stateNumber,
       PERSONAL_POWER_BOARD,
+      options,
     );
     if (board.length) {
       return board
@@ -406,14 +355,15 @@ export async function fetchTopPlayers(
     .slice(0, ROSTERS_FOR_TOP_PLAYERS);
   const rosters = await Promise.allSettled(
     strongest.map((alliance) =>
-      fetchAllianceRoster(alliance.id, summary.stateNumber).then((members) =>
-        members.map((member) => ({
-          wosId: member.wosId,
-          name: member.name,
-          power: member.power,
-          furnaceLevel: member.furnaceLevel,
-          allianceAbbr: alliance.abbr,
-        })),
+      fetchAlliance(alliance.id, summary.stateNumber, options).then(
+        ({ members }) =>
+          members.map((member) => ({
+            wosId: member.wosId,
+            name: member.name,
+            power: member.power,
+            furnaceLevel: member.furnaceLevel,
+            allianceAbbr: alliance.abbr,
+          })),
       ),
     ),
   );

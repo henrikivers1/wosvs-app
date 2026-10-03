@@ -51,13 +51,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: state } = await access.admin
-    .from("states")
-    .select("oracle_checked_at")
-    .eq("id", stateId!)
-    .maybeSingle();
-  const lastCheck = state?.oracle_checked_at
-    ? new Date(state.oracle_checked_at).getTime()
+  const lastCheck = access.oracleCheckedAt
+    ? new Date(access.oracleCheckedAt).getTime()
     : 0;
 
   const report = await runAutomation(access.admin, {
