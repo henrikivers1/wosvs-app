@@ -15,12 +15,7 @@ export const arabicInterface: Record<string, string> = {
   "/2000 characters": "/2000 حرف",
   ":": ":",
   "@": "@",
-  "A limited free trial can be arranged before purchasing state access. Monthly plans may be introduced later.":
-    "يمكن ترتيب فترة تجريبية مجانية محدودة قبل شراء وصول الولاية. قد تُطرح خطط شهرية لاحقًا.",
-  "A shared workspace for enemy rally calls, synchronized impact waves, and personal garrison send times.":
-    "مساحة عمل مشتركة لنداءات حشود العدو وموجات الاصطدام المتزامنة وأوقات إرسال الحامية الشخصية.",
   Accept: "قبول",
-  "Access model": "نموذج الوصول",
   Account: "الحساب",
   Active: "نشط",
   "Active announcements": "الإعلانات النشطة",
@@ -152,9 +147,6 @@ export const arabicInterface: Record<string, string> = {
   "Complete your account": "أكمل حسابك",
   Completed: "مكتملة",
   "Completed battles": "المعارك المكتملة",
-  Contact: "التواصل",
-  "Contact us on Discord with your state name and a short description of your team.":
-    "تواصل معنا على Discord مع اسم ولايتك ووصف قصير لفريقك.",
   Coordinator: "منسق",
   Coordinators: "المنسقون",
   "Create SvS plan": "إنشاء خطة SvS",
@@ -167,8 +159,6 @@ export const arabicInterface: Record<string, string> = {
     "أنشئ التحالفات المتاحة لمخططي المعارك. تُدار تعيينات الأعضاء من تخطيط المعركة فقط وتظهر في نظرة التحالف بعد النشر.",
   "Create the first destination for your battle plans.":
     "أنشئ أول وجهة لخطط معاركك.",
-  "Creating an account is free. Creating a state requires a one-time state creation entitlement issued by WOS Battle Planner. State members join through invitations from their state owner.":
-    "إنشاء حساب مجاني. يتطلب إنشاء ولاية صلاحية إنشاء لمرة واحدة. ينضم أعضاء الولاية عبر دعوات من مالك ولايتهم.",
   "Data from WOSOracle, updated {date}.": "بيانات من WOSOracle، حُدّثت {date}.",
   Decline: "رفض",
   Delete: "حذف",
@@ -177,7 +167,6 @@ export const arabicInterface: Record<string, string> = {
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
     "حذف «{name}» وكل مجموعاته ومعركته القادمة؟ تبقى المعارك المنتهية في السجل.",
   "Destination alliance": "التحالف الوجهة",
-  Discord: "Discord",
   Draft: "مسودة",
   "Draft and published plans": "الخطط المسودة والمنشورة",
   "Drop players here, or select them and use Move selected here.":
@@ -231,7 +220,6 @@ export const arabicInterface: Record<string, string> = {
   "Full Battle": "المعركة كاملة",
   Furnace: "الفرن",
   Garrison: "الحامية",
-  "Garrison players": "لاعبو الحامية",
   "Gen {number}": "الجيل {number}",
   "Group name": "اسم المجموعة",
   "Has none of this rally's joiner heroes at 4★.":
@@ -386,7 +374,6 @@ export const arabicInterface: Record<string, string> = {
   Notifications: "الإشعارات",
   "Notifications enabled": "الإشعارات مفعّلة",
   "Numeric WOS ID": "معرّف WOS رقمي",
-  "One-time state setup": "إعداد الولاية لمرة واحدة",
   "Only accounts with the permanent Rally Lead tag appear as leaders.":
     "تظهر فقط الحسابات التي تحمل وسم قائد الحشد الدائم كقادة.",
   "Only players who have one of the rally's joiner heroes at 4★":
@@ -423,8 +410,6 @@ export const arabicInterface: Record<string, string> = {
   "Pick players for the rallies": "اختر اللاعبين للحشود",
   "Picked from WOSOracle: [{abbr}] {name}. Enter their coordinates below.":
     "تم الاختيار من WOSOracle: [{abbr}] {name}. أدخل إحداثياته أدناه.",
-  "Placeholder account — official contact information will be added before launch.":
-    "حساب مؤقت — ستُضاف معلومات التواصل الرسمية قبل الإطلاق.",
   "Plan discussion": "نقاش الخطة",
   "Plan name": "اسم الخطة",
   "Plans and battles are created, started and ended automatically from the WOSOracle draw.":
@@ -473,14 +458,9 @@ export const arabicInterface: Record<string, string> = {
   "Rally tags are also given to the whole group when the battle plan is published.":
     "تُمنح وسوم الحشد أيضًا للمجموعة كلها عند نشر خطة المعركة.",
   "Rally timer:": "مؤقت الحشد:",
-  "Rally timing for organized SVS states.": "توقيت الحشود لولايات SvS المنظمة.",
   "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.":
     "مرتبة من بيانات WOSOracle المتزامنة لأعضائك. حدّد اللاعبين الذين يقودون الحشود؛ وحدهم قادة الحشد يمكنهم قيادة مجموعة.",
   Rare: "نادر",
-  "Receive a personal send time and browser alerts.":
-    "احصل على وقت إرسال شخصي وتنبيهات المتصفح.",
-  "Record calls and maintain the shared schedule.":
-    "سجّل النداءات وحافظ على الجدول المشترك.",
   "Refresh player data": "تحديث بيانات اللاعب",
   Regular: "عادي",
   Reject: "رفض",
@@ -493,8 +473,6 @@ export const arabicInterface: Record<string, string> = {
   "Remove Rally Lead": "إزالة قائد الحشد",
   "Remove leader": "إزالة القائد",
   Republish: "إعادة النشر",
-  "Request a trial or state setup": "اطلب فترة تجريبية أو إعداد ولاية",
-  "Request state access": "اطلب الوصول إلى الولاية",
   "Reset demo": "إعادة ضبط العرض",
   "Reset the demo to its starting data?":
     "إعادة العرض التجريبي إلى بياناته الأولية؟",
@@ -541,7 +519,6 @@ export const arabicInterface: Record<string, string> = {
   "Showing the first 80 of {count}. Use the filters to narrow the list.":
     "عرض أول 80 من {count}. استخدم عوامل التصفية لتضييق القائمة.",
   "Sign in": "تسجيل الدخول",
-  "Sign in or create an account": "سجّل الدخول أو أنشئ حسابًا",
   "Sort by": "ترتيب حسب",
   "Sound alerts": "تنبيهات صوتية",
   "Start (UTC)": "البداية (UTC)",
@@ -557,7 +534,6 @@ export const arabicInterface: Record<string, string> = {
   "State member": "عضو الولاية",
   "State members": "أعضاء الولاية",
   "State number": "رقم الولاية",
-  "State owners": "مالكو الولاية",
   "State rankings": "تصنيفات الولاية",
   "State record": "سجل الولاية",
   "State role": "دور الولاية",
@@ -667,7 +643,6 @@ export const arabicInterface: Record<string, string> = {
     "لا يدرج WOSOracle أي تحالفات لولايتك بعد.",
   "WOSOracle lists only your state's strongest alliances. Add shell alliances by their alliance ID, or type a name below.":
     "يدرج WOSOracle أقوى تحالفات ولايتك فقط. أضف التحالفات الوهمية بمعرّفها، أو اكتب اسمًا أدناه.",
-  WOSOverwatch: "WOSOverwatch",
   "Waiting for owner verification": "بانتظار تحقق المالك",
   "Waiting for the SvS draw": "بانتظار قرعة SvS",
   "Waiting for your verification": "بانتظار تحققك",
@@ -718,7 +693,6 @@ export const arabicInterface: Record<string, string> = {
   alliance: "تحالف",
   alliances: "تحالفات",
   assigned: "معيّن",
-  battleCoordination: "تنسيق المعارك",
   closed: "مغلق",
   delete: "حذف",
   impact: "الاصطدام",
@@ -758,7 +732,6 @@ export const arabicInterface: Record<string, string> = {
   "within the hour": "خلال الساعة",
   won: "فوز",
   wosAccounts: "حسابات WOS",
-  "your-discord-handle": "your-discord-handle",
   "{count} heroes": "{count} أبطال",
   "{count} members": "{count} أعضاء",
   "{count} of your state answered, {voice} can join voice.":
@@ -865,74 +838,108 @@ export const arabicInterface: Record<string, string> = {
     "{player} في الولاية {number}، لذا أُرسل طلب للانضمام إلى {state}. سيراجعه المالك أو مشرف.",
   "Rally from {name} called.": "تم تسجيل حشد {name}.",
   "Cancel the rally from {name} for everyone?": "إلغاء حشد {name} للجميع؟",
-  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.": "اختر لاعبي الخصم أدناه. يتم حفظ إحداثياتهم: في المعركة القادمة تُملأ تلقائيًا، ويُضاف القادة الذين أضفتهم سابقًا تلقائيًا عند بدء المعركة.",
-  "Coordinates from the last battle against this player.": "إحداثيات من آخر معركة ضد هذا اللاعب.",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.": "تبدأ المعارك تلقائيًا الساعة 12:00 UTC يوم المعركة. تظهر أدوات المعركة هنا حينها.",
-  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.": "لم تنضم إلى ولاية بعد. عندما تستخدم ولاية حساب WOS الخاص بك WOSOverwatch، يُرسل طلب انضمام تلقائيًا، وستصلك إشعار عند موافقة المشرف.",
-  "That username may already be registered.": "قد يكون اسم المستخدم هذا مسجلًا بالفعل.",
+  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.":
+    "اختر لاعبي الخصم أدناه. يتم حفظ إحداثياتهم: في المعركة القادمة تُملأ تلقائيًا، ويُضاف القادة الذين أضفتهم سابقًا تلقائيًا عند بدء المعركة.",
+  "Coordinates from the last battle against this player.":
+    "إحداثيات من آخر معركة ضد هذا اللاعب.",
+  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
+    "تبدأ المعارك تلقائيًا الساعة 12:00 UTC يوم المعركة. تظهر أدوات المعركة هنا حينها.",
+  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
+    "لم تنضم إلى ولاية بعد. عندما تستخدم ولاية حساب WOS الخاص بك WOSOverwatch، يُرسل طلب انضمام تلقائيًا، وستصلك إشعار عند موافقة المشرف.",
+  "That username may already be registered.":
+    "قد يكون اسم المستخدم هذا مسجلًا بالفعل.",
   "Review rallies": "مراجعة الحشود",
   "Vote now": "صوّت الآن",
-  "SvS plans, rallies and battles run automatically from the draw.": "خطط SvS والحشود والمعارك تعمل تلقائيًا من القرعة.",
-  "Invitation delivered in the player's notification inbox.": "تم إرسال الدعوة إلى صندوق إشعارات اللاعب.",
-  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.": "يُملأ من حساب WOS الخاص بالمالك؛ ويُستخدم للبحث عن خصم SvS ووقت المعركة في WOSOracle. يمكن للمالك فقط تغييره.",
-  "Publish now? Every member gets their rally assignment.": "النشر الآن؟ سيحصل كل عضو على تعيين حشده.",
-  "Published. Every member got their assignment.": "تم النشر. حصل كل عضو على تعيينه.",
-  "{rallies} rallies created, {players} players added.": "تم إنشاء {rallies} حشود وإضافة {players} لاعبين.",
-  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.": "كل ما يلي يعمل تلقائيًا: تُنشأ الخطة عند القرعة، وتُجهز الحشود وتُملأ من الحضور قبل المعركة بـ24 ساعة وتُنشر قبلها بـ6 ساعات. عدّل ما تشاء يدويًا؛ الأتمتة لا تتراجع عن تغييراتك أبدًا.",
+  "Invitation delivered in the player's notification inbox.":
+    "تم إرسال الدعوة إلى صندوق إشعارات اللاعب.",
+  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
+    "يُملأ من حساب WOS الخاص بالمالك؛ ويُستخدم للبحث عن خصم SvS ووقت المعركة في WOSOracle. يمكن للمالك فقط تغييره.",
+  "Publish now? Every member gets their rally assignment.":
+    "النشر الآن؟ سيحصل كل عضو على تعيين حشده.",
+  "Published. Every member got their assignment.":
+    "تم النشر. حصل كل عضو على تعيينه.",
+  "{rallies} rallies created, {players} players added.":
+    "تم إنشاء {rallies} حشود وإضافة {players} لاعبين.",
+  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.":
+    "كل ما يلي يعمل تلقائيًا: تُنشأ الخطة عند القرعة، وتُجهز الحشود وتُملأ من الحضور قبل المعركة بـ24 ساعة وتُنشر قبلها بـ6 ساعات. عدّل ما تشاء يدويًا؛ الأتمتة لا تتراجع عن تغييراتك أبدًا.",
   "No upcoming battle plan.": "لا توجد خطة معركة قادمة.",
   "Earlier plans ({count})": "خطط سابقة ({count})",
-  "Delete the “{name}” tag? It is removed from {count} WOS accounts.": "حذف وسم «{name}»؟ سيُزال من {count} حسابات WOS.",
-  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.": "وسوم للإعلانات وتجميعاتك الخاصة. تُنشأ وسوم الحشود والأبطال تلقائيًا من الخطة المنشورة.",
-  "Create a tag above, then add players to it.": "أنشئ وسمًا أعلاه، ثم أضف لاعبين إليه.",
+  "Delete the “{name}” tag? It is removed from {count} WOS accounts.":
+    "حذف وسم «{name}»؟ سيُزال من {count} حسابات WOS.",
+  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.":
+    "وسوم للإعلانات وتجميعاتك الخاصة. تُنشأ وسوم الحشود والأبطال تلقائيًا من الخطة المنشورة.",
+  "Create a tag above, then add players to it.":
+    "أنشئ وسمًا أعلاه، ثم أضف لاعبين إليه.",
   "Managed in Planning": "تُدار من التخطيط",
-  "Run the latest database migration to use automatic planning.": "شغّل أحدث ترحيل لقاعدة البيانات لاستخدام التخطيط التلقائي.",
+  "Run the latest database migration to use automatic planning.":
+    "شغّل أحدث ترحيل لقاعدة البيانات لاستخدام التخطيط التلقائي.",
   "Automation saved.": "تم حفظ الأتمتة.",
   "SvS automation": "أتمتة SvS",
-  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.": "بعد القرعة، يذكّر التطبيق الأعضاء بالتصويت قبل المعركة بـ30 ساعة، ويجهز الحشود ويملؤها قبلها بـ24 ساعة، ويضيف المتأخرين كل ساعة، وينشر قبلها بـ6 ساعات. يمكنك تغيير أي شيء يدويًا في التخطيط.",
+  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.":
+    "بعد القرعة، يذكّر التطبيق الأعضاء بالتصويت قبل المعركة بـ30 ساعة، ويجهز الحشود ويملؤها قبلها بـ24 ساعة، ويضيف المتأخرين كل ساعة، وينشر قبلها بـ6 ساعات. يمكنك تغيير أي شيء يدويًا في التخطيط.",
   "Set up and fill rallies automatically": "تجهيز الحشود وملؤها تلقائيًا",
-  "Publish automatically 6 hours before the battle": "النشر تلقائيًا قبل المعركة بـ6 ساعات",
+  "Publish automatically 6 hours before the battle":
+    "النشر تلقائيًا قبل المعركة بـ6 ساعات",
   "Number of rallies": "عدد الحشود",
   "Players per rally (with leader)": "لاعبون لكل حشد (مع القائد)",
-  "Default formation (Inf/Lan/Mark %)": "التشكيلة الافتراضية (مشاة/رماح/رماة %)",
+  "Default formation (Inf/Lan/Mark %)":
+    "التشكيلة الافتراضية (مشاة/رماح/رماة %)",
   "Default joiner heroes for every rally": "أبطال الانضمام الافتراضيون لكل حشد",
-  "None": "لا شيء",
+  None: "لا شيء",
   "Draw: vs state {opponent}": "القرعة: ضد الولاية {opponent}",
   "SvS plan created": "تم إنشاء خطة SvS",
   "Battle {time} (12:00–17:00 UTC).": "المعركة {time} (12:00–17:00 UTC).",
-  "Attendance: {voted}/{total} voted, {available} can play": "الحضور: صوّت {voted}/{total}، يمكن لـ{available} المشاركة",
-  "Members who had not voted were reminded.": "تم تذكير الأعضاء الذين لم يصوتوا.",
-  "Members who have not voted are reminded at {time}.": "سيتم تذكير من لم يصوّت في {time}.",
-  "Rallies: {rallies} with {players} players": "الحشود: {rallies} مع {players} لاعبين",
+  "Attendance: {voted}/{total} voted, {available} can play":
+    "الحضور: صوّت {voted}/{total}، يمكن لـ{available} المشاركة",
+  "Members who had not voted were reminded.":
+    "تم تذكير الأعضاء الذين لم يصوتوا.",
+  "Members who have not voted are reminded at {time}.":
+    "سيتم تذكير من لم يصوّت في {time}.",
+  "Rallies: {rallies} with {players} players":
+    "الحشود: {rallies} مع {players} لاعبين",
   "Rallies: not generated yet": "الحشود: لم تُنشأ بعد",
-  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.": "تُنشأ تلقائيًا في {time} من قادة الحشود وأفضل لاعبي المتاهة، ثم تُملأ حسب أولويات الملء التلقائي.",
-  "Automatic rallies are off for this state.": "الحشود التلقائية متوقفة لهذه الولاية.",
-  "{count} players who can play have no rally yet. They are added to open slots every hour.": "{count} لاعبين يمكنهم المشاركة بلا حشد بعد. تتم إضافتهم إلى الأماكن الشاغرة كل ساعة.",
-  "Late voters are added to open slots every hour.": "يُضاف المصوتون المتأخرون إلى الأماكن الشاغرة كل ساعة.",
+  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.":
+    "تُنشأ تلقائيًا في {time} من قادة الحشود وأفضل لاعبي المتاهة، ثم تُملأ حسب أولويات الملء التلقائي.",
+  "Automatic rallies are off for this state.":
+    "الحشود التلقائية متوقفة لهذه الولاية.",
+  "{count} players who can play have no rally yet. They are added to open slots every hour.":
+    "{count} لاعبين يمكنهم المشاركة بلا حشد بعد. تتم إضافتهم إلى الأماكن الشاغرة كل ساعة.",
+  "Late voters are added to open slots every hour.":
+    "يُضاف المصوتون المتأخرون إلى الأماكن الشاغرة كل ساعة.",
   "Fill open slots now": "املأ الأماكن الشاغرة الآن",
   "Generate now": "أنشئ الآن",
   "Not published yet": "لم تُنشر بعد",
-  "Every member got their rally, hero and formation.": "حصل كل عضو على حشده وبطله وتشكيلته.",
-  "{count} rallies have no destination alliance.": "{count} حشود بلا تحالف وجهة.",
+  "Every member got their rally, hero and formation.":
+    "حصل كل عضو على حشده وبطله وتشكيلته.",
+  "{count} rallies have no destination alliance.":
+    "{count} حشود بلا تحالف وجهة.",
   "Published automatically at {time}.": "يُنشر تلقائيًا في {time}.",
-  "Automatic publishing is off: publish when ready.": "النشر التلقائي متوقف: انشر عندما تكون جاهزًا.",
+  "Automatic publishing is off: publish when ready.":
+    "النشر التلقائي متوقف: انشر عندما تكون جاهزًا.",
   "Publish now": "انشر الآن",
   "Battle goes live automatically": "تبدأ المعركة تلقائيًا",
-  "Live Battle opens for callers and garrison at {time}.": "تفتح المعركة المباشرة للمنادين والحامية في {time}.",
+  "Live Battle opens for callers and garrison at {time}.":
+    "تفتح المعركة المباشرة للمنادين والحامية في {time}.",
   "Next SvS": "SvS القادمة",
   "Can you join the SvS?": "هل يمكنك المشاركة في SvS؟",
   "Rallies are ready for review": "الحشود جاهزة للمراجعة",
   "Total power": "القوة الإجمالية",
   "SvS opponent drawn": "تم تحديد خصم SvS",
   "Comments & notices": "التعليقات والإشعارات",
-  "{player}: vote whether you can join {plan} so you get a rally spot.": "{player}: صوّت إن كان بإمكانك المشاركة في {plan} لتحصل على مكان في حشد.",
-  "{rallies} rallies with {players} players were set up for {plan}.": "تم تجهيز {rallies} حشود مع {players} لاعبين لـ{plan}.",
+  "{player}: vote whether you can join {plan} so you get a rally spot.":
+    "{player}: صوّت إن كان بإمكانك المشاركة في {plan} لتحصل على مكان في حشد.",
+  "{rallies} rallies with {players} players were set up for {plan}.":
+    "تم تجهيز {rallies} حشود مع {players} لاعبين لـ{plan}.",
   "They are published automatically at {time}.": "تُنشر تلقائيًا في {time}.",
   "Publish them from Planning.": "انشرها من صفحة التخطيط.",
   "State management": "إدارة الولاية",
-  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.": "الأعضاء والتحالفات وكيف تُجهّز الأتمتة كل SvS. التخطيط والمعارك يعملان تلقائيًا.",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
+    "الأعضاء والتحالفات وكيف تُجهّز الأتمتة كل SvS. التخطيط والمعارك يعملان تلقائيًا.",
   "{count} Rally Leads": "{count} قادة حشود",
   "Welcome back": "مرحبًا بعودتك",
   "Join your state": "انضم إلى ولايتك",
-  "Sign in to see your SvS, your rally and your send times.": "سجّل الدخول لرؤية SvS وحشدك وأوقات الإرسال.",
-  "Create an account with your WOS ID; your state's admins get your join request automatically.": "أنشئ حسابًا بمعرّف WOS الخاص بك؛ يصل طلب انضمامك إلى مشرفي ولايتك تلقائيًا.",
+  "Sign in to see your SvS, your rally and your send times.":
+    "سجّل الدخول لرؤية SvS وحشدك وأوقات الإرسال.",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.":
+    "أنشئ حسابًا بمعرّف WOS الخاص بك؛ يصل طلب انضمامك إلى مشرفي ولايتك تلقائيًا.",
 };

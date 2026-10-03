@@ -4,7 +4,6 @@ import { chineseInterface } from "@/i18n/locales/zh";
 import { thaiInterface } from "@/i18n/locales/th";
 
 const english = {
-  battleCoordination: "Battle coordination",
   notifications: "Notifications",
   unreadNotifications: "unread notifications",
   openProfileMenu: "Open profile menu",
@@ -33,22 +32,17 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
-  "Welcome back":
-    "Bienvenido de nuevo",
-  "Join your state":
-    "Únete a tu estado",
+  "Welcome back": "Bienvenido de nuevo",
+  "Join your state": "Únete a tu estado",
   "Sign in to see your SvS, your rally and your send times.":
     "Inicia sesión para ver tu SvS, tu rally y tus horas de envío.",
   "Create an account with your WOS ID; your state's admins get your join request automatically.":
     "Crea una cuenta con tu WOS ID; los admins de tu estado reciben tu solicitud automáticamente.",
-  "State management":
-    "Gestión del estado",
+  "State management": "Gestión del estado",
   "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
     "Miembros, alianzas y cómo la automatización prepara cada SvS. La planificación y las batallas funcionan solas.",
-  "{count} Rally Leads":
-    "{count} líderes de rally",
-  "Rally from {name} called.":
-    "Rally de {name} registrado.",
+  "{count} Rally Leads": "{count} líderes de rally",
+  "Rally from {name} called.": "Rally de {name} registrado.",
   "Cancel the rally from {name} for everyone?":
     "¿Cancelar el rally de {name} para todos?",
   "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.":
@@ -61,12 +55,8 @@ const spanishInterface: Record<string, string> = {
     "Aún no te has unido a un estado. Cuando el estado de tu cuenta WOS use WOSOverwatch, se envía una solicitud automáticamente; recibirás una notificación cuando un admin la apruebe.",
   "That username may already be registered.":
     "Ese nombre de usuario puede estar ya registrado.",
-  "Review rallies":
-    "Revisar rallies",
-  "Vote now":
-    "Votar ahora",
-  "SvS plans, rallies and battles run automatically from the draw.":
-    "Los planes SvS, rallies y batallas funcionan solos desde el sorteo.",
+  "Review rallies": "Revisar rallies",
+  "Vote now": "Votar ahora",
   "Invitation delivered in the player's notification inbox.":
     "Invitación entregada en la bandeja de notificaciones del jugador.",
   "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
@@ -79,46 +69,34 @@ const spanishInterface: Record<string, string> = {
     "{rallies} rallies creados, {players} jugadores añadidos.",
   "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.":
     "Todo lo de abajo funciona solo: el plan se crea en el sorteo, los rallies se arman y llenan con la asistencia 24 horas antes y se publican 6 horas antes. Ajusta lo que quieras; la automatización nunca deshace tus cambios.",
-  "No upcoming battle plan.":
-    "No hay plan de batalla próximo.",
-  "Earlier plans ({count})":
-    "Planes anteriores ({count})",
+  "No upcoming battle plan.": "No hay plan de batalla próximo.",
+  "Earlier plans ({count})": "Planes anteriores ({count})",
   "Delete the “{name}” tag? It is removed from {count} WOS accounts.":
     "¿Eliminar la etiqueta “{name}”? Se quita de {count} cuentas WOS.",
   "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.":
     "Etiquetas para anuncios y tus propios grupos. Las de rally y héroe se crean solas desde el plan publicado.",
   "Create a tag above, then add players to it.":
     "Crea una etiqueta arriba y luego añade jugadores.",
-  "Managed in Planning":
-    "Se gestiona en Planificación",
+  "Managed in Planning": "Se gestiona en Planificación",
   "Run the latest database migration to use automatic planning.":
     "Ejecuta la última migración de la base de datos para usar la planificación automática.",
-  "Automation saved.":
-    "Automatización guardada.",
-  "SvS automation":
-    "Automatización SvS",
+  "Automation saved.": "Automatización guardada.",
+  "SvS automation": "Automatización SvS",
   "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.":
     "Tras el sorteo, la app recuerda votar 30 horas antes, arma y llena los rallies 24 horas antes, añade a quienes votan tarde cada hora y publica 6 horas antes. Puedes cambiar todo a mano en Planificación.",
   "Set up and fill rallies automatically":
     "Armar y llenar rallies automáticamente",
   "Publish automatically 6 hours before the battle":
     "Publicar automáticamente 6 horas antes de la batalla",
-  "Number of rallies":
-    "Número de rallies",
-  "Players per rally (with leader)":
-    "Jugadores por rally (con líder)",
-  "Default formation (Inf/Lan/Mark %)":
-    "Formación por defecto (Inf/Lan/Tir %)",
+  "Number of rallies": "Número de rallies",
+  "Players per rally (with leader)": "Jugadores por rally (con líder)",
+  "Default formation (Inf/Lan/Mark %)": "Formación por defecto (Inf/Lan/Tir %)",
   "Default joiner heroes for every rally":
     "Héroes de unión por defecto en cada rally",
-  "None":
-    "Ninguno",
-  "Draw: vs state {opponent}":
-    "Sorteo: contra el estado {opponent}",
-  "SvS plan created":
-    "Plan SvS creado",
-  "Battle {time} (12:00–17:00 UTC).":
-    "Batalla {time} (12:00–17:00 UTC).",
+  None: "Ninguno",
+  "Draw: vs state {opponent}": "Sorteo: contra el estado {opponent}",
+  "SvS plan created": "Plan SvS creado",
+  "Battle {time} (12:00–17:00 UTC).": "Batalla {time} (12:00–17:00 UTC).",
   "Attendance: {voted}/{total} voted, {available} can play":
     "Asistencia: {voted}/{total} votaron, {available} pueden jugar",
   "Members who had not voted were reminded.":
@@ -127,8 +105,7 @@ const spanishInterface: Record<string, string> = {
     "Se recordará a quienes no votaron el {time}.",
   "Rallies: {rallies} with {players} players":
     "Rallies: {rallies} con {players} jugadores",
-  "Rallies: not generated yet":
-    "Rallies: aún no generados",
+  "Rallies: not generated yet": "Rallies: aún no generados",
   "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.":
     "Se generan solos el {time} con tus líderes de rally y los mejores del Laberinto, y se llenan según tus prioridades de autollenado.",
   "Automatic rallies are off for this state.":
@@ -137,48 +114,34 @@ const spanishInterface: Record<string, string> = {
     "{count} jugadores que pueden jugar aún no tienen rally. Se añaden a huecos libres cada hora.",
   "Late voters are added to open slots every hour.":
     "Quienes votan tarde se añaden a huecos libres cada hora.",
-  "Fill open slots now":
-    "Llenar huecos ahora",
-  "Generate now":
-    "Generar ahora",
-  "Not published yet":
-    "Aún no publicado",
+  "Fill open slots now": "Llenar huecos ahora",
+  "Generate now": "Generar ahora",
+  "Not published yet": "Aún no publicado",
   "Every member got their rally, hero and formation.":
     "Cada miembro recibió su rally, héroe y formación.",
   "{count} rallies have no destination alliance.":
     "{count} rallies no tienen alianza de destino.",
-  "Published automatically at {time}.":
-    "Se publica automáticamente el {time}.",
+  "Published automatically at {time}.": "Se publica automáticamente el {time}.",
   "Automatic publishing is off: publish when ready.":
     "La publicación automática está desactivada: publica cuando esté listo.",
-  "Publish now":
-    "Publicar ahora",
-  "Battle goes live automatically":
-    "La batalla empieza sola",
+  "Publish now": "Publicar ahora",
+  "Battle goes live automatically": "La batalla empieza sola",
   "Live Battle opens for callers and garrison at {time}.":
     "Batalla en vivo se abre para coordinadores y guarnición el {time}.",
-  "Next SvS":
-    "Próxima SvS",
-  "Can you join the SvS?":
-    "¿Puedes unirte a la SvS?",
-  "Rallies are ready for review":
-    "Los rallies están listos para revisar",
-  "Total power":
-    "Poder total",
-  "SvS opponent drawn":
-    "Rival de SvS sorteado",
-  "Comments & notices":
-    "Comentarios y avisos",
+  "Next SvS": "Próxima SvS",
+  "Can you join the SvS?": "¿Puedes unirte a la SvS?",
+  "Rallies are ready for review": "Los rallies están listos para revisar",
+  "Total power": "Poder total",
+  "SvS opponent drawn": "Rival de SvS sorteado",
+  "Comments & notices": "Comentarios y avisos",
   "{player}: vote whether you can join {plan} so you get a rally spot.":
     "{player}: vota si puedes unirte a {plan} para tener un lugar en un rally.",
   "{rallies} rallies with {players} players were set up for {plan}.":
     "Se armaron {rallies} rallies con {players} jugadores para {plan}.",
   "They are published automatically at {time}.":
     "Se publican automáticamente el {time}.",
-  "Publish them from Planning.":
-    "Publícalos desde Planificación.",
-  "Add":
-    "Añadir",
+  "Publish them from Planning.": "Publícalos desde Planificación.",
+  Add: "Añadir",
   "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.":
     "Datos del jugador sincronizados. Se envió una solicitud para unirse a {state}; un dueño o admin la revisará.",
   "Player data synchronized. Your request to join {state} is waiting for review.":
@@ -549,12 +512,7 @@ const spanishInterface: Record<string, string> = {
   "— March:": "— Marcha:",
   "· Troops": "· Tropas",
   "/2000 characters": "/2000 caracteres",
-  "A limited free trial can be arranged before purchasing state access. Monthly plans may be introduced later.":
-    "Se puede organizar una prueba gratuita limitada antes de comprar el acceso al estado. Más adelante podrían añadirse planes mensuales.",
-  "A shared workspace for enemy rally calls, synchronized impact waves, and personal garrison send times.":
-    "Un espacio compartido para avisos de rallies enemigos, oleadas de impacto sincronizadas y horarios personales de envío de guarnición.",
   Accept: "Aceptar",
-  "Access model": "Modelo de acceso",
   Account: "Cuenta",
   "Active announcements": "Anuncios activos",
   "Add a public comment": "Añadir un comentario público",
@@ -634,9 +592,6 @@ const spanishInterface: Record<string, string> = {
   Comments: "Comentarios",
   "Complete your account": "Completa tu cuenta",
   "Completed battles": "Batallas completadas",
-  Contact: "Contacto",
-  "Contact us on Discord with your state name and a short description of your team.":
-    "Contáctanos en Discord con el nombre de tu estado y una breve descripción de tu equipo.",
   Coordinator: "Coordinador",
   Coordinators: "Coordinadores",
   "Create group": "Crear grupo",
@@ -645,8 +600,6 @@ const spanishInterface: Record<string, string> = {
     "Crea las alianzas disponibles para los planificadores. Las asignaciones de miembros solo se administran desde Planificación de batalla y aparecen en el resumen después de publicar.",
   "Create the first destination for your battle plans.":
     "Crea el primer destino para tus planes de batalla.",
-  "Creating an account is free. Creating a state requires a one-time state creation entitlement issued by WOS Battle Planner. State members join through invitations from their state owner.":
-    "Crear una cuenta es gratis. Crear un estado requiere un permiso de creación de un solo uso emitido por WOSOverwatch. Los miembros se unen mediante invitaciones del propietario.",
   Decline: "Rechazar",
   Delete: "Eliminar",
   "Delete this comment?": "¿Eliminar este comentario?",
@@ -679,7 +632,6 @@ const spanishInterface: Record<string, string> = {
   "Expires automatically": "Caduca automáticamente",
   "Formation update": "Actualización de formación",
   "Full Battle": "Batalla completa",
-  "Garrison players": "Jugadores de guarnición",
   "Group name": "Nombre del grupo",
   "Incoming rally schedule": "Programa de rallies entrantes",
   Kills: "Bajas",
@@ -751,7 +703,6 @@ const spanishInterface: Record<string, string> = {
   Notices: "Avisos",
   Notifications: "Notificaciones",
   "Numeric WOS ID": "ID de WOS numérico",
-  "One-time state setup": "Configuración única del estado",
   "Only accounts with the permanent Rally Lead tag appear as leaders.":
     "Solo las cuentas con la etiqueta permanente de líder de rally aparecen como líderes.",
   "Only state Owners and Admins can manage tags.":
@@ -776,8 +727,6 @@ const spanishInterface: Record<string, string> = {
   "Pet active": "Mascota activa",
   "Pet active now": "Mascota activa ahora",
   "Pet remaining:": "Tiempo restante de mascota:",
-  "Placeholder account — official contact information will be added before launch.":
-    "Cuenta provisional: se añadirá la información oficial de contacto antes del lanzamiento.",
   "Plan discussion": "Discusión del plan",
   "Plan name": "Nombre del plan",
   "Player name": "Nombre del jugador",
@@ -808,18 +757,9 @@ const spanishInterface: Record<string, string> = {
   "Rally minutes remaining": "Minutos restantes del rally",
   "Rally seconds remaining": "Segundos restantes del rally",
   "Rally timer:": "Temporizador del rally:",
-  "Rally timing for organized SVS states.":
-    "Coordinación de rallies para estados organizados de SVS.",
-  "Receive a personal send time and browser alerts.":
-    "Recibe un horario personal de envío y alertas del navegador.",
-  "Record calls and maintain the shared schedule.":
-    "Registra avisos y mantiene el horario compartido.",
   Reject: "Rechazar",
   "Remove leader": "Eliminar líder",
   Remove: "Eliminar",
-  "Request a trial or state setup":
-    "Solicitar prueba o configuración de estado",
-  "Request state access": "Solicitar acceso al estado",
   "Refresh player data": "Actualizar datos del jugador",
   "Reusable labels": "Etiquetas reutilizables",
   "Review request": "Revisar solicitud",
@@ -843,7 +783,6 @@ const spanishInterface: Record<string, string> = {
   "Send reinforcement at:": "Enviar refuerzo a las:",
   Sent: "Enviado",
   "Sign in": "Iniciar sesión",
-  "Sign in or create an account": "Iniciar sesión o crear una cuenta",
   "Sound alerts": "Alertas de sonido",
   Started: "Iniciada",
   "State administration": "Administración del estado",
@@ -851,7 +790,6 @@ const spanishInterface: Record<string, string> = {
     "Los anuncios del estado estarán disponibles tras aprobar la membresía.",
   "State invitation": "Invitación al estado",
   "State members": "Miembros del estado",
-  "State owners": "Propietarios del estado",
   "State record": "Registro del estado",
   "State role": "Rol del estado",
   "State stats": "Estadísticas del estado",
@@ -1020,7 +958,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
   en: english,
   zh: {
     ...chineseInterface,
-    battleCoordination: "战斗协调",
     notifications: "通知",
     unreadNotifications: "条未读通知",
     openProfileMenu: "打开个人资料菜单",
@@ -1047,7 +984,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
   },
   es: {
     ...spanishInterface,
-    battleCoordination: "Coordinación de batalla",
     notifications: "Notificaciones",
     unreadNotifications: "notificaciones sin leer",
     openProfileMenu: "Abrir menú del perfil",
@@ -1075,7 +1011,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
   },
   ar: {
     ...arabicInterface,
-    battleCoordination: "تنسيق المعارك",
     notifications: "الإشعارات",
     unreadNotifications: "إشعارات غير مقروءة",
     openProfileMenu: "فتح قائمة الملف الشخصي",
@@ -1102,7 +1037,6 @@ export const translations: Record<AppLocale, Record<string, string>> = {
   },
   th: {
     ...thaiInterface,
-    battleCoordination: "การประสานงานการรบ",
     notifications: "การแจ้งเตือน",
     unreadNotifications: "การแจ้งเตือนที่ยังไม่ได้อ่าน",
     openProfileMenu: "เปิดเมนูโปรไฟล์",

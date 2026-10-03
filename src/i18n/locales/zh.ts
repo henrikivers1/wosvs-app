@@ -15,12 +15,7 @@ export const chineseInterface: Record<string, string> = {
   "/2000 characters": "/2000 字符",
   ":": "：",
   "@": "@",
-  "A limited free trial can be arranged before purchasing state access. Monthly plans may be introduced later.":
-    "购买州权限前可安排有限的免费试用。之后可能推出月度方案。",
-  "A shared workspace for enemy rally calls, synchronized impact waves, and personal garrison send times.":
-    "用于敌方集结通报、同步冲击波次和个人驻防派兵时间的共享工作区。",
   Accept: "接受",
-  "Access model": "访问模式",
   Account: "账号",
   Active: "进行中",
   "Active announcements": "有效公告",
@@ -150,9 +145,6 @@ export const chineseInterface: Record<string, string> = {
   "Complete your account": "完善你的账号",
   Completed: "已完成",
   "Completed battles": "已完成的战斗",
-  Contact: "联系",
-  "Contact us on Discord with your state name and a short description of your team.":
-    "请通过 Discord 联系我们，附上你的州名和团队简介。",
   Coordinator: "协调员",
   Coordinators: "协调员",
   "Create SvS plan": "创建 SvS 计划",
@@ -165,8 +157,6 @@ export const chineseInterface: Record<string, string> = {
     "创建可供作战计划使用的联盟。成员分配只能在作战计划中管理，发布后会显示在联盟概览中。",
   "Create the first destination for your battle plans.":
     "为你的作战计划创建第一个目的地。",
-  "Creating an account is free. Creating a state requires a one-time state creation entitlement issued by WOS Battle Planner. State members join through invitations from their state owner.":
-    "创建账号免费。创建州需要一次性的建州授权。州成员通过州主的邀请加入。",
   "Data from WOSOracle, updated {date}.": "数据来自 WOSOracle，更新于 {date}。",
   Decline: "拒绝",
   Delete: "删除",
@@ -175,7 +165,6 @@ export const chineseInterface: Record<string, string> = {
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
     "删除“{name}”及其所有小组和即将到来的战斗？已结束的战斗会保留在历史中。",
   "Destination alliance": "目标联盟",
-  Discord: "Discord",
   Draft: "草稿",
   "Draft and published plans": "草稿和已发布的计划",
   "Drop players here, or select them and use Move selected here.":
@@ -229,7 +218,6 @@ export const chineseInterface: Record<string, string> = {
   "Full Battle": "全场",
   Furnace: "熔炉",
   Garrison: "驻防",
-  "Garrison players": "驻防玩家",
   "Gen {number}": "第 {number} 代",
   "Group name": "小组名称",
   "Has none of this rally's joiner heroes at 4★.":
@@ -381,7 +369,6 @@ export const chineseInterface: Record<string, string> = {
   Notifications: "消息",
   "Notifications enabled": "通知已开启",
   "Numeric WOS ID": "数字 WOS ID",
-  "One-time state setup": "一次性州设置",
   "Only accounts with the permanent Rally Lead tag appear as leaders.":
     "只有带永久集结队长标签的账号会显示为队长。",
   "Only players who have one of the rally's joiner heroes at 4★":
@@ -418,8 +405,6 @@ export const chineseInterface: Record<string, string> = {
   "Pick players for the rallies": "为集结选择玩家",
   "Picked from WOSOracle: [{abbr}] {name}. Enter their coordinates below.":
     "已从 WOSOracle 选择：[{abbr}] {name}。请在下方输入坐标。",
-  "Placeholder account — official contact information will be added before launch.":
-    "占位账号——正式联系方式将在上线前添加。",
   "Plan discussion": "计划讨论",
   "Plan name": "计划名称",
   "Plans and battles are created, started and ended automatically from the WOSOracle draw.":
@@ -466,14 +451,9 @@ export const chineseInterface: Record<string, string> = {
   "Rally tags are also given to the whole group when the battle plan is published.":
     "发布作战计划时，集结标签也会授予整个小组。",
   "Rally timer:": "集结计时：",
-  "Rally timing for organized SVS states.": "为有组织的 SvS 州提供集结计时。",
   "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.":
     "根据成员同步的 WOSOracle 数据排名。标记负责带集结的玩家；只有集结队长可以带领小组。",
   Rare: "稀有",
-  "Receive a personal send time and browser alerts.":
-    "获取个人派兵时间和浏览器提醒。",
-  "Record calls and maintain the shared schedule.":
-    "记录通报并维护共享时间表。",
   "Refresh player data": "刷新玩家数据",
   Regular: "普通",
   Reject: "拒绝",
@@ -486,8 +466,6 @@ export const chineseInterface: Record<string, string> = {
   "Remove Rally Lead": "取消集结队长",
   "Remove leader": "移除队长",
   Republish: "重新发布",
-  "Request a trial or state setup": "申请试用或州设置",
-  "Request state access": "申请州权限",
   "Reset demo": "重置演示",
   "Reset the demo to its starting data?": "将演示重置为初始数据？",
   "Resync clock": "重新同步时钟",
@@ -533,7 +511,6 @@ export const chineseInterface: Record<string, string> = {
   "Showing the first 80 of {count}. Use the filters to narrow the list.":
     "显示 {count} 个中的前 80 个。使用筛选缩小范围。",
   "Sign in": "登录",
-  "Sign in or create an account": "登录或创建账号",
   "Sort by": "排序方式",
   "Sound alerts": "声音提醒",
   "Start (UTC)": "开始（UTC）",
@@ -548,7 +525,6 @@ export const chineseInterface: Record<string, string> = {
   "State member": "州成员",
   "State members": "州成员",
   "State number": "州编号",
-  "State owners": "州主",
   "State rankings": "州排名",
   "State record": "州战绩",
   "State role": "州角色",
@@ -657,7 +633,6 @@ export const chineseInterface: Record<string, string> = {
     "WOSOracle 暂未列出你所在州的联盟。",
   "WOSOracle lists only your state's strongest alliances. Add shell alliances by their alliance ID, or type a name below.":
     "WOSOracle 只列出你所在州最强的联盟。可通过联盟 ID 添加空壳联盟，或在下方输入名称。",
-  WOSOverwatch: "WOSOverwatch",
   "Waiting for owner verification": "等待州主核实",
   "Waiting for the SvS draw": "等待 SvS 抽签",
   "Waiting for your verification": "等待你核实",
@@ -707,7 +682,6 @@ export const chineseInterface: Record<string, string> = {
   alliance: "联盟",
   alliances: "联盟",
   assigned: "已分配",
-  battleCoordination: "战斗协调",
   closed: "已关闭",
   delete: "删除",
   impact: "冲击",
@@ -747,7 +721,6 @@ export const chineseInterface: Record<string, string> = {
   "within the hour": "一小时内",
   won: "胜",
   wosAccounts: "WOS 账号",
-  "your-discord-handle": "your-discord-handle",
   "{count} heroes": "{count} 个英雄",
   "{count} members": "{count} 名成员",
   "{count} of your state answered, {voice} can join voice.":
@@ -853,74 +826,103 @@ export const chineseInterface: Record<string, string> = {
     "{player} 位于 {number} 州，因此已发送加入 {state} 的申请。州主或管理员会进行审核。",
   "Rally from {name} called.": "已记录 {name} 的集结。",
   "Cancel the rally from {name} for everyone?": "为所有人取消 {name} 的集结？",
-  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.": "在下方选择对手的玩家。坐标会被记住：下次战斗自动填入，之前添加过的队长会在战斗开始时自动列出。",
-  "Coordinates from the last battle against this player.": "来自上次与该玩家交战时的坐标。",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.": "战斗日 12:00 UTC 自动开始，届时实时工具会出现在这里。",
-  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.": "你还没有加入州。当你的 WOS 账号所在的州使用 WOSOverwatch 时，会自动发送加入申请；管理员批准后你会收到通知。",
+  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.":
+    "在下方选择对手的玩家。坐标会被记住：下次战斗自动填入，之前添加过的队长会在战斗开始时自动列出。",
+  "Coordinates from the last battle against this player.":
+    "来自上次与该玩家交战时的坐标。",
+  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
+    "战斗日 12:00 UTC 自动开始，届时实时工具会出现在这里。",
+  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
+    "你还没有加入州。当你的 WOS 账号所在的州使用 WOSOverwatch 时，会自动发送加入申请；管理员批准后你会收到通知。",
   "That username may already be registered.": "该用户名可能已被注册。",
   "Review rallies": "查看集结",
   "Vote now": "立即投票",
-  "SvS plans, rallies and battles run automatically from the draw.": "从匹配开始，SvS 计划、集结和战斗全部自动运行。",
-  "Invitation delivered in the player's notification inbox.": "邀请已发送到该玩家的通知收件箱。",
-  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.": "根据州主的 WOS 账号自动填写；用于在 WOSOracle 查询 SvS 对手和战斗时间。只有州主可以修改。",
-  "Publish now? Every member gets their rally assignment.": "现在发布？每位成员都会收到自己的集结分配。",
-  "Published. Every member got their assignment.": "已发布。每位成员都已收到分配。",
-  "{rallies} rallies created, {players} players added.": "已创建 {rallies} 个集结，加入 {players} 名玩家。",
-  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.": "以下全部自动运行：匹配时创建计划，战斗前 24 小时根据出勤设置并填充集结，战斗前 6 小时发布。可随时手动调整，自动化不会撤销你的修改。",
+  "Invitation delivered in the player's notification inbox.":
+    "邀请已发送到该玩家的通知收件箱。",
+  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
+    "根据州主的 WOS 账号自动填写；用于在 WOSOracle 查询 SvS 对手和战斗时间。只有州主可以修改。",
+  "Publish now? Every member gets their rally assignment.":
+    "现在发布？每位成员都会收到自己的集结分配。",
+  "Published. Every member got their assignment.":
+    "已发布。每位成员都已收到分配。",
+  "{rallies} rallies created, {players} players added.":
+    "已创建 {rallies} 个集结，加入 {players} 名玩家。",
+  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.":
+    "以下全部自动运行：匹配时创建计划，战斗前 24 小时根据出勤设置并填充集结，战斗前 6 小时发布。可随时手动调整，自动化不会撤销你的修改。",
   "No upcoming battle plan.": "没有即将到来的战斗计划。",
   "Earlier plans ({count})": "以往计划（{count}）",
-  "Delete the “{name}” tag? It is removed from {count} WOS accounts.": "删除“{name}”标签？它会从 {count} 个 WOS 账号中移除。",
-  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.": "用于公告和自定义分组的标签。集结和英雄标签由已发布的计划自动创建。",
-  "Create a tag above, then add players to it.": "在上方创建标签，然后添加玩家。",
+  "Delete the “{name}” tag? It is removed from {count} WOS accounts.":
+    "删除“{name}”标签？它会从 {count} 个 WOS 账号中移除。",
+  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.":
+    "用于公告和自定义分组的标签。集结和英雄标签由已发布的计划自动创建。",
+  "Create a tag above, then add players to it.":
+    "在上方创建标签，然后添加玩家。",
   "Managed in Planning": "在计划页管理",
-  "Run the latest database migration to use automatic planning.": "请运行最新的数据库迁移以使用自动计划。",
+  "Run the latest database migration to use automatic planning.":
+    "请运行最新的数据库迁移以使用自动计划。",
   "Automation saved.": "自动化设置已保存。",
   "SvS automation": "SvS 自动化",
-  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.": "匹配后，应用会在战斗前 30 小时提醒成员投票，前 24 小时设置并填充集结，每小时加入迟到的投票者，前 6 小时发布。你可以在计划页手动修改任何内容。",
+  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.":
+    "匹配后，应用会在战斗前 30 小时提醒成员投票，前 24 小时设置并填充集结，每小时加入迟到的投票者，前 6 小时发布。你可以在计划页手动修改任何内容。",
   "Set up and fill rallies automatically": "自动设置并填充集结",
   "Publish automatically 6 hours before the battle": "战斗前 6 小时自动发布",
   "Number of rallies": "集结数量",
   "Players per rally (with leader)": "每个集结人数（含队长）",
   "Default formation (Inf/Lan/Mark %)": "默认阵型（盾/矛/弓 %）",
   "Default joiner heroes for every rally": "每个集结的默认加入英雄",
-  "None": "无",
+  None: "无",
   "Draw: vs state {opponent}": "匹配：对阵 {opponent} 州",
   "SvS plan created": "已创建 SvS 计划",
   "Battle {time} (12:00–17:00 UTC).": "战斗 {time}（12:00–17:00 UTC）。",
-  "Attendance: {voted}/{total} voted, {available} can play": "出勤：{voted}/{total} 已投票，{available} 人可参战",
+  "Attendance: {voted}/{total} voted, {available} can play":
+    "出勤：{voted}/{total} 已投票，{available} 人可参战",
   "Members who had not voted were reminded.": "已提醒未投票的成员。",
-  "Members who have not voted are reminded at {time}.": "未投票的成员将在 {time} 收到提醒。",
-  "Rallies: {rallies} with {players} players": "集结：{rallies} 个，共 {players} 名玩家",
+  "Members who have not voted are reminded at {time}.":
+    "未投票的成员将在 {time} 收到提醒。",
+  "Rallies: {rallies} with {players} players":
+    "集结：{rallies} 个，共 {players} 名玩家",
   "Rallies: not generated yet": "集结：尚未生成",
-  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.": "将于 {time} 根据集结队长和迷宫最强玩家自动生成，并按自动填充优先级填充。",
+  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.":
+    "将于 {time} 根据集结队长和迷宫最强玩家自动生成，并按自动填充优先级填充。",
   "Automatic rallies are off for this state.": "此州已关闭自动集结。",
-  "{count} players who can play have no rally yet. They are added to open slots every hour.": "{count} 名可参战的玩家尚无集结，每小时会被加入空位。",
-  "Late voters are added to open slots every hour.": "迟到的投票者每小时会被加入空位。",
+  "{count} players who can play have no rally yet. They are added to open slots every hour.":
+    "{count} 名可参战的玩家尚无集结，每小时会被加入空位。",
+  "Late voters are added to open slots every hour.":
+    "迟到的投票者每小时会被加入空位。",
   "Fill open slots now": "立即填充空位",
   "Generate now": "立即生成",
   "Not published yet": "尚未发布",
-  "Every member got their rally, hero and formation.": "每位成员都已收到集结、英雄和阵型。",
-  "{count} rallies have no destination alliance.": "{count} 个集结没有目标联盟。",
+  "Every member got their rally, hero and formation.":
+    "每位成员都已收到集结、英雄和阵型。",
+  "{count} rallies have no destination alliance.":
+    "{count} 个集结没有目标联盟。",
   "Published automatically at {time}.": "将于 {time} 自动发布。",
-  "Automatic publishing is off: publish when ready.": "自动发布已关闭：准备好后请手动发布。",
+  "Automatic publishing is off: publish when ready.":
+    "自动发布已关闭：准备好后请手动发布。",
   "Publish now": "立即发布",
   "Battle goes live automatically": "战斗自动开始",
-  "Live Battle opens for callers and garrison at {time}.": "实时战斗将于 {time} 向集结指挥和驻防开放。",
+  "Live Battle opens for callers and garrison at {time}.":
+    "实时战斗将于 {time} 向集结指挥和驻防开放。",
   "Next SvS": "下一场 SvS",
   "Can you join the SvS?": "你能参加 SvS 吗？",
   "Rallies are ready for review": "集结已准备好审核",
   "Total power": "总战力",
   "SvS opponent drawn": "SvS 对手已确定",
   "Comments & notices": "评论与公告",
-  "{player}: vote whether you can join {plan} so you get a rally spot.": "{player}：请投票说明能否参加 {plan}，以便获得集结位置。",
-  "{rallies} rallies with {players} players were set up for {plan}.": "已为 {plan} 设置 {rallies} 个集结，共 {players} 名玩家。",
+  "{player}: vote whether you can join {plan} so you get a rally spot.":
+    "{player}：请投票说明能否参加 {plan}，以便获得集结位置。",
+  "{rallies} rallies with {players} players were set up for {plan}.":
+    "已为 {plan} 设置 {rallies} 个集结，共 {players} 名玩家。",
   "They are published automatically at {time}.": "将于 {time} 自动发布。",
   "Publish them from Planning.": "请在计划页发布。",
   "State management": "州管理",
-  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.": "成员、联盟以及自动化如何准备每场 SvS。计划和战斗会自动进行。",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
+    "成员、联盟以及自动化如何准备每场 SvS。计划和战斗会自动进行。",
   "{count} Rally Leads": "{count} 名集结队长",
   "Welcome back": "欢迎回来",
   "Join your state": "加入你的州",
-  "Sign in to see your SvS, your rally and your send times.": "登录查看你的 SvS、集结和派兵时间。",
-  "Create an account with your WOS ID; your state's admins get your join request automatically.": "用你的 WOS ID 创建账号；你所在州的管理员会自动收到加入申请。",
+  "Sign in to see your SvS, your rally and your send times.":
+    "登录查看你的 SvS、集结和派兵时间。",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.":
+    "用你的 WOS ID 创建账号；你所在州的管理员会自动收到加入申请。",
 };

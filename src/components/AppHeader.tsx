@@ -353,6 +353,7 @@ export function AppHeader() {
                 </span>
                 <Link href="/account">{t("wosAccounts")}</Link>
                 <Link href="/notifications">{t("notifications")}</Link>
+                <Link href="/guides">{t("Guides")}</Link>
                 {!isDemoMode() && (
                   <button type="button" onClick={() => enterDemo()}>
                     {t("Try the private demo")}
@@ -364,10 +365,20 @@ export function AppHeader() {
               </div>
             </details>
           </div>
-        ) : signedIn === false && pathname !== "/login" ? (
-          <Link className="secondary-link header-sign-in" href="/login">
-            {t("signIn")}
-          </Link>
+        ) : signedIn === false ? (
+          <nav className="public-nav" aria-label={t("mainNavigation")}>
+            <Link
+              className={`main-nav-link${pathname.startsWith("/guides") ? " active" : ""}`}
+              href="/guides"
+            >
+              {t("Guides")}
+            </Link>
+            {pathname !== "/login" && (
+              <Link className="secondary-link" href="/login">
+                {t("signIn")}
+              </Link>
+            )}
+          </nav>
         ) : (
           <span className="header-account-placeholder" />
         )}

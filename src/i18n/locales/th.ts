@@ -15,12 +15,7 @@ export const thaiInterface: Record<string, string> = {
   "/2000 characters": "/2000 ตัวอักษร",
   ":": ":",
   "@": "@",
-  "A limited free trial can be arranged before purchasing state access. Monthly plans may be introduced later.":
-    "สามารถจัดช่วงทดลองใช้ฟรีแบบจำกัดก่อนซื้อสิทธิ์ของสเตท อาจมีแพ็กเกจรายเดือนในภายหลัง",
-  "A shared workspace for enemy rally calls, synchronized impact waves, and personal garrison send times.":
-    "พื้นที่ทำงานร่วมกันสำหรับแจ้งแรลลี่ของศัตรู คลื่นการปะทะที่ซิงค์กัน และเวลาส่งกองหนุนส่วนตัว",
   Accept: "ยอมรับ",
-  "Access model": "รูปแบบการเข้าถึง",
   Account: "บัญชี",
   Active: "ใช้งานอยู่",
   "Active announcements": "ประกาศที่ใช้งานอยู่",
@@ -152,9 +147,6 @@ export const thaiInterface: Record<string, string> = {
   "Complete your account": "ทำบัญชีให้สมบูรณ์",
   Completed: "เสร็จสิ้น",
   "Completed battles": "การรบที่เสร็จสิ้น",
-  Contact: "ติดต่อ",
-  "Contact us on Discord with your state name and a short description of your team.":
-    "ติดต่อเราทาง Discord พร้อมชื่อสเตทและคำอธิบายทีมสั้นๆ",
   Coordinator: "ผู้ประสานงาน",
   Coordinators: "ผู้ประสานงาน",
   "Create SvS plan": "สร้างแผน SvS",
@@ -167,8 +159,6 @@ export const thaiInterface: Record<string, string> = {
     "สร้างพันธมิตรที่ผู้วางแผนการรบใช้ได้ การมอบหมายสมาชิกจัดการได้จากหน้าวางแผนการรบเท่านั้น และจะแสดงในภาพรวมพันธมิตรหลังเผยแพร่",
   "Create the first destination for your battle plans.":
     "สร้างปลายทางแรกสำหรับแผนการรบของคุณ",
-  "Creating an account is free. Creating a state requires a one-time state creation entitlement issued by WOS Battle Planner. State members join through invitations from their state owner.":
-    "สร้างบัญชีได้ฟรี การสร้างสเตทต้องมีสิทธิ์สร้างสเตทแบบครั้งเดียว สมาชิกเข้าร่วมผ่านคำเชิญจากเจ้าของสเตท",
   "Data from WOSOracle, updated {date}.":
     "ข้อมูลจาก WOSOracle อัปเดตเมื่อ {date}",
   Decline: "ปฏิเสธ",
@@ -178,7 +168,6 @@ export const thaiInterface: Record<string, string> = {
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
     "ลบ “{name}” ทุกกลุ่มในแผน และการรบที่กำลังจะมาถึง? การรบที่จบแล้วยังอยู่ในประวัติ",
   "Destination alliance": "พันธมิตรปลายทาง",
-  Discord: "Discord",
   Draft: "ฉบับร่าง",
   "Draft and published plans": "แผนฉบับร่างและที่เผยแพร่แล้ว",
   "Drop players here, or select them and use Move selected here.":
@@ -232,7 +221,6 @@ export const thaiInterface: Record<string, string> = {
   "Full Battle": "ทั้งการรบ",
   Furnace: "เตา",
   Garrison: "กองหนุน",
-  "Garrison players": "ผู้เล่นกองหนุน",
   "Gen {number}": "เจน {number}",
   "Group name": "ชื่อกลุ่ม",
   "Has none of this rally's joiner heroes at 4★.":
@@ -388,7 +376,6 @@ export const thaiInterface: Record<string, string> = {
   Notifications: "การแจ้งเตือน",
   "Notifications enabled": "เปิดการแจ้งเตือนแล้ว",
   "Numeric WOS ID": "WOS ID ตัวเลข",
-  "One-time state setup": "ตั้งค่าสเตทครั้งเดียว",
   "Only accounts with the permanent Rally Lead tag appear as leaders.":
     "เฉพาะบัญชีที่มีแท็กผู้นำแรลลี่ถาวรเท่านั้นที่แสดงเป็นผู้นำ",
   "Only players who have one of the rally's joiner heroes at 4★":
@@ -425,8 +412,6 @@ export const thaiInterface: Record<string, string> = {
   "Pick players for the rallies": "เลือกผู้เล่นสำหรับแรลลี่",
   "Picked from WOSOracle: [{abbr}] {name}. Enter their coordinates below.":
     "เลือกจาก WOSOracle: [{abbr}] {name} กรอกพิกัดด้านล่าง",
-  "Placeholder account — official contact information will be added before launch.":
-    "บัญชีชั่วคราว — จะเพิ่มข้อมูลติดต่ออย่างเป็นทางการก่อนเปิดตัว",
   "Plan discussion": "การพูดคุยเรื่องแผน",
   "Plan name": "ชื่อแผน",
   "Plans and battles are created, started and ended automatically from the WOSOracle draw.":
@@ -475,15 +460,9 @@ export const thaiInterface: Record<string, string> = {
   "Rally tags are also given to the whole group when the battle plan is published.":
     "แท็กแรลลี่จะมอบให้ทั้งกลุ่มเมื่อเผยแพร่แผนการรบด้วย",
   "Rally timer:": "ตัวจับเวลาแรลลี่:",
-  "Rally timing for organized SVS states.":
-    "จังหวะแรลลี่สำหรับสเตท SvS ที่มีการจัดระเบียบ",
   "Ranked from your members' synced WOSOracle data. Mark the players who lead rallies; only Rally Leads can lead a group.":
     "จัดอันดับจากข้อมูล WOSOracle ที่ซิงค์ของสมาชิก ทำเครื่องหมายผู้เล่นที่นำแรลลี่ เฉพาะผู้นำแรลลี่ที่นำกลุ่มได้",
   Rare: "แรร์",
-  "Receive a personal send time and browser alerts.":
-    "รับเวลาส่งส่วนตัวและการแจ้งเตือนในเบราว์เซอร์",
-  "Record calls and maintain the shared schedule.":
-    "บันทึกการแจ้งและดูแลตารางร่วมกัน",
   "Refresh player data": "รีเฟรชข้อมูลผู้เล่น",
   Regular: "ปกติ",
   Reject: "ปฏิเสธ",
@@ -496,8 +475,6 @@ export const thaiInterface: Record<string, string> = {
   "Remove Rally Lead": "นำผู้นำแรลลี่ออก",
   "Remove leader": "นำผู้นำออก",
   Republish: "เผยแพร่อีกครั้ง",
-  "Request a trial or state setup": "ขอทดลองใช้หรือตั้งค่าสเตท",
-  "Request state access": "ขอสิทธิ์เข้าสเตท",
   "Reset demo": "รีเซ็ตเดโม",
   "Reset the demo to its starting data?": "รีเซ็ตเดโมกลับเป็นข้อมูลเริ่มต้น?",
   "Resync clock": "ซิงค์นาฬิกาใหม่",
@@ -543,7 +520,6 @@ export const thaiInterface: Record<string, string> = {
   "Showing the first 80 of {count}. Use the filters to narrow the list.":
     "แสดง 80 รายการแรกจาก {count} ใช้ตัวกรองเพื่อจำกัดรายการ",
   "Sign in": "เข้าสู่ระบบ",
-  "Sign in or create an account": "เข้าสู่ระบบหรือสร้างบัญชี",
   "Sort by": "เรียงตาม",
   "Sound alerts": "การแจ้งเตือนด้วยเสียง",
   "Start (UTC)": "เริ่ม (UTC)",
@@ -559,7 +535,6 @@ export const thaiInterface: Record<string, string> = {
   "State member": "สมาชิกสเตท",
   "State members": "สมาชิกสเตท",
   "State number": "หมายเลขสเตท",
-  "State owners": "เจ้าของสเตท",
   "State rankings": "อันดับของสเตท",
   "State record": "สถิติของสเตท",
   "State role": "บทบาทในสเตท",
@@ -670,7 +645,6 @@ export const thaiInterface: Record<string, string> = {
     "WOSOracle ยังไม่มีรายชื่อพันธมิตรของสเตทคุณ",
   "WOSOracle lists only your state's strongest alliances. Add shell alliances by their alliance ID, or type a name below.":
     "WOSOracle แสดงเฉพาะพันธมิตรที่แข็งแกร่งที่สุดในสเตทของคุณ เพิ่มพันธมิตรเปล่าด้วย ID พันธมิตร หรือพิมพ์ชื่อด้านล่าง",
-  WOSOverwatch: "WOSOverwatch",
   "Waiting for owner verification": "รอเจ้าของตรวจสอบ",
   "Waiting for the SvS draw": "รอการจับคู่ SvS",
   "Waiting for your verification": "รอคุณตรวจสอบ",
@@ -721,7 +695,6 @@ export const thaiInterface: Record<string, string> = {
   alliance: "พันธมิตร",
   alliances: "พันธมิตร",
   assigned: "ที่มอบหมาย",
-  battleCoordination: "การประสานการรบ",
   closed: "ปิดแล้ว",
   delete: "ลบ",
   impact: "ปะทะ",
@@ -761,7 +734,6 @@ export const thaiInterface: Record<string, string> = {
   "within the hour": "ภายในชั่วโมงนี้",
   won: "ชนะ",
   wosAccounts: "บัญชี WOS",
-  "your-discord-handle": "your-discord-handle",
   "{count} heroes": "{count} ฮีโร่",
   "{count} members": "{count} สมาชิก",
   "{count} of your state answered, {voice} can join voice.":
@@ -866,75 +838,108 @@ export const thaiInterface: Record<string, string> = {
   "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.":
     "{player} อยู่ในรัฐ {number} จึงส่งคำขอเข้าร่วม {state} แล้ว เจ้าของหรือแอดมินจะตรวจสอบ",
   "Rally from {name} called.": "เรียกแรลลี่ของ {name} แล้ว",
-  "Cancel the rally from {name} for everyone?": "ยกเลิกแรลลี่ของ {name} สำหรับทุกคนไหม?",
-  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.": "เลือกผู้เล่นของฝ่ายตรงข้ามด้านล่าง ระบบจะจำพิกัดไว้ ครั้งหน้าจะกรอกให้อัตโนมัติ และหัวหน้าที่เคยเพิ่มจะถูกใส่ให้เองเมื่อการรบเริ่ม",
-  "Coordinates from the last battle against this player.": "พิกัดจากการรบครั้งล่าสุดกับผู้เล่นคนนี้",
-  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.": "การรบเริ่มอัตโนมัติเวลา 12:00 UTC ในวันรบ เครื่องมือจะปรากฏที่นี่ตอนนั้น",
-  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.": "คุณยังไม่ได้เข้าร่วมรัฐ เมื่อรัฐของบัญชี WOS ของคุณใช้ WOSOverwatch ระบบจะส่งคำขอเข้าร่วมให้อัตโนมัติ และคุณจะได้รับแจ้งเตือนเมื่อแอดมินอนุมัติ",
+  "Cancel the rally from {name} for everyone?":
+    "ยกเลิกแรลลี่ของ {name} สำหรับทุกคนไหม?",
+  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.":
+    "เลือกผู้เล่นของฝ่ายตรงข้ามด้านล่าง ระบบจะจำพิกัดไว้ ครั้งหน้าจะกรอกให้อัตโนมัติ และหัวหน้าที่เคยเพิ่มจะถูกใส่ให้เองเมื่อการรบเริ่ม",
+  "Coordinates from the last battle against this player.":
+    "พิกัดจากการรบครั้งล่าสุดกับผู้เล่นคนนี้",
+  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
+    "การรบเริ่มอัตโนมัติเวลา 12:00 UTC ในวันรบ เครื่องมือจะปรากฏที่นี่ตอนนั้น",
+  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
+    "คุณยังไม่ได้เข้าร่วมรัฐ เมื่อรัฐของบัญชี WOS ของคุณใช้ WOSOverwatch ระบบจะส่งคำขอเข้าร่วมให้อัตโนมัติ และคุณจะได้รับแจ้งเตือนเมื่อแอดมินอนุมัติ",
   "That username may already be registered.": "ชื่อผู้ใช้นี้อาจถูกใช้แล้ว",
   "Review rallies": "ตรวจสอบแรลลี่",
   "Vote now": "โหวตตอนนี้",
-  "SvS plans, rallies and battles run automatically from the draw.": "แผน SvS แรลลี่ และการรบทำงานอัตโนมัติตั้งแต่จับคู่",
-  "Invitation delivered in the player's notification inbox.": "ส่งคำเชิญไปยังกล่องแจ้งเตือนของผู้เล่นแล้ว",
-  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.": "กรอกจากบัญชี WOS ของเจ้าของ ใช้ค้นหาคู่ต่อสู้ SvS และเวลารบใน WOSOracle เฉพาะเจ้าของเท่านั้นที่เปลี่ยนได้",
-  "Publish now? Every member gets their rally assignment.": "เผยแพร่ตอนนี้ไหม? สมาชิกทุกคนจะได้รับการจัดแรลลี่",
-  "Published. Every member got their assignment.": "เผยแพร่แล้ว สมาชิกทุกคนได้รับการจัดแล้ว",
-  "{rallies} rallies created, {players} players added.": "สร้าง {rallies} แรลลี่ เพิ่ม {players} ผู้เล่นแล้ว",
-  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.": "ทุกอย่างด้านล่างทำงานเอง: สร้างแผนเมื่อจับคู่ ตั้งและเติมแรลลี่จากการโหวต 24 ชั่วโมงก่อนรบ และเผยแพร่ 6 ชั่วโมงก่อน ปรับอะไรเองก็ได้ ระบบจะไม่ย้อนการเปลี่ยนแปลงของคุณ",
+  "Invitation delivered in the player's notification inbox.":
+    "ส่งคำเชิญไปยังกล่องแจ้งเตือนของผู้เล่นแล้ว",
+  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
+    "กรอกจากบัญชี WOS ของเจ้าของ ใช้ค้นหาคู่ต่อสู้ SvS และเวลารบใน WOSOracle เฉพาะเจ้าของเท่านั้นที่เปลี่ยนได้",
+  "Publish now? Every member gets their rally assignment.":
+    "เผยแพร่ตอนนี้ไหม? สมาชิกทุกคนจะได้รับการจัดแรลลี่",
+  "Published. Every member got their assignment.":
+    "เผยแพร่แล้ว สมาชิกทุกคนได้รับการจัดแล้ว",
+  "{rallies} rallies created, {players} players added.":
+    "สร้าง {rallies} แรลลี่ เพิ่ม {players} ผู้เล่นแล้ว",
+  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.":
+    "ทุกอย่างด้านล่างทำงานเอง: สร้างแผนเมื่อจับคู่ ตั้งและเติมแรลลี่จากการโหวต 24 ชั่วโมงก่อนรบ และเผยแพร่ 6 ชั่วโมงก่อน ปรับอะไรเองก็ได้ ระบบจะไม่ย้อนการเปลี่ยนแปลงของคุณ",
   "No upcoming battle plan.": "ไม่มีแผนการรบที่กำลังจะมา",
   "Earlier plans ({count})": "แผนก่อนหน้า ({count})",
-  "Delete the “{name}” tag? It is removed from {count} WOS accounts.": "ลบแท็ก “{name}” ไหม? จะถูกนำออกจาก {count} บัญชี WOS",
-  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.": "ป้ายสำหรับประกาศและการจัดกลุ่มของคุณเอง แท็กแรลลี่และฮีโร่ถูกสร้างอัตโนมัติจากแผนที่เผยแพร่",
-  "Create a tag above, then add players to it.": "สร้างแท็กด้านบน แล้วเพิ่มผู้เล่นเข้าไป",
+  "Delete the “{name}” tag? It is removed from {count} WOS accounts.":
+    "ลบแท็ก “{name}” ไหม? จะถูกนำออกจาก {count} บัญชี WOS",
+  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.":
+    "ป้ายสำหรับประกาศและการจัดกลุ่มของคุณเอง แท็กแรลลี่และฮีโร่ถูกสร้างอัตโนมัติจากแผนที่เผยแพร่",
+  "Create a tag above, then add players to it.":
+    "สร้างแท็กด้านบน แล้วเพิ่มผู้เล่นเข้าไป",
   "Managed in Planning": "จัดการในหน้าวางแผน",
-  "Run the latest database migration to use automatic planning.": "รันไมเกรชันฐานข้อมูลล่าสุดเพื่อใช้การวางแผนอัตโนมัติ",
+  "Run the latest database migration to use automatic planning.":
+    "รันไมเกรชันฐานข้อมูลล่าสุดเพื่อใช้การวางแผนอัตโนมัติ",
   "Automation saved.": "บันทึกการตั้งค่าอัตโนมัติแล้ว",
   "SvS automation": "ระบบอัตโนมัติ SvS",
-  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.": "หลังจับคู่ แอปจะเตือนสมาชิกให้โหวต 30 ชั่วโมงก่อนรบ ตั้งและเติมแรลลี่ 24 ชั่วโมงก่อน เพิ่มคนที่โหวตช้าทุกชั่วโมง และเผยแพร่ 6 ชั่วโมงก่อน คุณเปลี่ยนอะไรเองได้ในหน้าวางแผน",
+  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.":
+    "หลังจับคู่ แอปจะเตือนสมาชิกให้โหวต 30 ชั่วโมงก่อนรบ ตั้งและเติมแรลลี่ 24 ชั่วโมงก่อน เพิ่มคนที่โหวตช้าทุกชั่วโมง และเผยแพร่ 6 ชั่วโมงก่อน คุณเปลี่ยนอะไรเองได้ในหน้าวางแผน",
   "Set up and fill rallies automatically": "ตั้งและเติมแรลลี่อัตโนมัติ",
-  "Publish automatically 6 hours before the battle": "เผยแพร่อัตโนมัติ 6 ชั่วโมงก่อนรบ",
+  "Publish automatically 6 hours before the battle":
+    "เผยแพร่อัตโนมัติ 6 ชั่วโมงก่อนรบ",
   "Number of rallies": "จำนวนแรลลี่",
   "Players per rally (with leader)": "ผู้เล่นต่อแรลลี่ (รวมหัวหน้า)",
   "Default formation (Inf/Lan/Mark %)": "ฟอร์เมชันเริ่มต้น (ทหารราบ/ทวน/ธนู %)",
-  "Default joiner heroes for every rally": "ฮีโร่ผู้เข้าร่วมเริ่มต้นของทุกแรลลี่",
-  "None": "ไม่มี",
+  "Default joiner heroes for every rally":
+    "ฮีโร่ผู้เข้าร่วมเริ่มต้นของทุกแรลลี่",
+  None: "ไม่มี",
   "Draw: vs state {opponent}": "จับคู่: พบรัฐ {opponent}",
   "SvS plan created": "สร้างแผน SvS แล้ว",
   "Battle {time} (12:00–17:00 UTC).": "การรบ {time} (12:00–17:00 UTC)",
-  "Attendance: {voted}/{total} voted, {available} can play": "การเข้าร่วม: โหวต {voted}/{total} คน เล่นได้ {available} คน",
+  "Attendance: {voted}/{total} voted, {available} can play":
+    "การเข้าร่วม: โหวต {voted}/{total} คน เล่นได้ {available} คน",
   "Members who had not voted were reminded.": "เตือนสมาชิกที่ยังไม่โหวตแล้ว",
-  "Members who have not voted are reminded at {time}.": "สมาชิกที่ยังไม่โหวตจะได้รับการเตือนเวลา {time}",
-  "Rallies: {rallies} with {players} players": "แรลลี่: {rallies} แรลลี่ {players} ผู้เล่น",
+  "Members who have not voted are reminded at {time}.":
+    "สมาชิกที่ยังไม่โหวตจะได้รับการเตือนเวลา {time}",
+  "Rallies: {rallies} with {players} players":
+    "แรลลี่: {rallies} แรลลี่ {players} ผู้เล่น",
   "Rallies: not generated yet": "แรลลี่: ยังไม่ได้สร้าง",
-  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.": "สร้างอัตโนมัติเวลา {time} จากหัวหน้าแรลลี่และผู้เล่น Labyrinth ที่ดีที่สุด แล้วเติมตามลำดับความสำคัญของการเติมอัตโนมัติ",
+  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.":
+    "สร้างอัตโนมัติเวลา {time} จากหัวหน้าแรลลี่และผู้เล่น Labyrinth ที่ดีที่สุด แล้วเติมตามลำดับความสำคัญของการเติมอัตโนมัติ",
   "Automatic rallies are off for this state.": "ปิดแรลลี่อัตโนมัติสำหรับรัฐนี้",
-  "{count} players who can play have no rally yet. They are added to open slots every hour.": "ผู้เล่นที่เล่นได้ {count} คนยังไม่มีแรลลี่ จะถูกเพิ่มเข้าช่องว่างทุกชั่วโมง",
-  "Late voters are added to open slots every hour.": "คนที่โหวตช้าจะถูกเพิ่มเข้าช่องว่างทุกชั่วโมง",
+  "{count} players who can play have no rally yet. They are added to open slots every hour.":
+    "ผู้เล่นที่เล่นได้ {count} คนยังไม่มีแรลลี่ จะถูกเพิ่มเข้าช่องว่างทุกชั่วโมง",
+  "Late voters are added to open slots every hour.":
+    "คนที่โหวตช้าจะถูกเพิ่มเข้าช่องว่างทุกชั่วโมง",
   "Fill open slots now": "เติมช่องว่างตอนนี้",
   "Generate now": "สร้างตอนนี้",
   "Not published yet": "ยังไม่ได้เผยแพร่",
-  "Every member got their rally, hero and formation.": "สมาชิกทุกคนได้รับแรลลี่ ฮีโร่ และฟอร์เมชันแล้ว",
-  "{count} rallies have no destination alliance.": "{count} แรลลี่ยังไม่มีพันธมิตรปลายทาง",
+  "Every member got their rally, hero and formation.":
+    "สมาชิกทุกคนได้รับแรลลี่ ฮีโร่ และฟอร์เมชันแล้ว",
+  "{count} rallies have no destination alliance.":
+    "{count} แรลลี่ยังไม่มีพันธมิตรปลายทาง",
   "Published automatically at {time}.": "เผยแพร่อัตโนมัติเวลา {time}",
-  "Automatic publishing is off: publish when ready.": "ปิดการเผยแพร่อัตโนมัติ: เผยแพร่เมื่อพร้อม",
+  "Automatic publishing is off: publish when ready.":
+    "ปิดการเผยแพร่อัตโนมัติ: เผยแพร่เมื่อพร้อม",
   "Publish now": "เผยแพร่ตอนนี้",
   "Battle goes live automatically": "การรบเริ่มอัตโนมัติ",
-  "Live Battle opens for callers and garrison at {time}.": "Live Battle เปิดให้ผู้เรียกแรลลี่และการ์ริสันเวลา {time}",
+  "Live Battle opens for callers and garrison at {time}.":
+    "Live Battle เปิดให้ผู้เรียกแรลลี่และการ์ริสันเวลา {time}",
   "Next SvS": "SvS ครั้งถัดไป",
   "Can you join the SvS?": "คุณเข้าร่วม SvS ได้ไหม?",
   "Rallies are ready for review": "แรลลี่พร้อมให้ตรวจสอบแล้ว",
   "Total power": "พลังรวม",
   "SvS opponent drawn": "จับคู่คู่ต่อสู้ SvS แล้ว",
   "Comments & notices": "ความคิดเห็นและประกาศ",
-  "{player}: vote whether you can join {plan} so you get a rally spot.": "{player}: โหวตว่าคุณเข้าร่วม {plan} ได้ไหม เพื่อให้ได้ที่ในแรลลี่",
-  "{rallies} rallies with {players} players were set up for {plan}.": "ตั้ง {rallies} แรลลี่ {players} ผู้เล่นสำหรับ {plan} แล้ว",
-  "They are published automatically at {time}.": "จะเผยแพร่อัตโนมัติเวลา {time}",
+  "{player}: vote whether you can join {plan} so you get a rally spot.":
+    "{player}: โหวตว่าคุณเข้าร่วม {plan} ได้ไหม เพื่อให้ได้ที่ในแรลลี่",
+  "{rallies} rallies with {players} players were set up for {plan}.":
+    "ตั้ง {rallies} แรลลี่ {players} ผู้เล่นสำหรับ {plan} แล้ว",
+  "They are published automatically at {time}.":
+    "จะเผยแพร่อัตโนมัติเวลา {time}",
   "Publish them from Planning.": "เผยแพร่จากหน้าวางแผน",
   "State management": "การจัดการรัฐ",
-  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.": "สมาชิก พันธมิตร และวิธีที่ระบบอัตโนมัติเตรียม SvS แต่ละครั้ง การวางแผนและการรบทำงานเอง",
+  "Members, alliances and how the automation prepares each SvS. Planning and battles run by themselves.":
+    "สมาชิก พันธมิตร และวิธีที่ระบบอัตโนมัติเตรียม SvS แต่ละครั้ง การวางแผนและการรบทำงานเอง",
   "{count} Rally Leads": "หัวหน้าแรลลี่ {count} คน",
   "Welcome back": "ยินดีต้อนรับกลับ",
   "Join your state": "เข้าร่วมรัฐของคุณ",
-  "Sign in to see your SvS, your rally and your send times.": "เข้าสู่ระบบเพื่อดู SvS แรลลี่ และเวลาส่งกำลังของคุณ",
-  "Create an account with your WOS ID; your state's admins get your join request automatically.": "สร้างบัญชีด้วย WOS ID ของคุณ แอดมินของรัฐจะได้รับคำขอเข้าร่วมของคุณโดยอัตโนมัติ",
+  "Sign in to see your SvS, your rally and your send times.":
+    "เข้าสู่ระบบเพื่อดู SvS แรลลี่ และเวลาส่งกำลังของคุณ",
+  "Create an account with your WOS ID; your state's admins get your join request automatically.":
+    "สร้างบัญชีด้วย WOS ID ของคุณ แอดมินของรัฐจะได้รับคำขอเข้าร่วมของคุณโดยอัตโนมัติ",
 };
