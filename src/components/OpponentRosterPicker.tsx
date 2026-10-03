@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import type {
   OpponentAlliance,
@@ -70,6 +70,17 @@ export function OpponentRosterPicker({
       setLoading(false);
     }
   }
+
+  // Opens with the opponent's strongest players already listed: the stored
+  // intel answers this without a WOSOracle request.
+  const autoLoaded = useRef(false);
+  useEffect(() => {
+    if (autoLoaded.current) return;
+    autoLoaded.current = true;
+    const loadId = window.setTimeout(() => void loadOpponent(), 0);
+    return () => window.clearTimeout(loadId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function loadRoster(alliance: OpponentAlliance) {
     if (!opponent) return;

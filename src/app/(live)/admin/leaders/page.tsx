@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { useBattle } from "@/components/BattleProvider";
 import {
@@ -13,6 +13,7 @@ import {
   type PickedEnemy,
 } from "@/components/OpponentRosterPicker";
 import { useStates } from "@/components/StateProvider";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ManageLeadersPage() {
   const { t, formatNumber } = useLanguage();
@@ -30,11 +31,35 @@ export default function ManageLeadersPage() {
   const [x, setX] = useState(600);
   const [y, setY] = useState(606);
   const [enemyPetActive, setEnemyPetActive] = useState(false);
+  const [remembered, setRemembered] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
   const [editingLeaderId, setEditingLeaderId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editX, setEditX] = useState(0);
   const [editY, setEditY] = useState(0);
   const [editPetActive, setEditPetActive] = useState(false);
+
+  // Enemy cities rarely move: reuse the coordinates from the last battle
+  // this player was a rally leader in.
+  async function pickLeader(selection: PickedEnemy) {
+    setPicked(selection);
+    setEnemyName(selection.member.name);
+    setRemembered(false);
+    if (!activeMembership || !selection.member.wosId) return;
+    const { data } = await supabase
+      .from("enemy_leaders")
+      .select("x, y")
+      .eq("state_id", activeMembership.stateId)
+      .eq("wos_id", selection.member.wosId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      setX(data.x);
+      setY(data.y);
+      setRemembered(true);
+    }
+  }
 
   async function handleAddLeader() {
     const error = await addEnemyLeader(
@@ -57,6 +82,7 @@ export default function ManageLeadersPage() {
     setEnemyName("");
     setPicked(null);
     setEnemyPetActive(false);
+    setRemembered(false);
   }
 
   function startEditing(
@@ -101,16 +127,13 @@ export default function ManageLeadersPage() {
         <h2>{t("Manage enemy rally leaders")}</h2>
         <p>
           {t(
-            "These leaders belong only to the current battle period. A new battle period starts with an empty leader list.",
+            "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.",
           )}
         </p>
         {activeMembership && (
           <OpponentRosterPicker
             stateId={activeMembership.stateId}
-            onPick={(selection) => {
-              setPicked(selection);
-              setEnemyName(selection.member.name);
-            }}
+            onPick={(selection) => void pickLeader(selection)}
           />
         )}
         <label>
@@ -155,6 +178,11 @@ export default function ManageLeadersPage() {
             onChange={(event) => setY(Number(event.target.value))}
           />
         </label>
+        {remembered && (
+          <p className="form-hint">
+            {t("Coordinates from the last battle against this player.")}
+          </p>
+        )}
         <label>
           <input
             type="checkbox"
