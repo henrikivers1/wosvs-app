@@ -226,7 +226,6 @@ export function buildDemoSeed(now: Date): DemoTables {
     system_key: "rally_lead",
     kind: "custom",
     hero_generation: null,
-    bulk_move_limit: 100,
     created_at: iso,
   };
   const heroTags = ["Jessie", "Jasser", "Sergey"].map((hero, index) => ({
@@ -237,7 +236,6 @@ export function buildDemoSeed(now: Date): DemoTables {
     system_key: null,
     kind: "hero",
     hero_generation: 1,
-    bulk_move_limit: 100,
     created_at: iso,
   }));
   const rallyTags = leaders.slice(0, 2).map((leader, index) => ({
@@ -248,7 +246,6 @@ export function buildDemoSeed(now: Date): DemoTables {
     system_key: null,
     kind: "rally",
     hero_generation: null,
-    bulk_move_limit: 100,
     created_at: iso,
   }));
 

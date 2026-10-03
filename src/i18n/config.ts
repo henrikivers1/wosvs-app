@@ -2,11 +2,7 @@ export const SUPPORTED_LOCALES = [
   "en",
   "zh",
   "es",
-  "pt",
   "ar",
-  "hi",
-  "ru",
-  "id",
   "th",
 ] as const;
 
@@ -16,9 +12,6 @@ export const LANGUAGE_OPTIONS: Array<{
   code: AppLocale;
   label: string;
 }> = [
-  // Only fully translated languages are offered. Portuguese, Hindi, Russian
-  // and Indonesian stay supported for saved preferences but only cover the
-  // header, so they are not listed.
   { code: "en", label: "English" },
   { code: "zh", label: "简体中文" },
   { code: "es", label: "Español" },

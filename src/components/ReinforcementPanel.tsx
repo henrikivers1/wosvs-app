@@ -166,7 +166,7 @@ export function ReinforcementSchedule({
           <article key={landingWindow.id}>
             <h3>
               {t("Window {number}", { number: index + 1 })}
-              {t(":")} {landingWindow.after.enemyName}
+              {":"} {landingWindow.after.enemyName}
               {landingWindow.before
                 ? ` → ${landingWindow.before.enemyName}`
                 : ` → ${t("after the last rally")}`}

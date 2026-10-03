@@ -1285,9 +1285,6 @@ article.notification-card {
 .notification-comment {
   --notification-color: #9aa4b2;
 }
-.notification-vote {
-  --notification-color: #db61a2;
-}
 .notification-notice {
   --notification-color: #d4a85a;
 }

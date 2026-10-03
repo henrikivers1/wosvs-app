@@ -729,7 +729,7 @@ export default function BattlePlanningPage() {
       return;
     }
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_battle_plan_comment", {
       target_plan_id: planId,
       commenter_wos_account_id: activeMembership.wosAccountId,
@@ -750,7 +750,7 @@ export default function BattlePlanningPage() {
   async function deleteComment(comment: PlanComment) {
     if (!window.confirm(t("Delete this comment?"))) return;
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("delete_battle_plan_comment", {
       target_comment_id: comment.id,
       actor_wos_account_id: activeMembership?.wosAccountId,
@@ -1077,7 +1077,7 @@ export default function BattlePlanningPage() {
       return;
     }
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     try {
       const response = await fetch("/api/automation/plan", {
         method: "POST",
@@ -1154,7 +1154,7 @@ export default function BattlePlanningPage() {
   async function createSvsPlan() {
     if (!activeMembership || !isAdmin) return;
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_svs_plan", {
       target_state_id: activeMembership.stateId,
       opponent_number: Number(newPlanOpponent) || null,
@@ -1170,7 +1170,7 @@ export default function BattlePlanningPage() {
   async function toggleRallyLead(member: StateMember, enabled: boolean) {
     if (!activeMembership) return;
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("set_state_rally_lead", {
       target_state_id: activeMembership.stateId,
       target_wos_account_id: member.id,
@@ -1326,9 +1326,9 @@ export default function BattlePlanningPage() {
             ? "—"
             : formatNumber(member.labyrinth_score)}{" "}
           {t("· Troops")} {member.infantry_tier ?? "—"}
-          {t("/")}
+          {"/"}
           {member.lancer_tier ?? "—"}
-          {t("/")}
+          {"/"}
           {member.marksman_tier ?? "—"}
         </small>
         <div className="plan-member-context">
@@ -1422,11 +1422,11 @@ export default function BattlePlanningPage() {
               <option value="">{t("Unassigned")}</option>
               {planGroups.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {group.name} {t("(")}
+                  {group.name} {"("}
                   {getGroupMembers(planId, group.id).length}
-                  {t("/")}
+                  {"/"}
                   {group.max_members}
-                  {t(")")}
+                  {")"}
                 </option>
               ))}
             </select>
@@ -2166,7 +2166,7 @@ export default function BattlePlanningPage() {
                                     </div>
                                     <span>
                                       {groupMembers.length}
-                                      {t("/")}
+                                      {"/"}
                                       {group.max_members}
                                     </span>
                                   </div>
@@ -2348,7 +2348,7 @@ export default function BattlePlanningPage() {
                                       </strong>
                                       {author?.username && (
                                         <small>
-                                          {t("@")}
+                                          {"@"}
                                           {author.username}
                                         </small>
                                       )}

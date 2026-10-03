@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { createClient } from "@/lib/supabase/client";
@@ -16,12 +16,19 @@ export default function LoginPage() {
   const [wosId, setWosId] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [message, setMessage] = useState("");
+  // Errors passed back by the email confirmation link (?error=...).
+  useEffect(() => {
+    const error = new URLSearchParams(window.location.search).get("error");
+    if (!error) return;
+    const showId = window.setTimeout(() => setMessage(t(error)), 0);
+    return () => window.clearTimeout(showId);
+  }, [t]);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     const supabase = createClient();
 
     if (mode === "signup") {
@@ -41,7 +48,7 @@ export default function LoginPage() {
       if (error) {
         setMessage(
           error.message.includes("Database error")
-            ? "That username or WOS ID may already be registered."
+            ? t("That username may already be registered.")
             : error.message,
         );
         return;
@@ -164,7 +171,7 @@ export default function LoginPage() {
           type="button"
           onClick={() => {
             setMode(mode === "login" ? "signup" : "login");
-            setMessage(t(""));
+            setMessage("");
           }}
         >
           {mode === "login"

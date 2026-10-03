@@ -47,7 +47,7 @@ export default function StateStatsPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     const [historyResult, overviewResult] = await Promise.all([
       supabase.rpc("get_state_battle_history_v2", {
         target_state_id: activeMembership.stateId,
@@ -76,7 +76,7 @@ export default function StateStatsPage() {
       setWosAccountCount(Number(overview?.wos_account_count ?? 0));
     }
     setLoading(false);
-  }, [activeMembership, loadingStates, supabase, t]);
+  }, [activeMembership, loadingStates, supabase]);
 
   useEffect(() => {
     const loadId = window.setTimeout(() => {

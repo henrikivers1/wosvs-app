@@ -73,7 +73,7 @@ export default function AlliancesPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     await supabase.rpc("cleanup_expired_state_announcements");
 
     const [allianceResult, assignmentResult, memberResult, recipientResult] =
@@ -207,7 +207,7 @@ export default function AlliancesPage() {
     setAllianceNotices(notices);
     setMembers(stateMembers);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase, t]);
+  }, [activeMembership, isAdmin, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -366,7 +366,7 @@ export default function AlliancesPage() {
                             <h3>{alliance.name}</h3>
                             <small>
                               {allianceMembers.length}
-                              {t("/")}
+                              {"/"}
                               {alliance.max_members} {t("members")}
                             </small>
                           </div>

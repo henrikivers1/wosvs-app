@@ -116,7 +116,7 @@ export default function OverwatchPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     const stateId = activeMembership.stateId;
     const accountId = activeMembership.wosAccountId;
 
@@ -288,7 +288,7 @@ export default function OverwatchPage() {
     setComments(loadedComments);
     setAccountLabels((accountResult.data ?? []) as AccountLabel[]);
     setLoading(false);
-  }, [activeMembership, supabase, t]);
+  }, [activeMembership, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -336,7 +336,7 @@ export default function OverwatchPage() {
   async function postPublicComment(planId: string) {
     if (!activeMembership || !commentDraft.trim()) return;
     setSavingComment(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_battle_plan_comment", {
       target_plan_id: planId,
       commenter_wos_account_id: activeMembership.wosAccountId,

@@ -1,26 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
-import { canUseBattleTool } from "@/lib/battleAccess";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Home() {
   const { t } = useLanguage();
-  const { activeMembership, memberships, signedIn, loadingStates } =
-    useStates();
-  const battleActive = Boolean(activeMembership?.battleId);
-  const canCallRallies = canUseBattleTool(activeMembership, "rally_caller");
-  const canUseGarrison = canUseBattleTool(activeMembership, "garrison");
-  const uniqueStateCount = new Set(
-    memberships.map((membership) => membership.stateId),
-  ).size;
-  const accountsInActiveState = activeMembership
-    ? memberships.filter(
-        (membership) => membership.stateId === activeMembership.stateId,
-      ).length
-    : 0;
+  const { activeMembership, signedIn, loadingStates } = useStates();
 
   if (signedIn === null || loadingStates) {
     return (
@@ -66,7 +55,7 @@ export default function Home() {
             </div>
             <div>
               <dt>{t("State owners")}</dt>
-              <dd>{t("Control members, roles, and active battle periods.")}</dd>
+              <dd>{t("SvS plans, rallies and battles run automatically from the draw.")}</dd>
             </div>
           </dl>
         </section>
@@ -109,158 +98,23 @@ export default function Home() {
     );
   }
 
+  // Members land on Overwatch (their SvS, vote and assignment); players
+  // without a state on Account, where adding a WOS ID sends the join request.
   return (
     <main>
       <AppHeader />
-      <section className="dashboard-heading">
-        <div>
-          <p className="section-label">{t("Current workspace")}</p>
-          <h1>
-            {activeMembership
-              ? activeMembership.stateName
-              : t("No state selected")}
-          </h1>
-          {activeMembership && (
-            <p>
-              {t("Signed in as")}{" "}
-              <strong>
-                {activeMembership.wosNickname || activeMembership.wosId}
-              </strong>
-              {" · "}
-              {activeMembership.role.replace("_", " ")}
-            </p>
-          )}
-        </div>
-        {activeMembership && (
-          <span
-            className={
-              battleActive ? "battle-state battle-state-active" : "battle-state"
-            }
-          >
-            {battleActive
-              ? `${activeMembership.battleName || t("Battle")} — ${t("Battle period active")}`
-              : t("No active battle period")}
-          </span>
-        )}
+      <RedirectTo href={activeMembership ? "/state/overwatch" : "/account"} />
+      <section className="loading-panel">
+        <p>{t("Loading...")}</p>
       </section>
-
-      {!activeMembership ? (
-        <section className="empty-state">
-          <h2>{t("You have not joined a state")}</h2>
-          <p>
-            {t(
-              "Ask a state owner to invite one of your registered WOS IDs. Invitations appear under the notification bell.",
-            )}
-          </p>
-          <div className="button-row">
-            <Link className="primary-link" href="/notifications">
-              {t("View notifications")}
-            </Link>
-            <Link className="secondary-link" href="/account">
-              {t("Manage WOS accounts")}
-            </Link>
-          </div>
-        </section>
-      ) : (
-        <>
-          {!battleActive && (
-            <section className="battle-inactive-panel">
-              <div>
-                <p className="section-label">
-                  {t("Battle operations unavailable")}
-                </p>
-                <h2>{t("No battle period is active")}</h2>
-                <p>
-                  {t(
-                    "Rally leaders, rally calls, schedules, and garrison timing remain hidden until the state owner starts a battle period.",
-                  )}
-                </p>
-              </div>
-              {(activeMembership.role === "owner" ||
-                activeMembership.role === "admin") && (
-                <Link className="primary-link" href="/state/manage">
-                  {t("Manage battle period")}
-                </Link>
-              )}
-            </section>
-          )}
-
-          {battleActive && (
-            <section>
-              <div className="section-title-row">
-                <div>
-                  <p className="section-label">{t("Battle operations")}</p>
-                  <h2>{t("Available tools")}</h2>
-                </div>
-              </div>
-              <div className="operations-list">
-                {canCallRallies && (
-                  <>
-                    <Link className="operation-row" href="/admin/leaders">
-                      <div>
-                        <strong>{t("Rally leaders")}</strong>
-                        <span>{t("Enemy coordinates and pet status")}</span>
-                      </div>
-                      <span>{t("Open")}</span>
-                    </Link>
-                    <Link className="operation-row" href="/admin/call-rally">
-                      <div>
-                        <strong>{t("Call rally")}</strong>
-                        <span>
-                          {t("Add an incoming rally to the live schedule")}
-                        </span>
-                      </div>
-                      <span>{t("Open")}</span>
-                    </Link>
-                  </>
-                )}
-                {canUseGarrison && (
-                  <Link className="operation-row" href="/garrison">
-                    <div>
-                      <strong>{t("Garrison timing")}</strong>
-                      <span>{t("Personal send times and alerts")}</span>
-                    </div>
-                    <span>{t("Open")}</span>
-                  </Link>
-                )}
-              </div>
-            </section>
-          )}
-
-          {(activeMembership.role === "owner" ||
-            activeMembership.role === "admin") && (
-            <section className="owner-shortcut">
-              <div>
-                <p className="section-label">{t("Administration")}</p>
-                <h2>{t("State management")}</h2>
-                <p>
-                  {t(
-                    "Manage invitations, approvals, member roles, and the current battle period.",
-                  )}
-                </p>
-              </div>
-              <Link className="secondary-link" href="/state/manage">
-                {t("Manage state")}
-              </Link>
-            </section>
-          )}
-
-          <section className="workspace-facts">
-            <div>
-              <span>{t("States joined")}</span>
-              <strong>{uniqueStateCount}</strong>
-            </div>
-            <div>
-              <span>{t("Your WOS accounts in this state")}</span>
-              <strong>{accountsInActiveState}</strong>
-            </div>
-            <div>
-              <span>{t("Current role")}</span>
-              <strong>{activeMembership.role.replace("_", " ")}</strong>
-            </div>
-          </section>
-        </>
-      )}
     </main>
   );
+}
+
+function RedirectTo({ href }: { href: string }) {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace(href);
+  }, [href, router]);
+  return null;
 }

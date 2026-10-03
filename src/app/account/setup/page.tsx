@@ -51,7 +51,7 @@ export default function AccountSetupPage() {
   async function completeSetup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
 
     const { error } = await supabase.rpc("complete_account_setup", {
       chosen_username: username.trim(),

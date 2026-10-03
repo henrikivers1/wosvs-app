@@ -31,11 +31,6 @@ export function createDemoClient() {
     removeChannel: async () => "ok",
     auth: {
       getUser: async () => ({ data: { user: demoUser }, error: null }),
-      getSession: async () => ({
-        data: { session: { user: demoUser } },
-        error: null,
-      }),
-      getClaims: async () => ({ data: { claims: { sub: DEMO_USER_ID } }, error: null }),
       onAuthStateChange: () => ({
         data: { subscription: { unsubscribe() {} } },
       }),
@@ -50,15 +45,6 @@ export function createDemoClient() {
       signUp: async () => ({
         data: { user: null, session: null },
         error: { message: "Exit the demo to create an account." },
-      }),
-    },
-    storage: {
-      from: () => ({
-        getPublicUrl: () => ({ data: { publicUrl: "" } }),
-        upload: async () => ({
-          data: null,
-          error: { message: "Uploads are not available in the demo." },
-        }),
       }),
     },
   };

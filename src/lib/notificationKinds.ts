@@ -12,7 +12,6 @@ export type NotificationCategory =
   | "membership"
   | "removal"
   | "comment"
-  | "vote"
   | "notice";
 
 export const NOTIFICATION_CATEGORIES: Record<
@@ -29,7 +28,6 @@ export const NOTIFICATION_CATEGORIES: Record<
   membership: { label: "Membership", icon: "👋" },
   removal: { label: "Removed", icon: "✖" },
   comment: { label: "Comment", icon: "💬" },
-  vote: { label: "Vote", icon: "🗳️" },
   notice: { label: "Notice", icon: "📣" },
 };
 
@@ -53,8 +51,8 @@ export const NOTIFICATION_FILTERS: {
   },
   {
     key: "social",
-    label: "Comments & votes",
-    categories: ["comment", "vote", "notice"],
+    label: "Comments & notices",
+    categories: ["comment", "notice"],
   },
 ];
 
@@ -62,6 +60,8 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   battle_started: "battle",
   battle_completed: "battle",
   battle_cancelled: "battle",
+  attendance_reminder: "battle",
+  rallies_generated: "battle",
   svs_drawn: "battle",
   battle_plan_assignment: "assignment",
   battle_plan_published: "assignment",
@@ -84,7 +84,6 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   state_invite_rejected: "removal",
   battle_plan_comment: "comment",
   battle_plan_comment_mention: "comment",
-  state_poll_created: "vote",
   state_announcement: "notice",
 };
 
@@ -117,6 +116,9 @@ export type NotificationTextData = {
   alliance_name?: string | null;
   moved?: boolean;
   plan_name?: string;
+  rallies?: number;
+  players?: number;
+  publish_at?: string | null;
   wos_id?: string;
   state_number?: number;
   group_name?: string;
@@ -349,6 +351,32 @@ export function localizedNotificationText(
           "{plan} was published for {start}. This account is not assigned to a rally.",
           { plan: data.plan_name, start },
         ),
+      };
+    case "attendance_reminder":
+      if (!data.player || !data.plan_name) return null;
+      return {
+        title: t("Can you join the SvS?"),
+        body: t(
+          "{player}: vote whether you can join {plan} so you get a rally spot.",
+          { player, plan: data.plan_name },
+        ),
+      };
+    case "rallies_generated":
+      if (!data.plan_name) return null;
+      return {
+        title: t("Rallies are ready for review"),
+        body:
+          t("{rallies} rallies with {players} players were set up for {plan}.", {
+            rallies: data.rallies ?? 0,
+            players: data.players ?? 0,
+            plan: data.plan_name,
+          }) +
+          " " +
+          (data.publish_at
+            ? t("They are published automatically at {time}.", {
+                time: formatDateTime(data.publish_at),
+              })
+            : t("Publish them from Planning.")),
       };
     case "state_join_request":
       if (!data.player || !data.state_name) return null;

@@ -241,7 +241,7 @@ export default function AccountPage() {
       return;
     }
 
-    setMessage(t(""));
+    setMessage("");
     const { data: createdAccount, error } = await supabase
       .from("wos_accounts")
       .insert({
@@ -301,7 +301,7 @@ export default function AccountPage() {
       return;
     }
 
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase
       .from("wos_accounts")
       .update(profile)
@@ -324,11 +324,18 @@ export default function AccountPage() {
         <p>
           {t("Public username:")}{" "}
           <strong>
-            {t("@")}
+            {"@"}
             {username}
           </strong>
         </p>
         <p>{t("Your email is private and is never shown to other players.")}</p>
+        {!loadingStates && memberships.length === 0 && (
+          <p className="page-message">
+            {t(
+              "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.",
+            )}
+          </p>
+        )}
       </section>
 
       <section>

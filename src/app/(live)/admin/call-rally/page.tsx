@@ -92,7 +92,7 @@ export default function CallRallyPage() {
         {selectedLeader && (
           <p>
             {t("Position:")} {selectedLeader.x}
-            {t(":")}
+            {":"}
             {selectedLeader.y} {t("— March:")} {marchTime} {t("seconds")}
             {petActive
               ? t(" — Pet remaining: {time}", {
@@ -137,7 +137,7 @@ export default function CallRallyPage() {
         )}
         <p>
           {t("Rally timer:")} {minutes}
-          {t(":")}
+          {":"}
           {seconds.toString().padStart(2, "0")}
         </p>
       </section>

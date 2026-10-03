@@ -230,7 +230,7 @@ export default function ManageStatePage() {
   async function addOracleAlliance(name: string) {
     if (!activeMembership) return;
     setSavingAlliance(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_state_alliance", {
       target_state_id: activeMembership.stateId,
       alliance_name: name,
@@ -255,7 +255,7 @@ export default function ManageStatePage() {
     }
 
     setSavingAlliance(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_state_alliance", {
       target_state_id: activeMembership.stateId,
       alliance_name: allianceName.trim(),
@@ -282,7 +282,7 @@ export default function ManageStatePage() {
     setEditingAllianceName(alliance.name);
     setEditingAllianceColor(alliance.color);
     setEditingAllianceCapacity(alliance.max_members);
-    setMessage(t(""));
+    setMessage("");
   }
 
   async function saveAlliance() {
@@ -298,7 +298,7 @@ export default function ManageStatePage() {
     }
 
     setSavingAlliance(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("update_state_alliance", {
       target_alliance_id: editingAllianceId,
       alliance_name: editingAllianceName.trim(),
@@ -323,7 +323,7 @@ export default function ManageStatePage() {
     if (!confirmed) return;
 
     setSavingAlliance(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("delete_state_alliance", {
       target_alliance_id: alliance.id,
     });
@@ -342,7 +342,7 @@ export default function ManageStatePage() {
 
   async function createInvitation() {
     if (!activeMembership || !inviteWosId.trim()) return;
-    setMessage(t(""));
+    setMessage("");
 
     const { error } = await supabase.rpc("create_state_join_invite", {
       target_state_id: activeMembership.stateId,
@@ -410,7 +410,7 @@ export default function ManageStatePage() {
     }
 
     setReleasingClaim(true);
-    setMessage(t(""));
+    setMessage("");
     try {
       const response = await fetch("/api/accounts/release-claim", {
         method: "POST",
@@ -437,7 +437,7 @@ export default function ManageStatePage() {
   }
 
   async function reviewInvitation(inviteId: string, approveInvite: boolean) {
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("review_state_invite", {
       target_invite_id: inviteId,
       approve_invite: approveInvite,
@@ -517,7 +517,7 @@ export default function ManageStatePage() {
 
     if (!confirmed) return;
 
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("remove_state_member", {
       target_state_id: activeMembership.stateId,
       target_wos_account_id: wosAccountId,
@@ -734,7 +734,7 @@ export default function ManageStatePage() {
                       <strong>{alliance.name}</strong>
                       <small>
                         {alliance.memberCount}
-                        {t("/")}
+                        {"/"}
                         {alliance.max_members} {t("published assignments")}
                       </small>
                     </div>

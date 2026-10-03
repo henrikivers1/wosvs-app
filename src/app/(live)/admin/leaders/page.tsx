@@ -265,8 +265,8 @@ export default function ManageLeadersPage() {
                   <>
                     <span>
                       {leader.allianceAbbr && `[${leader.allianceAbbr}] `}
-                      {leader.name} {t("—")} {leader.x}
-                      {t(":")}
+                      {leader.name} {"—"} {leader.x}
+                      {":"}
                       {leader.y}
                       {leader.power !== null &&
                         ` — ${formatNumber(leader.power)}`}

@@ -27,205 +27,238 @@ const english = {
   roleOwner: "owner",
   roleAdmin: "admin",
   roleMember: "member",
-
-  votesLoading: "Loading votes...",
-  votesStateCoordination: "State coordination",
-  votesTitle: "Votes",
-  votesVotingAs: "Voting as {account}. Each WOS account has its own response.",
-  votesRetention: "30-day retention",
-  votesJoinState: "Join a state to vote",
-  votesJoinStateDescription:
-    "Your state votes will appear here after your membership is approved.",
-  votesAdminTools: "Owner and admin tools",
-  votesCreate: "Create a vote",
-  votesQuestion: "Question",
-  votesQuestionPlaceholder: "Who can attend the full battle?",
-  votesClosingTime: "Closing time",
-  votesDescriptionOptional: "Description (optional)",
-  votesDescriptionPlaceholder: "Add any instructions members should know.",
-  votesOptions: "Options",
-  votesOptionNumber: "Option {number}",
-  votesYes: "Yes",
-  votesNo: "No",
-  votesOption: "Option",
-  votesAutomaticTag: "Automatic tag",
-  votesNoAutomaticTag: "No automatic tag",
-  remove: "Remove",
-  votesAddOption: "Add option",
-  votesCreating: "Creating...",
-  votesCreateButton: "Create vote",
-  votesRetentionExplanation:
-    "Votes can stay open for up to 30 days and are permanently deleted 30 days after creation.",
-  votesNoTagsPrefix: "No tags exist yet.",
-  votesCreateTags: "Create tags",
-  votesNoTagsSuffix: "before connecting them to vote options.",
-  votesCurrentAndRecent: "Current and recent votes",
-  votesNoneTitle: "No votes yet",
-  votesNoneDescription:
-    "An Owner or Admin can create the first state vote above.",
   closed: "Closed",
   open: "Open",
   delete: "Delete",
-  closes: "Closes",
-  response: "response",
-  responses: "responses",
-  votesAwardsTag: "Awards {tag}",
-  votesSaving: "Saving...",
-  votesSaveMine: "Save my vote",
-  votesReviewResponses: "Review individual responses",
-  votesNoResponses: "No responses",
-  votesWosId: "WOS ID {id}",
-  votesChooseClosing: "Choose a valid closing date and time.",
-  votesCreated: "Vote created. State members have been notified.",
-  votesChooseOption: "Choose an option before submitting your vote.",
-  votesSaved:
-    "Your vote has been saved. You may change it until voting closes.",
-  votesDeleteConfirm:
-    "Delete “{question}”? All options and responses will be permanently removed.",
-  votesDeleted: "Vote deleted.",
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Rally from {name} called.":
+    "Rally de {name} registrado.",
+  "Cancel the rally from {name} for everyone?":
+    "¿Cancelar el rally de {name} para todos?",
+  "Pick the opponent's players below. Their coordinates are remembered: next battle they are prefilled, and leaders you added before are listed automatically when the battle starts.":
+    "Elige abajo a los jugadores del rival. Sus coordenadas se recuerdan: en la próxima batalla se rellenan solas y los líderes que añadiste antes aparecen automáticamente al empezar.",
+  "Coordinates from the last battle against this player.":
+    "Coordenadas de la última batalla contra este jugador.",
+  "Battles start automatically at 12:00 UTC on battle day. Live tools appear here then.":
+    "Las batallas empiezan solas a las 12:00 UTC del día de batalla. Las herramientas aparecen aquí entonces.",
+  "You have not joined a state yet. When the state of your WOS account uses WOSOverwatch, a join request is sent automatically; you get a notification when an admin approves it.":
+    "Aún no te has unido a un estado. Cuando el estado de tu cuenta WOS use WOSOverwatch, se envía una solicitud automáticamente; recibirás una notificación cuando un admin la apruebe.",
+  "That username may already be registered.":
+    "Ese nombre de usuario puede estar ya registrado.",
+  "Review rallies":
+    "Revisar rallies",
+  "Vote now":
+    "Votar ahora",
+  "SvS plans, rallies and battles run automatically from the draw.":
+    "Los planes SvS, rallies y batallas funcionan solos desde el sorteo.",
+  "Invitation delivered in the player's notification inbox.":
+    "Invitación entregada en la bandeja de notificaciones del jugador.",
+  "Filled in from the owner's WOS account; used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
+    "Se rellena desde la cuenta WOS del dueño; sirve para buscar tu rival y hora de SvS en WOSOracle. Solo el dueño puede cambiarlo.",
+  "Publish now? Every member gets their rally assignment.":
+    "¿Publicar ahora? Cada miembro recibe su asignación de rally.",
+  "Published. Every member got their assignment.":
+    "Publicado. Cada miembro recibió su asignación.",
+  "{rallies} rallies created, {players} players added.":
+    "{rallies} rallies creados, {players} jugadores añadidos.",
+  "Everything below runs by itself: the plan is created at the draw, rallies are set up and filled from attendance 24 hours before the battle and published 6 hours before. Adjust anything by hand; the automation never undoes your changes.":
+    "Todo lo de abajo funciona solo: el plan se crea en el sorteo, los rallies se arman y llenan con la asistencia 24 horas antes y se publican 6 horas antes. Ajusta lo que quieras; la automatización nunca deshace tus cambios.",
+  "No upcoming battle plan.":
+    "No hay plan de batalla próximo.",
+  "Earlier plans ({count})":
+    "Planes anteriores ({count})",
+  "Delete the “{name}” tag? It is removed from {count} WOS accounts.":
+    "¿Eliminar la etiqueta “{name}”? Se quita de {count} cuentas WOS.",
+  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.":
+    "Etiquetas para anuncios y tus propios grupos. Las de rally y héroe se crean solas desde el plan publicado.",
+  "Create a tag above, then add players to it.":
+    "Crea una etiqueta arriba y luego añade jugadores.",
+  "Managed in Planning":
+    "Se gestiona en Planificación",
+  "Run the latest database migration to use automatic planning.":
+    "Ejecuta la última migración de la base de datos para usar la planificación automática.",
+  "Automation saved.":
+    "Automatización guardada.",
+  "SvS automation":
+    "Automatización SvS",
+  "After the draw, the app reminds members to vote 30 hours before the battle, sets up and fills the rallies 24 hours before, adds late voters every hour and publishes 6 hours before. You can change anything by hand in Planning.":
+    "Tras el sorteo, la app recuerda votar 30 horas antes, arma y llena los rallies 24 horas antes, añade a quienes votan tarde cada hora y publica 6 horas antes. Puedes cambiar todo a mano en Planificación.",
+  "Set up and fill rallies automatically":
+    "Armar y llenar rallies automáticamente",
+  "Publish automatically 6 hours before the battle":
+    "Publicar automáticamente 6 horas antes de la batalla",
+  "Number of rallies":
+    "Número de rallies",
+  "Players per rally (with leader)":
+    "Jugadores por rally (con líder)",
+  "Default formation (Inf/Lan/Mark %)":
+    "Formación por defecto (Inf/Lan/Tir %)",
+  "Default joiner heroes for every rally":
+    "Héroes de unión por defecto en cada rally",
+  "None":
+    "Ninguno",
+  "Draw: vs state {opponent}":
+    "Sorteo: contra el estado {opponent}",
+  "SvS plan created":
+    "Plan SvS creado",
+  "Battle {time} (12:00–17:00 UTC).":
+    "Batalla {time} (12:00–17:00 UTC).",
+  "Attendance: {voted}/{total} voted, {available} can play":
+    "Asistencia: {voted}/{total} votaron, {available} pueden jugar",
+  "Members who had not voted were reminded.":
+    "Se recordó a quienes no habían votado.",
+  "Members who have not voted are reminded at {time}.":
+    "Se recordará a quienes no votaron el {time}.",
+  "Rallies: {rallies} with {players} players":
+    "Rallies: {rallies} con {players} jugadores",
+  "Rallies: not generated yet":
+    "Rallies: aún no generados",
+  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.":
+    "Se generan solos el {time} con tus líderes de rally y los mejores del Laberinto, y se llenan según tus prioridades de autollenado.",
+  "Automatic rallies are off for this state.":
+    "Los rallies automáticos están desactivados en este estado.",
+  "{count} players who can play have no rally yet. They are added to open slots every hour.":
+    "{count} jugadores que pueden jugar aún no tienen rally. Se añaden a huecos libres cada hora.",
+  "Late voters are added to open slots every hour.":
+    "Quienes votan tarde se añaden a huecos libres cada hora.",
+  "Fill open slots now":
+    "Llenar huecos ahora",
+  "Generate now":
+    "Generar ahora",
+  "Not published yet":
+    "Aún no publicado",
+  "Every member got their rally, hero and formation.":
+    "Cada miembro recibió su rally, héroe y formación.",
+  "{count} rallies have no destination alliance.":
+    "{count} rallies no tienen alianza de destino.",
+  "Published automatically at {time}.":
+    "Se publica automáticamente el {time}.",
+  "Automatic publishing is off: publish when ready.":
+    "La publicación automática está desactivada: publica cuando esté listo.",
+  "Publish now":
+    "Publicar ahora",
+  "Battle goes live automatically":
+    "La batalla empieza sola",
+  "Live Battle opens for callers and garrison at {time}.":
+    "Batalla en vivo se abre para coordinadores y guarnición el {time}.",
+  "Next SvS":
+    "Próxima SvS",
+  "Can you join the SvS?":
+    "¿Puedes unirte a la SvS?",
+  "Rallies are ready for review":
+    "Los rallies están listos para revisar",
+  "Total power":
+    "Poder total",
+  "SvS opponent drawn":
+    "Rival de SvS sorteado",
+  "Comments & notices":
+    "Comentarios y avisos",
+  "{player}: vote whether you can join {plan} so you get a rally spot.":
+    "{player}: vota si puedes unirte a {plan} para tener un lugar en un rally.",
+  "{rallies} rallies with {players} players were set up for {plan}.":
+    "Se armaron {rallies} rallies con {players} jugadores para {plan}.",
+  "They are published automatically at {time}.":
+    "Se publican automáticamente el {time}.",
+  "Publish them from Planning.":
+    "Publícalos desde Planificación.",
+  "Add":
+    "Añadir",
   "Player data synchronized. A request to join {state} was sent; an owner or admin will review it.":
     "Datos del jugador sincronizados. Se envió una solicitud para unirse a {state}; un dueño o admin la revisará.",
   "Player data synchronized. Your request to join {state} is waiting for review.":
     "Datos del jugador sincronizados. Tu solicitud para unirte a {state} está pendiente de revisión.",
   "Player data synchronized. You have an invitation to {state}: accept it in Notifications.":
     "Datos del jugador sincronizados. Tienes una invitación a {state}: acéptala en Notificaciones.",
-  "Join request: {player}":
-    "Solicitud de ingreso: {player}",
+  "Join request: {player}": "Solicitud de ingreso: {player}",
   "{player} (WOS ID {wosId}) wants to join {state}. Review the request in State management.":
     "{player} (WOS ID {wosId}) quiere unirse a {state}. Revisa la solicitud en Gestión del estado.",
-  "Join request sent":
-    "Solicitud de ingreso enviada",
+  "Join request sent": "Solicitud de ingreso enviada",
   "{player} is in state {number}, so a request to join {state} was sent. An owner or admin will review it.":
     "{player} está en el estado {number}, así que se envió una solicitud para unirse a {state}. Un dueño o admin la revisará.",
-  "End battle as a win":
-    "Terminar la batalla con victoria",
-  "End battle as a loss":
-    "Terminar la batalla con derrota",
-  "Victory":
-    "Victoria",
-  "Defeat":
-    "Derrota",
-  "Rally assignment":
-    "Asignación de rally",
-  "Role":
-    "Rol",
-  "Removed":
-    "Eliminado",
-  "All":
-    "Todas",
-  "Results":
-    "Resultados",
-  "Battles & rallies":
-    "Batallas y rallies",
-  "Your account":
-    "Tu cuenta",
-  "Comments & votes":
-    "Comentarios y votaciones",
-  "No notifications in this filter.":
-    "No hay notificaciones en este filtro.",
+  "End battle as a win": "Terminar la batalla con victoria",
+  "End battle as a loss": "Terminar la batalla con derrota",
+  Victory: "Victoria",
+  Defeat: "Derrota",
+  "Rally assignment": "Asignación de rally",
+  Role: "Rol",
+  Removed: "Eliminado",
+  All: "Todas",
+  Results: "Resultados",
+  "Battles & rallies": "Batallas y rallies",
+  "Your account": "Tu cuenta",
+  "No notifications in this filter.": "No hay notificaciones en este filtro.",
   "Battle results, rally assignments and everything an admin changes on your accounts appear here, colour-coded by action.":
     "Aquí aparecen los resultados de batalla, las asignaciones de rally y todo lo que un admin cambia en tus cuentas, con un color por tipo de acción.",
-  "your state":
-    "tu estado",
+  "your state": "tu estado",
   "Victory! We won against State {opponent}":
     "¡Victoria! Ganamos contra el estado {opponent}",
-  "Victory! We won":
-    "¡Victoria! Hemos ganado",
-  "Defeat against State {opponent}":
-    "Derrota contra el estado {opponent}",
+  "Victory! We won": "¡Victoria! Hemos ganado",
+  "Defeat against State {opponent}": "Derrota contra el estado {opponent}",
   "Hi {player}, {state} won {battle}. Thank you for fighting!":
     "Hola {player}, {state} ganó {battle}. ¡Gracias por luchar!",
   "Hi {player}, {state} lost {battle}. Thank you for fighting, we regroup for the next SvS.":
     "Hola {player}, {state} perdió {battle}. Gracias por luchar, nos reagrupamos para la próxima SvS.",
-  "Battle over":
-    "Batalla terminada",
+  "Battle over": "Batalla terminada",
   "{battle} has ended. The win or loss follows as soon as the result is in.":
     "{battle} ha terminado. La victoria o derrota llegará en cuanto haya resultado.",
-  "Battle cancelled":
-    "Batalla cancelada",
-  "{battle} was cancelled.":
-    "{battle} fue cancelada.",
-  "Promoted to {role}":
-    "Ascendido a {role}",
-  "Role changed to {role}":
-    "Rol cambiado a {role}",
+  "Battle cancelled": "Batalla cancelada",
+  "{battle} was cancelled.": "{battle} fue cancelada.",
+  "Promoted to {role}": "Ascendido a {role}",
+  "Role changed to {role}": "Rol cambiado a {role}",
   "{player} is now {role} of {state} (was {oldRole}).":
     "{player} ahora es {role} de {state} (antes {oldRole}).",
-  "Removed from {state}":
-    "Eliminado de {state}",
+  "Removed from {state}": "Eliminado de {state}",
   "{player} was removed from {state} by an admin.":
     "Un admin eliminó a {player} de {state}.",
-  "New permission: {capability}":
-    "Nuevo permiso: {capability}",
+  "New permission: {capability}": "Nuevo permiso: {capability}",
   "{player} can now use {capability} in {state}.":
     "{player} ahora puede usar {capability} en {state}.",
-  "Permission removed: {capability}":
-    "Permiso retirado: {capability}",
+  "Permission removed: {capability}": "Permiso retirado: {capability}",
   "{player} can no longer use {capability} in {state}.":
     "{player} ya no puede usar {capability} en {state}.",
-  "Rally caller":
-    "Llamador de rally",
-  "You are a Rally Lead":
-    "Eres líder de rally",
-  "New tag: {tag}":
-    "Nueva etiqueta: {tag}",
+  "You are a Rally Lead": "Eres líder de rally",
+  "New tag: {tag}": "Nueva etiqueta: {tag}",
   "{player} gained the {tag} tag in {state}.":
     "{player} obtuvo la etiqueta {tag} en {state}.",
-  "Tag removed: {tag}":
-    "Etiqueta retirada: {tag}",
+  "Tag removed: {tag}": "Etiqueta retirada: {tag}",
   "{player} lost the {tag} tag in {state}.":
     "{player} perdió la etiqueta {tag} en {state}.",
-  "an alliance":
-    "una alianza",
-  "Moved to {alliance}":
-    "Movido a {alliance}",
-  "Assigned to {alliance}":
-    "Asignado a {alliance}",
+  "an alliance": "una alianza",
+  "Moved to {alliance}": "Movido a {alliance}",
+  "Assigned to {alliance}": "Asignado a {alliance}",
   "{player} is now in {alliance} in {state}.":
     "{player} ahora está en {alliance} en {state}.",
-  "Removed from {alliance}":
-    "Eliminado de {alliance}",
+  "Removed from {alliance}": "Eliminado de {alliance}",
   "{player} is no longer assigned to {alliance} in {state}.":
     "{player} ya no está asignado a {alliance} en {state}.",
-  "an alliance not yet selected":
-    "una alianza aún sin elegir",
-  "You lead a rally":
-    "Lideras un rally",
+  "an alliance not yet selected": "una alianza aún sin elegir",
+  "You lead a rally": "Lideras un rally",
   "Hi {player}, you're leading {group} in {alliance}. Please be there by battle start ({start}).":
     "Hola {player}, lideras {group} en {alliance}. Por favor, llega antes del inicio de la batalla ({start}).",
   "You're joining with {hero} and {formation} formation.":
     "Te unes con {hero} y formación {formation}.",
-  "You're joining with {hero}.":
-    "Te unes con {hero}.",
-  "Use {formation} formation.":
-    "Usa la formación {formation}.",
-  "Your rally assignment changed":
-    "Tu asignación de rally cambió",
-  "Your rally assignment":
-    "Tu asignación de rally",
+  "You're joining with {hero}.": "Te unes con {hero}.",
+  "Use {formation} formation.": "Usa la formación {formation}.",
+  "Your rally assignment changed": "Tu asignación de rally cambió",
+  "Your rally assignment": "Tu asignación de rally",
   "Hi {player}, you've been assigned to {group} in {alliance}.":
     "Hola {player}, te asignaron a {group} en {alliance}.",
   "Please be there by battle start ({start}).":
     "Por favor, llega antes del inicio de la batalla ({start}).",
-  "Removed from {group}":
-    "Eliminado de {group}",
+  "Removed from {group}": "Eliminado de {group}",
   "Hi {player}, you are no longer in {group} for {plan} ({start}).":
     "Hola {player}, ya no estás en {group} para {plan} ({start}).",
   "{plan} was published for {start}. This account is not assigned to a rally.":
     "{plan} se publicó para {start}. Esta cuenta no está asignada a ningún rally.",
-  "after the last rally":
-    "después del último rally",
+  "after the last rally": "después del último rally",
   "Land right after {name} hits at {impact} UTC.":
     "Llega justo después del impacto de {name} a las {impact} UTC.",
-  "Land right after {name} hits.":
-    "Llega justo después del impacto de {name}.",
+  "Land right after {name} hits.": "Llega justo después del impacto de {name}.",
   "No landing windows yet. A window appears as soon as an enemy rally is called.":
     "Aún no hay ventanas de llegada. Aparece una en cuanto se llama un rally enemigo.",
-  "Garrison":
-    "Guarnición",
+  Garrison: "Guarnición",
   "No SvS plan": "Sin plan de SvS",
   "Create the SvS plan": "Crear el plan de SvS",
   "There is no upcoming battle plan. It is normally created automatically from the SvS draw; if it was deleted, create it again here. A state can only have one upcoming plan.":
@@ -328,11 +361,9 @@ const spanishInterface: Record<string, string> = {
     "WOSOracle solo lista las alianzas más fuertes de tu estado. Añade alianzas vacías por su ID o escribe un nombre abajo.",
   "Your 4★ joiner heroes are not filled in yet.":
     "Aún no has rellenado tus héroes de apoyo 4★.",
-  "not 4★": "sin 4★",
   "not set": "sin configurar",
   "{count} heroes": "{count} héroes",
   "{count} members": "{count} miembros",
-  "End the battle": "Terminar la batalla",
   "Exit demo": "Salir de la demo",
   "Fake players and data that live only in this browser. Nothing is saved to your state.":
     "Jugadores y datos falsos que solo existen en este navegador. Nada se guarda en tu estado.",
@@ -344,46 +375,25 @@ const spanishInterface: Record<string, string> = {
   "Try the private demo": "Probar la demo privada",
   "Want to look around first? The private demo has fake players and a fake SvS, lives only in your browser and never touches real data.":
     "¿Quieres echar un vistazo primero? La demo privada tiene jugadores y un SvS falsos, vive solo en tu navegador y nunca toca datos reales.",
-  "Change in State management": "Cambiar en Gestión del estado",
   "Hero generation": "Generación de héroes",
-  "Hero generation not set: showing every generation.":
-    "Generación de héroes sin configurar: se muestran todas.",
   "Hero generation saved.": "Generación de héroes guardada.",
   "Not set (show all heroes)": "Sin configurar (mostrar todos)",
   "The newest hero generation your state has unlocked. Heroes from later generations are hidden in Tags.":
     "La generación de héroes más reciente que ha desbloqueado tu estado. Los héroes de generaciones posteriores se ocultan en Etiquetas.",
-  "Your state is on Gen {number}.": "Tu estado está en la Gen {number}.",
-  "Add all shown heroes ({count})":
-    "Añadir todos los héroes mostrados ({count})",
-  "All generations": "Todas las generaciones",
   "All tags": "Todas las etiquetas",
-  "All unlocked": "Todas las desbloqueadas",
   Epic: "Épico",
   "Gen {number}": "Gen {number}",
   Rare: "Raro",
   Regular: "Normal",
-  Show: "Mostrar",
-  "Unlocked up to": "Desbloqueado hasta",
-  "+ {hero}": "+ {hero}",
-  "A tag with that name already exists.":
-    "Ya existe una etiqueta con ese nombre.",
-  "Add hero tag": "Añadir etiqueta de héroe",
   "Add player": "Añadir jugador",
   "Automatic: leader’s rally tag": "Automática: etiqueta del rally del líder",
   "Choose a player": "Elige un jugador",
   Hero: "Héroe",
-  "Hero tags": "Etiquetas de héroe",
   "Join with: {hero}": "Únete con: {hero}",
-  "Joiner heroes": "Héroes de apoyo",
-  "Labels for rallies, joiner heroes and announcements. Rally tags are created automatically for each rally group.":
-    "Etiquetas para rallies, héroes de apoyo y anuncios. Las etiquetas de rally se crean automáticamente para cada grupo.",
   "No players have this tag.": "Ningún jugador tiene esta etiqueta.",
-  "Other hero": "Otro héroe",
   Rally: "Rally",
   "Rally tags are also given to the whole group when the battle plan is published.":
     "Las etiquetas de rally también se dan a todo el grupo cuando se publica el plan.",
-  "Tag players with the hero they join rallies with. Players see it on Overwatch as “Join with”.":
-    "Etiqueta a los jugadores con el héroe con el que se unen a los rallies. Lo verán en Overwatch como «Únete con».",
   "· Lab": "· Lab",
   "Delete plan": "Eliminar plan",
   "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.":
@@ -402,8 +412,6 @@ const spanishInterface: Record<string, string> = {
   "Start (UTC)": "Inicio (UTC)",
   "SvS draw {when}": "Sorteo de SvS {when}",
   "SvS vs state {opponent} {when}": "SvS contra el estado {opponent} {when}",
-  "The SvS plan is created automatically as soon as the draw is made. Build rally groups, assign members, then publish the alliance roster and optional tags.":
-    "El plan de SvS se crea automáticamente en cuanto se hace el sorteo. Crea grupos de rally, asigna miembros y publica la lista de alianzas y etiquetas opcionales.",
   "WOSOracle expected the draw {date} but has not published it yet. Checked every hour until it appears.":
     "WOSOracle esperaba el sorteo {date} pero aún no lo ha publicado. Se comprueba cada hora hasta que aparezca.",
   "Waiting for the SvS draw": "Esperando el sorteo de SvS",
@@ -461,9 +469,6 @@ const spanishInterface: Record<string, string> = {
   "Battle starts {date}.": "La batalla empieza {date}.",
   "Check WOSOracle now": "Comprobar WOSOracle ahora",
   "Checking...": "Comprobando...",
-  "Expected draw {draw}.": "Sorteo previsto {draw}.",
-  "Expected draw {draw}; next battle {battle}.":
-    "Sorteo previsto {draw}; próxima batalla {battle}.",
   "Last checked {date}.": "Última comprobación {date}.",
   "Not checked with WOSOracle yet.": "Aún no se ha comprobado con WOSOracle.",
   "Plans and battles are created, started and ended automatically from the WOSOracle draw.":
@@ -474,10 +479,7 @@ const spanishInterface: Record<string, string> = {
     "Configura el número de estado del juego en Gestión del estado.",
   "SvS battle vs state {opponent} is live":
     "La batalla SvS contra el estado {opponent} está en curso",
-  "SvS draw in {days} days": "Sorteo de SvS en {days} días",
   "SvS status unknown": "Estado de SvS desconocido",
-  "SvS vs state {opponent} in {days} days":
-    "SvS contra el estado {opponent} en {days} días",
   "The check failed.": "La comprobación falló.",
   "WOSOracle checked.": "WOSOracle comprobado.",
   " — from the SvS draw": " — del sorteo de SvS",
@@ -485,32 +487,20 @@ const spanishInterface: Record<string, string> = {
   "(Leader)": "(Líder)",
   "Auto from battle plan": "Automático desde el plan",
   "Enter a valid state number.": "Introduce un número de estado válido.",
-  "Fill from SvS draw (WOSOracle)": "Rellenar con el sorteo de SvS (WOSOracle)",
-  "Filled in from WOSOracle: state {opponent}.":
-    "Rellenado desde WOSOracle: estado {opponent}.",
   "In-game state": "Estado del juego",
   "In-game state number saved.": "Número de estado guardado.",
-  "Load alliances": "Cargar alianzas",
-  "Loading SvS draw...": "Cargando sorteo de SvS...",
   "Only the state owner can change this.":
     "Solo el propietario del estado puede cambiar esto.",
   "Opponent state": "Estado rival",
-  "Pick from the enemy roster": "Elegir de la lista enemiga",
   "Picked from WOSOracle: [{abbr}] {name}. Enter their coordinates below.":
     "Elegido de WOSOracle: [{abbr}] {name}. Introduce sus coordenadas abajo.",
   "Search player": "Buscar jugador",
   "Select alliance": "Seleccionar alianza",
   "State number": "Número de estado",
   "State {opponent}": "Estado {opponent}",
-  "The SvS draw could not be loaded.": "No se pudo cargar el sorteo de SvS.",
   "The opponent could not be loaded.": "No se pudo cargar el rival.",
   "The roster could not be loaded.": "No se pudo cargar la lista.",
-  "Used to look up your SvS opponent and battle time on WOSOracle. Only the owner can change it.":
-    "Se usa para buscar tu rival y la hora de batalla de SvS en WOSOracle. Solo el propietario puede cambiarlo.",
   Use: "Usar",
-  "Your state sits this SvS season out.":
-    "Tu estado no participa en esta temporada de SvS.",
-  "e.g. 1501": "p. ej. 1501",
   "vs state {opponent}": "vs estado {opponent}",
   "Battle clock not synchronized yet — using this device's clock.":
     "Reloj de batalla aún no sincronizado: se usa el reloj de este dispositivo.",
@@ -521,8 +511,6 @@ const spanishInterface: Record<string, string> = {
   "Land between {first} and {second}.": "Llega entre {first} y {second}.",
   "Land between {opens} and {closes} UTC ({seconds} s gap).":
     "Llega entre {opens} y {closes} UTC (margen de {seconds} s).",
-  "No landing windows yet. A window appears once two enemy rallies are called.":
-    "Aún no hay ventanas de llegada. Aparece una cuando se llaman dos rallies enemigos.",
   "Resync clock": "Resincronizar reloj",
   "Send early (ms)": "Enviar antes (ms)",
   "Send early compensates for your game ping: if the game lags on your connection, add your ping here.":
@@ -549,31 +537,21 @@ const spanishInterface: Record<string, string> = {
   "/2000 characters": "/2000 caracteres",
   "A limited free trial can be arranged before purchasing state access. Monthly plans may be introduced later.":
     "Se puede organizar una prueba gratuita limitada antes de comprar el acceso al estado. Más adelante podrían añadirse planes mensuales.",
-  "A published plan must be started before live tools become available.":
-    "Debe iniciarse un plan publicado antes de que estén disponibles las herramientas en vivo.",
   "A shared workspace for enemy rally calls, synchronized impact waves, and personal garrison send times.":
     "Un espacio compartido para avisos de rallies enemigos, oleadas de impacto sincronizadas y horarios personales de envío de guarnición.",
   Accept: "Aceptar",
-  "Accepting sends a membership request to the state owner. You do not receive state access until the owner verifies and approves your WOS account.":
-    "Al aceptar, se envía una solicitud de membresía al propietario del estado. No recibirás acceso hasta que verifique y apruebe tu cuenta de WOS.",
   "Access model": "Modelo de acceso",
   Account: "Cuenta",
   "Active announcements": "Anuncios activos",
   "Add a public comment": "Añadir un comentario público",
-  "Add an incoming rally to the live schedule":
-    "Añadir un rally entrante al programa en vivo",
-  "Add and maintain the enemy Rally Leads for this battle period.":
-    "Añade y administra los líderes de rally enemigos de este periodo de batalla.",
   "Add another WOS account": "Añadir otra cuenta de WOS",
   "Add leader": "Añadir líder",
-  "Add matching": "Añadir coincidencias",
   "Add rally group": "Añadir grupo de rally",
   "Add WOS account": "Añadir cuenta de WOS",
   "Automatic player data has not been synchronized yet.":
     "Los datos automáticos del jugador aún no se han sincronizado.",
   Admin: "Administrador",
   "Admin access required": "Se necesita acceso de administrador",
-  Administration: "Administración",
   Admins: "Administradores",
   Alliance: "Alianza",
   "Alliance capacity must be between 1 and 100.":
@@ -595,12 +573,8 @@ const spanishInterface: Record<string, string> = {
   "Announcement sent.": "Anuncio enviado.",
   "Announcements sent to this account will appear here.":
     "Los anuncios enviados a esta cuenta aparecerán aquí.",
-  "Any answer": "Cualquier respuesta",
   "Any tag": "Cualquier etiqueta",
-  "Any vote": "Cualquier voto",
   Archive: "Archivo",
-  "Ask a state owner to invite one of your registered WOS IDs. Invitations appear under the notification bell.":
-    "Pide al propietario de un estado que invite uno de tus ID de WOS registrados. Las invitaciones aparecen bajo la campana de notificaciones.",
   "Assign Rally Lead tags from State members first.":
     "Primero asigna etiquetas de líder de rally desde Miembros del estado.",
   "Assign these accounts to a rally group in Battle Planning, then publish the plan.":
@@ -608,48 +582,26 @@ const spanishInterface: Record<string, string> = {
   assigned: "asignado",
   Assignment: "Asignación",
   Audience: "Destinatarios",
-  "Available tools": "Herramientas disponibles",
   "Avg furnace": "Promedio de horno",
   "Avg power": "Potencia media",
   "Avg T12 skill": "Promedio de habilidad T12",
   "Avg troop": "Promedio de tropas",
-  "Backup invitation link copied.": "Enlace de invitación de respaldo copiado.",
-  "Battle access": "Acceso a la batalla",
   "Battle activity retained across every battle period.":
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
-  "Battle operations": "Operaciones de batalla",
-  "Battle operations unavailable": "Operaciones de batalla no disponibles",
-  "Battle period": "Periodo de batalla",
-  "Battle period ended and its result was saved permanently.":
-    "El periodo de batalla terminó y su resultado se guardó permanentemente.",
-  "Battle period started. Live Battle tools are now available.":
-    "El periodo de batalla ha comenzado. Las herramientas de Batalla en vivo ya están disponibles.",
-  "Battle plan created as a draft.": "Plan de batalla creado como borrador.",
   "Battle plan deleted.": "Plan de batalla eliminado.",
   "Battle plan updated. Republish to notify players.":
     "Plan de batalla actualizado. Vuelve a publicarlo para notificar a los jugadores.",
   "Battle planning": "Planificación de batalla",
-  "Battle plans, comments, mentions, tags, votes, notices, and state membership updates appear here.":
-    "Aquí aparecen planes de batalla, comentarios, menciones, etiquetas, votaciones, avisos y actualizaciones de membresía.",
-  "Battle result": "Resultado de la batalla",
   "Battle role": "Rol de batalla",
   "Battle structure": "Estructura de batalla",
-  "battle tools are available to assigned coordinators and garrison players.":
-    "las herramientas de batalla están disponibles para coordinadores y jugadores de guarnición asignados.",
   "Battle-day alliances": "Alianzas del día de batalla",
-  "Build rally groups, assign every member here, then publish the alliance roster and optional tags.":
-    "Crea grupos de rally, asigna aquí a cada miembro y después publica la lista de alianzas y las etiquetas opcionales.",
-  "Bulk-move limit": "Límite de movimiento masivo",
-  "Call a rally": "Registrar un rally",
   "Call enemy rally": "Registrar rally enemigo",
   "Call rally": "Registrar rally",
   Cancel: "Cancelar",
   "Cancel rally": "Cancelar rally",
   Cancelled: "Cancelada",
-  "Candidate finder": "Buscador de candidatos",
   Capacity: "Capacidad",
-  Castle: "Castillo",
   "Check your email to confirm your account.":
     "Revisa tu correo para confirmar la cuenta.",
   "Choose a state": "Elegir un estado",
@@ -661,7 +613,6 @@ const spanishInterface: Record<string, string> = {
   "Chief level": "Nivel de jefe",
   "Clear filters": "Borrar filtros",
   Color: "Color",
-  "Combat profile": "Perfil de combate",
   "Combat profile saved.": "Perfil de combate guardado.",
   Comment: "Comentario",
   "Comment deleted.": "Comentario eliminado.",
@@ -672,20 +623,9 @@ const spanishInterface: Record<string, string> = {
   Contact: "Contacto",
   "Contact us on Discord with your state name and a short description of your team.":
     "Contáctanos en Discord con el nombre de tu estado y una breve descripción de tu equipo.",
-  "Control members, roles, and active battle periods.":
-    "Controla miembros, roles y periodos de batalla activos.",
   Coordinator: "Coordinador",
   Coordinators: "Coordinadores",
-  "Copy link": "Copiar enlace",
-  "Create a tag above, then connect it to a voting option.":
-    "Crea una etiqueta arriba y después conéctala con una opción de votación.",
-  "Create and publish a plan to schedule its battle period. Start the live period from that plan when coordination begins.":
-    "Crea y publica un plan para programar su periodo de batalla. Inicia el periodo en vivo desde ese plan cuando comience la coordinación.",
-  "Create battle plan": "Crear plan de batalla",
-  "Create draft plan": "Crear plan borrador",
   "Create group": "Crear grupo",
-  "Create reusable labels for votes, alliances, and battle plans.":
-    "Crea etiquetas reutilizables para votaciones, alianzas y planes de batalla.",
   "Create tag": "Crear etiqueta",
   "Create the alliances available to battle planners. Member assignments are managed only from Battle Planning and become visible in Alliance Overview after publishing.":
     "Crea las alianzas disponibles para los planificadores. Las asignaciones de miembros solo se administran desde Planificación de batalla y aparecen en el resumen después de publicar.",
@@ -693,28 +633,19 @@ const spanishInterface: Record<string, string> = {
     "Crea el primer destino para tus planes de batalla.",
   "Creating an account is free. Creating a state requires a one-time state creation entitlement issued by WOS Battle Planner. State members join through invitations from their state owner.":
     "Crear una cuenta es gratis. Crear un estado requiere un permiso de creación de un solo uso emitido por WOSOverwatch. Los miembros se unen mediante invitaciones del propietario.",
-  "Current role": "Rol actual",
-  "Current workspace": "Espacio de trabajo actual",
   Decline: "Rechazar",
   Delete: "Eliminar",
-  "Delete draft": "Eliminar borrador",
   "Delete this comment?": "¿Eliminar este comentario?",
   "Destination alliance": "Alianza de destino",
-  "Drop filtered candidates here.": "Suelta aquí los candidatos filtrados.",
   Edit: "Editar",
   Email: "Correo electrónico",
-  "End and save battle": "Finalizar y guardar batalla",
   Ended: "Finalizada",
-  "Enemy coordinates and pet status":
-    "Coordenadas enemigas y estado de mascota",
   "Enemy leaders": "Líderes enemigos",
   "Enter a name, Rally Lead, and destination alliance.":
     "Introduce un nombre, un líder de rally y una alianza de destino.",
   "Enter a numeric WOS ID.": "Introduce un ID de WOS numérico.",
   "Enter only the WOS ID. Name, avatar, state, Furnace and statistics are synchronized automatically.":
     "Introduce solo el ID de WOS. El nombre, avatar, estado, Horno y estadísticas se sincronizan automáticamente.",
-  "Enter a plan name and choose a future battle time.":
-    "Introduce un nombre de plan y elige una hora futura para la batalla.",
   "Enter a tag name.": "Introduce un nombre de etiqueta.",
   "Enter a title containing at least 3 characters.":
     "Introduce un título de al menos 3 caracteres.",
@@ -732,22 +663,15 @@ const spanishInterface: Record<string, string> = {
     "Todas las personas que tengan actualmente esta etiqueta recibirán el mensaje en sus notificaciones.",
   Expires: "Caduca",
   "Expires automatically": "Caduca automáticamente",
-  "Find accounts worth assigning": "Buscar cuentas para asignar",
   "Formation update": "Actualización de formación",
   "Full Battle": "Batalla completa",
   "Garrison players": "Jugadores de guarnición",
-  "Garrison timing": "Tiempo de guarnición",
   "Group name": "Nombre del grupo",
-  "In-game name": "Nombre en el juego",
   "Incoming rally schedule": "Programa de rallies entrantes",
   Kills: "Bajas",
   "Labyrinth score": "Puntuación de Laberinto",
   "Last synchronized: {date}": "Última sincronización: {date}",
   Instructions: "Instrucciones",
-  "Invitation accepted. The state owner must now verify and approve you before you receive access.":
-    "Invitación aceptada. El propietario debe verificarte y aprobarte antes de que recibas acceso.",
-  "Invitation delivered in the player's notification inbox. The link below is an optional backup.":
-    "La invitación se entregó en las notificaciones del jugador. El enlace inferior es un respaldo opcional.",
   "Invite a WOS account": "Invitar una cuenta de WOS",
   "Join a state to view battle assignments":
     "Únete a un estado para ver las asignaciones de batalla",
@@ -767,15 +691,9 @@ const spanishInterface: Record<string, string> = {
   Leaders: "Líderes",
   Loss: "Derrota",
   Manage: "Administrar",
-  "Manage battle period": "Administrar periodo de batalla",
   "Manage enemy rally leaders": "Administrar líderes de rally enemigos",
-  "Manage invitations, approvals, member roles, and the current battle period.":
-    "Administra invitaciones, aprobaciones, roles de miembros y el periodo de batalla actual.",
-  "Manage leaders": "Administrar líderes",
   "Manage state": "Administrar estado",
   "Manage tags": "Administrar etiquetas",
-  "Manage WOS accounts": "Administrar cuentas de WOS",
-  "Managed in State members": "Administrado en Miembros del estado",
   Member: "Miembro",
   members: "miembros",
   Members: "Miembros",
@@ -793,10 +711,8 @@ const spanishInterface: Record<string, string> = {
   "No active messages for this account.":
     "No hay mensajes activos para esta cuenta.",
   "No active notices": "No hay avisos activos",
-  "No automatic tag": "Sin etiqueta automática",
   "No alliance assignment yet.": "Todavía no hay una alianza asignada.",
   "No alliances configured": "No hay alianzas configuradas",
-  "No battle period is active": "No hay ningún periodo de batalla activo",
   "No battle periods have been recorded yet.":
     "Todavía no se ha registrado ningún periodo de batalla.",
   "No battle plans yet": "Todavía no hay planes de batalla",
@@ -804,7 +720,6 @@ const spanishInterface: Record<string, string> = {
   "No comments yet.": "Todavía no hay comentarios.",
   "No enemy leaders added.": "No se han añadido líderes enemigos.",
   "No incoming rallies.": "No hay rallies entrantes.",
-  "No live battle": "No hay batalla en vivo",
   "No members assigned in the published plan.":
     "No hay miembros asignados en el plan publicado.",
   "No members found.": "No se encontraron miembros.",
@@ -815,8 +730,6 @@ const spanishInterface: Record<string, string> = {
   "No published battle is currently scheduled.":
     "No hay ninguna batalla publicada programada actualmente.",
   "No tags yet": "Todavía no hay etiquetas",
-  "No unassigned accounts match the current filters.":
-    "Ninguna cuenta sin asignar coincide con los filtros actuales.",
   "No WOS accounts added.": "No se han añadido cuentas de WOS.",
   "No alliance": "Sin alianza",
   "Not on the battle roster": "Fuera de la lista de batalla",
@@ -831,20 +744,13 @@ const spanishInterface: Record<string, string> = {
     "Solo los propietarios y administradores pueden gestionar etiquetas.",
   "Only state owners and admins can manage this page.":
     "Solo los propietarios y administradores pueden gestionar esta página.",
-  Open: "Abrir",
   "Open battle history": "Abrir historial de batallas",
-  "Open battle planning": "Abrir planificación de batalla",
   "Open comments": "Abrir comentarios",
   "Open full plan": "Abrir plan completo",
-  "Open garrison": "Abrir guarnición",
   "Open Live Battle": "Abrir Batalla en vivo",
   "Open Overwatch": "Abrir Overwatch",
-  "Open the operational tool needed by this WOS account.":
-    "Abre la herramienta operativa que necesita esta cuenta de WOS.",
-  "Open vote": "Abrir votación",
   "Operational updates for your state, alliance, tags, role, and battle responsibilities.":
     "Actualizaciones operativas sobre tu estado, alianza, etiquetas, rol y responsabilidades de batalla.",
-  "Optional backup link": "Enlace de respaldo opcional",
   Overwatch: "Overwatch",
   "Overwatch becomes available after joining a state.":
     "Overwatch estará disponible después de unirte a un estado.",
@@ -853,7 +759,6 @@ const spanishInterface: Record<string, string> = {
   Owners: "Propietarios",
   Password: "Contraseña",
   "Permission role": "Rol de permisos",
-  "Personal send times and alerts": "Horarios personales de envío y alertas",
   "Pet active": "Mascota activa",
   "Pet active now": "Mascota activa ahora",
   "Pet remaining:": "Tiempo restante de mascota:",
@@ -884,12 +789,8 @@ const spanishInterface: Record<string, string> = {
   "Rally group updated. Republish to apply assignments.":
     "Grupo de rally actualizado. Vuelve a publicar para aplicar las asignaciones.",
   "Rally Lead": "Líder de rally",
-  "Rally Lead tag missing": "Falta la etiqueta de líder de rally",
   "Rally Lead:": "Líder de rally:",
   "Rally leader": "Líder de rally",
-  "Rally leaders": "Líderes de rally",
-  "Rally leaders, rally calls, schedules, and garrison timing remain hidden until the state owner starts a battle period.":
-    "Los líderes, avisos, horarios y tiempos de guarnición permanecen ocultos hasta que el propietario inicia un periodo de batalla.",
   "Rally minutes remaining": "Minutos restantes del rally",
   "Rally seconds remaining": "Segundos restantes del rally",
   "Rally timer:": "Temporizador del rally:",
@@ -897,11 +798,8 @@ const spanishInterface: Record<string, string> = {
     "Coordinación de rallies para estados organizados de SVS.",
   "Receive a personal send time and browser alerts.":
     "Recibe un horario personal de envío y alertas del navegador.",
-  "Record an incoming rally and synchronize its impact time.":
-    "Registra un rally entrante y sincroniza su hora de impacto.",
   "Record calls and maintain the shared schedule.":
     "Registra avisos y mantiene el horario compartido.",
-  "Reinforcement timing": "Horario de refuerzos",
   Reject: "Rechazar",
   "Remove leader": "Eliminar líder",
   Remove: "Eliminar",
@@ -911,8 +809,6 @@ const spanishInterface: Record<string, string> = {
   "Refresh player data": "Actualizar datos del jugador",
   "Reusable labels": "Etiquetas reutilizables",
   "Review request": "Revisar solicitud",
-  "Run the Battle Planning V2 SQL upgrade before using this page.":
-    "Ejecuta la actualización SQL de Battle Planning V2 antes de usar esta página.",
   Save: "Guardar",
   "Save combat profile": "Guardar perfil de combate",
   "Save group": "Guardar grupo",
@@ -920,11 +816,8 @@ const spanishInterface: Record<string, string> = {
   "Saved leaders": "Líderes guardados",
   Scheduled: "Programada",
   "Scheduled operations": "Operaciones programadas",
-  "Scheduled start": "Inicio programado",
   seconds: "segundos",
   "Synchronizing...": "Sincronizando...",
-  "See your personal send times, alerts and incoming waves.":
-    "Consulta tus horarios personales de envío, alertas y oleadas entrantes.",
   "Select a state before opening battle planning.":
     "Selecciona un estado antes de abrir la planificación de batalla.",
   "Select an enemy rally leader.": "Selecciona un líder de rally enemigo.",
@@ -935,31 +828,20 @@ const spanishInterface: Record<string, string> = {
   "Send notices": "Enviar avisos",
   "Send reinforcement at:": "Enviar refuerzo a las:",
   Sent: "Enviado",
-  "Showing the first 50 of": "Mostrando los primeros 50 de",
-  "matches. Narrow the filters.": "coincidencias. Limita los filtros.",
   "Sign in": "Iniciar sesión",
-  "Sign in first, then reopen this invitation link.":
-    "Primero inicia sesión y después vuelve a abrir este enlace de invitación.",
   "Sign in or create an account": "Iniciar sesión o crear una cuenta",
-  "Signed in as": "Sesión iniciada como",
   "Sound alerts": "Alertas de sonido",
-  Start: "Iniciar",
-  "Start battle": "Iniciar batalla",
-  "Start this battle period now? Live Battle tools will become available to assigned accounts.":
-    "¿Iniciar ahora este periodo de batalla? Las herramientas en vivo estarán disponibles para las cuentas asignadas.",
   Started: "Iniciada",
   "State administration": "Administración del estado",
   "State announcements become available after membership approval.":
     "Los anuncios del estado estarán disponibles tras aprobar la membresía.",
   "State invitation": "Invitación al estado",
-  "State management": "Administración del estado",
   "State members": "Miembros del estado",
   "State owners": "Propietarios del estado",
   "State record": "Registro del estado",
   "State role": "Rol del estado",
   "State stats": "Estadísticas del estado",
   "State tags": "Etiquetas del estado",
-  "States joined": "Estados unidos",
   "Stats & history": "Estadísticas e historial",
   "System tags are permanent and are managed from State members.":
     "Las etiquetas del sistema son permanentes y se administran desde Miembros del estado.",
@@ -972,14 +854,8 @@ const spanishInterface: Record<string, string> = {
   Tags: "Etiquetas",
   "Tell the selected members what they need to know.":
     "Indica a los miembros seleccionados lo que necesitan saber.",
-  Test: "Prueba",
-  "That rally group is full.": "Ese grupo de rally está lleno.",
-  "The bulk-move limit must be between 1 and 100.":
-    "El límite de movimiento masivo debe estar entre 1 y 100.",
   "The selected WOS accounts are saved as the recipient list when you send. Notices expire automatically Sunday at 23:59 UTC.":
     "Las cuentas de WOS seleccionadas se guardan como destinatarios al enviar. Los avisos caducan automáticamente el domingo a las 23:59 UTC.",
-  "These leaders belong only to the current battle period. A new battle period starts with an empty leader list.":
-    "Estos líderes solo pertenecen al periodo de batalla actual. Un periodo nuevo comienza con una lista vacía.",
   "These players accepted an invitation. Confirm their identity outside the app before approving them.":
     "Estos jugadores aceptaron una invitación. Confirma su identidad fuera de la aplicación antes de aprobarlos.",
   "This is the current published battle-day roster. Member assignments can only be changed from Battle Planning.":
@@ -1001,20 +877,17 @@ const spanishInterface: Record<string, string> = {
     "Usa un código de color de seis dígitos, como #e4a853.",
   Username: "Nombre de usuario",
   "Verify and approve": "Verificar y aprobar",
-  "View notifications": "Ver notificaciones",
   Visibility: "Visibilidad",
   VIP: "VIP",
   active: "activo",
   "Waiting for owner verification": "Esperando verificación del propietario",
   "Waiting for your verification": "Esperando tu verificación",
-  Wave: "Oleada",
   Win: "Victoria",
   "WOS accounts": "Cuentas de WOS",
   "Troop details (manual)": "Detalles de tropas (manual)",
   "WOSOracle does not provide troop tiers, camp FC levels or T12 skills, so these fields remain manual.":
     "WOSOracle no proporciona los niveles de tropas, niveles FC de campamento ni habilidades T12, por lo que estos campos siguen siendo manuales.",
   "WOS ID": "ID de WOS",
-  "WOS nickname (optional)": "Nombre en WOS (opcional)",
   "Write a comment before posting.":
     "Escribe un comentario antes de publicarlo.",
   "Write a comment. Use @username to mention and notify someone.":
@@ -1024,49 +897,32 @@ const spanishInterface: Record<string, string> = {
   "X coordinate": "Coordenada X",
   "Y coordinate": "Coordenada Y",
   "You do not have any notifications yet.": "Todavía no tienes notificaciones.",
-  "You have not joined a state": "No te has unido a ningún estado",
   "Your assignment": "Tu asignación",
   "Your battle assignment, tags, alliance and operational messages.":
     "Tu asignación de batalla, etiquetas, alianza y mensajes operativos.",
   "Your battle notices": "Tus avisos de batalla",
   "Your email is private and is never shown to other players.":
     "Tu correo es privado y nunca se muestra a otros jugadores.",
-  "Your profile picture is the in-game avatar of your highest-power WOS account.":
-    "Tu foto de perfil es el avatar del juego de tu cuenta WOS con más poder.",
-  "Your email remains private. Your username and profile picture may be shown to players who share a state with you.":
-    "Tu correo permanece privado. Tu nombre de usuario y foto de perfil pueden mostrarse a jugadores que compartan estado contigo.",
-  "Your in-game name": "Tu nombre en el juego",
   "Your in-game name and public game data will be synchronized automatically from your WOS ID.":
     "Tu nombre en el juego y tus datos públicos se sincronizarán automáticamente desde tu ID de WOS.",
   "Your march time:": "Tu tiempo de marcha:",
   "Your notices": "Tus avisos",
   "Your numeric WOS ID": "Tu ID de WOS numérico",
-  "Your profile": "Tu perfil",
-  "Your reinforcement send time:": "Tu hora de envío de refuerzos:",
   "Your reinforcement setup": "Tu configuración de refuerzos",
   "Your reinforcement timing": "Tu horario de refuerzos",
   "Your tags": "Tus etiquetas",
   "Your username is public. Your email remains private and is only used to sign in.":
     "Tu nombre de usuario es público. Tu correo permanece privado y solo se usa para iniciar sesión.",
   "Your WOS accounts": "Tus cuentas de WOS",
-  "Your WOS accounts in this state": "Tus cuentas de WOS en este estado",
   "Your X coordinate": "Tu coordenada X",
   "Your Y coordinate": "Tu coordenada Y",
   " — Pet active": " — Mascota activa",
   " — Pet inactive": " — Mascota inactiva",
   "· Power": "· Potencia",
   " — Pet remaining: {time}": " — Mascota restante: {time}",
-  "{count} enemy rallies are incoming.":
-    "Hay {count} rallies enemigos en camino.",
-  "{seconds} enemy rallies are incoming.":
-    "Hay {seconds} rallies enemigos en camino.",
-  "Accept invitation": "Aceptar invitación",
-  "Accepting...": "Aceptando...",
   account: "cuenta",
   accounts: "cuentas",
   Active: "Activo",
-  "Active battle": "Batalla activa",
-  "Add a filter": "Añadir un filtro",
   "Admin only": "Solo administradores",
   alliance: "alianza",
   alliances: "alianzas",
@@ -1076,16 +932,12 @@ const spanishInterface: Record<string, string> = {
   "Create account": "Crear cuenta",
   "Create alliance": "Crear alianza",
   "Draft and published plans": "Planes borrador y publicados",
-  "Drag individual matches into a group, or use Add matching on a group.":
-    "Arrastra coincidencias individuales a un grupo o usa Añadir coincidencias en un grupo.",
   "Enable notifications": "Activar notificaciones",
   "Former member": "Antiguo miembro",
   Inactive: "Inactivo",
   "Live Battle": "Batalla en vivo",
   "Loading state memberships...": "Cargando membresías de estado...",
   "Need an account? Sign up": "¿Necesitas una cuenta? Regístrate",
-  "No active battle period": "No hay ningún periodo de batalla activo",
-  "No state selected": "Ningún estado seleccionado",
   "Not in a state": "No pertenece a ningún estado",
   "Not selected": "Sin seleccionar",
   "Not started": "No iniciada",
@@ -1099,7 +951,6 @@ const spanishInterface: Record<string, string> = {
   rally: "rally",
   rallies: "rallies",
   Republish: "Volver a publicar",
-  "Save my vote": "Guardar mi voto",
   "Saving...": "Guardando...",
   "Select before publishing": "Seleccionar antes de publicar",
   "Send announcement": "Enviar anuncio",
@@ -1112,8 +963,6 @@ const spanishInterface: Record<string, string> = {
   "State member": "Miembro del estado",
   tag: "etiqueta",
   tags: "etiquetas",
-  "The full member list stays hidden. Add at least one filter to find candidates.":
-    "La lista completa de miembros permanece oculta. Añade al menos un filtro para buscar candidatos.",
   "This browser does not support notifications.":
     "Este navegador no admite notificaciones.",
   UNCLASSIFIED: "SIN CLASIFICAR",
@@ -1127,11 +976,9 @@ const spanishInterface: Record<string, string> = {
   "Alliance assignment changed": "Asignación de alianza modificada",
   "Alliance assignment removed": "Asignación de alianza eliminada",
   "Battle assignment published": "Asignación de batalla publicada",
-  "Battle plan": "Plan de batalla",
   "Battle plan published": "Plan de batalla publicado",
   Completed: "Completada",
   Draft: "Borrador",
-  "Fire Crystal Furnace Level": "Nivel de horno de Cristal de Fuego",
   "Infantry camp FC": "FC del campamento de infantería",
   "Infantry T12 skill": "Habilidad T12 de infantería",
   "Infantry troop tier": "Nivel de tropas de infantería",
@@ -1149,12 +996,8 @@ const spanishInterface: Record<string, string> = {
   "New tag": "Nueva etiqueta",
   Notice: "Aviso",
   "Not scheduled": "No programada",
-  "Plan comment": "Comentario del plan",
   Published: "Publicado",
-  Social: "Social",
   State: "Estado",
-  Update: "Actualización",
-  Vote: "Votación",
 };
 
 export type TranslationKey = string;
@@ -1184,57 +1027,9 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "州主",
     roleAdmin: "管理员",
     roleMember: "成员",
-    votesLoading: "正在加载投票……",
-    votesStateCoordination: "州协调",
-    votesTitle: "投票",
-    votesVotingAs: "正在以 {account} 身份投票。每个 WOS 账号都有自己的回答。",
-    votesRetention: "保留 30 天",
-    votesJoinState: "加入州后参与投票",
-    votesJoinStateDescription: "成员资格获批后，州投票将显示在这里。",
-    votesAdminTools: "州主和管理员工具",
-    votesCreate: "创建投票",
-    votesQuestion: "问题",
-    votesQuestionPlaceholder: "谁能参加整场战斗？",
-    votesClosingTime: "截止时间",
-    votesDescriptionOptional: "说明（可选）",
-    votesDescriptionPlaceholder: "添加成员需要了解的说明。",
-    votesOptions: "选项",
-    votesOptionNumber: "选项 {number}",
-    votesYes: "是",
-    votesNo: "否",
-    votesOption: "选项",
-    votesAutomaticTag: "自动标签",
-    votesNoAutomaticTag: "不自动添加标签",
-    remove: "移除",
-    votesAddOption: "添加选项",
-    votesCreating: "正在创建……",
-    votesCreateButton: "创建投票",
-    votesRetentionExplanation:
-      "投票最多可开放 30 天，并会在创建 30 天后永久删除。",
-    votesNoTagsPrefix: "目前没有标签。",
-    votesCreateTags: "创建标签",
-    votesNoTagsSuffix: "，然后再将标签连接到投票选项。",
-    votesCurrentAndRecent: "当前和最近的投票",
-    votesNoneTitle: "暂无投票",
-    votesNoneDescription: "州主或管理员可以在上方创建首个州投票。",
     closed: "已结束",
     open: "开放中",
     delete: "删除",
-    closes: "截止于",
-    response: "份回答",
-    responses: "份回答",
-    votesAwardsTag: "授予 {tag}",
-    votesSaving: "正在保存……",
-    votesSaveMine: "保存我的投票",
-    votesReviewResponses: "查看个人回答",
-    votesNoResponses: "暂无回答",
-    votesWosId: "WOS ID {id}",
-    votesChooseClosing: "请选择有效的截止日期和时间。",
-    votesCreated: "投票已创建，州成员已收到通知。",
-    votesChooseOption: "提交投票前请选择一个选项。",
-    votesSaved: "你的投票已保存。在投票结束前仍可修改。",
-    votesDeleteConfirm: "删除“{question}”？所有选项和回答都将被永久移除。",
-    votesDeleted: "投票已删除。",
   },
   es: {
     ...spanishInterface,
@@ -1260,146 +1055,9 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "propietario",
     roleAdmin: "administrador",
     roleMember: "miembro",
-    votesLoading: "Cargando votaciones...",
-    votesStateCoordination: "Coordinación del estado",
-    votesTitle: "Votaciones",
-    votesVotingAs:
-      "Votando como {account}. Cada cuenta de WOS tiene su propia respuesta.",
-    votesRetention: "Conservación de 30 días",
-    votesJoinState: "Únete a un estado para votar",
-    votesJoinStateDescription:
-      "Las votaciones de tu estado aparecerán aquí cuando se apruebe tu membresía.",
-    votesAdminTools: "Herramientas del propietario y administradores",
-    votesCreate: "Crear una votación",
-    votesQuestion: "Pregunta",
-    votesQuestionPlaceholder: "¿Quién puede asistir a toda la batalla?",
-    votesClosingTime: "Hora de cierre",
-    votesDescriptionOptional: "Descripción (opcional)",
-    votesDescriptionPlaceholder:
-      "Añade las instrucciones que deban conocer los miembros.",
-    votesOptions: "Opciones",
-    votesOptionNumber: "Opción {number}",
-    votesYes: "Sí",
-    votesNo: "No",
-    votesOption: "Opción",
-    votesAutomaticTag: "Etiqueta automática",
-    votesNoAutomaticTag: "Sin etiqueta automática",
-    remove: "Eliminar",
-    votesAddOption: "Añadir opción",
-    votesCreating: "Creando...",
-    votesCreateButton: "Crear votación",
-    votesRetentionExplanation:
-      "Las votaciones pueden permanecer abiertas hasta 30 días y se eliminan permanentemente 30 días después de su creación.",
-    votesNoTagsPrefix: "Todavía no existen etiquetas.",
-    votesCreateTags: "Crear etiquetas",
-    votesNoTagsSuffix: "antes de conectarlas con opciones de votación.",
-    votesCurrentAndRecent: "Votaciones actuales y recientes",
-    votesNoneTitle: "Todavía no hay votaciones",
-    votesNoneDescription:
-      "Un propietario o administrador puede crear arriba la primera votación del estado.",
     closed: "Cerrada",
     open: "Abierta",
     delete: "Eliminar",
-    closes: "Cierra",
-    response: "respuesta",
-    responses: "respuestas",
-    votesAwardsTag: "Otorga {tag}",
-    votesSaving: "Guardando...",
-    votesSaveMine: "Guardar mi voto",
-    votesReviewResponses: "Revisar respuestas individuales",
-    votesNoResponses: "Sin respuestas",
-    votesWosId: "ID de WOS {id}",
-    votesChooseClosing: "Elige una fecha y hora de cierre válidas.",
-    votesCreated:
-      "Votación creada. Los miembros del estado han sido notificados.",
-    votesChooseOption: "Elige una opción antes de enviar tu voto.",
-    votesSaved:
-      "Tu voto se ha guardado. Puedes cambiarlo hasta que se cierre la votación.",
-    votesDeleteConfirm:
-      "¿Eliminar «{question}»? Todas las opciones y respuestas se eliminarán permanentemente.",
-    votesDeleted: "Votación eliminada.",
-  },
-  pt: {
-    battleCoordination: "Coordenação de batalha",
-    notifications: "Notificações",
-    unreadNotifications: "notificações não lidas",
-    openProfileMenu: "Abrir menu do perfil",
-    setupRequired: "Configuração necessária",
-    profile: "Perfil",
-    wosAccounts: "Contas WOS",
-    signOut: "Sair",
-    signIn: "Entrar",
-    overwatch: "Overwatch",
-    votes: "Votações",
-    planning: "Planejamento",
-    liveBattle: "Batalha ao vivo",
-    state: "Estado",
-    activeWorkspace: "Espaço ativo",
-    noStateSelected:
-      "Nenhum estado selecionado. Verifique as notificações para encontrar um convite.",
-    language: "Idioma",
-    mainNavigation: "Navegação principal",
-    roleOwner: "proprietário",
-    roleAdmin: "administrador",
-    roleMember: "membro",
-    votesLoading: "Carregando votações...",
-    votesStateCoordination: "Coordenação do estado",
-    votesTitle: "Votações",
-    votesVotingAs:
-      "Votando como {account}. Cada conta WOS tem sua própria resposta.",
-    votesRetention: "Retenção de 30 dias",
-    votesJoinState: "Entre em um estado para votar",
-    votesJoinStateDescription:
-      "As votações do seu estado aparecerão aqui após a aprovação da sua participação.",
-    votesAdminTools: "Ferramentas do proprietário e administradores",
-    votesCreate: "Criar uma votação",
-    votesQuestion: "Pergunta",
-    votesQuestionPlaceholder: "Quem pode participar da batalha inteira?",
-    votesClosingTime: "Horário de encerramento",
-    votesDescriptionOptional: "Descrição (opcional)",
-    votesDescriptionPlaceholder:
-      "Adicione instruções que os membros devem conhecer.",
-    votesOptions: "Opções",
-    votesOptionNumber: "Opção {number}",
-    votesYes: "Sim",
-    votesNo: "Não",
-    votesOption: "Opção",
-    votesAutomaticTag: "Etiqueta automática",
-    votesNoAutomaticTag: "Sem etiqueta automática",
-    remove: "Remover",
-    votesAddOption: "Adicionar opção",
-    votesCreating: "Criando...",
-    votesCreateButton: "Criar votação",
-    votesRetentionExplanation:
-      "As votações podem ficar abertas por até 30 dias e são excluídas permanentemente 30 dias após a criação.",
-    votesNoTagsPrefix: "Ainda não existem etiquetas.",
-    votesCreateTags: "Criar etiquetas",
-    votesNoTagsSuffix: "antes de conectá-las às opções da votação.",
-    votesCurrentAndRecent: "Votações atuais e recentes",
-    votesNoneTitle: "Ainda não há votações",
-    votesNoneDescription:
-      "Um proprietário ou administrador pode criar a primeira votação do estado acima.",
-    closed: "Encerrada",
-    open: "Aberta",
-    delete: "Excluir",
-    closes: "Encerra em",
-    response: "resposta",
-    responses: "respostas",
-    votesAwardsTag: "Concede {tag}",
-    votesSaving: "Salvando...",
-    votesSaveMine: "Salvar meu voto",
-    votesReviewResponses: "Revisar respostas individuais",
-    votesNoResponses: "Sem respostas",
-    votesWosId: "ID WOS {id}",
-    votesChooseClosing:
-      "Escolha uma data e um horário de encerramento válidos.",
-    votesCreated: "Votação criada. Os membros do estado foram notificados.",
-    votesChooseOption: "Escolha uma opção antes de enviar seu voto.",
-    votesSaved:
-      "Seu voto foi salvo. Você pode alterá-lo até o encerramento da votação.",
-    votesDeleteConfirm:
-      "Excluir “{question}”? Todas as opções e respostas serão removidas permanentemente.",
-    votesDeleted: "Votação excluída.",
   },
   ar: {
     ...arabicInterface,
@@ -1424,301 +1082,9 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "المالك",
     roleAdmin: "المسؤول",
     roleMember: "عضو",
-    votesLoading: "جارٍ تحميل التصويتات...",
-    votesStateCoordination: "تنسيق الولاية",
-    votesTitle: "التصويتات",
-    votesVotingAs: "التصويت باسم {account}. لكل حساب WOS إجابته الخاصة.",
-    votesRetention: "الاحتفاظ لمدة 30 يومًا",
-    votesJoinState: "انضم إلى ولاية للتصويت",
-    votesJoinStateDescription:
-      "ستظهر تصويتات ولايتك هنا بعد الموافقة على عضويتك.",
-    votesAdminTools: "أدوات المالك والمسؤولين",
-    votesCreate: "إنشاء تصويت",
-    votesQuestion: "السؤال",
-    votesQuestionPlaceholder: "من يمكنه حضور المعركة كاملة؟",
-    votesClosingTime: "وقت الإغلاق",
-    votesDescriptionOptional: "الوصف (اختياري)",
-    votesDescriptionPlaceholder: "أضف أي تعليمات يجب أن يعرفها الأعضاء.",
-    votesOptions: "الخيارات",
-    votesOptionNumber: "الخيار {number}",
-    votesYes: "نعم",
-    votesNo: "لا",
-    votesOption: "خيار",
-    votesAutomaticTag: "وسم تلقائي",
-    votesNoAutomaticTag: "بدون وسم تلقائي",
-    remove: "إزالة",
-    votesAddOption: "إضافة خيار",
-    votesCreating: "جارٍ الإنشاء...",
-    votesCreateButton: "إنشاء التصويت",
-    votesRetentionExplanation:
-      "يمكن أن تبقى التصويتات مفتوحة لمدة تصل إلى 30 يومًا، وتُحذف نهائيًا بعد 30 يومًا من إنشائها.",
-    votesNoTagsPrefix: "لا توجد وسوم حتى الآن.",
-    votesCreateTags: "إنشاء وسوم",
-    votesNoTagsSuffix: "قبل ربطها بخيارات التصويت.",
-    votesCurrentAndRecent: "التصويتات الحالية والحديثة",
-    votesNoneTitle: "لا توجد تصويتات حتى الآن",
-    votesNoneDescription:
-      "يمكن للمالك أو المسؤول إنشاء أول تصويت للولاية أعلاه.",
     closed: "مغلق",
     open: "مفتوح",
     delete: "حذف",
-    closes: "يُغلق في",
-    response: "إجابة",
-    responses: "إجابات",
-    votesAwardsTag: "يمنح {tag}",
-    votesSaving: "جارٍ الحفظ...",
-    votesSaveMine: "حفظ تصويتي",
-    votesReviewResponses: "مراجعة الإجابات الفردية",
-    votesNoResponses: "لا توجد إجابات",
-    votesWosId: "معرّف WOS ‏{id}",
-    votesChooseClosing: "اختر تاريخًا ووقتًا صالحين للإغلاق.",
-    votesCreated: "تم إنشاء التصويت وإشعار أعضاء الولاية.",
-    votesChooseOption: "اختر خيارًا قبل إرسال تصويتك.",
-    votesSaved: "تم حفظ تصويتك. يمكنك تغييره حتى إغلاق التصويت.",
-    votesDeleteConfirm:
-      "حذف «{question}»؟ ستتم إزالة جميع الخيارات والإجابات نهائيًا.",
-    votesDeleted: "تم حذف التصويت.",
-  },
-  hi: {
-    battleCoordination: "युद्ध समन्वय",
-    notifications: "सूचनाएँ",
-    unreadNotifications: "अपठित सूचनाएँ",
-    openProfileMenu: "प्रोफ़ाइल मेनू खोलें",
-    setupRequired: "सेटअप आवश्यक है",
-    profile: "प्रोफ़ाइल",
-    wosAccounts: "WOS खाते",
-    signOut: "साइन आउट",
-    signIn: "साइन इन",
-    overwatch: "ओवरवॉच",
-    votes: "मतदान",
-    planning: "योजना",
-    liveBattle: "लाइव युद्ध",
-    state: "स्टेट",
-    activeWorkspace: "सक्रिय कार्यक्षेत्र",
-    noStateSelected:
-      "कोई स्टेट चयनित नहीं है। आमंत्रण के लिए अपनी सूचनाएँ देखें।",
-    language: "भाषा",
-    mainNavigation: "मुख्य नेविगेशन",
-    roleOwner: "मालिक",
-    roleAdmin: "एडमिन",
-    roleMember: "सदस्य",
-    votesLoading: "मतदान लोड हो रहे हैं...",
-    votesStateCoordination: "स्टेट समन्वय",
-    votesTitle: "मतदान",
-    votesVotingAs:
-      "{account} के रूप में मतदान। प्रत्येक WOS खाते का अपना उत्तर होता है।",
-    votesRetention: "30 दिन तक सुरक्षित",
-    votesJoinState: "मतदान के लिए किसी स्टेट से जुड़ें",
-    votesJoinStateDescription:
-      "सदस्यता स्वीकृत होने पर आपके स्टेट के मतदान यहाँ दिखाई देंगे।",
-    votesAdminTools: "मालिक और एडमिन उपकरण",
-    votesCreate: "मतदान बनाएँ",
-    votesQuestion: "प्रश्न",
-    votesQuestionPlaceholder: "पूरी लड़ाई में कौन शामिल हो सकता है?",
-    votesClosingTime: "समापन समय",
-    votesDescriptionOptional: "विवरण (वैकल्पिक)",
-    votesDescriptionPlaceholder: "सदस्यों के लिए आवश्यक निर्देश जोड़ें।",
-    votesOptions: "विकल्प",
-    votesOptionNumber: "विकल्प {number}",
-    votesYes: "हाँ",
-    votesNo: "नहीं",
-    votesOption: "विकल्प",
-    votesAutomaticTag: "स्वचालित टैग",
-    votesNoAutomaticTag: "कोई स्वचालित टैग नहीं",
-    remove: "हटाएँ",
-    votesAddOption: "विकल्प जोड़ें",
-    votesCreating: "बनाया जा रहा है...",
-    votesCreateButton: "मतदान बनाएँ",
-    votesRetentionExplanation:
-      "मतदान अधिकतम 30 दिनों तक खुले रह सकते हैं और बनाए जाने के 30 दिन बाद स्थायी रूप से मिटा दिए जाते हैं।",
-    votesNoTagsPrefix: "अभी कोई टैग नहीं है।",
-    votesCreateTags: "टैग बनाएँ",
-    votesNoTagsSuffix: "और फिर उन्हें मतदान विकल्पों से जोड़ें।",
-    votesCurrentAndRecent: "वर्तमान और हाल के मतदान",
-    votesNoneTitle: "अभी कोई मतदान नहीं",
-    votesNoneDescription: "मालिक या एडमिन ऊपर पहला स्टेट मतदान बना सकता है।",
-    closed: "बंद",
-    open: "खुला",
-    delete: "मिटाएँ",
-    closes: "समाप्ति",
-    response: "उत्तर",
-    responses: "उत्तर",
-    votesAwardsTag: "{tag} प्रदान करता है",
-    votesSaving: "सहेजा जा रहा है...",
-    votesSaveMine: "मेरा मत सहेजें",
-    votesReviewResponses: "व्यक्तिगत उत्तर देखें",
-    votesNoResponses: "कोई उत्तर नहीं",
-    votesWosId: "WOS ID {id}",
-    votesChooseClosing: "समापन की सही तारीख और समय चुनें।",
-    votesCreated: "मतदान बनाया गया। स्टेट सदस्यों को सूचना भेज दी गई है।",
-    votesChooseOption: "मत भेजने से पहले एक विकल्प चुनें।",
-    votesSaved:
-      "आपका मत सहेज लिया गया है। मतदान बंद होने तक आप इसे बदल सकते हैं।",
-    votesDeleteConfirm:
-      "“{question}” मिटाएँ? सभी विकल्प और उत्तर स्थायी रूप से हट जाएँगे।",
-    votesDeleted: "मतदान मिटा दिया गया।",
-  },
-  ru: {
-    battleCoordination: "Координация боя",
-    notifications: "Уведомления",
-    unreadNotifications: "непрочитанных уведомлений",
-    openProfileMenu: "Открыть меню профиля",
-    setupRequired: "Требуется настройка",
-    profile: "Профиль",
-    wosAccounts: "Аккаунты WOS",
-    signOut: "Выйти",
-    signIn: "Войти",
-    overwatch: "Overwatch",
-    votes: "Голосования",
-    planning: "Планирование",
-    liveBattle: "Текущий бой",
-    state: "Штат",
-    activeWorkspace: "Активная рабочая область",
-    noStateSelected:
-      "Штат не выбран. Проверьте уведомления — возможно, вас пригласили.",
-    language: "Язык",
-    mainNavigation: "Основная навигация",
-    roleOwner: "владелец",
-    roleAdmin: "администратор",
-    roleMember: "участник",
-    votesLoading: "Загрузка голосований...",
-    votesStateCoordination: "Координация штата",
-    votesTitle: "Голосования",
-    votesVotingAs:
-      "Голосование от имени {account}. У каждого аккаунта WOS свой ответ.",
-    votesRetention: "Хранение 30 дней",
-    votesJoinState: "Вступите в штат, чтобы голосовать",
-    votesJoinStateDescription:
-      "Голосования вашего штата появятся здесь после одобрения членства.",
-    votesAdminTools: "Инструменты владельца и администраторов",
-    votesCreate: "Создать голосование",
-    votesQuestion: "Вопрос",
-    votesQuestionPlaceholder: "Кто сможет присутствовать на всей битве?",
-    votesClosingTime: "Время завершения",
-    votesDescriptionOptional: "Описание (необязательно)",
-    votesDescriptionPlaceholder:
-      "Добавьте инструкции, которые должны знать участники.",
-    votesOptions: "Варианты",
-    votesOptionNumber: "Вариант {number}",
-    votesYes: "Да",
-    votesNo: "Нет",
-    votesOption: "Вариант",
-    votesAutomaticTag: "Автоматический тег",
-    votesNoAutomaticTag: "Без автоматического тега",
-    remove: "Удалить",
-    votesAddOption: "Добавить вариант",
-    votesCreating: "Создание...",
-    votesCreateButton: "Создать голосование",
-    votesRetentionExplanation:
-      "Голосование может оставаться открытым до 30 дней и удаляется навсегда через 30 дней после создания.",
-    votesNoTagsPrefix: "Тегов пока нет.",
-    votesCreateTags: "Создать теги",
-    votesNoTagsSuffix: "перед их привязкой к вариантам голосования.",
-    votesCurrentAndRecent: "Текущие и недавние голосования",
-    votesNoneTitle: "Голосований пока нет",
-    votesNoneDescription:
-      "Владелец или администратор может создать первое голосование штата выше.",
-    closed: "Закрыто",
-    open: "Открыто",
-    delete: "Удалить",
-    closes: "Завершится",
-    response: "ответ",
-    responses: "ответов",
-    votesAwardsTag: "Назначает тег {tag}",
-    votesSaving: "Сохранение...",
-    votesSaveMine: "Сохранить мой голос",
-    votesReviewResponses: "Просмотреть отдельные ответы",
-    votesNoResponses: "Нет ответов",
-    votesWosId: "WOS ID {id}",
-    votesChooseClosing: "Выберите корректные дату и время завершения.",
-    votesCreated: "Голосование создано. Участники штата уведомлены.",
-    votesChooseOption: "Выберите вариант перед отправкой голоса.",
-    votesSaved:
-      "Ваш голос сохранён. Его можно изменить до завершения голосования.",
-    votesDeleteConfirm:
-      "Удалить «{question}»? Все варианты и ответы будут удалены навсегда.",
-    votesDeleted: "Голосование удалено.",
-  },
-  id: {
-    battleCoordination: "Koordinasi pertempuran",
-    notifications: "Notifikasi",
-    unreadNotifications: "notifikasi belum dibaca",
-    openProfileMenu: "Buka menu profil",
-    setupRequired: "Penyiapan diperlukan",
-    profile: "Profil",
-    wosAccounts: "Akun WOS",
-    signOut: "Keluar",
-    signIn: "Masuk",
-    overwatch: "Overwatch",
-    votes: "Pemungutan suara",
-    planning: "Perencanaan",
-    liveBattle: "Pertempuran langsung",
-    state: "State",
-    activeWorkspace: "Ruang kerja aktif",
-    noStateSelected:
-      "Belum ada state yang dipilih. Periksa notifikasi untuk undangan.",
-    language: "Bahasa",
-    mainNavigation: "Navigasi utama",
-    roleOwner: "pemilik",
-    roleAdmin: "admin",
-    roleMember: "anggota",
-    votesLoading: "Memuat pemungutan suara...",
-    votesStateCoordination: "Koordinasi state",
-    votesTitle: "Pemungutan suara",
-    votesVotingAs:
-      "Memilih sebagai {account}. Setiap akun WOS memiliki jawaban sendiri.",
-    votesRetention: "Disimpan 30 hari",
-    votesJoinState: "Gabung state untuk memilih",
-    votesJoinStateDescription:
-      "Pemungutan suara state Anda akan muncul di sini setelah keanggotaan disetujui.",
-    votesAdminTools: "Alat pemilik dan admin",
-    votesCreate: "Buat pemungutan suara",
-    votesQuestion: "Pertanyaan",
-    votesQuestionPlaceholder: "Siapa yang dapat mengikuti seluruh pertempuran?",
-    votesClosingTime: "Waktu penutupan",
-    votesDescriptionOptional: "Deskripsi (opsional)",
-    votesDescriptionPlaceholder:
-      "Tambahkan petunjuk yang perlu diketahui anggota.",
-    votesOptions: "Pilihan",
-    votesOptionNumber: "Pilihan {number}",
-    votesYes: "Ya",
-    votesNo: "Tidak",
-    votesOption: "Pilihan",
-    votesAutomaticTag: "Tag otomatis",
-    votesNoAutomaticTag: "Tanpa tag otomatis",
-    remove: "Hapus",
-    votesAddOption: "Tambah pilihan",
-    votesCreating: "Membuat...",
-    votesCreateButton: "Buat pemungutan suara",
-    votesRetentionExplanation:
-      "Pemungutan suara dapat dibuka hingga 30 hari dan dihapus permanen 30 hari setelah dibuat.",
-    votesNoTagsPrefix: "Belum ada tag.",
-    votesCreateTags: "Buat tag",
-    votesNoTagsSuffix: "sebelum menghubungkannya ke pilihan suara.",
-    votesCurrentAndRecent: "Pemungutan suara saat ini dan terbaru",
-    votesNoneTitle: "Belum ada pemungutan suara",
-    votesNoneDescription:
-      "Pemilik atau Admin dapat membuat pemungutan suara state pertama di atas.",
-    closed: "Ditutup",
-    open: "Dibuka",
-    delete: "Hapus",
-    closes: "Ditutup pada",
-    response: "jawaban",
-    responses: "jawaban",
-    votesAwardsTag: "Memberikan {tag}",
-    votesSaving: "Menyimpan...",
-    votesSaveMine: "Simpan pilihan saya",
-    votesReviewResponses: "Tinjau jawaban individu",
-    votesNoResponses: "Belum ada jawaban",
-    votesWosId: "ID WOS {id}",
-    votesChooseClosing: "Pilih tanggal dan waktu penutupan yang valid.",
-    votesCreated: "Pemungutan suara dibuat. Anggota state telah diberi tahu.",
-    votesChooseOption: "Pilih satu opsi sebelum mengirim suara.",
-    votesSaved:
-      "Suara Anda telah disimpan. Anda dapat mengubahnya sampai pemungutan suara ditutup.",
-    votesDeleteConfirm:
-      "Hapus “{question}”? Semua pilihan dan jawaban akan dihapus permanen.",
-    votesDeleted: "Pemungutan suara dihapus.",
   },
   th: {
     ...thaiInterface,
@@ -1743,59 +1109,8 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     roleOwner: "เจ้าของ",
     roleAdmin: "ผู้ดูแล",
     roleMember: "สมาชิก",
-    votesLoading: "กำลังโหลดการโหวต...",
-    votesStateCoordination: "การประสานงานของรัฐ",
-    votesTitle: "การโหวต",
-    votesVotingAs:
-      "กำลังโหวตในชื่อ {account} บัญชี WOS แต่ละบัญชีมีคำตอบของตนเอง",
-    votesRetention: "เก็บไว้ 30 วัน",
-    votesJoinState: "เข้าร่วมรัฐเพื่อโหวต",
-    votesJoinStateDescription:
-      "การโหวตของรัฐจะแสดงที่นี่หลังจากสมาชิกได้รับการอนุมัติ",
-    votesAdminTools: "เครื่องมือเจ้าของและผู้ดูแล",
-    votesCreate: "สร้างการโหวต",
-    votesQuestion: "คำถาม",
-    votesQuestionPlaceholder: "ใครสามารถเข้าร่วมการต่อสู้ได้ตลอดทั้งกิจกรรม?",
-    votesClosingTime: "เวลาปิด",
-    votesDescriptionOptional: "คำอธิบาย (ไม่บังคับ)",
-    votesDescriptionPlaceholder: "เพิ่มคำแนะนำที่สมาชิกควรทราบ",
-    votesOptions: "ตัวเลือก",
-    votesOptionNumber: "ตัวเลือก {number}",
-    votesYes: "ใช่",
-    votesNo: "ไม่",
-    votesOption: "ตัวเลือก",
-    votesAutomaticTag: "แท็กอัตโนมัติ",
-    votesNoAutomaticTag: "ไม่มีแท็กอัตโนมัติ",
-    remove: "นำออก",
-    votesAddOption: "เพิ่มตัวเลือก",
-    votesCreating: "กำลังสร้าง...",
-    votesCreateButton: "สร้างการโหวต",
-    votesRetentionExplanation:
-      "การโหวตเปิดได้นานสูงสุด 30 วัน และจะถูกลบถาวร 30 วันหลังจากสร้าง",
-    votesNoTagsPrefix: "ยังไม่มีแท็ก",
-    votesCreateTags: "สร้างแท็ก",
-    votesNoTagsSuffix: "ก่อนเชื่อมแท็กกับตัวเลือกการโหวต",
-    votesCurrentAndRecent: "การโหวตปัจจุบันและล่าสุด",
-    votesNoneTitle: "ยังไม่มีการโหวต",
-    votesNoneDescription: "เจ้าของหรือผู้ดูแลสามารถสร้างการโหวตแรกของรัฐด้านบน",
     closed: "ปิดแล้ว",
     open: "เปิดอยู่",
     delete: "ลบ",
-    closes: "ปิดเวลา",
-    response: "คำตอบ",
-    responses: "คำตอบ",
-    votesAwardsTag: "มอบแท็ก {tag}",
-    votesSaving: "กำลังบันทึก...",
-    votesSaveMine: "บันทึกการโหวตของฉัน",
-    votesReviewResponses: "ตรวจสอบคำตอบรายบุคคล",
-    votesNoResponses: "ไม่มีคำตอบ",
-    votesWosId: "WOS ID {id}",
-    votesChooseClosing: "เลือกวันที่และเวลาปิดที่ถูกต้อง",
-    votesCreated: "สร้างการโหวตแล้ว และแจ้งสมาชิกของรัฐแล้ว",
-    votesChooseOption: "เลือกตัวเลือกก่อนส่งการโหวต",
-    votesSaved: "บันทึกการโหวตแล้ว คุณสามารถเปลี่ยนได้จนกว่าการโหวตจะปิด",
-    votesDeleteConfirm:
-      "ลบ “{question}” หรือไม่ ตัวเลือกและคำตอบทั้งหมดจะถูกลบถาวร",
-    votesDeleted: "ลบการโหวตแล้ว",
   },
 };

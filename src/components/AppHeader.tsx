@@ -260,7 +260,6 @@ export function AppHeader() {
                       ? t("setupRequired")
                       : t("profile")}
                 </span>
-                <Link href="/profile">{t("profile")}</Link>
                 <Link href="/account">{t("wosAccounts")}</Link>
                 {!isDemoMode() && (
                   <button type="button" onClick={() => enterDemo()}>

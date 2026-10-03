@@ -1,19 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
-import { HEROES, LATEST_HERO_GENERATION } from "@/lib/heroes";
 
 type StateTag = {
   id: string;
   name: string;
   color: string;
-  bulk_move_limit: number;
   system_key: string | null;
   created_at: string;
   kind: "custom" | "rally" | "hero";
@@ -29,12 +26,6 @@ type MemberOption = {
   id: string;
   label: string;
 };
-
-const HERO_TAG_COLOR = "#9b6bd6";
-const GENERATIONS = Array.from(
-  { length: LATEST_HERO_GENERATION },
-  (_, index) => index + 1,
-);
 
 type KindFilter = "all" | "custom" | "rally" | "hero";
 
@@ -53,22 +44,12 @@ export default function TagsPage() {
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [playersTagId, setPlayersTagId] = useState<string | null>(null);
   const [memberToAdd, setMemberToAdd] = useState("");
-  const [customHero, setCustomHero] = useState("");
-  // Newest hero generation the state has unlocked; null shows every hero.
-  const [heroGenerationMax, setHeroGenerationMax] = useState<number | null>(
-    null,
-  );
-  const [generationFilter, setGenerationFilter] = useState<number | "all">(
-    "all",
-  );
   const [kindFilter, setKindFilter] = useState<KindFilter>("all");
   const [name, setName] = useState("");
   const [color, setColor] = useState("#e4a853");
-  const [bulkMoveLimit, setBulkMoveLimit] = useState(100);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingColor, setEditingColor] = useState("#e4a853");
-  const [editingBulkMoveLimit, setEditingBulkMoveLimit] = useState(100);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -89,22 +70,19 @@ export default function TagsPage() {
       supabase
         .from("state_tags")
         .select(
-          "id, name, color, bulk_move_limit, system_key, created_at, kind, hero_generation",
+          "id, name, color, system_key, created_at, kind, hero_generation",
         )
         .eq("state_id", activeMembership.stateId)
         .order("name"),
-      supabase.from("state_member_tags").select("tag_id, wos_account_id"),
+      supabase
+        .from("state_member_tags")
+        .select("tag_id, wos_account_id, state_tags!inner(state_id)")
+        .eq("state_tags.state_id", activeMembership.stateId),
       supabase
         .from("state_members")
         .select("wos_account_id, wos_accounts(nickname, wos_id)")
         .eq("state_id", activeMembership.stateId),
     ]);
-    const { data: stateRow } = await supabase
-      .from("states")
-      .select("hero_generation_max")
-      .eq("id", activeMembership.stateId)
-      .maybeSingle();
-    setHeroGenerationMax(stateRow?.hero_generation_max ?? null);
 
     const firstError = tagResult.error || assignmentResult.error;
     if (firstError) {
@@ -162,11 +140,7 @@ export default function TagsPage() {
     return () => window.clearTimeout(loadId);
   }, [loadTags, loadingStates, router, signedIn]);
 
-  function validateTag(
-    tagName: string,
-    tagColor: string,
-    tagBulkMoveLimit: number,
-  ) {
+  function validateTag(tagName: string, tagColor: string) {
     if (!tagName.trim()) {
       setMessage(t("Enter a tag name."));
       return false;
@@ -175,152 +149,7 @@ export default function TagsPage() {
       setMessage(t("Use a six-digit color code such as #e4a853."));
       return false;
     }
-    if (
-      !Number.isInteger(tagBulkMoveLimit) ||
-      tagBulkMoveLimit < 1 ||
-      tagBulkMoveLimit > 100
-    ) {
-      setMessage(t("The bulk-move limit must be between 1 and 100."));
-      return false;
-    }
     return true;
-  }
-
-  async function addHeroTags(
-    heroes: { name: string; generation: number | null }[],
-  ) {
-    if (!activeMembership || !isAdmin || heroes.length === 0) return;
-    setSaving(true);
-    setMessage(t(""));
-    const { error } = await supabase.from("state_tags").insert(
-      heroes.map((hero) => ({
-        state_id: activeMembership.stateId,
-        name: hero.name.trim().slice(0, 32),
-        color: HERO_TAG_COLOR,
-        kind: "hero",
-        hero_generation: hero.generation,
-      })),
-    );
-    setSaving(false);
-    if (error) {
-      setMessage(
-        error.code === "23505"
-          ? t("A tag with that name already exists.")
-          : error.message,
-      );
-      return;
-    }
-    setCustomHero("");
-    await loadTags();
-  }
-
-  function isHiddenGeneration(generation: number | null) {
-    return (
-      generation !== null &&
-      heroGenerationMax !== null &&
-      generation > heroGenerationMax
-    );
-  }
-
-  function renderHeroCatalog() {
-    const existingByName = new Map(
-      tags.map((tag) => [tag.name.toLowerCase(), tag]),
-    );
-    const visibleGenerations = GENERATIONS.filter(
-      (generation) =>
-        !isHiddenGeneration(generation) &&
-        (generationFilter === "all" || generationFilter === generation),
-    );
-    const missing = HEROES.filter(
-      (hero) =>
-        visibleGenerations.includes(hero.generation) &&
-        !existingByName.has(hero.name.toLowerCase()),
-    );
-    return (
-      <>
-        <div className="invite-form">
-          <p>
-            {heroGenerationMax
-              ? t("Your state is on Gen {number}.", {
-                  number: heroGenerationMax,
-                })
-              : t("Hero generation not set: showing every generation.")}{" "}
-            <Link href="/state/manage">{t("Change in State management")}</Link>
-          </p>
-          <label>
-            {t("Show")}
-            <select
-              value={generationFilter}
-              onChange={(event) =>
-                setGenerationFilter(
-                  event.target.value === "all"
-                    ? "all"
-                    : Number(event.target.value),
-                )
-              }
-            >
-              <option value="all">{t("All unlocked")}</option>
-              {GENERATIONS.filter(
-                (generation) => !isHiddenGeneration(generation),
-              ).map((generation) => (
-                <option key={generation} value={generation}>
-                  {t("Gen {number}", { number: generation })}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            disabled={saving || missing.length === 0}
-            onClick={() => void addHeroTags(missing)}
-          >
-            {t("Add all shown heroes ({count})", { count: missing.length })}
-          </button>
-        </div>
-        {visibleGenerations.map((generation) => (
-          <div key={generation} className="hero-generation">
-            <h3>{t("Gen {number}", { number: generation })}</h3>
-            <div className="hero-presets">
-              {HEROES.filter((hero) => hero.generation === generation).map(
-                (hero) => {
-                  const tag = existingByName.get(hero.name.toLowerCase());
-                  return tag ? (
-                    <button
-                      key={hero.name}
-                      type="button"
-                      className="hero-chip added"
-                      onClick={() => {
-                        setMemberToAdd("");
-                        setKindFilter("hero");
-                        setPlayersTagId(tag.id);
-                      }}
-                    >
-                      {hero.name} ·{" "}
-                      {t("{count} players", {
-                        count: assignmentCounts[tag.id] ?? 0,
-                      })}
-                    </button>
-                  ) : (
-                    <button
-                      key={hero.name}
-                      type="button"
-                      className="hero-chip secondary-link"
-                      disabled={saving}
-                      onClick={() => void addHeroTags([hero])}
-                    >
-                      {t("+ {hero}", { hero: hero.name })}
-                      {hero.rarity !== "Legendary" && (
-                        <small> {t(hero.rarity)}</small>
-                      )}
-                    </button>
-                  );
-                },
-              )}
-            </div>
-          </div>
-        ))}
-      </>
-    );
   }
 
   async function setPlayerTag(
@@ -329,7 +158,7 @@ export default function TagsPage() {
     enabled: boolean,
   ) {
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = enabled
       ? await supabase.from("state_member_tags").insert({
           tag_id: tagId,
@@ -418,17 +247,16 @@ export default function TagsPage() {
     if (
       !activeMembership ||
       !isAdmin ||
-      !validateTag(name, color, bulkMoveLimit)
+      !validateTag(name, color)
     )
       return;
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_state_tag", {
       target_state_id: activeMembership.stateId,
       tag_name: name,
       tag_color: color,
-      tag_bulk_move_limit: bulkMoveLimit,
     });
 
     if (error) {
@@ -436,7 +264,6 @@ export default function TagsPage() {
     } else {
       setName("");
       setColor("#e4a853");
-      setBulkMoveLimit(100);
       await loadTags();
       setMessage(t("Tag created."));
     }
@@ -448,24 +275,22 @@ export default function TagsPage() {
     setEditingTagId(tag.id);
     setEditingName(tag.name);
     setEditingColor(tag.color);
-    setEditingBulkMoveLimit(tag.bulk_move_limit);
-    setMessage(t(""));
+    setMessage("");
   }
 
   async function saveTag() {
     if (
       !editingTagId ||
-      !validateTag(editingName, editingColor, editingBulkMoveLimit)
+      !validateTag(editingName, editingColor)
     )
       return;
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("update_state_tag", {
       target_tag_id: editingTagId,
       tag_name: editingName,
       tag_color: editingColor,
-      tag_bulk_move_limit: editingBulkMoveLimit,
     });
 
     if (error) {
@@ -488,14 +313,17 @@ export default function TagsPage() {
     const assignmentCount = assignmentCounts[tag.id] ?? 0;
     if (
       !window.confirm(
-        `Delete the “${tag.name}” tag? It will be removed from ${assignmentCount} WOS ${assignmentCount === 1 ? "account" : "accounts"} and from any connected vote options.`,
+        t("Delete the “{name}” tag? It is removed from {count} WOS accounts.", {
+          name: tag.name,
+          count: assignmentCount,
+        }),
       )
     ) {
       return;
     }
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("delete_state_tag", {
       target_tag_id: tag.id,
     });
@@ -538,7 +366,7 @@ export default function TagsPage() {
               <h1>{t("Tags")}</h1>
               <p>
                 {t(
-                  "Labels for rallies, joiner heroes and announcements. Rally tags are created automatically for each rally group.",
+                  "Labels for announcements and your own groupings. Rally and hero tags are created automatically from the published plan.",
                 )}
               </p>
             </div>
@@ -575,18 +403,6 @@ export default function TagsPage() {
                   />
                 </span>
               </label>
-              <label>
-                {t("Bulk-move limit")}
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={bulkMoveLimit}
-                  onChange={(event) =>
-                    setBulkMoveLimit(Number(event.target.value))
-                  }
-                />
-              </label>
               <button
                 type="button"
                 disabled={saving}
@@ -598,36 +414,6 @@ export default function TagsPage() {
             {message && <p className="page-message">{message}</p>}
           </section>
 
-          <section>
-            <p className="section-label">{t("Joiner heroes")}</p>
-            <h2>{t("Hero tags")}</h2>
-            <p>
-              {t(
-                "Tag players with the hero they join rallies with. Players see it on Overwatch as “Join with”.",
-              )}
-            </p>
-            {renderHeroCatalog()}
-            <div className="invite-form">
-              <label>
-                {t("Other hero")}
-                <input
-                  type="text"
-                  maxLength={32}
-                  value={customHero}
-                  onChange={(event) => setCustomHero(event.target.value)}
-                />
-              </label>
-              <button
-                type="button"
-                disabled={saving || !customHero.trim()}
-                onClick={() =>
-                  void addHeroTags([{ name: customHero, generation: null }])
-                }
-              >
-                {t("Add hero tag")}
-              </button>
-            </div>
-          </section>
 
           <section>
             <div className="section-title-row">
@@ -662,7 +448,7 @@ export default function TagsPage() {
               <div className="empty-state compact-empty-state">
                 <h3>{t("No tags yet")}</h3>
                 <p>
-                  {t("Create a tag above, then connect it to a voting option.")}
+                  {t("Create a tag above, then add players to it.")}
                 </p>
               </div>
             ) : (
@@ -670,8 +456,7 @@ export default function TagsPage() {
                 {tags
                   .filter(
                     (tag) =>
-                      (kindFilter === "all" || tag.kind === kindFilter) &&
-                      !isHiddenGeneration(tag.hero_generation),
+                      kindFilter === "all" || tag.kind === kindFilter,
                   )
                   .map((tag) =>
                     editingTagId === tag.id && !tag.system_key ? (
@@ -713,20 +498,6 @@ export default function TagsPage() {
                               />
                             </span>
                           </label>
-                          <label>
-                            {t("Bulk-move limit")}
-                            <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={editingBulkMoveLimit}
-                              onChange={(event) =>
-                                setEditingBulkMoveLimit(
-                                  Number(event.target.value),
-                                )
-                              }
-                            />
-                          </label>
                           <button
                             type="button"
                             disabled={saving}
@@ -760,16 +531,14 @@ export default function TagsPage() {
                             )}
                           </strong>
                           <small>
-                            {tag.color.toUpperCase()} {t("·")}{" "}
+                            {tag.color.toUpperCase()} {"·"}{" "}
                             {assignmentCounts[tag.id] ?? 0} {t("assigned")}
-                            {tag.system_key
-                              ? t(" · permanent system tag")
-                              : ` · bulk max ${tag.bulk_move_limit}`}
+                            {tag.system_key ? t(" · permanent system tag") : ""}
                           </small>
                         </div>
                         {tag.system_key ? (
                           <span className="role-badge">
-                            {t("Managed in State members")}
+                            {t("Managed in Planning")}
                           </span>
                         ) : (
                           <div className="tag-row-actions">

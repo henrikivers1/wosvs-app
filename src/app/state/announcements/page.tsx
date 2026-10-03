@@ -73,7 +73,7 @@ export default function AnnouncementsPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     await supabase.rpc("cleanup_expired_state_announcements");
 
     const [allianceResult, tagResult, recipientResult] = await Promise.all([
@@ -155,7 +155,7 @@ export default function AnnouncementsPage() {
     setTags((tagResult.data ?? []) as NamedAudience[]);
     setRecipientCounts(counts);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase, t]);
+  }, [activeMembership, isAdmin, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -223,7 +223,7 @@ export default function AnnouncementsPage() {
     }
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_state_announcement", {
       target_state_id: activeMembership.stateId,
       sender_wos_account_id: activeMembership.wosAccountId,
@@ -264,7 +264,7 @@ export default function AnnouncementsPage() {
     }
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("delete_state_announcement", {
       target_announcement_id: announcement.id,
     });

@@ -55,7 +55,6 @@ function rallyTagFor(stateId: unknown, leaderId: unknown) {
       system_key: null,
       kind: "rally",
       hero_generation: null,
-      bulk_move_limit: 100,
       created_at: nowIso(),
     };
     tags.push(tag);
@@ -420,15 +419,6 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     return error ? fail(error) : ok();
   },
 
-  bulk_assign_battle_plan_members: (args) => {
-    let count = 0;
-    for (const accountId of (args.target_wos_account_ids as unknown[]) ?? []) {
-      if (assign(args.target_plan_id, args.target_group_id, accountId)) break;
-      count += 1;
-    }
-    return ok(count);
-  },
-
   update_battle_plan: (args) => {
     const plan = byId("battle_plans", args.target_plan_id);
     if (!plan) return fail("Battle plan not found.");
@@ -630,7 +620,6 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       state_id: args.target_state_id,
       name,
       color: args.tag_color,
-      bulk_move_limit: args.tag_bulk_move_limit ?? 100,
       system_key: null,
       kind: "custom",
       hero_generation: null,
@@ -645,7 +634,6 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     Object.assign(tag, {
       name: args.tag_name,
       color: args.tag_color,
-      bulk_move_limit: args.tag_bulk_move_limit,
     });
     return ok();
   },
@@ -866,7 +854,6 @@ const NOT_IN_DEMO = new Set([
   "create_state_join_invite",
   "review_state_invite",
   "respond_to_state_invite",
-  "accept_state_invite",
   "complete_account_setup",
 ]);
 

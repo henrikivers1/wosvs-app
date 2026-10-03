@@ -25,7 +25,6 @@ type NotificationData = {
   announcement_id?: string;
   invite_id?: string;
   plan_id?: string;
-  poll_id?: string;
   state_id?: string;
   comment_id?: string;
   tag_id?: string;
@@ -52,6 +51,32 @@ type StateLabel = { id: string; name: string };
 type InviteStatus = {
   id: string;
   status: string;
+};
+
+// Where each notification type leads.
+const OVERWATCH = { href: "/state/overwatch", label: "Open Overwatch" };
+const HISTORY = { href: "/state/stats", label: "Open battle history" };
+const NOTIFICATION_LINKS: Record<string, { href: string; label: string }> = {
+  state_invite_accepted: { href: "/state/manage", label: "Review request" },
+  state_join_request: { href: "/state/manage", label: "Review request" },
+  rallies_generated: { href: "/state/planning", label: "Review rallies" },
+  attendance_reminder: { href: "/state/overwatch", label: "Vote now" },
+  svs_drawn: OVERWATCH,
+  state_announcement: OVERWATCH,
+  battle_plan_assignment: OVERWATCH,
+  battle_plan_assignment_changed: OVERWATCH,
+  battle_plan_published: OVERWATCH,
+  state_tag_awarded: OVERWATCH,
+  state_alliance_assigned: OVERWATCH,
+  battle_plan_comment: { href: "/state/overwatch", label: "Open comments" },
+  battle_plan_comment_mention: {
+    href: "/state/overwatch",
+    label: "Open comments",
+  },
+  battle_started: { href: "/battle", label: "Open Live Battle" },
+  battle_completed: HISTORY,
+  battle_result: HISTORY,
+  battle_cancelled: HISTORY,
 };
 
 export default function NotificationsPage() {
@@ -212,7 +237,7 @@ export default function NotificationsPage() {
   }, [loadNotifications, supabase, userId]);
 
   async function respondToInvitation(inviteId: string, acceptInvite: boolean) {
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("respond_to_state_invite", {
       target_invite_id: inviteId,
       accept_invite: acceptInvite,
@@ -377,59 +402,12 @@ export default function NotificationsPage() {
                         {t("Waiting for owner verification")}
                       </p>
                     )}
-                  {(notification.type === "state_invite_accepted" ||
-                    notification.type === "state_join_request") && (
-                    <Link className="nav-link" href="/state/manage">
-                      {t("Review request")}
-                    </Link>
-                  )}
-                  {notification.type === "svs_drawn" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "state_announcement" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {(notification.type === "battle_plan_assignment" ||
-                    notification.type === "battle_plan_assignment_changed") && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "battle_plan_published" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {(notification.type === "battle_plan_comment" ||
-                    notification.type === "battle_plan_comment_mention") && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open comments")}
-                    </Link>
-                  )}
-                  {notification.type === "state_tag_awarded" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "state_alliance_assigned" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "battle_started" && (
-                    <Link className="nav-link" href="/battle">
-                      {t("Open Live Battle")}
-                    </Link>
-                  )}
-                  {(notification.type === "battle_completed" ||
-                    notification.type === "battle_result" ||
-                    notification.type === "battle_cancelled") && (
-                    <Link className="nav-link" href="/state/stats">
-                      {t("Open battle history")}
+                  {NOTIFICATION_LINKS[notification.type] && (
+                    <Link
+                      className="nav-link"
+                      href={NOTIFICATION_LINKS[notification.type].href}
+                    >
+                      {t(NOTIFICATION_LINKS[notification.type].label)}
                     </Link>
                   )}
                   {inviteStatus &&
