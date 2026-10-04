@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { isDemoMode } from "@/lib/demo/mode";
 import { useLanguage } from "@/components/LanguageProvider";
 import { JoinerHeroesEditor } from "@/components/JoinerHeroesEditor";
 import { furnaceLabel } from "@/lib/furnace";
@@ -87,6 +88,16 @@ export default function AccountPage() {
     Record<string, CombatProfile>
   >({});
   const [message, setMessage] = useState("");
+  const [isOperator, setIsOperator] = useState(false);
+
+  // Only the people running Overwatch see the link to /operator.
+  useEffect(() => {
+    if (isDemoMode()) return;
+    void fetch("/api/operator/me")
+      .then((response) => response.json() as Promise<{ operator?: boolean }>)
+      .then((result) => setIsOperator(Boolean(result.operator)))
+      .catch(() => undefined);
+  }, []);
   const [syncingIds, setSyncingIds] = useState<string[]>([]);
   const automaticSyncAttempts = useRef<Set<string>>(new Set());
 
@@ -236,6 +247,12 @@ export default function AccountPage() {
         <p>
           {t("You sign in with your WOS ID and your PIN.")}{" "}
           <Link href="/account/pin">{t("Change PIN")}</Link>
+          {isOperator && (
+            <>
+              {" · "}
+              <Link href="/operator">{t("Operator")}</Link>
+            </>
+          )}
         </p>
         {!loadingStates && memberships.length === 0 && (
           <p className="page-message">

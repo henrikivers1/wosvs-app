@@ -577,7 +577,7 @@ export const chineseInterface: Record<string, string> = {
   lost: "失败",
   mainNavigation: "主导航",
   members: "成员",
-  noStateSelected: "未选择州。请查看消息中的邀请。",
+  noStateSelected: "未选择州。请向州长索取加入链接。",
   notifications: "消息",
   openProfileMenu: "打开个人菜单",
   overwatch: "Overwatch",

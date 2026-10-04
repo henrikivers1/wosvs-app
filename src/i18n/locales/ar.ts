@@ -584,7 +584,7 @@ export const arabicInterface: Record<string, string> = {
   lost: "خسارة",
   mainNavigation: "التنقل الرئيسي",
   members: "أعضاء",
-  noStateSelected: "لم يتم اختيار ولاية. تحقق من إشعاراتك بحثًا عن دعوة.",
+  noStateSelected: "لم يتم اختيار ولاية. اطلب رابط الانضمام من قائد ولايتك.",
   notifications: "الإشعارات",
   openProfileMenu: "فتح قائمة الملف الشخصي",
   overwatch: "Overwatch",

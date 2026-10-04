@@ -1,44 +1,18 @@
 import { savePlayer } from "@/lib/playerSync";
-import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
+import { requireOperator } from "@/lib/operator";
 import {
-  authConfigProblem,
   clearFailures,
   createLogin,
   fail,
   findLogin,
   oneTimePin,
   setPin,
-  signedInUser,
   WOS_ID_PATTERN,
 } from "@/lib/pinAuth";
 import { fetchOraclePlayer, OraclePlayerError } from "@/lib/wosOracle";
 
 // For the people running Overwatch (OPERATOR_WOS_IDS): create states for
 // their leaders and hand out one-time PINs.
-
-async function requireOperator() {
-  const problem = authConfigProblem();
-  if (problem || !hasAdminCredentials()) {
-    if (problem) console.error(`[operator] ${problem}`);
-    return fail("The server is not configured correctly.", 500);
-  }
-  const { user } = await signedInUser();
-  if (!user) return fail("Authentication required.", 401);
-  const operators = (process.env.OPERATOR_WOS_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  const admin = createAdminClient();
-  const { data: account } = await admin
-    .from("wos_accounts")
-    .select("wos_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (!account || !operators.includes(account.wos_id)) {
-    return fail("Only Overwatch operators can do this.", 403);
-  }
-  return admin;
-}
 
 function oracleFailure(error: unknown) {
   if (error instanceof OraclePlayerError) {

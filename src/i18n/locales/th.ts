@@ -586,7 +586,7 @@ export const thaiInterface: Record<string, string> = {
   lost: "แพ้",
   mainNavigation: "เมนูหลัก",
   members: "สมาชิก",
-  noStateSelected: "ยังไม่ได้เลือกสเตท ตรวจสอบการแจ้งเตือนเพื่อดูคำเชิญ",
+  noStateSelected: "ยังไม่ได้เลือกสเตท ขอลิงก์เข้าร่วมจากผู้นำสเตทของคุณ",
   notifications: "การแจ้งเตือน",
   openProfileMenu: "เปิดเมนูโปรไฟล์",
   overwatch: "Overwatch",
