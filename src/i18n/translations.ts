@@ -1354,7 +1354,6 @@ const spanishInterface: Record<string, string> = {
   "Prep losses": "Preparaciones perdidas",
   "Prep wins": "Preparaciones ganadas",
   "Second half": "Segunda mitad",
-  "State rankings": "Clasificaciones del estado",
   "Thanks — your availability is saved.":
     "Gracias: tu disponibilidad se guardó.",
   "The opponent is drawn but intel has not been collected yet. It appears after the next automatic WOSOracle check.":
@@ -1369,7 +1368,6 @@ const spanishInterface: Record<string, string> = {
   "Whole battle": "Toda la batalla",
   "You answered. Tap another option to change it.":
     "Ya respondiste. Toca otra opción para cambiarla.",
-  "rank {rank} of {total}": "puesto {rank} de {total}",
   lost: "perdida",
   won: "ganada",
   "{count} of your state answered, {voice} can join voice.":

@@ -247,24 +247,6 @@ export default function IntelPage() {
           </ul>
         )}
       </section>
-
-      {opponent.stats.length > 0 && (
-        <section>
-          <h2>{t("State rankings")}</h2>
-          <ul>
-            {opponent.stats.map((stat) => (
-              <li key={stat.key}>
-                {stat.label}: <strong>{formatNumber(stat.value)}</strong>
-                {stat.rank > 0 &&
-                  ` — ${t("rank {rank} of {total}", {
-                    rank: stat.rank,
-                    total: stat.outOf,
-                  })}`}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   );
 }
