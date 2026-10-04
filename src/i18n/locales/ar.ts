@@ -81,6 +81,12 @@ export const arabicInterface: Record<string, string> = {
   "Battle losses": "خسائر المعارك",
   "Battle period active": "فترة المعركة نشطة",
   "Battle plan deleted.": "تم حذف خطة المعركة.",
+  "Want this for your state?":
+    "هل تريده لولايتك؟",
+  "Get Overwatch for your state":
+    "احصل على Overwatch لولايتك",
+  "State leaders message us on Discord and we set your state up. Your members then join with a link from you.":
+    "يراسلنا قادة الولايات على Discord ونقوم بإعداد ولايتهم. بعد ذلك ينضم أعضاؤك عبر رابط ترسله لهم.",
   "Battle plan reset.": "تمت إعادة تعيين خطة المعركة.",
   "Reset plan": "إعادة تعيين الخطة",
   "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":

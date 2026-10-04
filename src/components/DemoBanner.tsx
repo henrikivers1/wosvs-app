@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { StateContact } from "@/components/StateContact";
 import {
   demoBattleStatus,
   demoEndBattle,
@@ -83,6 +84,7 @@ export function DemoBanner() {
           {t("Exit demo")}
         </button>
       </div>
+      <StateContact compact />
     </div>
   );
 }

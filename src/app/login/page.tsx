@@ -5,6 +5,7 @@ import { type FormEvent, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { useLanguage } from "@/components/LanguageProvider";
 import { PinField } from "@/components/PinField";
+import { StateContact } from "@/components/StateContact";
 import { enterDemo } from "@/lib/demo/mode";
 
 export default function LoginPage() {
@@ -113,6 +114,8 @@ export default function LoginPage() {
             {t("Try the private demo")}
           </button>
         </div>
+
+        <StateContact />
       </section>
     </main>
   );

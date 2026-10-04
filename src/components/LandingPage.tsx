@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { DiscordHandle } from "@/components/DiscordHandle";
+import { StateContact } from "@/components/StateContact";
 import { useLanguage } from "@/components/LanguageProvider";
 import { LandingVideo } from "@/components/LandingVideo";
 import { NavIcon, type NavIconName } from "@/components/NavIcon";
@@ -127,6 +128,7 @@ export function LandingPage() {
           <p className="landing-note">
             {t("Free demo · No account needed · Nothing leaves your browser")}
           </p>
+          <StateContact compact />
         </div>
 
         <div className="landing-preview" aria-hidden="true">
@@ -280,6 +282,7 @@ export function LandingPage() {
             {t("Sign in")}
           </Link>
         </div>
+        <StateContact />
       </section>
 
       <footer className="landing-footer">
