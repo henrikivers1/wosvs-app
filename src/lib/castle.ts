@@ -153,3 +153,39 @@ export function fillPlan(
   }
   return drafts;
 }
+
+// Swaps that keep the garrison the strongest defenders: a rally joiner who
+// can play the whole battle and defends better than the garrison's weakest
+// joiner trades places with them. Strongest outsider and weakest insider
+// first; nobody is swapped twice.
+export function garrisonSwaps<T extends { id: string; defense: DefenseStats }>(
+  garrison: T[],
+  outside: T[],
+): Array<{ into: T; out: T }> {
+  const weakest = [...garrison].sort((first, second) =>
+    compareDefense(second.defense, first.defense),
+  );
+  const strongest = [...outside].sort((first, second) =>
+    compareDefense(first.defense, second.defense),
+  );
+  const swaps: Array<{ into: T; out: T }> = [];
+  for (const [index, into] of strongest.entries()) {
+    const out = weakest[index];
+    if (!out || compareDefense(into.defense, out.defense) >= 0) break;
+    swaps.push({ into, out });
+  }
+  return swaps;
+}
+
+// Troop details are entered by hand on Account; without them the garrison
+// ranking falls back to Furnace and power.
+export function hasTroopLevel(member: DefenseStats) {
+  return [
+    member.infantry_tier,
+    member.lancer_tier,
+    member.marksman_tier,
+    member.infantry_fc_level,
+    member.lancer_fc_level,
+    member.marksman_fc_level,
+  ].some((value) => value !== null && value !== undefined && value > 0);
+}

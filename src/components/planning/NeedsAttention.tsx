@@ -247,6 +247,21 @@ export function NeedsAttention({
           ),
           detail: names(issue.members),
         };
+      case "garrison_weaker":
+        return {
+          text: t(
+            "{stronger} has a higher troop level than {player} in the garrison. They are swapped automatically until the plan is published.",
+            { stronger: memberName(issue.stronger), player: memberName(issue.member) },
+          ),
+        };
+      case "troops_unknown":
+        return {
+          text: t(
+            "{count} garrison players haven't entered their troop level, so Furnace and power rank them. They add it on Account under Troop details.",
+            { count: issue.members.length },
+          ),
+          detail: names(issue.members),
+        };
       case "open_slots":
         return {
           text: t(

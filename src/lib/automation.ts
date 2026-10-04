@@ -334,7 +334,7 @@ async function planUpcomingBattles(
   const { data: plans, error } = await admin
     .from("battle_plans")
     .select(
-      "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at",
+      "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at, rally_lead_ids",
     )
     .in("state_id", [...byId.keys()])
     .eq("battle_type", "svs")

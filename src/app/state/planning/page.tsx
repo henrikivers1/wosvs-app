@@ -14,6 +14,7 @@ import {
 import { PlayerSheet } from "@/components/planning/PlayerSheet";
 import { RallyColumn } from "@/components/planning/RallyColumn";
 import { RallyForm, type RallyFormValues } from "@/components/planning/RallyForm";
+import { PlanLeadsPicker } from "@/components/planning/PlanLeadsPicker";
 import { RallyLeadsPanel } from "@/components/planning/RallyLeadsPanel";
 import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
 import { RotationEditor } from "@/components/planning/RotationEditor";
@@ -132,6 +133,7 @@ export default function BattlePlanningPage() {
     string | null
   >(null);
   const [showRallyLeads, setShowRallyLeads] = useState(false);
+  const [pickingLeadsFor, setPickingLeadsFor] = useState<string | null>(null);
   const [openPlayer, setOpenPlayer] = useState<{
     planId: string;
     memberId: string;
@@ -152,6 +154,12 @@ export default function BattlePlanningPage() {
   // Rally Leads and Castle Holders only lead or hold; they never join.
   const leadTagged = new Set(rallyLeaders.map((member) => member.id));
   const holderTagged = new Set(castleHolders.map((member) => member.id));
+  // Who leads rallies in a plan: the leads picked for it, or the Rally Leads
+  // until admins pick. Rally Leads who are not picked join like anyone else.
+  const planLeads = (planId: string) => {
+    const picked = plans.find((plan) => plan.id === planId)?.rally_lead_ids;
+    return picked ? new Set(picked) : leadTagged;
+  };
 
   const loadPlanning = useCallback(async () => {
     if (!activeMembership) {
@@ -181,7 +189,7 @@ export default function BattlePlanningPage() {
       supabase
         .from("battle_plans")
         .select(
-          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created, attendance_reminder_sent_at, auto_planned_at",
+          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created, attendance_reminder_sent_at, auto_planned_at, rally_lead_ids",
         )
         .eq("state_id", stateId)
         .order("scheduled_at", { ascending: true }),
@@ -577,6 +585,20 @@ export default function BattlePlanningPage() {
     }
   }
 
+  async function savePlanLeads(planId: string, ids: string[], generate: boolean) {
+    const saved = await run(
+      async () =>
+        supabase.rpc("set_plan_rally_leads", {
+          target_plan_id: planId,
+          lead_ids: ids,
+        }),
+      t("Rally Leads saved."),
+    );
+    if (!saved) return;
+    setPickingLeadsFor(null);
+    if (generate) await runPlanStep(planId, "generate");
+  }
+
   // --- Rallies ------------------------------------------------------------
   async function saveRally(planId: string, group: PlanGroup | null, values: RallyFormValues) {
     if (!values.name.trim() || !values.leaderId || !values.allianceId) {
@@ -714,7 +736,7 @@ export default function BattlePlanningPage() {
       priorities,
       new Set([
         ...planGroups.flatMap(groupLeadIds),
-        ...leadTagged,
+        ...planLeads(planId),
         ...holderTagged,
       ]),
     );
@@ -727,7 +749,8 @@ export default function BattlePlanningPage() {
     if (!isAdmin || saving || !ids.length) return;
     const group = groups.find((item) => item.id === groupId);
     if (!group) return;
-    const leads = ids.filter((id) => leadTagged.has(id) || holderTagged.has(id));
+    const leadIds = planLeads(planId);
+    const leads = ids.filter((id) => leadIds.has(id) || holderTagged.has(id));
     if (leads.length) {
       setMessage(
         t(
@@ -938,13 +961,14 @@ export default function BattlePlanningPage() {
     const assignmentById = new Map(
       planAssignments.map((item) => [item.wos_account_id, item]),
     );
+    const planLeadIds = planLeads(plan.id);
     const issues: PlanIssue[] = isAdmin
       ? findPlanIssues({
           groups: planGroups,
           assignments: planAssignments,
           members,
           attendance: planAttendance,
-          leadTagged,
+          leadTagged: planLeadIds,
           holderTagged,
         })
       : [];
@@ -964,7 +988,7 @@ export default function BattlePlanningPage() {
     const waiting = members.filter(
       (member) =>
         !assignmentById.has(member.id) &&
-        !leadTagged.has(member.id) &&
+        !planLeadIds.has(member.id) &&
         !holderTagged.has(member.id),
     );
     const garrison = planGroups.find((group) => group.kind === "garrison");
@@ -1000,6 +1024,7 @@ export default function BattlePlanningPage() {
                 .length
             }
             rallyCount={rallyCount}
+            pickedLeads={plan.rally_lead_ids?.length ?? null}
             assignedCount={planAssignments.length}
             issueCount={
               issues.filter(
@@ -1011,8 +1036,25 @@ export default function BattlePlanningPage() {
             missingAlliance={planGroups.filter((group) => !group.alliance_id).length}
             busy={saving}
             now={loadedAt}
-            onGenerate={() => void runPlanStep(plan.id, "generate")}
+            onGenerate={() =>
+              plan.rally_lead_ids
+                ? void runPlanStep(plan.id, "generate")
+                : setPickingLeadsFor(plan.id)
+            }
             onPublish={() => void runPlanStep(plan.id, "publish")}
+            onPickLeads={() => setPickingLeadsFor(plan.id)}
+          />
+        )}
+
+        {isAdmin && pickingLeadsFor === plan.id && rallyCount === 0 && (
+          <PlanLeadsPicker
+            members={members}
+            answers={answers}
+            picked={plan.rally_lead_ids}
+            rallyCount={automation?.rally_count ?? 6}
+            busy={saving}
+            onSave={(ids, generate) => void savePlanLeads(plan.id, ids, generate)}
+            onClose={() => setPickingLeadsFor(null)}
           />
         )}
 
@@ -1509,7 +1551,8 @@ export default function BattlePlanningPage() {
               groupLeadIds(group).includes(sheetMember.id),
           )}
           isLeadTagged={
-            leadTagged.has(sheetMember.id) || holderTagged.has(sheetMember.id)
+            planLeads(sheetPlan.id).has(sheetMember.id) ||
+            holderTagged.has(sheetMember.id)
           }
           isAdmin={isAdmin}
           busy={saving}

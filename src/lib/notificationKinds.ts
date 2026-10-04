@@ -61,6 +61,7 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   battle_completed: "battle",
   battle_cancelled: "battle",
   map_enemy_leaders: "battle",
+  pick_rally_leads: "battle",
   attendance_conflict: "battle",
   pet_swap_reminder: "battle",
   member_left_state: "notice",
@@ -124,6 +125,7 @@ export type NotificationTextData = {
   rallies?: number;
   players?: number;
   publish_at?: string | null;
+  generate_at?: string | null;
   wos_id?: string;
   state_number?: number;
   group_name?: string;
@@ -265,6 +267,15 @@ export function localizedNotificationText(
         }),
         body: t(
           "Renew before then to keep the draw checks, planning and publishing running. Message us on Discord: wosoverwatch.",
+        ),
+      };
+    case "pick_rally_leads":
+      if (!data.plan_name || !data.generate_at) return null;
+      return {
+        title: t("Pick the Rally Leads"),
+        body: t(
+          "Pick who leads rallies in {plan} before {time}, when the rallies are set up. Otherwise your Rally Leads who can play are used.",
+          { plan: data.plan_name, time: formatDateTime(data.generate_at) },
         ),
       };
     case "map_enemy_leaders":

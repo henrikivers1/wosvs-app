@@ -617,6 +617,13 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     return ok();
   },
 
+  set_plan_rally_leads: ({ target_plan_id, lead_ids }) => {
+    const plan = byId("battle_plans", target_plan_id);
+    if (!plan) return fail("Battle plan not found.");
+    plan.rally_lead_ids = lead_ids ? [...new Set(lead_ids as string[])] : null;
+    return ok();
+  },
+
   delete_battle_plan: ({ target_plan_id }) => {
     if (
       demoTable("battles").some(

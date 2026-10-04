@@ -28,6 +28,7 @@ export function NextSvsChecklist({
   votedCount,
   availableCount,
   rallyCount,
+  pickedLeads,
   assignedCount,
   issueCount,
   missingAlliance,
@@ -35,6 +36,7 @@ export function NextSvsChecklist({
   now,
   onGenerate,
   onPublish,
+  onPickLeads,
 }: {
   plan: {
     scheduled_at: string;
@@ -48,6 +50,8 @@ export function NextSvsChecklist({
   votedCount: number;
   availableCount: number;
   rallyCount: number;
+  // Rally Leads picked for this SvS; null until an admin picks.
+  pickedLeads: number | null;
   assignedCount: number;
   // Things listed under Needs attention.
   issueCount: number;
@@ -56,6 +60,7 @@ export function NextSvsChecklist({
   now: number;
   onGenerate: () => void;
   onPublish: () => void;
+  onPickLeads: () => void;
 }) {
   const { t, formatDateTime } = useLanguage();
   const battleAt = new Date(plan.scheduled_at).getTime();
@@ -88,6 +93,30 @@ export function NextSvsChecklist({
           }),
     },
     {
+      key: "leads",
+      done: rallyCount > 0 || pickedLeads !== null,
+      title:
+        pickedLeads !== null
+          ? t("Rally Leads: {count} picked", { count: pickedLeads })
+          : t("Rally Leads: not picked yet"),
+      detail:
+        rallyCount > 0
+          ? t("The rallies are set up with their leads.")
+          : pickedLeads !== null
+            ? t("The rallies are set up with these leads.")
+            : t(
+                "Pick who leads before {time}. Otherwise your Rally Leads who can play are used.",
+                { time: at(GENERATE_BEFORE_MS) },
+              ),
+      action:
+        rallyCount === 0
+          ? {
+              label: pickedLeads !== null ? t("Change Rally Leads") : t("Pick Rally Leads"),
+              onClick: onPickLeads,
+            }
+          : undefined,
+    },
+    {
       key: "rallies",
       done: rallyCount > 0 && issueCount === 0,
       warning: rallyCount > 0 && issueCount > 0,
@@ -102,7 +131,7 @@ export function NextSvsChecklist({
         rallyCount === 0
           ? autoPlan
             ? t(
-                "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.",
+                "Generated automatically at {time} from the picked Rally Leads; the garrison gets the highest troop levels and the rallies are filled by your auto-fill priorities.",
                 { time: at(GENERATE_BEFORE_MS) },
               )
             : t("Automatic rallies are off for this state.")

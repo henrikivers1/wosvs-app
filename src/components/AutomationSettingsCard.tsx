@@ -118,7 +118,7 @@ export function AutomationSettingsCard({
       <h2>{t("SvS automation")}</h2>
       <p>
         {t(
-          "After the draw, the app reminds members to vote 30 hours before the battle. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (your Rally Leads, swapping each pet block), then fills the garrison with the strongest defenders and the rallies with everyone else. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.",
+          "After the draw, the app reminds members to vote 30 hours before the battle and asks admins to pick this SvS's Rally Leads in Planning. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (the picked Rally Leads, swapping each pet block), then fills the garrison with the highest troop levels and the rallies with everyone else. Until the plan is published, a stronger defender in a rally is swapped into the garrison. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.",
         )}
       </p>
       <div className="automation-grid">

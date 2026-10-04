@@ -181,15 +181,15 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "The garrison",
-        body: "One garrison holds the castle the whole battle. It is filled first, with the strongest defenders who play the whole battle: highest troop FC, then troop tier, then troop skill. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.",
+        body: "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.",
       },
       {
         title: "Adjust by hand",
-        body: "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.",
+        body: "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.",
       },
       {
         title: "Leads & holders",
-        body: "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
+        body: "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
       },
       {
         title: "Bring your members in",

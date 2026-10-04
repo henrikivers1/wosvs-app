@@ -4,6 +4,7 @@ import {
   blockFits,
   compareDefense,
   fillPlan,
+  garrisonSwaps,
   PET_BLOCKS,
   planRotation,
   seatMemberIds,
@@ -17,14 +18,25 @@ import type { createAdminClient } from "@/lib/supabase/admin";
 // now" on the Planning page). Every step only adds to what admins already
 // set up by hand: existing rallies are never rebuilt or reshuffled.
 //
-//   T-30h  remind members who have not voted on their attendance
+//   T-30h  remind members who have not voted on their attendance, and ask
+//          admins to pick this SvS's Rally Leads
 //   T-24h  generate the garrison (Castle Holders by pet block) and the
-//          rallies (Rally Leads by pet block), then fill the garrison with
-//          the strongest defenders and the rallies by the state's priorities
+//          rallies (the picked Rally Leads by pet block), then fill the
+//          garrison with the highest troop levels and the rallies by the
+//          state's priorities
 //   hourly add late voters to open rally slots, until the battle starts
 //   T-6h   publish, which sends everyone their assignment
 
 type AdminClient = ReturnType<typeof createAdminClient>;
+
+type Plan = {
+  id: string;
+  state_id: string;
+  name: string;
+  scheduled_at: string;
+  // Picked for this SvS in Planning; null until an admin picks.
+  rally_lead_ids?: string[] | null;
+};
 
 const HOUR_MS = 60 * 60 * 1000;
 export const REMIND_BEFORE_MS = 30 * HOUR_MS;
@@ -106,7 +118,8 @@ function averageTroop(member: Member) {
   return tiers.length ? tiers.reduce((sum, tier) => sum + tier, 0) / tiers.length : 0;
 }
 
-async function loadState(admin: AdminClient, stateId: string, planId: string) {
+async function loadState(admin: AdminClient, plan: Plan) {
+  const { state_id: stateId, id: planId } = plan;
   const [members, attendance, groups, assignments, alliances, systemTags] =
     await Promise.all([
       admin
@@ -192,8 +205,10 @@ async function loadState(admin: AdminClient, stateId: string, planId: string) {
     groups: (groups.data ?? []) as Group[],
     assignments: (assignments.data ?? []) as Assignment[],
     alliances: (alliances.data ?? []) as { id: string; name: string }[],
-    rallyTagId,
     rallyLeads: taggedWith(rallyTagId),
+    // Who leads rallies in this SvS and so never joins one: the picked
+    // leads, or the state's Rally Leads until admins pick.
+    leadIds: new Set(plan.rally_lead_ids ?? taggedWith(rallyTagId)),
     castleHolders: taggedWith(holderTagId),
   };
 }
@@ -233,8 +248,9 @@ async function allianceFor(
 
 async function remindVoters(
   admin: AdminClient,
-  plan: { id: string; state_id: string; name: string; scheduled_at: string },
+  plan: Plan,
   loaded: Loaded,
+  askForLeads: boolean,
 ) {
   const missing = loaded.members.filter((member) => !loaded.answers.has(member.id));
   if (missing.length) {
@@ -257,6 +273,34 @@ async function remindVoters(
       })),
     );
     if (error) throw new Error(error.message);
+  }
+  if (askForLeads && !plan.rally_lead_ids) {
+    const generateAt = new Date(
+      new Date(plan.scheduled_at).getTime() - GENERATE_BEFORE_MS,
+    ).toISOString();
+    const admins = loaded.members.filter(
+      (member) => member.role === "owner" || member.role === "admin",
+    );
+    const users = [...new Map(admins.map((member) => [member.user_id, member])).values()];
+    if (users.length) {
+      await admin.from("notifications").insert(
+        users.map((member) => ({
+          user_id: member.user_id,
+          state_id: plan.state_id,
+          wos_account_id: member.id,
+          type: "pick_rally_leads",
+          title: "Pick the Rally Leads",
+          body: `Pick who leads rallies in ${plan.name} before the rallies are set up.`,
+          data: {
+            plan_id: plan.id,
+            plan_name: plan.name,
+            generate_at: generateAt,
+            state_id: plan.state_id,
+            wos_account_id: member.id,
+          },
+        })),
+      );
+    }
   }
   await admin
     .from("battle_plans")
@@ -312,13 +356,14 @@ async function createGarrison(
   return 1;
 }
 
-// Rallies: one per Rally Lead who can play (the best Labyrinth players are
-// made Rally Leads when there are too few), and every rally gets one lead
-// per pet block from the Rally Leads left over, so leads swap when their
-// pets run out. Joiners stay for the whole battle.
+// Rallies: one per lead who can play, from the leads admins picked for this
+// SvS. Without picks, the state's Rally Leads, topped up with the best
+// Labyrinth players when there are too few (for this SvS only). Every rally
+// gets one lead per pet block from the leads left over, so leads swap when
+// their pets run out. Joiners stay for the whole battle.
 async function createRallies(
   admin: AdminClient,
-  plan: { id: string; state_id: string },
+  plan: Plan,
   settings: AutoPlanSettings,
   loaded: Loaded,
 ) {
@@ -340,21 +385,24 @@ async function createRallies(
   const available = loaded.members.filter(
     (member) => canPlay(member) && !busy.has(member.id) && !loaded.castleHolders.has(member.id),
   );
-  const tagged = available.filter((member) => loaded.rallyLeads.has(member.id)).sort(byLabyrinth);
-  const extra = available
-    .filter((member) => !loaded.rallyLeads.has(member.id))
-    .sort(byLabyrinth)
-    .slice(0, Math.max(0, settings.rally_count - tagged.length));
-  for (const member of extra) {
-    if (!loaded.rallyTagId) break;
-    await admin.from("state_member_tags").insert({
-      tag_id: loaded.rallyTagId,
-      wos_account_id: member.id,
-      source: "manual",
-    });
-    loaded.rallyLeads.add(member.id);
+  let leads: Member[];
+  if (plan.rally_lead_ids) {
+    const picked = new Set(plan.rally_lead_ids);
+    leads = loaded.members
+      .filter((member) => picked.has(member.id) && canPlay(member) && !busy.has(member.id))
+      .sort(byLabyrinth);
+  } else {
+    const tagged = available
+      .filter((member) => loaded.rallyLeads.has(member.id))
+      .sort(byLabyrinth);
+    const extra = available
+      .filter((member) => !loaded.rallyLeads.has(member.id))
+      .sort(byLabyrinth)
+      .slice(0, Math.max(0, settings.rally_count - tagged.length));
+    leads = [...tagged, ...extra];
   }
-  const leads = [...tagged, ...extra];
+  // They lead this SvS, so they are never placed as joiners.
+  for (const lead of leads) loaded.leadIds.add(lead.id);
   const rallyCount = Math.min(settings.rally_count, leads.length);
   if (!rallyCount) return 0;
 
@@ -497,7 +545,7 @@ async function fillRallies(
     groups,
     candidates,
     priorities,
-    new Set([...loaded.rallyLeads, ...loaded.castleHolders]),
+    new Set([...loaded.leadIds, ...loaded.castleHolders]),
   );
   if (!drafts.length) return 0;
   const { error } = await admin.from("battle_plan_assignments").insert(
@@ -512,6 +560,64 @@ async function fillRallies(
   if (error) throw new Error(error.message);
   loaded.assignments.push(...drafts);
   return drafts.length;
+}
+
+// Until the plan is published, keeps the garrison the strongest defenders:
+// a rally joiner who can play the whole battle and has a higher troop level
+// trades places with the garrison's weakest joiner. Leads and holders stay.
+async function strengthenGarrison(
+  admin: AdminClient,
+  plan: Plan,
+  loaded: Loaded,
+) {
+  const garrison = loaded.groups.find((group) => group.kind === "garrison");
+  if (!garrison) return 0;
+  const leads = new Set(
+    loaded.groups.flatMap((group) => [
+      group.leader_wos_account_id,
+      ...((group.lead_rotation ?? []).filter(Boolean) as string[]),
+    ]),
+  );
+  const memberById = new Map(loaded.members.map((member) => [member.id, member]));
+  const joiners = loaded.assignments
+    .filter((row) => !leads.has(row.wos_account_id) && memberById.has(row.wos_account_id))
+    .map((row) => ({ ...row, id: row.wos_account_id, defense: memberById.get(row.wos_account_id)! }));
+  const swaps = garrisonSwaps(
+    joiners.filter((row) => row.group_id === garrison.id),
+    joiners.filter(
+      (row) =>
+        row.group_id !== garrison.id &&
+        loaded.answers.get(row.id)?.availability === "whole",
+    ),
+  );
+  for (const { into, out } of swaps) {
+    // The weaker defender takes the rally seat, with its hero when they
+    // have it at 4 stars, or else another of the rally's joiner heroes.
+    const owned = loaded.heroesByAccount.get(out.id) ?? [];
+    const rally = loaded.groups.find((group) => group.id === into.group_id);
+    const hero =
+      [into.hero, ...(rally?.joiner_heroes ?? [])].find(
+        (option): option is string => Boolean(option) && owned.includes(option!),
+      ) ?? null;
+    const moves = [
+      { id: into.id, group_id: garrison.id, hero: null },
+      { id: out.id, group_id: into.group_id, hero },
+    ];
+    for (const move of moves) {
+      const { error } = await admin
+        .from("battle_plan_assignments")
+        .update({ group_id: move.group_id, hero: move.hero })
+        .eq("plan_id", plan.id)
+        .eq("wos_account_id", move.id);
+      if (error) throw new Error(error.message);
+      const row = loaded.assignments.find((item) => item.wos_account_id === move.id);
+      if (row) {
+        row.group_id = move.group_id;
+        row.hero = move.hero;
+      }
+    }
+  }
+  return swaps.length;
 }
 
 async function notifyAdmins(
@@ -551,11 +657,7 @@ async function notifyAdmins(
 
 export async function runAutoPlan(
   admin: AdminClient,
-  plan: {
-    id: string;
-    state_id: string;
-    name: string;
-    scheduled_at: string;
+  plan: Plan & {
     status: string;
     attendance_reminder_sent_at: string | null;
     auto_planned_at: string | null;
@@ -573,10 +675,10 @@ export async function runAutoPlan(
   const battleAt = new Date(plan.scheduled_at).getTime();
   if (battleAt <= now) return result;
   const untilBattle = battleAt - now;
-  const loaded = await loadState(admin, plan.state_id, plan.id);
+  const loaded = await loadState(admin, plan);
 
   if (!plan.attendance_reminder_sent_at && untilBattle <= REMIND_BEFORE_MS) {
-    result.reminded = await remindVoters(admin, plan, loaded);
+    result.reminded = await remindVoters(admin, plan, loaded, settings.auto_plan);
   }
 
   const generate =
@@ -588,6 +690,7 @@ export async function runAutoPlan(
       result.ralliesCreated = await createRallies(admin, plan, settings, loaded);
     }
     result.playersAssigned = await fillRallies(admin, plan, settings, loaded);
+    if (plan.status === "draft") await strengthenGarrison(admin, plan, loaded);
     if (!plan.auto_planned_at && loaded.groups.length) {
       await admin
         .from("battle_plans")

@@ -13,6 +13,8 @@ export type BattlePlan = {
   auto_created: boolean;
   attendance_reminder_sent_at: string | null;
   auto_planned_at: string | null;
+  // Rally Leads picked for this SvS; null until an admin picks.
+  rally_lead_ids: string[] | null;
 };
 
 export type PlanGroup = {
