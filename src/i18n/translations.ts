@@ -28,6 +28,20 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "Land after the hit (ms)":
+    "Llegar tras el impacto (ms)",
+  "Test sound":
+    "Probar sonido",
+  "Your reinforcements land this long after the enemy rally hits (default 100 ms), never later than halfway to the next hit. With sound on you hear 3, 2, 1 and a high tone: tap Send on the tone. Tap Test sound once so your phone allows the beeps.":
+    "Tus refuerzos llegan este tiempo después del impacto del rally enemigo (100 ms por defecto), nunca más tarde de la mitad hasta el siguiente impacto. Con el sonido activado oyes 3, 2, 1 y un tono agudo: pulsa Enviar con el tono. Pulsa Probar sonido una vez para que tu teléfono permita los pitidos.",
+  "Under {ms} ms between these rallies: aiming for the middle of the gap.":
+    "Menos de {ms} ms entre estos rallies: se apunta al centro del hueco.",
+  "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives.":
+    "El temporizador hace que tus refuerzos lleguen justo después de cada impacto de rally enemigo (100 ms por defecto, en Llegar tras el impacto), antes de que llegue el siguiente.",
+  "Turn on sound and tap Test sound once, so your phone allows the beeps.":
+    "Activa el sonido y pulsa Probar sonido una vez para que tu teléfono permita los pitidos.",
+  "You hear 3, 2, 1 and a high tone: tap Send in the game on the tone.":
+    "Oyes 3, 2, 1 y un tono agudo: pulsa Enviar en el juego con el tono.",
   "The battle runs in three pet blocks, by default 12–14, 14–16 and 16–17 UTC. A pet lasts two hours, so you can change when the blocks start: for the whole state under SvS automation, or for one rally or the garrison under its ⋯ → Leads by pet block. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
     "La batalla se divide en tres bloques de mascotas, por defecto 12–14, 14–16 y 16–17 UTC. Una mascota dura dos horas, así que puedes cambiar cuándo empiezan los bloques: para todo el estado en Automatización de SvS, o para un rally o la guarnición en su ⋯ → Líderes por bloque de mascotas. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se acaban sus mascotas y los unidos se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autollenado y solo reciben un héroe de unión que tengan a 4★.",
   "Second pet block starts (UTC)":
@@ -790,12 +804,6 @@ const spanishInterface: Record<string, string> = {
     "Abre Batalla en vivo y luego Guarnición.",
   "Enter your city's X and Y once; your march time is worked out for you.":
     "Introduce la X y la Y de tu ciudad una sola vez; tu tiempo de marcha se calcula solo.",
-  "Turn on sound and notifications.":
-    "Activa el sonido y las notificaciones.",
-  "Send when the countdown reaches zero.":
-    "Envía cuando la cuenta atrás llegue a cero.",
-  "The timer aims your reinforcements between two enemy rallies, or right after the last one hits.":
-    "El temporizador hace que tus refuerzos lleguen entre dos rallies enemigos, o justo después de que golpee el último.",
   "If the game lags on your connection, add your ping in milliseconds under Send early.":
     "Si el juego va con retraso en tu conexión, añade tu ping en milisegundos en Enviar antes.",
   "The shared battle clock":
@@ -1384,8 +1392,6 @@ const spanishInterface: Record<string, string> = {
   "Send early (ms)": "Enviar antes (ms)",
   "Send early compensates for your game ping: if the game lags on your connection, add your ping here.":
     "Enviar antes compensa tu ping en el juego: si el juego va con retraso en tu conexión, añade tu ping aquí.",
-  "Under one second between these rallies — very hard to hit.":
-    "Menos de un segundo entre estos rallies: muy difícil de acertar.",
   "When to send": "Cuándo enviar",
   "Window {number}": "Ventana {number}",
   impact: "impacto",
@@ -1709,7 +1715,6 @@ const spanishInterface: Record<string, string> = {
   "Saving...": "Guardando...",
   "Send announcement": "Enviar anuncio",
   "Send in {seconds} seconds": "Enviar en {seconds} segundos",
-  "Send now": "Enviar ahora",
   "Send time passed": "La hora de envío ha pasado",
   "SEND NOW": "ENVIAR AHORA",
   "SEND REINFORCEMENTS NOW": "ENVÍA REFUERZOS AHORA",

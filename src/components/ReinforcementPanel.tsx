@@ -53,6 +53,21 @@ export function ReinforcementSettings({
           />
         </label>
         <label>
+          {t("Land after the hit (ms)")}
+          <input
+            type="number"
+            min="0"
+            max="1000"
+            step="10"
+            value={timing.landAfterMs}
+            onChange={(event) =>
+              timing.setLandAfterMs(
+                Math.max(0, Math.min(1000, Number(event.target.value) || 0)),
+              )
+            }
+          />
+        </label>
+        <label>
           <input
             type="checkbox"
             checked={timing.playerPetActive}
@@ -70,6 +85,9 @@ export function ReinforcementSettings({
           />
           {t("Sound alerts")}
         </label>
+        <button type="button" onClick={timing.testSound}>
+          {t("Test sound")}
+        </button>
         <button type="button" onClick={timing.enableNotifications}>
           {timing.notificationsEnabled
             ? t("Notifications enabled")
@@ -97,6 +115,11 @@ export function ReinforcementSettings({
       <p>
         {t(
           "Send early compensates for your game ping: if the game lags on your connection, add your ping here.",
+        )}
+      </p>
+      <p>
+        {t(
+          "Your reinforcements land this long after the enemy rally hits (default 100 ms), never later than halfway to the next hit. With sound on you hear 3, 2, 1 and a high tone: tap Send on the tone. Tap Test sound once so your phone allows the beeps.",
         )}
       </p>
     </>
@@ -186,10 +209,11 @@ export function ReinforcementSchedule({
                     impact: formatUtcTimePrecise(landingWindow.opensAt),
                   })}
             </p>
-            {windowMs !== null && windowMs < 1000 && (
+            {windowMs !== null && windowMs < timing.landAfterMs * 2 && (
               <p className="auth-message">
                 {t(
-                  "Under one second between these rallies — very hard to hit.",
+                  "Under {ms} ms between these rallies: aiming for the middle of the gap.",
+                  { ms: timing.landAfterMs * 2 },
                 )}
               </p>
             )}

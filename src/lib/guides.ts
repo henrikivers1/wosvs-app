@@ -116,10 +116,10 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         steps: [
           "Open Live Battle, then Garrison.",
           "Enter your city's X and Y once; your march time is worked out for you.",
-          "Turn on sound and notifications.",
-          "Send when the countdown reaches zero.",
+          "Turn on sound and tap Test sound once, so your phone allows the beeps.",
+          "You hear 3, 2, 1 and a high tone: tap Send in the game on the tone.",
         ],
-        body: "The timer aims your reinforcements between two enemy rallies, or right after the last one hits.",
+        body: "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives.",
         tip: "If the game lags on your connection, add your ping in milliseconds under Send early.",
       },
       {

@@ -10,16 +10,19 @@ export type LandingWindow = {
   before: EnemyRally | null;
   opensAt: Date;
   closesAt: Date | null;
-  // Aim for the middle of the gap: it tolerates the most timing error in
-  // either direction (caller reaction, game ping, rounding of march times).
+  // Just after `after` hits. Real gaps between rally hits are often only
+  // half a second, so landing right behind the first hit is what counts.
   targetTime: Date;
 };
 
-// After the last rally (or when only one is called) there is no next rally
-// to fit between, so aim just after its impact.
-export const AFTER_LAST_RALLY_MS = 500;
+// How long after the hit to land, unless the gap is shorter than twice
+// that (then the middle of the gap). Players can change it.
+export const DEFAULT_LAND_AFTER_MS = 100;
 
-export function buildLandingWindows(rallies: EnemyRally[]): LandingWindow[] {
+export function buildLandingWindows(
+  rallies: EnemyRally[],
+  landAfterMs: number = DEFAULT_LAND_AFTER_MS,
+): LandingWindow[] {
   const ordered = [...rallies].sort(
     (first, second) => first.impactTime.getTime() - second.impactTime.getTime(),
   );
@@ -38,7 +41,7 @@ export function buildLandingWindows(rallies: EnemyRally[]): LandingWindow[] {
       before,
       opensAt: new Date(opensAt),
       closesAt: new Date(closesAt),
-      targetTime: new Date(opensAt + (closesAt - opensAt) / 2),
+      targetTime: new Date(opensAt + Math.min(landAfterMs, (closesAt - opensAt) / 2)),
     });
   }
 
@@ -51,7 +54,7 @@ export function buildLandingWindows(rallies: EnemyRally[]): LandingWindow[] {
       before: null,
       opensAt: new Date(opensAt),
       closesAt: null,
-      targetTime: new Date(opensAt + AFTER_LAST_RALLY_MS),
+      targetTime: new Date(opensAt + landAfterMs),
     });
   }
 
