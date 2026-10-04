@@ -64,7 +64,8 @@ function compare(left: unknown, right: unknown) {
 }
 
 function embeddedTables(columns: string) {
-  return [...columns.matchAll(/([a-z_]+)(?:!inner)?\s*\(/g)].map(
+  // Skips hints: wos_accounts!state_members_wos_account_id_fkey!inner(...).
+  return [...columns.matchAll(/(?<![!a-z_])([a-z_]+)(?:![a-z_]+)*\s*\(/g)].map(
     (match) => match[1],
   );
 }

@@ -34,7 +34,7 @@ export async function GET() {
       .order("created_at", { ascending: false }),
     admin
       .from("state_members")
-      .select("state_id, role, wos_accounts!inner(wos_id, nickname)"),
+      .select("state_id, role, wos_accounts!state_members_wos_account_id_fkey!inner(wos_id, nickname)"),
   ]);
   if (error) {
     console.error("[operator] State list failed:", error);

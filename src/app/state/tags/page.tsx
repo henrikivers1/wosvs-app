@@ -80,7 +80,7 @@ export default function TagsPage() {
         .eq("state_tags.state_id", activeMembership.stateId),
       supabase
         .from("state_members")
-        .select("wos_account_id, wos_accounts(nickname, wos_id)")
+        .select("wos_account_id, wos_accounts!state_members_wos_account_id_fkey(nickname, wos_id)")
         .eq("state_id", activeMembership.stateId),
     ]);
 

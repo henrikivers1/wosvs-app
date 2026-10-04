@@ -187,7 +187,7 @@ export default function BattlePlanningPage() {
         .order("scheduled_at", { ascending: true }),
       supabase
         .from("state_members")
-        .select(`wos_account_id, role, wos_accounts!inner(${ACCOUNT_COLUMNS})`)
+        .select(`wos_account_id, role, wos_accounts!state_members_wos_account_id_fkey!inner(${ACCOUNT_COLUMNS})`)
         .eq("state_id", stateId),
       supabase
         .from("state_tags")

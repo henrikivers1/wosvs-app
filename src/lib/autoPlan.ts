@@ -112,7 +112,7 @@ async function loadState(admin: AdminClient, stateId: string, planId: string) {
       admin
         .from("state_members")
         .select(
-          "role, wos_accounts!inner(id, user_id, nickname, wos_id, power, furnace_level_raw, labyrinth_score, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill, alliance_abbr, alliance_name)",
+          "role, wos_accounts!state_members_wos_account_id_fkey!inner(id, user_id, nickname, wos_id, power, furnace_level_raw, labyrinth_score, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill, alliance_abbr, alliance_name)",
         )
         .eq("state_id", stateId),
       admin

@@ -41,7 +41,7 @@ export async function requireStateMember(
   const [membershipResult, stateResult] = await Promise.all([
     admin
       .from("state_members")
-      .select("role, wos_accounts!inner(user_id)")
+      .select("role, wos_accounts!state_members_wos_account_id_fkey!inner(user_id)")
       .eq("state_id", stateId)
       .eq("wos_accounts.user_id", user.id),
     admin
