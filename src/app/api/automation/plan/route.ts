@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     access.admin
       .from("battle_plans")
       .select(
-        "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at",
+        "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at, rally_lead_ids",
       )
       .eq("id", body.planId)
       .eq("state_id", body.stateId!)
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     access.admin
       .from("states")
       .select(
-        "auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
+        "auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities, block_swaps",
       )
       .eq("id", body.stateId!)
       .maybeSingle(),

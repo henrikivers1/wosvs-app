@@ -53,6 +53,49 @@ export function ReinforcementSettings({
           />
         </label>
         <label>
+          {t("Land after the hit (ms)")}
+          <input
+            type="number"
+            min="0"
+            max="1000"
+            step="10"
+            value={timing.landAfterMs}
+            onChange={(event) =>
+              timing.setLandAfterMs(
+                Math.max(0, Math.min(1000, Number(event.target.value) || 0)),
+              )
+            }
+          />
+        </label>
+        <label>
+          {t("Speedups for close rallies")}
+          <select
+            value={timing.speedupMode}
+            onChange={(event) =>
+              timing.setSpeedupMode(event.target.value as typeof timing.speedupMode)
+            }
+          >
+            <option value="25-50">{t("25% and 50%")}</option>
+            <option value="25-25x2">{t("25% only (two for a third march)")}</option>
+            <option value="off">{t("Off: one send per rally")}</option>
+          </select>
+        </label>
+        <label>
+          {t("Seconds before you can tap a speedup")}
+          <input
+            type="number"
+            min="1"
+            max="15"
+            step="0.5"
+            value={timing.speedupDelayMs / 1000}
+            onChange={(event) =>
+              timing.setSpeedupDelayMs(
+                Math.round(Math.max(1, Math.min(15, Number(event.target.value) || 5)) * 1000),
+              )
+            }
+          />
+        </label>
+        <label>
           <input
             type="checkbox"
             checked={timing.playerPetActive}
@@ -70,6 +113,9 @@ export function ReinforcementSettings({
           />
           {t("Sound alerts")}
         </label>
+        <button type="button" onClick={timing.testSound}>
+          {t("Test sound")}
+        </button>
         <button type="button" onClick={timing.enableNotifications}>
           {timing.notificationsEnabled
             ? t("Notifications enabled")
@@ -99,9 +145,21 @@ export function ReinforcementSettings({
           "Send early compensates for your game ping: if the game lags on your connection, add your ping here.",
         )}
       </p>
+      <p>
+        {t(
+          "Your reinforcements land this long after the enemy rally hits (default 100 ms), never later than halfway to the next hit. With sound on you hear 3, 2, 1 and a high tone: tap Send on the tone. Tap Test sound once so your phone allows the beeps.",
+        )}
+      </p>
+      <p>
+        {t(
+          "Rallies that hit close together each get their own march. When there is no time to send them one after another, a march is sent later and sped up with a March Accelerator: two short low beeps mean tap the speedup. A speedup takes 25% or 50% off the time that is left, and tapping it a little late barely moves the landing.",
+        )}
+      </p>
     </>
   );
 }
+
+const HIT_SHOWN_FOR_MS = 5_000;
 
 export function IncomingRallies({
   rallies,
@@ -111,9 +169,11 @@ export function IncomingRallies({
   onCancelRally?: (rally: EnemyRally) => void;
 }) {
   const { t } = useLanguage();
-  const ordered = [...rallies].sort(
-    (first, second) => first.impactTime.getTime() - second.impactTime.getTime(),
-  );
+  const { currentTime } = useBattle();
+  // Rallies drop off a few seconds after they hit.
+  const ordered = [...rallies]
+    .filter((rally) => rally.impactTime.getTime() > currentTime.getTime() - HIT_SHOWN_FOR_MS)
+    .sort((first, second) => first.impactTime.getTime() - second.impactTime.getTime());
 
   if (ordered.length === 0) return <p>{t("No incoming rallies.")}</p>;
 
@@ -156,11 +216,30 @@ export function ReinforcementSchedule({
 
   return (
     <>
+      {timing.upcomingTaps.length > 0 && (
+        <ol className="garrison-taps" aria-label={t("Your taps")}>
+          {timing.upcomingTaps.slice(0, 8).map((tap, index) => (
+            <li key={tap.key} className={index === 0 ? "is-next" : undefined}>
+              <time>{formatUtcTimePrecise(new Date(tap.at))}</time>
+              <strong>
+                {tap.kind === "send"
+                  ? t("Send march {number}", { number: tap.march })
+                  : t("Speed up march {number} by {percent}%", {
+                      number: tap.march,
+                      percent: tap.percent ?? 25,
+                    })}
+              </strong>
+            </li>
+          ))}
+        </ol>
+      )}
       {timing.landingWindows.map((landingWindow, index) => {
+        const march = timing.marchFor(landingWindow);
+        const marchNumber = timing.marchNumber(landingWindow);
         const windowMs = landingWindow.closesAt
           ? landingWindow.closesAt.getTime() - landingWindow.opensAt.getTime()
           : null;
-        const msUntilSend = timing.getMsUntilSend(landingWindow);
+        const msUntilSend = timing.getMsUntilNextTap(landingWindow);
 
         return (
           <article key={landingWindow.id}>
@@ -186,20 +265,39 @@ export function ReinforcementSchedule({
                     impact: formatUtcTimePrecise(landingWindow.opensAt),
                   })}
             </p>
-            {windowMs !== null && windowMs < 1000 && (
+            {windowMs !== null && windowMs < timing.landAfterMs * 2 && (
               <p className="auth-message">
                 {t(
-                  "Under one second between these rallies — very hard to hit.",
+                  "Under {ms} ms between these rallies: aiming for the middle of the gap.",
+                  { ms: timing.landAfterMs * 2 },
                 )}
               </p>
             )}
-            <p>
-              {t("Send reinforcement at:")}{" "}
-              <strong>
-                {formatUtcTimePrecise(timing.getSendTime(landingWindow))}{" "}
-                {t("UTC")}
-              </strong>
-            </p>
+            {march ? (
+              <p>
+                {marchNumber !== null && `${t("March {number}", { number: marchNumber })} · `}
+                {t("Send reinforcement at:")}{" "}
+                <strong>
+                  {formatUtcTimePrecise(timing.getSendTime(landingWindow))}{" "}
+                  {t("UTC")}
+                </strong>
+                {march.taps
+                  .filter((tap) => tap.kind === "speedup")
+                  .map((tap, tapIndex) => (
+                    <span key={tapIndex}>
+                      {" · "}
+                      {t("speed up {percent}% at {time}", {
+                        percent: tap.percent ?? 25,
+                        time: formatUtcTimePrecise(new Date(tap.at)),
+                      })}
+                    </span>
+                  ))}
+              </p>
+            ) : (
+              <p className="auth-message">
+                {t("No time for a march here: it would come too close to your other taps.")}
+              </p>
+            )}
             <p
               className={
                 msUntilSend <= 0 && msUntilSend > -1500

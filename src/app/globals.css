@@ -1296,6 +1296,30 @@ li button {
   margin-left: auto;
 }
 /* The garrison's countdown: readable at a glance in battle */
+.garrison-taps {
+  display: grid;
+  margin: 0 0 16px;
+  padding: 0;
+  gap: 6px;
+  list-style: none;
+}
+.garrison-taps li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.garrison-taps li.is-next {
+  border-color: var(--gold);
+}
+.garrison-taps time {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
 .send-status {
   display: inline-block;
   margin-top: 4px;
@@ -4077,6 +4101,22 @@ li.member-row button.danger-button:hover:not(:disabled) {
   background: var(--surface-sunken);
   border-radius: var(--radius-sm);
 }
+/* Forms inside a rally stay inside it; a rally being edited gets two
+   columns of room. */
+.rally-column {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.rally-column :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+}
+.rally-column .button-row {
+  flex-wrap: wrap;
+}
+.rally-board-cell:has(.rally-form, .rotation-editor, .rally-setup-editor) {
+  grid-column: span 2;
+}
 
 /* Waiting list */
 .waiting-list {
@@ -4310,6 +4350,9 @@ li.member-row button.danger-button:hover:not(:disabled) {
     flex: 0 0 min(260px, 78vw);
     scroll-snap-align: start;
   }
+  .rally-board-cell:has(.rally-form, .rotation-editor, .rally-setup-editor) {
+    flex-basis: min(420px, 92vw);
+  }
   .player-sheet {
     width: 100%;
     height: auto;
@@ -4409,6 +4452,14 @@ li.member-row button.danger-button:hover:not(:disabled) {
 }
 .rotation-warning {
   color: var(--danger-text);
+}
+.rotation-swaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.rally-form-panel .rotation-editor .rotation-swaps {
+  grid-column: 1 / -1;
 }
 .rally-form-panel .rotation-editor {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

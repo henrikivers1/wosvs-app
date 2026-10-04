@@ -18,7 +18,7 @@ const english = {
   state: "State",
   activeWorkspace: "Active workspace",
   noStateSelected:
-    "No state selected. Check your notifications for an invitation.",
+    "No state selected. Ask your state leader for the join link.",
   language: "Language",
   mainNavigation: "Main navigation",
   roleOwner: "owner",
@@ -28,6 +28,122 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "That player is already on the list.":
+    "Ese jugador ya está en la lista.",
+  "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.":
+    "El temporizador hace que tus refuerzos lleguen justo después de cada impacto de rally enemigo (100 ms por defecto, en Llegar tras el impacto), antes de que llegue el siguiente. Cuando los rallies impactan seguidos, cada uno recibe su propia marcha: \"Tus pulsaciones\" muestra cada envío y cada Acelerador de marcha del 25% o 50% que debes pulsar, una marcha cada vez.",
+  "Speedups for close rallies":
+    "Aceleradores para rallies seguidos",
+  "25% and 50%":
+    "25% y 50%",
+  "25% only (two for a third march)":
+    "Solo 25% (dos para una tercera marcha)",
+  "Off: one send per rally":
+    "Desactivado: un envío por rally",
+  "Seconds before you can tap a speedup":
+    "Segundos antes de poder pulsar un acelerador",
+  "Rallies that hit close together each get their own march. When there is no time to send them one after another, a march is sent later and sped up with a March Accelerator: two short low beeps mean tap the speedup. A speedup takes 25% or 50% off the time that is left, and tapping it a little late barely moves the landing.":
+    "Los rallies que impactan seguidos reciben cada uno su propia marcha. Si no hay tiempo para enviarlas una tras otra, una marcha se envía más tarde y se acelera con un Acelerador de marcha: dos pitidos cortos y graves significan pulsar el acelerador. Un acelerador quita el 25% o el 50% del tiempo restante, y pulsarlo un poco tarde apenas cambia la llegada.",
+  "Your taps":
+    "Tus pulsaciones",
+  "Send march {number}":
+    "Envía la marcha {number}",
+  "Speed up march {number} by {percent}%":
+    "Acelera la marcha {number} un {percent}%",
+  "March {number}":
+    "Marcha {number}",
+  "speed up {percent}% at {time}":
+    "acelera un {percent}% a las {time}",
+  "No time for a march here: it would come too close to your other taps.":
+    "No hay tiempo para una marcha aquí: quedaría demasiado cerca de tus otras pulsaciones.",
+  "No time for a march here":
+    "No hay tiempo para una marcha aquí",
+  "Speed up {percent}% in {seconds} seconds":
+    "Acelera un {percent}% en {seconds} segundos",
+  "SPEED UP {percent}% NOW":
+    "ACELERA UN {percent}% YA",
+  "Land after the hit (ms)":
+    "Llegar tras el impacto (ms)",
+  "Test sound":
+    "Probar sonido",
+  "Your reinforcements land this long after the enemy rally hits (default 100 ms), never later than halfway to the next hit. With sound on you hear 3, 2, 1 and a high tone: tap Send on the tone. Tap Test sound once so your phone allows the beeps.":
+    "Tus refuerzos llegan este tiempo después del impacto del rally enemigo (100 ms por defecto), nunca más tarde de la mitad hasta el siguiente impacto. Con el sonido activado oyes 3, 2, 1 y un tono agudo: pulsa Enviar con el tono. Pulsa Probar sonido una vez para que tu teléfono permita los pitidos.",
+  "Under {ms} ms between these rallies: aiming for the middle of the gap.":
+    "Menos de {ms} ms entre estos rallies: se apunta al centro del hueco.",
+  "Turn on sound and tap Test sound once, so your phone allows the beeps.":
+    "Activa el sonido y pulsa Probar sonido una vez para que tu teléfono permita los pitidos.",
+  "You hear 3, 2, 1 and a high tone: tap Send in the game on the tone.":
+    "Oyes 3, 2, 1 y un tono agudo: pulsa Enviar en el juego con el tono.",
+  "The battle runs in three pet blocks, by default 12–14, 14–16 and 16–17 UTC. A pet lasts two hours, so you can change when the blocks start: for the whole state under SvS automation, or for one rally or the garrison under its ⋯ → Leads by pet block. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
+    "La batalla se divide en tres bloques de mascotas, por defecto 12–14, 14–16 y 16–17 UTC. Una mascota dura dos horas, así que puedes cambiar cuándo empiezan los bloques: para todo el estado en Automatización de SvS, o para un rally o la guarnición en su ⋯ → Líderes por bloque de mascotas. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se acaban sus mascotas y los unidos se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autollenado y solo reciben un héroe de unión que tengan a 4★.",
+  "Second pet block starts (UTC)":
+    "Inicio del segundo bloque de mascotas (UTC)",
+  "Third pet block starts (UTC)":
+    "Inicio del tercer bloque de mascotas (UTC)",
+  "Each block must start after the one before, between 12:00 and 17:00.":
+    "Cada bloque debe empezar después del anterior, entre las 12:00 y las 17:00.",
+  "Pet blocks are when Rally Leads and Castle Holders swap; a pet lasts 2 hours. New rallies and the garrison start with these times, and you can change them per rally in Planning.":
+    "Los bloques de mascotas marcan cuándo se turnan los líderes de rally y los Defensores del castillo; una mascota dura 2 horas. Los rallies nuevos y la guarnición empiezan con estas horas, y puedes cambiarlas por rally en Planificación.",
+  "Second block starts (UTC)":
+    "Inicio del segundo bloque (UTC)",
+  "Third block starts (UTC)":
+    "Inicio del tercer bloque (UTC)",
+  "A block is longer than 2 hours, longer than a pet lasts.":
+    "Un bloque dura más de 2 horas, más de lo que dura una mascota.",
+  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.":
+    "Una guarnición defiende el castillo toda la batalla. Siempre se llena primero, con los niveles de tropa más altos entre quienes juegan toda la batalla: FC de tropa, luego nivel de tropa y luego habilidad de tropa. Hasta que se publica el plan, un defensor más fuerte que esté en un rally pasa a la guarnición. Hasta tres Defensores del castillo se turnan, uno por bloque de mascotas. Cuando les toca, se cambian a la alianza que tiene el castillo y toman el relevo; no llevan unidos. Ajusta el tamaño de la guarnición en Automatización de SvS.",
+  "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.":
+    "Arrastra jugadores entre rallies o desde la lista de espera. Toca a un jugador para cambiar su rally o el héroe que lleva. El menú ⋯ de un rally tiene Configuración del rally (formación, mitad y héroes de unión), Asignar héroes, Editar y Eliminar. La automatización respeta tus cambios, salvo que pasa a un defensor más fuerte a la guarnición hasta que se publica el plan.",
+  "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.":
+    "Pulsa Líderes y defensores en Planificación para marcar líderes de rally (ordenados por Laberinto) y Defensores del castillo (ordenados por defensa). En cada SvS, pulsa Elegir líderes de rally en la lista de la próxima SvS para decidir quién lidera esta vez: no todos los líderes pueden jugar cada batalla y una puntuación de Laberinto puede estar inflada. Los líderes que no elijas se unen a rallies como los demás. Cambia quién lidera un bloque en el menú ⋯ de un rally → Líderes por bloque de mascotas, o en el ⋯ de la guarnición → Defensores del castillo por bloque de mascotas.",
+  "Pick Rally Leads":
+    "Elegir líderes de rally",
+  "Rally Leads saved.":
+    "Líderes de rally guardados.",
+  "After the draw, the app reminds members to vote 30 hours before the battle and asks admins to pick this SvS's Rally Leads in Planning. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (the picked Rally Leads, swapping each pet block), then fills the garrison with the highest troop levels and the rallies with everyone else. Until the plan is published, a stronger defender in a rally is swapped into the garrison. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.":
+    "Tras el sorteo, la app recuerda a los miembros votar 30 horas antes de la batalla y pide a los administradores elegir los líderes de rally de esta SvS en Planificación. 24 horas antes, crea la guarnición (tus Defensores del castillo, uno por bloque de mascotas) y los rallies (los líderes elegidos, que se turnan en cada bloque), y llena la guarnición con los niveles de tropa más altos y los rallies con los demás. Hasta que se publica el plan, un defensor más fuerte en un rally pasa a la guarnición. Los votos tardíos se añaden cada hora y el plan se publica 6 horas antes. Puedes cambiar todo a mano en Planificación.",
+  "{stronger} has a higher troop level than {player} in the garrison. They are swapped automatically until the plan is published.":
+    "{stronger} tiene un nivel de tropa más alto que {player}, que está en la guarnición. Se intercambian automáticamente hasta que se publique el plan.",
+  "{count} garrison players haven't entered their troop level, so Furnace and power rank them. They add it on Account under Troop details.":
+    "{count} jugadores de la guarnición no han indicado su nivel de tropa, así que se ordenan por Horno y poder. Lo añaden en Cuenta, en Detalles de tropas.",
+  "Rally Leads: {count} picked":
+    "Líderes de rally: {count} elegidos",
+  "Rally Leads: not picked yet":
+    "Líderes de rally: sin elegir",
+  "The rallies are set up with their leads.":
+    "Los rallies están creados con sus líderes.",
+  "The rallies are set up with these leads.":
+    "Los rallies se crearán con estos líderes.",
+  "Pick who leads before {time}. Otherwise your Rally Leads who can play are used.":
+    "Elige quién lidera antes de {time}. Si no, se usan tus líderes de rally que pueden jugar.",
+  "Change Rally Leads":
+    "Cambiar líderes de rally",
+  "Generated automatically at {time} from the picked Rally Leads; the garrison gets the highest troop levels and the rallies are filled by your auto-fill priorities.":
+    "Se generan automáticamente a las {time} con los líderes elegidos; la guarnición recibe los niveles de tropa más altos y los rallies se llenan según tus prioridades de autollenado.",
+  "Rally Leads for this SvS":
+    "Líderes de rally de esta SvS",
+  "{picked} picked · {rallies} rallies":
+    "{picked} elegidos · {rallies} rallies",
+  "Pick who leads rallies in this SvS. The best Labyrinth scores among them start a rally each; the others take over when pets run out. Leads you don't pick join rallies like everyone else.":
+    "Elige quién lidera rallies en esta SvS. Las mejores puntuaciones de Laberinto entre ellos inician un rally cada uno; los demás toman el relevo cuando se acaban las mascotas. Los líderes que no elijas se unen a rallies como los demás.",
+  "No vote yet":
+    "Sin voto aún",
+  "Leads":
+    "Lidera",
+  "Pick":
+    "Elegir",
+  "Show all {count} players":
+    "Mostrar los {count} jugadores",
+  "Fewer leads than rallies: only {count} rallies will be set up.":
+    "Hay menos líderes que rallies: solo se crearán {count} rallies.",
+  "Save and generate rallies":
+    "Guardar y generar rallies",
+  "Save Rally Leads":
+    "Guardar líderes de rally",
+  "Pick the Rally Leads":
+    "Elige los líderes de rally",
+  "Pick who leads rallies in {plan} before {time}, when the rallies are set up. Otherwise your Rally Leads who can play are used.":
+    "Elige quién lidera rallies en {plan} antes de {time}, cuando se crean los rallies. Si no, se usan tus líderes de rally que pueden jugar.",
   "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Someone else leads? Add them by WOS ID and their Labyrinth score is looked up too. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.":
     "A las 11:00 UTC del día de batalla, el propietario, los administradores y los coordinadores reciben un aviso para mapear a los líderes de rally enemigos. En Líderes enemigos ya aparecen los 20 jugadores más fuertes del rival, con la mejor puntuación del Laberinto primero: son sus probables líderes de rally. Pulsa Usar, introduce las coordenadas de la ciudad y añádelos. ¿Lidera otro? Añádelo por WOS ID y también se consulta su puntuación del Laberinto. Las coordenadas se recuerdan: la próxima vez se rellenan solas, y los líderes conocidos se añaden al abrir la Batalla en vivo. Marca la mascota de un líder cuando esté activa.",
   "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17). Each Rally Lead and Castle Holder is reminded 5 minutes before their block.":
@@ -360,20 +476,12 @@ const spanishInterface: Record<string, string> = {
     "¿Dónde consigo ayuda?",
   "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.":
     "Escríbenos en Discord: wosoverwatch. Los administradores de tu estado también pueden ayudarte con todo lo de tu estado.",
-  "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
-    "La batalla tiene tres bloques de mascotas: 12–14, 14–16 y 16–17 UTC. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se agotan sus mascotas y los participantes se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autorrelleno y solo reciben un héroe de unión que tengan a 4★.",
   "The garrison":
     "La guarnición",
-  "One garrison holds the castle the whole battle. It is filled first, with the strongest defenders who play the whole battle: highest troop FC, then troop tier, then troop skill. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.":
-    "Una guarnición defiende el castillo toda la batalla. Se llena primero con los mejores defensores que juegan toda la batalla: mayor FC de tropas, luego nivel de tropas y luego habilidad. Hasta tres defensores del castillo se turnan, uno por bloque de mascotas. Cuando les toca, se cambian a la alianza que tiene el castillo y toman el mando, sin traer participantes. Ajusta el tamaño de la guarnición en Automatización SvS.",
-  "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.":
-    "Pulsa Líderes y defensores en Planificación para marcar líderes de rally (por Laberinto) y defensores del castillo (por defensa). Solo lideran o defienden y nunca se colocan como participantes. Cambia quién lidera cada bloque en ⋯ del rally → Líderes por bloque de mascotas, o en ⋯ de la guarnición → Defensores del castillo por bloque de mascotas.",
   "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation. Leads: Ted 12:00–14:00, Ice 14:00–16:00.” Rally Leads are told which blocks they lead, Castle Holders when to take over, and the garrison to stay in the castle. Overwatch shows the same details, and you are told about every change.":
     "Seis horas antes de la batalla se publica el plan y recibes un mensaje como «Hola Frost, te han asignado al rally de Ted en Frost Wolves. Te unes con Jessie y formación 50/20/30. Líderes: Ted 12:00–14:00, Ice 14:00–16:00.» Los líderes de rally saben qué bloques lideran, los defensores del castillo cuándo tomar el mando y la guarnición que debe quedarse en el castillo. Overwatch muestra lo mismo y te avisamos de cada cambio.",
   "Add garrison":
     "Añadir guarnición",
-  "After the draw, the app reminds members to vote 30 hours before the battle. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (your Rally Leads, swapping each pet block), then fills the garrison with the strongest defenders and the rallies with everyone else. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.":
-    "Tras el sorteo, la app recuerda a los miembros que voten 30 horas antes de la batalla. 24 horas antes prepara la guarnición (tus defensores del castillo, uno por bloque de mascotas) y los rallies (tus líderes de rally, que se turnan en cada bloque), y llena la guarnición con los mejores defensores y los rallies con el resto. Quienes votan tarde se añaden cada hora y el plan se publica 6 horas antes. Puedes cambiar cualquier cosa a mano en Planificación.",
   "Alliance holding the castle":
     "Alianza que tiene el castillo",
   "Castle Holder":
@@ -480,8 +588,6 @@ const spanishInterface: Record<string, string> = {
     "{rally} no tiene líder {blocks}.",
   "Planning opens with a checklist: the draw, votes, rallies, publishing and Live Battle, each with when it happens automatically. The gold button runs the next step now: Generate now, then Publish now.":
     "Planificación empieza con una lista: el sorteo, los votos, los rallies, la publicación y la batalla en vivo, cada uno con cuándo ocurre automáticamente. El botón dorado ejecuta ya el siguiente paso: Generar ahora y luego Publicar ahora.",
-  "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.":
-    "Arrastra jugadores entre rallies o desde la lista de espera. Toca a un jugador para cambiar su rally o el héroe que lleva. El menú ⋯ de cada rally tiene Configuración del rally (formación, mitad y héroes de unión), Asignar héroes, Editar y Eliminar. La automatización nunca deshace tus cambios.",
   "Add rally":
     "Añadir rally",
   "Auto-fill only places players who can play the rally's half, and gives each a joiner hero they have at 4★. Then it weighs players in this order:":
@@ -730,12 +836,6 @@ const spanishInterface: Record<string, string> = {
     "Abre Batalla en vivo y luego Guarnición.",
   "Enter your city's X and Y once; your march time is worked out for you.":
     "Introduce la X y la Y de tu ciudad una sola vez; tu tiempo de marcha se calcula solo.",
-  "Turn on sound and notifications.":
-    "Activa el sonido y las notificaciones.",
-  "Send when the countdown reaches zero.":
-    "Envía cuando la cuenta atrás llegue a cero.",
-  "The timer aims your reinforcements between two enemy rallies, or right after the last one hits.":
-    "El temporizador hace que tus refuerzos lleguen entre dos rallies enemigos, o justo después de que golpee el último.",
   "If the game lags on your connection, add your ping in milliseconds under Send early.":
     "Si el juego va con retraso en tu conexión, añade tu ping en milisegundos en Enviar antes.",
   "The shared battle clock":
@@ -990,8 +1090,6 @@ const spanishInterface: Record<string, string> = {
   "Rallies: {rallies} with {players} players":
     "Rallies: {rallies} con {players} jugadores",
   "Rallies: not generated yet": "Rallies: aún no generados",
-  "Generated automatically at {time} from your Rally Leads and best Labyrinth players, then filled by your auto-fill priorities.":
-    "Se generan solos el {time} con tus líderes de rally y los mejores del Laberinto, y se llenan según tus prioridades de autollenado.",
   "Automatic rallies are off for this state.":
     "Los rallies automáticos están desactivados en este estado.",
   "Generate now": "Generar ahora",
@@ -1326,8 +1424,6 @@ const spanishInterface: Record<string, string> = {
   "Send early (ms)": "Enviar antes (ms)",
   "Send early compensates for your game ping: if the game lags on your connection, add your ping here.":
     "Enviar antes compensa tu ping en el juego: si el juego va con retraso en tu conexión, añade tu ping aquí.",
-  "Under one second between these rallies — very hard to hit.":
-    "Menos de un segundo entre estos rallies: muy difícil de acertar.",
   "When to send": "Cuándo enviar",
   "Window {number}": "Ventana {number}",
   impact: "impacto",
@@ -1390,7 +1486,6 @@ const spanishInterface: Record<string, string> = {
   "Choose role": "Elegir rol",
   "Choose tag": "Elegir etiqueta",
   "Choose tagged leader": "Elegir líder etiquetado",
-  "Chief level": "Nivel de jefe",
   "Clear filters": "Borrar filtros",
   Color: "Color",
   "Combat profile saved.": "Perfil de combate guardado.",
@@ -1595,7 +1690,6 @@ const spanishInterface: Record<string, string> = {
     "Usa un código de color de seis dígitos, como #e4a853.",
   Username: "Nombre de usuario",
   Visibility: "Visibilidad",
-  VIP: "VIP",
   active: "activo",
   Win: "Victoria",
   "WOS accounts": "Cuentas de WOS",
@@ -1653,7 +1747,6 @@ const spanishInterface: Record<string, string> = {
   "Saving...": "Guardando...",
   "Send announcement": "Enviar anuncio",
   "Send in {seconds} seconds": "Enviar en {seconds} segundos",
-  "Send now": "Enviar ahora",
   "Send time passed": "La hora de envío ha pasado",
   "SEND NOW": "ENVIAR AHORA",
   "SEND REINFORCEMENTS NOW": "ENVÍA REFUERZOS AHORA",
@@ -1713,7 +1806,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     liveBattle: "实时战斗",
     state: "州",
     activeWorkspace: "当前工作区",
-    noStateSelected: "尚未选择州。请查看通知中的邀请。",
+    noStateSelected: "尚未选择州。请向州长索取加入链接。",
     language: "语言",
     mainNavigation: "主导航",
     roleOwner: "州主",
@@ -1736,7 +1829,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     state: "Estado",
     activeWorkspace: "Espacio activo",
     noStateSelected:
-      "No hay ningún estado seleccionado. Revisa tus notificaciones para ver una invitación.",
+      "No hay ningún estado seleccionado. Pide el enlace de unión al líder de tu estado.",
     language: "Idioma",
     mainNavigation: "Navegación principal",
     roleOwner: "propietario",
@@ -1758,7 +1851,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     liveBattle: "المعركة المباشرة",
     state: "الولاية",
     activeWorkspace: "مساحة العمل النشطة",
-    noStateSelected: "لم يتم اختيار ولاية. تحقق من إشعاراتك بحثًا عن دعوة.",
+    noStateSelected: "لم يتم اختيار ولاية. اطلب رابط الانضمام من قائد ولايتك.",
     language: "اللغة",
     mainNavigation: "التنقل الرئيسي",
     roleOwner: "المالك",
@@ -1780,7 +1873,7 @@ export const translations: Record<AppLocale, Record<string, string>> = {
     liveBattle: "การรบสด",
     state: "รัฐ",
     activeWorkspace: "พื้นที่ทำงานปัจจุบัน",
-    noStateSelected: "ยังไม่ได้เลือกรัฐ โปรดตรวจสอบคำเชิญในการแจ้งเตือน",
+    noStateSelected: "ยังไม่ได้เลือกรัฐ ขอลิงก์เข้าร่วมจากผู้นำรัฐของคุณ",
     language: "ภาษา",
     mainNavigation: "เมนูนำทางหลัก",
     roleOwner: "เจ้าของ",

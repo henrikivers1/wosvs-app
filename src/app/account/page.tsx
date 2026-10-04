@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
+import { isDemoMode } from "@/lib/demo/mode";
 import { useLanguage } from "@/components/LanguageProvider";
 import { JoinerHeroesEditor } from "@/components/JoinerHeroesEditor";
 import { furnaceLabel } from "@/lib/furnace";
@@ -18,8 +19,6 @@ type WosAccount = {
   furnace_level: number | null;
   furnace_level_raw: number | null;
   power: number | null;
-  chief_level: number | null;
-  vip_level: number | null;
   kills: number | null;
   labyrinth_score: number | null;
   game_avatar_url: string | null;
@@ -87,6 +86,16 @@ export default function AccountPage() {
     Record<string, CombatProfile>
   >({});
   const [message, setMessage] = useState("");
+  const [isOperator, setIsOperator] = useState(false);
+
+  // Only the people running Overwatch see the link to /operator.
+  useEffect(() => {
+    if (isDemoMode()) return;
+    void fetch("/api/operator/me")
+      .then((response) => response.json() as Promise<{ operator?: boolean }>)
+      .then((result) => setIsOperator(Boolean(result.operator)))
+      .catch(() => undefined);
+  }, []);
   const [syncingIds, setSyncingIds] = useState<string[]>([]);
   const automaticSyncAttempts = useRef<Set<string>>(new Set());
 
@@ -103,7 +112,7 @@ export default function AccountPage() {
     const { data: savedAccounts } = await supabase
         .from("wos_accounts")
         .select(
-          "id, wos_id, nickname, is_configured, furnace_level, furnace_level_raw, power, chief_level, vip_level, kills, labyrinth_score, game_avatar_url, state_number, alliance_abbr, alliance_name, game_active, player_data_updated_at, player_data_synced_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
+          "id, wos_id, nickname, is_configured, furnace_level, furnace_level_raw, power, kills, labyrinth_score, game_avatar_url, state_number, alliance_abbr, alliance_name, game_active, player_data_updated_at, player_data_synced_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
         )
         .eq("user_id", user.id);
 
@@ -236,6 +245,12 @@ export default function AccountPage() {
         <p>
           {t("You sign in with your WOS ID and your PIN.")}{" "}
           <Link href="/account/pin">{t("Change PIN")}</Link>
+          {isOperator && (
+            <>
+              {" · "}
+              <Link href="/operator">{t("Operator")}</Link>
+            </>
+          )}
         </p>
         {!loadingStates && memberships.length === 0 && (
           <p className="page-message">
@@ -338,14 +353,6 @@ export default function AccountPage() {
                               ? `[${account.alliance_abbr}] ${account.alliance_name ?? ""}`
                               : t("No alliance")}
                           </strong>
-                        </span>
-                        <span>
-                          {t("Chief level")}
-                          <strong>{account.chief_level ?? "—"}</strong>
-                        </span>
-                        <span>
-                          {t("VIP")}
-                          <strong>{account.vip_level ?? "—"}</strong>
                         </span>
                         <span>
                           {t("Kills")}

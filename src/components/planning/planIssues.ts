@@ -1,6 +1,6 @@
 import type { AttendanceRow, Availability } from "@/lib/attendance";
 import { canPlayShift } from "@/lib/autofill";
-import { blockFits, PET_BLOCKS } from "@/lib/castle";
+import { blockFits, garrisonSwaps, hasTroopLevel, PET_BLOCKS } from "@/lib/castle";
 import {
   groupLeadIds,
   type PlanAssignment,
@@ -31,6 +31,11 @@ export type PlanIssue =
   // Players no rally has a hero for; they still join, without a hero.
   | { kind: "no_hero_anywhere"; members: StateMember[] }
   | { kind: "heroes_unknown"; members: StateMember[] }
+  // A rally joiner defends better than a garrison joiner (the automation
+  // swaps them until the plan is published).
+  | { kind: "garrison_weaker"; member: StateMember; stronger: StateMember }
+  // Garrison players with no troop level; Furnace and power rank them.
+  | { kind: "troops_unknown"; members: StateMember[] }
   | { kind: "open_slots"; openSlots: number; waiting: number }
   | { kind: "no_garrison"; hasHolders: boolean }
   // Pet blocks nobody leads (or holds).
@@ -51,7 +56,11 @@ export function issueSeverity(issue: PlanIssue): IssueSeverity {
   if (issue.kind === "missing_alliance" || issue.kind === "rotation_gap") {
     return "blocker";
   }
-  if (issue.kind === "heroes_unknown" || issue.kind === "no_hero_anywhere") {
+  if (
+    issue.kind === "heroes_unknown" ||
+    issue.kind === "no_hero_anywhere" ||
+    issue.kind === "troops_unknown"
+  ) {
     return "info";
   }
   return "warning";
@@ -126,14 +135,14 @@ export function findPlanIssues({
     issues.push({ kind: "no_garrison", hasHolders: holderTagged.size > 0 });
   }
   for (const group of groups) {
-    const rotation = PET_BLOCKS.map((_, block) => group.lead_rotation?.[block] ?? null);
+    const rotation = PET_BLOCKS.map((block) => group.lead_rotation?.[block] ?? null);
     const gaps = rotation.flatMap((id, block) => (id ? [] : [block]));
     if (gaps.length) issues.push({ kind: "rotation_gap", group, blocks: gaps });
     rotation.forEach((id, block) => {
       const member = id ? memberById.get(id) : undefined;
       if (!member) return;
       const availability = answerById.get(member.id) ?? null;
-      if (!blockFits(availability, block)) {
+      if (!blockFits(availability, block, group.block_swaps ?? undefined)) {
         issues.push({ kind: "rotation_unavailable", group, member, block, availability });
       }
     });
@@ -231,6 +240,28 @@ export function findPlanIssues({
     issues.push({ kind: "no_hero_anywhere", members: noHeroAnywhere });
   }
   if (unknown.length) issues.push({ kind: "heroes_unknown", members: unknown });
+
+  const garrison = groups.find((group) => group.kind === "garrison");
+  if (garrison) {
+    const joiners = assignments
+      .filter((item) => !leaderIds.has(item.wos_account_id))
+      .map((item) => ({ item, member: memberById.get(item.wos_account_id) }))
+      .filter((row): row is { item: PlanAssignment; member: StateMember } => Boolean(row.member))
+      .map(({ item, member }) => ({ id: member.id, group: item.group_id, member, defense: member }));
+    const inGarrison = joiners.filter((row) => row.group === garrison.id);
+    for (const { into, out } of garrisonSwaps(
+      inGarrison,
+      joiners.filter(
+        (row) => row.group !== garrison.id && answerById.get(row.id) === "whole",
+      ),
+    )) {
+      issues.push({ kind: "garrison_weaker", member: out.member, stronger: into.member });
+    }
+    const noTroops = inGarrison
+      .map((row) => row.member)
+      .filter((member) => !hasTroopLevel(member));
+    if (noTroops.length) issues.push({ kind: "troops_unknown", members: noTroops });
+  }
 
   const order: Record<IssueSeverity, number> = {
     blocker: 0,

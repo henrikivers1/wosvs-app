@@ -190,7 +190,9 @@ export function NeedsAttention({
               fix: { label: t("Leads & holders"), run: onOpenLeads },
             };
       case "rotation_gap": {
-        const blocks = issue.blocks.map(blockLabel).join(", ");
+        const blocks = issue.blocks
+          .map((block) => blockLabel(block, issue.group.block_swaps ?? undefined))
+          .join(", ");
         return {
           text:
             issue.group.kind === "garrison"
@@ -213,7 +215,7 @@ export function NeedsAttention({
           text: t("{name} leads {rally} {block}, but voted {voted}.", {
             name: memberName(issue.member),
             rally: issue.group.name,
-            block: blockLabel(issue.block),
+            block: blockLabel(issue.block, issue.group.block_swaps ?? undefined),
             voted: issue.availability
               ? half(issue.availability)
               : t("nothing yet"),
@@ -243,6 +245,21 @@ export function NeedsAttention({
         return {
           text: t(
             "{count} players haven't entered their heroes. They can add them on Account.",
+            { count: issue.members.length },
+          ),
+          detail: names(issue.members),
+        };
+      case "garrison_weaker":
+        return {
+          text: t(
+            "{stronger} has a higher troop level than {player} in the garrison. They are swapped automatically until the plan is published.",
+            { stronger: memberName(issue.stronger), player: memberName(issue.member) },
+          ),
+        };
+      case "troops_unknown":
+        return {
+          text: t(
+            "{count} garrison players haven't entered their troop level, so Furnace and power rank them. They add it on Account under Troop details.",
             { count: issue.members.length },
           ),
           detail: names(issue.members),

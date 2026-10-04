@@ -9,31 +9,55 @@ import {
 
 // How a castle battle is played, shared by the automation and Planning:
 //
-// * Three pet blocks: 12–14, 14–16 and 16–17 UTC. Rally leads and castle
-//   holders swap when their pets run out, one per block.
+// * Three pet blocks, 12–14, 14–16 and 16–17 UTC unless the state or the
+//   group sets other swap times. Rally leads and castle holders swap when
+//   their pets run out, one per block.
 // * The garrison holds the castle all battle and is filled first, with the
 //   strongest defenders (troop FC, troop tier, troop skill).
 // * Rally Leads and Castle Holders only lead or hold; they never join.
 
-export const PET_BLOCKS = [
-  { start: 0, end: 2 },
-  { start: 2, end: 4 },
-  { start: 4, end: 5 },
-] as const;
+export const PET_BLOCKS = [0, 1, 2] as const;
 
-// Halves are 12:00–14:30 and 14:30–17:00, so 12–14 is first half and the
-// two later blocks count as second half.
-export function blockFits(availability: Availability | null | undefined, block: number) {
+// When blocks 2 and 3 start, in minutes after the 12:00 UTC battle start
+// (block_swaps on states and groups).
+export type BlockSwaps = [number, number];
+export const DEFAULT_BLOCK_SWAPS: BlockSwaps = [120, 240];
+export const BATTLE_MINUTES = 300;
+
+export function blockBounds(block: number, swaps: readonly number[] = DEFAULT_BLOCK_SWAPS) {
+  const edges = [0, swaps[0], swaps[1], BATTLE_MINUTES];
+  return { start: edges[block], end: edges[block + 1] };
+}
+
+export function validBlockSwaps(swaps: readonly number[]) {
+  return swaps.length === 2 && swaps[0] > 0 && swaps[0] < swaps[1] && swaps[1] < BATTLE_MINUTES;
+}
+
+// Halves are 12:00–14:30 and 14:30–17:00; a half voter fits a block when
+// most of it is in their half (with the default times: 12–14 is first half,
+// the two later blocks second half).
+export function blockFits(
+  availability: Availability | null | undefined,
+  block: number,
+  swaps: readonly number[] = DEFAULT_BLOCK_SWAPS,
+) {
   if (availability === "whole") return true;
-  if (availability === "first_half") return block === 0;
-  if (availability === "second_half") return block > 0;
+  const { start, end } = blockBounds(block, swaps);
+  const firstHalf = start + end < BATTLE_MINUTES;
+  if (availability === "first_half") return firstHalf;
+  if (availability === "second_half") return !firstHalf;
   return false;
 }
 
-export function blockLabel(block: number) {
-  const { start, end } = PET_BLOCKS[block];
-  const hour = (offset: number) => `${String(12 + offset).padStart(2, "0")}:00`;
-  return `${hour(start)}–${hour(end)}`;
+// "HH:MM" UTC for minutes after the battle start.
+export function battleClock(minutes: number) {
+  const total = 12 * 60 + minutes;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+export function blockLabel(block: number, swaps: readonly number[] = DEFAULT_BLOCK_SWAPS) {
+  const { start, end } = blockBounds(block, swaps);
+  return `${battleClock(start)}–${battleClock(end)}`;
 }
 
 export type DefenseStats = {
@@ -83,10 +107,11 @@ export function compareDefense(first: DefenseStats, second: DefenseStats) {
 export function planRotation(
   candidates: string[],
   availabilityOf: (id: string) => Availability | null | undefined,
+  swaps: readonly number[] = DEFAULT_BLOCK_SWAPS,
 ): Array<string | null> {
   const used = new Map<string, number>();
-  return PET_BLOCKS.map((_, block) => {
-    const fitting = candidates.filter((id) => blockFits(availabilityOf(id), block));
+  return PET_BLOCKS.map((block) => {
+    const fitting = candidates.filter((id) => blockFits(availabilityOf(id), block, swaps));
     if (!fitting.length) return null;
     const pick = [...fitting].sort(
       (first, second) => (used.get(first) ?? 0) - (used.get(second) ?? 0),
@@ -152,4 +177,40 @@ export function fillPlan(
     );
   }
   return drafts;
+}
+
+// Swaps that keep the garrison the strongest defenders: a rally joiner who
+// can play the whole battle and defends better than the garrison's weakest
+// joiner trades places with them. Strongest outsider and weakest insider
+// first; nobody is swapped twice.
+export function garrisonSwaps<T extends { id: string; defense: DefenseStats }>(
+  garrison: T[],
+  outside: T[],
+): Array<{ into: T; out: T }> {
+  const weakest = [...garrison].sort((first, second) =>
+    compareDefense(second.defense, first.defense),
+  );
+  const strongest = [...outside].sort((first, second) =>
+    compareDefense(first.defense, second.defense),
+  );
+  const swaps: Array<{ into: T; out: T }> = [];
+  for (const [index, into] of strongest.entries()) {
+    const out = weakest[index];
+    if (!out || compareDefense(into.defense, out.defense) >= 0) break;
+    swaps.push({ into, out });
+  }
+  return swaps;
+}
+
+// Troop details are entered by hand on Account; without them the garrison
+// ranking falls back to Furnace and power.
+export function hasTroopLevel(member: DefenseStats) {
+  return [
+    member.infantry_tier,
+    member.lancer_tier,
+    member.marksman_tier,
+    member.infantry_fc_level,
+    member.lancer_fc_level,
+    member.marksman_fc_level,
+  ].some((value) => value !== null && value !== undefined && value > 0);
 }

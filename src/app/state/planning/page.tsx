@@ -14,6 +14,7 @@ import {
 import { PlayerSheet } from "@/components/planning/PlayerSheet";
 import { RallyColumn } from "@/components/planning/RallyColumn";
 import { RallyForm, type RallyFormValues } from "@/components/planning/RallyForm";
+import { PlanLeadsPicker } from "@/components/planning/PlanLeadsPicker";
 import { RallyLeadsPanel } from "@/components/planning/RallyLeadsPanel";
 import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
 import { RotationEditor } from "@/components/planning/RotationEditor";
@@ -52,6 +53,7 @@ export type AutomationSettings = {
   default_formation: string | null;
   default_joiner_heroes: string[];
   autofill_priorities: string[];
+  block_swaps?: number[];
 };
 // Plans this long after their battle start move to the history list.
 const PLAN_HISTORY_AFTER_MS = 5 * 60 * 60 * 1000;
@@ -132,6 +134,7 @@ export default function BattlePlanningPage() {
     string | null
   >(null);
   const [showRallyLeads, setShowRallyLeads] = useState(false);
+  const [pickingLeadsFor, setPickingLeadsFor] = useState<string | null>(null);
   const [openPlayer, setOpenPlayer] = useState<{
     planId: string;
     memberId: string;
@@ -152,6 +155,17 @@ export default function BattlePlanningPage() {
   // Rally Leads and Castle Holders only lead or hold; they never join.
   const leadTagged = new Set(rallyLeaders.map((member) => member.id));
   const holderTagged = new Set(castleHolders.map((member) => member.id));
+  // Who leads rallies in a plan: the leads picked for it, or the Rally Leads
+  // until admins pick. Rally Leads who are not picked join like anyone else.
+  const planLeads = (planId: string) => {
+    const picked = plans.find((plan) => plan.id === planId)?.rally_lead_ids;
+    return picked ? new Set(picked) : leadTagged;
+  };
+  // Who can lead a rally in a plan: Rally Leads and this SvS's picks.
+  const leadCandidates = (planId: string) => {
+    const picked = new Set(plans.find((plan) => plan.id === planId)?.rally_lead_ids ?? []);
+    return members.filter((member) => leadTagged.has(member.id) || picked.has(member.id));
+  };
 
   const loadPlanning = useCallback(async () => {
     if (!activeMembership) {
@@ -181,13 +195,13 @@ export default function BattlePlanningPage() {
       supabase
         .from("battle_plans")
         .select(
-          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created, attendance_reminder_sent_at, auto_planned_at",
+          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created, attendance_reminder_sent_at, auto_planned_at, rally_lead_ids",
         )
         .eq("state_id", stateId)
         .order("scheduled_at", { ascending: true }),
       supabase
         .from("state_members")
-        .select(`wos_account_id, role, wos_accounts!inner(${ACCOUNT_COLUMNS})`)
+        .select(`wos_account_id, role, wos_accounts!state_members_wos_account_id_fkey!inner(${ACCOUNT_COLUMNS})`)
         .eq("state_id", stateId),
       supabase
         .from("state_tags")
@@ -211,7 +225,7 @@ export default function BattlePlanningPage() {
       supabase
         .from("states")
         .select(
-          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
+          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities, block_swaps",
         )
         .eq("id", stateId)
         .maybeSingle(),
@@ -263,7 +277,7 @@ export default function BattlePlanningPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, alliance_id, assignment_tag_id, max_members, notes, sort_order, formation, joiner_heroes, shift",
+              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, block_swaps, alliance_id, assignment_tag_id, max_members, notes, sort_order, formation, joiner_heroes, shift",
             )
             .in("plan_id", planIds)
             .order("sort_order")
@@ -577,6 +591,20 @@ export default function BattlePlanningPage() {
     }
   }
 
+  async function savePlanLeads(planId: string, ids: string[], generate: boolean) {
+    const saved = await run(
+      async () =>
+        supabase.rpc("set_plan_rally_leads", {
+          target_plan_id: planId,
+          lead_ids: ids,
+        }),
+      t("Rally Leads saved."),
+    );
+    if (!saved) return;
+    setPickingLeadsFor(null);
+    if (generate) await runPlanStep(planId, "generate");
+  }
+
   // --- Rallies ------------------------------------------------------------
   async function saveRally(planId: string, group: PlanGroup | null, values: RallyFormValues) {
     if (!values.name.trim() || !values.leaderId || !values.allianceId) {
@@ -714,7 +742,7 @@ export default function BattlePlanningPage() {
       priorities,
       new Set([
         ...planGroups.flatMap(groupLeadIds),
-        ...leadTagged,
+        ...planLeads(planId),
         ...holderTagged,
       ]),
     );
@@ -727,7 +755,8 @@ export default function BattlePlanningPage() {
     if (!isAdmin || saving || !ids.length) return;
     const group = groups.find((item) => item.id === groupId);
     if (!group) return;
-    const leads = ids.filter((id) => leadTagged.has(id) || holderTagged.has(id));
+    const leadIds = planLeads(planId);
+    const leads = ids.filter((id) => leadIds.has(id) || holderTagged.has(id));
     if (leads.length) {
       setMessage(
         t(
@@ -839,8 +868,14 @@ export default function BattlePlanningPage() {
     group: PlanGroup,
     leads: Array<string | null>,
     allianceId: string | null,
+    swaps: [number, number],
   ) {
     const saved = await run(async () => {
+      const { error: swapError } = await supabase.rpc(
+        "set_battle_plan_group_block_swaps",
+        { target_group_id: group.id, swaps },
+      );
+      if (swapError) return { error: swapError };
       const { error } = await supabase.rpc("set_battle_plan_group_rotation", {
         target_group_id: group.id,
         leads,
@@ -864,18 +899,25 @@ export default function BattlePlanningPage() {
     planId: string,
     holders: Array<string | null>,
     allianceId: string | null,
+    swaps: [number, number],
   ) {
     if (!allianceId) {
       setMessage(t("Choose the alliance holding the castle."));
       return;
     }
     const added = await run(
-      () =>
-        supabase.rpc("create_garrison_group", {
+      async () => {
+        const { data, error } = await supabase.rpc("create_garrison_group", {
           target_plan_id: planId,
           holders,
           destination_alliance_id: allianceId,
-        }),
+        });
+        if (error) return { error };
+        return supabase.rpc("set_battle_plan_group_block_swaps", {
+          target_group_id: data as string,
+          swaps,
+        });
+      },
       t("Garrison added. Fill open seats to put your strongest defenders in it."),
     );
     if (added) setAddingGarrisonToPlanId(null);
@@ -938,13 +980,14 @@ export default function BattlePlanningPage() {
     const assignmentById = new Map(
       planAssignments.map((item) => [item.wos_account_id, item]),
     );
+    const planLeadIds = planLeads(plan.id);
     const issues: PlanIssue[] = isAdmin
       ? findPlanIssues({
           groups: planGroups,
           assignments: planAssignments,
           members,
           attendance: planAttendance,
-          leadTagged,
+          leadTagged: planLeadIds,
           holderTagged,
         })
       : [];
@@ -964,7 +1007,7 @@ export default function BattlePlanningPage() {
     const waiting = members.filter(
       (member) =>
         !assignmentById.has(member.id) &&
-        !leadTagged.has(member.id) &&
+        !planLeadIds.has(member.id) &&
         !holderTagged.has(member.id),
     );
     const garrison = planGroups.find((group) => group.kind === "garrison");
@@ -1000,6 +1043,7 @@ export default function BattlePlanningPage() {
                 .length
             }
             rallyCount={rallyCount}
+            pickedLeads={plan.rally_lead_ids?.length ?? null}
             assignedCount={planAssignments.length}
             issueCount={
               issues.filter(
@@ -1011,8 +1055,25 @@ export default function BattlePlanningPage() {
             missingAlliance={planGroups.filter((group) => !group.alliance_id).length}
             busy={saving}
             now={loadedAt}
-            onGenerate={() => void runPlanStep(plan.id, "generate")}
+            onGenerate={() =>
+              plan.rally_lead_ids
+                ? void runPlanStep(plan.id, "generate")
+                : setPickingLeadsFor(plan.id)
+            }
             onPublish={() => void runPlanStep(plan.id, "publish")}
+            onPickLeads={() => setPickingLeadsFor(plan.id)}
+          />
+        )}
+
+        {isAdmin && pickingLeadsFor === plan.id && rallyCount === 0 && (
+          <PlanLeadsPicker
+            members={members}
+            answers={answers}
+            picked={plan.rally_lead_ids}
+            rallyCount={automation?.rally_count ?? 6}
+            busy={saving}
+            onSave={(ids, generate) => void savePlanLeads(plan.id, ids, generate)}
+            onClose={() => setPickingLeadsFor(null)}
           />
         )}
 
@@ -1152,7 +1213,7 @@ export default function BattlePlanningPage() {
             <h3>{t("Add rally")}</h3>
             <RallyForm
               group={null}
-              leaders={rallyLeaders}
+              leaders={leadCandidates(plan.id)}
               alliances={alliances}
               tags={regularTags}
               busy={saving}
@@ -1169,12 +1230,13 @@ export default function BattlePlanningPage() {
               title={t("Castle holders by pet block")}
               candidates={castleHolders}
               initial={[]}
+              initialSwaps={automation?.block_swaps}
               answers={answers}
               alliances={alliances}
               initialAllianceId={null}
               busy={saving}
-              onSave={(holders, allianceId) =>
-                void addGarrison(plan.id, holders, allianceId)
+              onSave={(holders, allianceId, swaps) =>
+                void addGarrison(plan.id, holders, allianceId, swaps)
               }
               onCancel={() => setAddingGarrisonToPlanId(null)}
             />
@@ -1281,14 +1343,15 @@ export default function BattlePlanningPage() {
                             ? t("Castle holders by pet block")
                             : t("Leads by pet block")
                         }
-                        candidates={garrisonGroup ? castleHolders : rallyLeaders}
+                        candidates={garrisonGroup ? castleHolders : leadCandidates(plan.id)}
                         initial={group.lead_rotation ?? []}
+                        initialSwaps={group.block_swaps}
                         answers={answers}
                         alliances={garrisonGroup ? alliances : undefined}
                         initialAllianceId={group.alliance_id}
                         busy={saving}
-                        onSave={(rotation, allianceId) =>
-                          void saveRotation(group, rotation, allianceId)
+                        onSave={(rotation, allianceId, swaps) =>
+                          void saveRotation(group, rotation, allianceId, swaps)
                         }
                         onCancel={() => setRallyEditor(null)}
                       />
@@ -1305,7 +1368,7 @@ export default function BattlePlanningPage() {
                     ) : (
                       <RallyForm
                         group={group}
-                        leaders={garrisonGroup ? castleHolders : rallyLeaders}
+                        leaders={garrisonGroup ? castleHolders : leadCandidates(plan.id)}
                         alliances={alliances}
                         tags={regularTags}
                         busy={saving}
@@ -1509,7 +1572,8 @@ export default function BattlePlanningPage() {
               groupLeadIds(group).includes(sheetMember.id),
           )}
           isLeadTagged={
-            leadTagged.has(sheetMember.id) || holderTagged.has(sheetMember.id)
+            planLeads(sheetPlan.id).has(sheetMember.id) ||
+            holderTagged.has(sheetMember.id)
           }
           isAdmin={isAdmin}
           busy={saving}

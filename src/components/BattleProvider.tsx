@@ -58,6 +58,13 @@ const BattleContext = createContext<BattleContextValue | null>(
   null
 );
 
+// Names match regardless of case, spacing and an "[ABC] " alliance prefix.
+function sameLeaderName(first: string, second: string) {
+  const plain = (name: string) =>
+    name.replace(/^\s*\[[^\]]*\]\s*/, "").replace(/\s+/g, " ").trim().toLowerCase();
+  return plain(first) === plain(second);
+}
+
 export function BattleProvider({
   children,
 }: {
@@ -247,6 +254,15 @@ export function BattleProvider({
       return "Coordinates must be between 0 and 1199.";
     }
 
+    // Each enemy player once per battle, by WOS ID or by name.
+    const wosId = details?.wosId ?? null;
+    const duplicate = enemyLeaders.find(
+      (leader) =>
+        (wosId !== null && leader.wosId === wosId) ||
+        sameLeaderName(leader.name, trimmedName),
+    );
+    if (duplicate) return "That player is already on the list.";
+
     const petExpiresAt = petActive
       ? new Date(
           currentTime.getTime() + PET_DURATION_MS
@@ -313,6 +329,10 @@ export function BattleProvider({
 
     const leader = enemyLeaders.find((item) => item.id === id);
     if (!leader) return "Enemy leader not found.";
+    const duplicate = enemyLeaders.find(
+      (item) => item.id !== id && sameLeaderName(item.name, trimmedName),
+    );
+    if (duplicate) return "That player is already on the list.";
     const existingPetActive =
       leader.petExpiresAt !== null &&
       leader.petExpiresAt > currentTime.getTime();

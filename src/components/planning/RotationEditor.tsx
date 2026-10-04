@@ -3,16 +3,26 @@
 import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { availabilityLabel, type AttendanceRow } from "@/lib/attendance";
-import { blockFits, blockLabel, PET_BLOCKS } from "@/lib/castle";
+import { BlockTimeSelect } from "./BlockTimeSelect";
+import {
+  blockFits,
+  blockLabel,
+  DEFAULT_BLOCK_SWAPS,
+  PET_BLOCKS,
+  validBlockSwaps,
+} from "@/lib/castle";
 import { memberName, type StateAlliance, type StateMember } from "./types";
 
-// Who leads a rally (or holds the castle) in each pet block. Candidates are
-// the state's Rally Leads or Castle Holders; a player can cover more than
-// one block. With alliances it also asks where the garrison holds.
+// Who leads a rally (or holds the castle) in each pet block, and when the
+// blocks change (a pet lasts two hours, the battle five, so states split it
+// differently). Candidates are the Rally Leads or Castle Holders; a player
+// can cover more than one block. With alliances it also asks where the
+// garrison holds.
 export function RotationEditor({
   title,
   candidates,
   initial,
+  initialSwaps,
   answers,
   alliances,
   initialAllianceId,
@@ -23,18 +33,34 @@ export function RotationEditor({
   title: string;
   candidates: StateMember[];
   initial: Array<string | null>;
+  initialSwaps?: readonly number[] | null;
   answers: Map<string, AttendanceRow>;
   alliances?: StateAlliance[];
   initialAllianceId?: string | null;
   busy: boolean;
-  onSave: (leads: Array<string | null>, allianceId: string | null) => void;
+  onSave: (
+    leads: Array<string | null>,
+    allianceId: string | null,
+    swaps: [number, number],
+  ) => void;
   onCancel: () => void;
 }) {
   const { t } = useLanguage();
   const [slots, setSlots] = useState<Array<string | null>>(
-    PET_BLOCKS.map((_, block) => initial[block] ?? null),
+    PET_BLOCKS.map((block) => initial[block] ?? null),
   );
   const [allianceId, setAllianceId] = useState(initialAllianceId ?? "");
+  const [swaps, setSwaps] = useState<[number, number]>(() => {
+    const start = initialSwaps ?? DEFAULT_BLOCK_SWAPS;
+    return [start[0], start[1]];
+  });
+  const swapsValid = validBlockSwaps(swaps);
+  const setSwap = (index: 0 | 1, minutes: number) =>
+    setSwaps((current) => {
+      const next: [number, number] = [current[0], current[1]];
+      next[index] = minutes;
+      return next;
+    });
 
   const label = (member: StateMember) => {
     const answer = answers.get(member.id);
@@ -48,7 +74,8 @@ export function RotationEditor({
       className="rotation-editor"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave(slots, allianceId || null);
+        if (!swapsValid) return;
+        onSave(slots, allianceId || null, swaps);
       }}
     >
       <p className="section-label">{title}</p>
@@ -57,14 +84,39 @@ export function RotationEditor({
           {t("Nobody is marked yet. Use Leads & holders above the board.")}
         </p>
       )}
-      {PET_BLOCKS.map((_, block) => {
+      <div className="rotation-swaps">
+        {([0, 1] as const).map((index) => (
+          <BlockTimeSelect
+            key={index}
+            label={index === 0 ? t("Second block starts (UTC)") : t("Third block starts (UTC)")}
+            value={swaps[index]}
+            onChange={(minutes) => setSwap(index, minutes)}
+          />
+        ))}
+      </div>
+      {!swapsValid && (
+        <p className="form-hint rotation-warning">
+          {t("Each block must start after the one before, between 12:00 and 17:00.")}
+        </p>
+      )}
+      {swapsValid &&
+        PET_BLOCKS.some((block) => {
+          const length = (block === 2 ? 300 : swaps[block]) - (block === 0 ? 0 : swaps[block - 1]);
+          return length > 120;
+        }) && (
+          <p className="form-hint">
+            {t("A block is longer than 2 hours, longer than a pet lasts.")}
+          </p>
+        )}
+      {PET_BLOCKS.map((block) => {
         const chosen = candidates.find((member) => member.id === slots[block]);
         const fits =
-          !chosen || blockFits(answers.get(chosen.id)?.availability, block);
+          !chosen ||
+          blockFits(answers.get(chosen.id)?.availability, block, swaps);
         return (
           <label key={block}>
             <span>
-              {blockLabel(block)} UTC
+              {swapsValid ? blockLabel(block, swaps) : "–"} UTC
               {!fits && (
                 <span className="rotation-warning">
                   {" "}
@@ -112,7 +164,7 @@ export function RotationEditor({
         <button
           type="submit"
           className="primary-button"
-          disabled={busy || !slots.some(Boolean)}
+          disabled={busy || !slots.some(Boolean) || !swapsValid}
         >
           {t("Save")}
         </button>

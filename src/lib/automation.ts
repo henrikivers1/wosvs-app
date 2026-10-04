@@ -57,7 +57,7 @@ type StateRow = AutoPlanSettings & {
 };
 
 const STATE_COLUMNS =
-  "id, name, game_state_number, svs_draw_expected_at, oracle_checked_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities";
+  "id, name, game_state_number, svs_draw_expected_at, oracle_checked_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities, block_swaps";
 
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -112,6 +112,20 @@ async function refreshDraw(
     if (error) throw new Error(error.message);
     report.drawsFound += 1;
 
+    // Saved before the intel, which can wait a minute for WOSOracle's rate
+    // limit; pages show the draw from these columns.
+    const { error: saveError } = await admin
+      .from("states")
+      .update({
+        svs_season: matchup.season,
+        svs_opponent: matchup.opponent,
+        svs_battle_at: battleAt.toISOString(),
+        svs_draw_expected_at: null,
+        svs_next_battle_at: battleAt.toISOString(),
+      })
+      .eq("id", state.id);
+    if (saveError) throw new Error(saveError.message);
+
     if (planId && battleAt.getTime() > now) {
       try {
         await refreshIntel(admin, {
@@ -127,17 +141,6 @@ async function refreshDraw(
       }
     }
 
-    const { error: saveError } = await admin
-      .from("states")
-      .update({
-        svs_season: matchup.season,
-        svs_opponent: matchup.opponent,
-        svs_battle_at: battleAt.toISOString(),
-        svs_draw_expected_at: null,
-        svs_next_battle_at: battleAt.toISOString(),
-      })
-      .eq("id", state.id);
-    if (saveError) throw new Error(saveError.message);
     return;
   }
 
@@ -331,7 +334,7 @@ async function planUpcomingBattles(
   const { data: plans, error } = await admin
     .from("battle_plans")
     .select(
-      "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at",
+      "id, state_id, name, scheduled_at, status, attendance_reminder_sent_at, auto_planned_at, rally_lead_ids",
     )
     .in("state_id", [...byId.keys()])
     .eq("battle_type", "svs")

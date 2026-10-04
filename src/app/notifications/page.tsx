@@ -51,6 +51,7 @@ const OVERWATCH = { href: "/state/overwatch", label: "Open Overwatch" };
 const HISTORY = { href: "/state/stats", label: "Open battle history" };
 const NOTIFICATION_LINKS: Record<string, { href: string; label: string }> = {
   rallies_generated: { href: "/state/planning", label: "Review rallies" },
+  pick_rally_leads: { href: "/state/planning", label: "Pick Rally Leads" },
   attendance_reminder: { href: "/state/overwatch", label: "Vote now" },
   svs_drawn: OVERWATCH,
   state_announcement: OVERWATCH,

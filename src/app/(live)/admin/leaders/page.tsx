@@ -94,7 +94,7 @@ export default function ManageLeadersPage() {
         : undefined,
     );
     if (error) {
-      window.alert(error);
+      window.alert(t(error));
       return;
     }
     setEnemyName("");
@@ -152,6 +152,13 @@ export default function ManageLeadersPage() {
           <OpponentRosterPicker
             stateId={activeMembership.stateId}
             onPick={(selection) => void pickLeader(selection)}
+            isAdded={(player) =>
+              enemyLeaders.some(
+                (leader) =>
+                  (player.wosId !== null && leader.wosId === player.wosId) ||
+                  leader.name.trim().toLowerCase() === player.name.trim().toLowerCase(),
+              )
+            }
           />
         )}
         <label>

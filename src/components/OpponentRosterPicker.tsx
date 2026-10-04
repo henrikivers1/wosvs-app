@@ -28,9 +28,12 @@ type OpponentResponse = {
 export function OpponentRosterPicker({
   stateId,
   onPick,
+  isAdded = () => false,
 }: {
   stateId: string;
   onPick: (picked: PickedEnemy) => void;
+  // Players already on this battle's list can't be picked again.
+  isAdded?: (player: { wosId: string | null; name: string }) => boolean;
 }) {
   const { t, formatNumber } = useLanguage();
   const [opponentInput, setOpponentInput] = useState("");
@@ -242,6 +245,7 @@ export function OpponentRosterPicker({
                 </span>
                 <button
                   type="button"
+                  disabled={isAdded({ wosId: player.wosId ?? null, name: player.name })}
                   onClick={() =>
                     onPick({
                       member: {
@@ -267,7 +271,9 @@ export function OpponentRosterPicker({
                     })
                   }
                 >
-                  {t("Use")}
+                  {isAdded({ wosId: player.wosId ?? null, name: player.name })
+                    ? t("Added")
+                    : t("Use")}
                 </button>
               </li>
             ))}
@@ -322,11 +328,12 @@ export function OpponentRosterPicker({
                     </span>
                     <button
                       type="button"
+                      disabled={isAdded(member)}
                       onClick={() =>
                         onPick({ member, alliance: selectedAlliance })
                       }
                     >
-                      {t("Use")}
+                      {isAdded(member) ? t("Added") : t("Use")}
                     </button>
                   </li>
                 ))}

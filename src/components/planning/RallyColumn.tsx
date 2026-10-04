@@ -164,11 +164,11 @@ export function RallyColumn({
           )}
         </p>
         <ol className="rotation-list" aria-label={garrison ? t("Castle holders") : t("Rally leads")}>
-          {PET_BLOCKS.map((_, block) => {
+          {PET_BLOCKS.map((block) => {
             const lead = leads[block] ?? null;
             return (
               <li key={block} className={lead ? undefined : "is-empty"}>
-                <time>{blockLabel(block)}</time>
+                <time>{blockLabel(block, group.block_swaps ?? undefined)}</time>
                 {lead ? (
                   <button
                     type="button"

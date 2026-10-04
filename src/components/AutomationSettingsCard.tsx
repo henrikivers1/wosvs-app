@@ -5,6 +5,8 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { AutofillPriorityEditor } from "@/components/planning/AutofillPriorityEditor";
 import { FORMATION_PRESETS } from "@/components/planning/RallySetupEditor";
 import { AUTOFILL_CRITERIA, type AutofillCriterion } from "@/lib/autofill";
+import { BlockTimeSelect } from "@/components/planning/BlockTimeSelect";
+import { DEFAULT_BLOCK_SWAPS, validBlockSwaps } from "@/lib/castle";
 import { HEROES, LATEST_HERO_GENERATION } from "@/lib/heroes";
 import { createClient } from "@/lib/supabase/client";
 
@@ -17,6 +19,7 @@ type Settings = {
   default_formation: string | null;
   default_joiner_heroes: string[];
   autofill_priorities: string[] | null;
+  block_swaps: number[] | null;
 };
 
 const FORMATION = /^(\d{1,3})\/(\d{1,3})\/(\d{1,3})$/;
@@ -40,7 +43,7 @@ export function AutomationSettingsCard({
     void supabase
       .from("states")
       .select(
-        "auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
+        "auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities, block_swaps",
       )
       .eq("id", stateId)
       .maybeSingle()
@@ -118,7 +121,7 @@ export function AutomationSettingsCard({
       <h2>{t("SvS automation")}</h2>
       <p>
         {t(
-          "After the draw, the app reminds members to vote 30 hours before the battle. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (your Rally Leads, swapping each pet block), then fills the garrison with the strongest defenders and the rallies with everyone else. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.",
+          "After the draw, the app reminds members to vote 30 hours before the battle and asks admins to pick this SvS's Rally Leads in Planning. 24 hours before, it sets up the garrison (your Castle Holders, one per pet block) and the rallies (the picked Rally Leads, swapping each pet block), then fills the garrison with the highest troop levels and the rallies with everyone else. Until the plan is published, a stronger defender in a rally is swapped into the garrison. Late voters are added every hour, and the plan is published 6 hours before. You can change anything by hand in Planning.",
         )}
       </p>
       <div className="automation-grid">
@@ -191,6 +194,29 @@ export function AutomationSettingsCard({
             }
           />
         </label>
+        {([0, 1] as const).map((index) => (
+          <BlockTimeSelect
+            key={index}
+            label={
+              index === 0
+                ? t("Second pet block starts (UTC)")
+                : t("Third pet block starts (UTC)")
+            }
+            value={(settings.block_swaps ?? DEFAULT_BLOCK_SWAPS)[index]}
+            onChange={(minutes) => {
+              const next = [...(settings.block_swaps ?? DEFAULT_BLOCK_SWAPS)];
+              next[index] = minutes;
+              setSettings({ ...settings, block_swaps: next });
+              if (!validBlockSwaps(next)) {
+                setMessage(
+                  t("Each block must start after the one before, between 12:00 and 17:00."),
+                );
+                return;
+              }
+              void save({ block_swaps: next });
+            }}
+          />
+        ))}
         <label>
           {t("Default formation (Inf/Lan/Mark %)")}
           <input
@@ -208,6 +234,11 @@ export function AutomationSettingsCard({
           </datalist>
         </label>
       </div>
+      <p className="form-hint">
+        {t(
+          "Pet blocks are when Rally Leads and Castle Holders swap; a pet lasts 2 hours. New rallies and the garrison start with these times, and you can change them per rally in Planning.",
+        )}
+      </p>
       <p className="form-hint">{t("Default joiner heroes for every rally")}</p>
       <div className="automation-grid">
         {slots.map((value, index) => (
