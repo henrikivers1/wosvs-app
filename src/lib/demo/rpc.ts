@@ -655,6 +655,26 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     return ok();
   },
 
+  reset_svs_plan: ({ target_plan_id }) => {
+    const plan = byId("battle_plans", target_plan_id);
+    if (!plan) return fail("Battle plan not found.");
+    if (
+      demoTable("battles").some(
+        (battle) =>
+          battle.plan_id === target_plan_id &&
+          (battle.status === "active" || battle.status === "completed"),
+      )
+    ) {
+      return fail("This battle has started. A started plan cannot be reset.");
+    }
+    remove("battle_plan_assignments", (row) => row.plan_id === target_plan_id);
+    remove("battle_plan_groups", (row) => row.plan_id === target_plan_id);
+    plan.status = "draft";
+    plan.published_at = null;
+    plan.auto_planned_at = null;
+    return ok();
+  },
+
   publish_battle_plan_with_notifications: ({ target_plan_id }) => {
     const plan = byId("battle_plans", target_plan_id);
     if (!plan) return fail("Battle plan not found.");

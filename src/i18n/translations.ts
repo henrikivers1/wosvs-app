@@ -1468,6 +1468,10 @@ const spanishInterface: Record<string, string> = {
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
   "Battle plan deleted.": "Plan de batalla eliminado.",
+  "Battle plan reset.": "Plan de batalla restablecido.",
+  "Reset plan": "Restablecer plan",
+  "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":
+    "¿Restablecer “{name}”? Se eliminan sus rallies y asignaciones y vuelve a quedar sin publicar. La información, los votos de asistencia y los Rally Leads elegidos se conservan, y no se notifica a los miembros.",
   "Battle plan updated. Republish to notify players.":
     "Plan de batalla actualizado. Vuelve a publicarlo para notificar a los jugadores.",
   "Battle planning": "Planificación de batalla",

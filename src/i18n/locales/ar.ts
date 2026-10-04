@@ -81,6 +81,10 @@ export const arabicInterface: Record<string, string> = {
   "Battle losses": "خسائر المعارك",
   "Battle period active": "فترة المعركة نشطة",
   "Battle plan deleted.": "تم حذف خطة المعركة.",
+  "Battle plan reset.": "تمت إعادة تعيين خطة المعركة.",
+  "Reset plan": "إعادة تعيين الخطة",
+  "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":
+    "إعادة تعيين “{name}”؟ تُزال الحشود والتعيينات وتعود الخطة غير منشورة. تبقى المعلومات الاستخباراتية وأصوات الحضور وقادة الحشد المختارون، ولا يتم إشعار الأعضاء.",
   "Battle plan published": "تم نشر خطة المعركة",
   "Battle plan updated. Republish to notify players.":
     "تم تحديث خطة المعركة. أعد النشر لإبلاغ اللاعبين.",

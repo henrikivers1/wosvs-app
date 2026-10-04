@@ -81,6 +81,10 @@ export const thaiInterface: Record<string, string> = {
   "Battle losses": "แพ้การรบ",
   "Battle period active": "ช่วงการรบกำลังดำเนินอยู่",
   "Battle plan deleted.": "ลบแผนการรบแล้ว",
+  "Battle plan reset.": "รีเซ็ตแผนการรบแล้ว",
+  "Reset plan": "รีเซ็ตแผน",
+  "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":
+    "รีเซ็ต “{name}”? แรลลี่และการมอบหมายจะถูกลบ และแผนจะกลับเป็นยังไม่เผยแพร่ ข้อมูลข่าวกรอง การโหวตเข้าร่วม และ Rally Lead ที่เลือกไว้ยังคงอยู่ และจะไม่มีการแจ้งเตือนสมาชิก",
   "Battle plan published": "เผยแพร่แผนการรบแล้ว",
   "Battle plan updated. Republish to notify players.":
     "อัปเดตแผนการรบแล้ว เผยแพร่อีกครั้งเพื่อแจ้งผู้เล่น",
