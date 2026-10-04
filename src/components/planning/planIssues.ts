@@ -135,14 +135,14 @@ export function findPlanIssues({
     issues.push({ kind: "no_garrison", hasHolders: holderTagged.size > 0 });
   }
   for (const group of groups) {
-    const rotation = PET_BLOCKS.map((_, block) => group.lead_rotation?.[block] ?? null);
+    const rotation = PET_BLOCKS.map((block) => group.lead_rotation?.[block] ?? null);
     const gaps = rotation.flatMap((id, block) => (id ? [] : [block]));
     if (gaps.length) issues.push({ kind: "rotation_gap", group, blocks: gaps });
     rotation.forEach((id, block) => {
       const member = id ? memberById.get(id) : undefined;
       if (!member) return;
       const availability = answerById.get(member.id) ?? null;
-      if (!blockFits(availability, block)) {
+      if (!blockFits(availability, block, group.block_swaps ?? undefined)) {
         issues.push({ kind: "rotation_unavailable", group, member, block, availability });
       }
     });

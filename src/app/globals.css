@@ -4410,6 +4410,14 @@ li.member-row button.danger-button:hover:not(:disabled) {
 .rotation-warning {
   color: var(--danger-text);
 }
+.rotation-swaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.rally-form-panel .rotation-editor .rotation-swaps {
+  grid-column: 1 / -1;
+}
 .rally-form-panel .rotation-editor {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   align-items: end;

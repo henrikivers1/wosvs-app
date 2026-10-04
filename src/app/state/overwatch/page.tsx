@@ -49,6 +49,7 @@ type PlanGroup = {
   kind: "rally" | "garrison";
   leader_wos_account_id: string;
   lead_rotation: Array<string | null> | null;
+  block_swaps: number[] | null;
   alliance_id: string | null;
   notes: string | null;
   formation: string | null;
@@ -207,7 +208,7 @@ export default function OverwatchPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, alliance_id, notes, formation",
+              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, block_swaps, alliance_id, notes, formation",
             )
             .in("plan_id", planIds)
         : Promise.resolve({ data: [], error: null }),
@@ -405,7 +406,7 @@ export default function OverwatchPage() {
     .filter((slot): slot is { block: number; id: string } => slot !== null);
   const myBlocks = rotation
     .filter((slot) => slot.id === activeMembership.wosAccountId)
-    .map((slot) => blockLabel(slot.block));
+    .map((slot) => blockLabel(slot.block, ownGroup?.block_swaps ?? undefined));
   const isGarrison = ownGroup?.kind === "garrison";
   const publicComments = comments.filter(
     (comment) => comment.plan_id === featuredPlan?.id,
@@ -498,7 +499,7 @@ export default function OverwatchPage() {
                   <ul className="assignment-rotation">
                     {rotation.map((slot) => (
                       <li key={slot.block}>
-                        <time>{blockLabel(slot.block)}</time>
+                        <time>{blockLabel(slot.block, ownGroup?.block_swaps ?? undefined)}</time>
                         <strong>{labelOf(slot.id)}</strong>
                       </li>
                     ))}

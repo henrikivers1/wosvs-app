@@ -190,7 +190,9 @@ export function NeedsAttention({
               fix: { label: t("Leads & holders"), run: onOpenLeads },
             };
       case "rotation_gap": {
-        const blocks = issue.blocks.map(blockLabel).join(", ");
+        const blocks = issue.blocks
+          .map((block) => blockLabel(block, issue.group.block_swaps ?? undefined))
+          .join(", ");
         return {
           text:
             issue.group.kind === "garrison"
@@ -213,7 +215,7 @@ export function NeedsAttention({
           text: t("{name} leads {rally} {block}, but voted {voted}.", {
             name: memberName(issue.member),
             rally: issue.group.name,
-            block: blockLabel(issue.block),
+            block: blockLabel(issue.block, issue.group.block_swaps ?? undefined),
             voted: issue.availability
               ? half(issue.availability)
               : t("nothing yet"),

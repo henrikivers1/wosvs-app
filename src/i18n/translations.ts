@@ -28,6 +28,22 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "The battle runs in three pet blocks, by default 12–14, 14–16 and 16–17 UTC. A pet lasts two hours, so you can change when the blocks start: for the whole state under SvS automation, or for one rally or the garrison under its ⋯ → Leads by pet block. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
+    "La batalla se divide en tres bloques de mascotas, por defecto 12–14, 14–16 y 16–17 UTC. Una mascota dura dos horas, así que puedes cambiar cuándo empiezan los bloques: para todo el estado en Automatización de SvS, o para un rally o la guarnición en su ⋯ → Líderes por bloque de mascotas. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se acaban sus mascotas y los unidos se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autollenado y solo reciben un héroe de unión que tengan a 4★.",
+  "Second pet block starts (UTC)":
+    "Inicio del segundo bloque de mascotas (UTC)",
+  "Third pet block starts (UTC)":
+    "Inicio del tercer bloque de mascotas (UTC)",
+  "Each block must start after the one before, between 12:00 and 17:00.":
+    "Cada bloque debe empezar después del anterior, entre las 12:00 y las 17:00.",
+  "Pet blocks are when Rally Leads and Castle Holders swap; a pet lasts 2 hours. New rallies and the garrison start with these times, and you can change them per rally in Planning.":
+    "Los bloques de mascotas marcan cuándo se turnan los líderes de rally y los Defensores del castillo; una mascota dura 2 horas. Los rallies nuevos y la guarnición empiezan con estas horas, y puedes cambiarlas por rally en Planificación.",
+  "Second block starts (UTC)":
+    "Inicio del segundo bloque (UTC)",
+  "Third block starts (UTC)":
+    "Inicio del tercer bloque (UTC)",
+  "A block is longer than 2 hours, longer than a pet lasts.":
+    "Un bloque dura más de 2 horas, más de lo que dura una mascota.",
   "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.":
     "Una guarnición defiende el castillo toda la batalla. Siempre se llena primero, con los niveles de tropa más altos entre quienes juegan toda la batalla: FC de tropa, luego nivel de tropa y luego habilidad de tropa. Hasta que se publica el plan, un defensor más fuerte que esté en un rally pasa a la guarnición. Hasta tres Defensores del castillo se turnan, uno por bloque de mascotas. Cuando les toca, se cambian a la alianza que tiene el castillo y toman el relevo; no llevan unidos. Ajusta el tamaño de la guarnición en Automatización de SvS.",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.":
@@ -414,8 +430,6 @@ const spanishInterface: Record<string, string> = {
     "¿Dónde consigo ayuda?",
   "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.":
     "Escríbenos en Discord: wosoverwatch. Los administradores de tu estado también pueden ayudarte con todo lo de tu estado.",
-  "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.":
-    "La batalla tiene tres bloques de mascotas: 12–14, 14–16 y 16–17 UTC. Cada rally tiene un líder por bloque, así que los líderes se turnan cuando se agotan sus mascotas y los participantes se quedan. Los rallies van a la alianza de su primer líder. Los jugadores se añaden según tus prioridades de autorrelleno y solo reciben un héroe de unión que tengan a 4★.",
   "The garrison":
     "La guarnición",
   "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation. Leads: Ted 12:00–14:00, Ice 14:00–16:00.” Rally Leads are told which blocks they lead, Castle Holders when to take over, and the garrison to stay in the castle. Overwatch shows the same details, and you are told about every change.":
@@ -1434,7 +1448,6 @@ const spanishInterface: Record<string, string> = {
   "Choose role": "Elegir rol",
   "Choose tag": "Elegir etiqueta",
   "Choose tagged leader": "Elegir líder etiquetado",
-  "Chief level": "Nivel de jefe",
   "Clear filters": "Borrar filtros",
   Color: "Color",
   "Combat profile saved.": "Perfil de combate guardado.",
@@ -1639,7 +1652,6 @@ const spanishInterface: Record<string, string> = {
     "Usa un código de color de seis dígitos, como #e4a853.",
   Username: "Nombre de usuario",
   Visibility: "Visibilidad",
-  VIP: "VIP",
   active: "activo",
   Win: "Victoria",
   "WOS accounts": "Cuentas de WOS",

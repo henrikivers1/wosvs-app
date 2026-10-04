@@ -177,7 +177,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "How rallies are built",
-        body: "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.",
+        body: "The battle runs in three pet blocks, by default 12–14, 14–16 and 16–17 UTC. A pet lasts two hours, so you can change when the blocks start: for the whole state under SvS automation, or for one rally or the garrison under its ⋯ → Leads by pet block. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.",
       },
       {
         title: "The garrison",

@@ -19,8 +19,6 @@ type WosAccount = {
   furnace_level: number | null;
   furnace_level_raw: number | null;
   power: number | null;
-  chief_level: number | null;
-  vip_level: number | null;
   kills: number | null;
   labyrinth_score: number | null;
   game_avatar_url: string | null;
@@ -114,7 +112,7 @@ export default function AccountPage() {
     const { data: savedAccounts } = await supabase
         .from("wos_accounts")
         .select(
-          "id, wos_id, nickname, is_configured, furnace_level, furnace_level_raw, power, chief_level, vip_level, kills, labyrinth_score, game_avatar_url, state_number, alliance_abbr, alliance_name, game_active, player_data_updated_at, player_data_synced_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
+          "id, wos_id, nickname, is_configured, furnace_level, furnace_level_raw, power, kills, labyrinth_score, game_avatar_url, state_number, alliance_abbr, alliance_name, game_active, player_data_updated_at, player_data_synced_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
         )
         .eq("user_id", user.id);
 
@@ -355,14 +353,6 @@ export default function AccountPage() {
                               ? `[${account.alliance_abbr}] ${account.alliance_name ?? ""}`
                               : t("No alliance")}
                           </strong>
-                        </span>
-                        <span>
-                          {t("Chief level")}
-                          <strong>{account.chief_level ?? "—"}</strong>
-                        </span>
-                        <span>
-                          {t("VIP")}
-                          <strong>{account.vip_level ?? "—"}</strong>
                         </span>
                         <span>
                           {t("Kills")}

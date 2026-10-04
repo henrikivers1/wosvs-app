@@ -57,7 +57,7 @@ type StateRow = AutoPlanSettings & {
 };
 
 const STATE_COLUMNS =
-  "id, name, game_state_number, svs_draw_expected_at, oracle_checked_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities";
+  "id, name, game_state_number, svs_draw_expected_at, oracle_checked_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities, block_swaps";
 
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : String(error);

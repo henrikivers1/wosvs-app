@@ -26,6 +26,8 @@ export type PlanGroup = {
   leader_wos_account_id: string;
   // Who leads (or holds) in each pet block: 12–14, 14–16, 16–17.
   lead_rotation: Array<string | null>;
+  // When pet blocks 2 and 3 start, in minutes after the battle start.
+  block_swaps: number[] | null;
   alliance_id: string | null;
   assignment_tag_id: string | null;
   max_members: number;

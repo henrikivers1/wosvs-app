@@ -1,4 +1,4 @@
-import { blockLabel } from "@/lib/castle";
+import { blockLabel, DEFAULT_BLOCK_SWAPS, validBlockSwaps } from "@/lib/castle";
 import type { DemoResult } from "@/lib/demo/query";
 import { DEMO_USER_ID } from "@/lib/demo/seed";
 import {
@@ -178,10 +178,19 @@ function setRotation(group: Row, leads: unknown[]) {
   return null;
 }
 
+// A group's pet block times, or its state's, or the default.
+function swapsOf(group: Row) {
+  const own = group.block_swaps as number[] | null | undefined;
+  const state = byId("states", group.state_id);
+  return own ?? (state?.block_swaps as number[] | undefined) ?? DEFAULT_BLOCK_SWAPS;
+}
+
 // "Ted 12:00–14:00, Ice 14:00–16:00" for a group's rotation.
 function rotationText(group: Row) {
   return ((group.lead_rotation as unknown[]) ?? [])
-    .map((lead, block) => (lead ? `${accountName(lead)} ${blockLabel(block)}` : null))
+    .map((lead, block) =>
+      lead ? `${accountName(lead)} ${blockLabel(block, swapsOf(group))}` : null,
+    )
     .filter(Boolean)
     .join(", ");
 }
@@ -732,7 +741,9 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
       if (ledGroup) {
         const alliance = byId("state_alliances", ledGroup.alliance_id);
         const blocks = ((ledGroup.lead_rotation as unknown[]) ?? [])
-          .flatMap((lead, block) => (lead === accountId ? [blockLabel(block)] : []))
+          .flatMap((lead, block) =>
+            lead === accountId ? [blockLabel(block, swapsOf(ledGroup))] : [],
+          )
           .join(" and ");
         const holder = ledGroup.kind === "garrison";
         notifyDemoUser(
@@ -838,6 +849,16 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     const state = byId("states", target_state_id);
     if (!state) return fail("State not found.");
     Object.assign(state, settings as Row);
+    return ok();
+  },
+
+  set_battle_plan_group_block_swaps: ({ target_group_id, swaps }) => {
+    const group = byId("battle_plan_groups", target_group_id);
+    if (!group) return fail("Rally group not found.");
+    if (!validBlockSwaps((swaps as number[]) ?? [])) {
+      return fail("Pet blocks must follow each other between 12:00 and 17:00.");
+    }
+    group.block_swaps = swaps;
     return ok();
   },
 

@@ -3,6 +3,7 @@ import type { AutofillCriterion, GroupShift } from "@/lib/autofill";
 import {
   blockFits,
   compareDefense,
+  DEFAULT_BLOCK_SWAPS,
   fillPlan,
   garrisonSwaps,
   PET_BLOCKS,
@@ -52,6 +53,8 @@ export type AutoPlanSettings = {
   default_formation: string | null;
   default_joiner_heroes: string[];
   autofill_priorities: string[];
+  // When pet blocks 2 and 3 start, in minutes after the battle start.
+  block_swaps?: number[] | null;
 };
 
 export type AutoPlanResult = {
@@ -326,9 +329,11 @@ async function createGarrison(
       return Boolean(answer) && answer !== "unavailable";
     })
     .sort(compareDefense);
+  const swaps = settings.block_swaps ?? DEFAULT_BLOCK_SWAPS;
   const rotation = planRotation(
     holders.map((member) => member.id),
     availability,
+    swaps,
   );
   const first = holders.find((member) => rotation.includes(member.id));
   if (!first) return 0;
@@ -345,6 +350,7 @@ async function createGarrison(
       lead_rotation: rotation,
       alliance_id: allianceId,
       max_members: (settings.garrison_size ?? 15) + 1,
+      block_swaps: swaps,
       sort_order: -1,
       shift: "whole",
     })
@@ -409,14 +415,15 @@ async function createRallies(
   // The best leads start one rally each. Every other lead joins the rally
   // whose uncovered pet blocks they cover most, so the swaps fill the gaps.
   const teams = leads.slice(0, rallyCount).map((lead) => [lead]);
+  const swaps = settings.block_swaps ?? DEFAULT_BLOCK_SWAPS;
   const covered = (team: Member[]) =>
-    PET_BLOCKS.map((_, block) =>
-      team.some((member) => blockFits(availability(member.id), block)),
+    PET_BLOCKS.map((block) =>
+      team.some((member) => blockFits(availability(member.id), block, swaps)),
     );
   for (const lead of leads.slice(rallyCount)) {
     const gain = (team: Member[]) =>
       covered(team).filter(
-        (isCovered, block) => !isCovered && blockFits(availability(lead.id), block),
+        (isCovered, block) => !isCovered && blockFits(availability(lead.id), block, swaps),
       ).length;
     const best = [...teams].sort(
       (first, second) =>
@@ -430,6 +437,7 @@ async function createRallies(
     const rotation = planRotation(
       team.map((member) => member.id),
       availability,
+      swaps,
     );
     const leaderId = rotation.find(Boolean) ?? team[0].id;
     const leader = team.find((member) => member.id === leaderId) ?? team[0];
@@ -445,6 +453,7 @@ async function createRallies(
         lead_rotation: rotation,
         alliance_id: allianceId,
         max_members: settings.rally_size,
+        block_swaps: swaps,
         sort_order: index,
         shift: "whole",
         formation: settings.default_formation,
