@@ -5,7 +5,8 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { AutofillPriorityEditor } from "@/components/planning/AutofillPriorityEditor";
 import { FORMATION_PRESETS } from "@/components/planning/RallySetupEditor";
 import { AUTOFILL_CRITERIA, type AutofillCriterion } from "@/lib/autofill";
-import { battleClock, DEFAULT_BLOCK_SWAPS, validBlockSwaps } from "@/lib/castle";
+import { BlockTimeSelect } from "@/components/planning/BlockTimeSelect";
+import { DEFAULT_BLOCK_SWAPS, validBlockSwaps } from "@/lib/castle";
 import { HEROES, LATEST_HERO_GENERATION } from "@/lib/heroes";
 import { createClient } from "@/lib/supabase/client";
 
@@ -194,35 +195,27 @@ export function AutomationSettingsCard({
           />
         </label>
         {([0, 1] as const).map((index) => (
-          <label key={index}>
-            {index === 0
-              ? t("Second pet block starts (UTC)")
-              : t("Third pet block starts (UTC)")}
-            <input
-              type="time"
-              step={300}
-              min="12:05"
-              max="16:55"
-              value={battleClock((settings.block_swaps ?? DEFAULT_BLOCK_SWAPS)[index])}
-              onChange={(event) => {
-                const [hours, minutes] = event.target.value.split(":").map(Number);
-                if (Number.isNaN(hours) || Number.isNaN(minutes)) return;
-                const next = [...(settings.block_swaps ?? DEFAULT_BLOCK_SWAPS)];
-                next[index] = hours * 60 + minutes - 12 * 60;
-                setSettings({ ...settings, block_swaps: next });
-              }}
-              onBlur={() => {
-                const swaps = settings.block_swaps ?? DEFAULT_BLOCK_SWAPS;
-                if (!validBlockSwaps(swaps)) {
-                  setMessage(
-                    t("Each block must start after the one before, between 12:00 and 17:00."),
-                  );
-                  return;
-                }
-                void save({ block_swaps: [...swaps] });
-              }}
-            />
-          </label>
+          <BlockTimeSelect
+            key={index}
+            label={
+              index === 0
+                ? t("Second pet block starts (UTC)")
+                : t("Third pet block starts (UTC)")
+            }
+            value={(settings.block_swaps ?? DEFAULT_BLOCK_SWAPS)[index]}
+            onChange={(minutes) => {
+              const next = [...(settings.block_swaps ?? DEFAULT_BLOCK_SWAPS)];
+              next[index] = minutes;
+              setSettings({ ...settings, block_swaps: next });
+              if (!validBlockSwaps(next)) {
+                setMessage(
+                  t("Each block must start after the one before, between 12:00 and 17:00."),
+                );
+                return;
+              }
+              void save({ block_swaps: next });
+            }}
+          />
         ))}
         <label>
           {t("Default formation (Inf/Lan/Mark %)")}

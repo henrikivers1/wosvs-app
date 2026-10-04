@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { availabilityLabel, type AttendanceRow } from "@/lib/attendance";
+import { BlockTimeSelect } from "./BlockTimeSelect";
 import {
-  battleClock,
   blockFits,
   blockLabel,
   DEFAULT_BLOCK_SWAPS,
@@ -55,15 +55,12 @@ export function RotationEditor({
     return [start[0], start[1]];
   });
   const swapsValid = validBlockSwaps(swaps);
-  const setSwap = (index: 0 | 1, value: string) => {
-    const [hours, minutes] = value.split(":").map(Number);
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return;
+  const setSwap = (index: 0 | 1, minutes: number) =>
     setSwaps((current) => {
       const next: [number, number] = [current[0], current[1]];
-      next[index] = hours * 60 + minutes - 12 * 60;
+      next[index] = minutes;
       return next;
     });
-  };
 
   const label = (member: StateMember) => {
     const answer = answers.get(member.id);
@@ -89,17 +86,12 @@ export function RotationEditor({
       )}
       <div className="rotation-swaps">
         {([0, 1] as const).map((index) => (
-          <label key={index}>
-            {index === 0 ? t("Second block starts (UTC)") : t("Third block starts (UTC)")}
-            <input
-              type="time"
-              step={300}
-              min="12:05"
-              max="16:55"
-              value={battleClock(swaps[index])}
-              onChange={(event) => setSwap(index, event.target.value)}
-            />
-          </label>
+          <BlockTimeSelect
+            key={index}
+            label={index === 0 ? t("Second block starts (UTC)") : t("Third block starts (UTC)")}
+            value={swaps[index]}
+            onChange={(minutes) => setSwap(index, minutes)}
+          />
         ))}
       </div>
       {!swapsValid && (
