@@ -1,13 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { BillingBanner } from "@/components/BillingBanner";
+import { DemoBanner } from "@/components/DemoBanner";
+import { NavIcon, type NavIconName } from "@/components/NavIcon";
+
+const BATTLE_SECTION_PATHS = [
+  "/battle",
+  "/admin/leaders",
+  "/admin/call-rally",
+  "/garrison",
+];
+import {
+  STATE_SECTION_PATHS,
+  StateSectionNav,
+} from "@/components/StateSectionNav";
+import { enterDemo, isDemoMode } from "@/lib/demo/mode";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useStates } from "@/components/StateProvider";
+import { canUseBattleTool } from "@/lib/battleAccess";
 import { isAppLocale, LANGUAGE_OPTIONS, type AppLocale } from "@/i18n/config";
-import { fetchProfileAvatarUrl } from "@/lib/profileAvatar";
 
 export function AppHeader() {
   const router = useRouter();
@@ -25,12 +41,14 @@ export function AppHeader() {
   const [username, setUsername] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const loadIdentity = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    setUserId(user?.id ?? null);
     if (!user) {
       setIdentityLoaded(true);
       setUsername(null);
@@ -39,45 +57,53 @@ export function AppHeader() {
       return;
     }
 
-    const [{ data: profile }, { count }, gameAvatarUrl] = await Promise.all([
+    const [{ data: profile }, { count }, { data: account }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("username, preferred_language")
+        .select("preferred_language, must_change_pin")
         .eq("id", user.id)
         .maybeSingle(),
       supabase
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .is("read_at", null),
-      fetchProfileAvatarUrl(supabase, user.id),
+      supabase
+        .from("wos_accounts")
+        .select("wos_id, nickname, game_avatar_url")
+        .eq("user_id", user.id)
+        .order("created_at")
+        .limit(1)
+        .maybeSingle(),
     ]);
 
-    const publicUsername = profile?.username ?? null;
-    setUsername(publicUsername);
+    setUsername(account ? account.nickname || account.wos_id : null);
     setUnreadCount(count ?? 0);
     if (isAppLocale(profile?.preferred_language)) {
       setLocale(profile.preferred_language);
     }
 
-    setAvatarUrl(gameAvatarUrl);
+    setAvatarUrl(account?.game_avatar_url ?? null);
     setIdentityLoaded(true);
 
-    if (
-      !publicUsername &&
-      pathname !== "/login" &&
-      pathname !== "/account/setup"
-    ) {
-      router.replace("/account/setup");
+    // A one-time PIN (new owner or reset) must be replaced first.
+    if (profile?.must_change_pin && pathname !== "/account/pin") {
+      router.replace("/account/pin");
     }
   }, [pathname, router, setLocale, supabase]);
+
+  // Only the unread count changes while the page is open.
+  const loadUnreadCount = useCallback(async () => {
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .is("read_at", null);
+    setUnreadCount(count ?? 0);
+  }, [supabase]);
 
   useEffect(() => {
     const initialLoadId = window.setTimeout(() => {
       void loadIdentity();
     }, 0);
-    const notificationPollId = window.setInterval(() => {
-      void loadIdentity();
-    }, 15000);
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setIdentityLoaded(false);
@@ -94,29 +120,31 @@ export function AppHeader() {
 
     return () => {
       window.clearTimeout(initialLoadId);
-      window.clearInterval(notificationPollId);
       data.subscription.unsubscribe();
     };
   }, [loadIdentity, supabase]);
 
+  // Realtime keeps the bell current; no polling.
   useEffect(() => {
+    if (!userId) return;
     const channel = supabase
-      .channel("header-notification-count")
+      .channel(`header-notifications-${userId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "notifications",
+          filter: `user_id=eq.${userId}`,
         },
-        () => void loadIdentity(),
+        () => void loadUnreadCount(),
       )
       .subscribe();
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [loadIdentity, supabase]);
+  }, [loadUnreadCount, supabase, userId]);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -138,16 +166,8 @@ export function AppHeader() {
     }
   }
 
-  const canCallRallies =
-    Boolean(activeMembership?.battleId) &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("rally_caller"));
-  const canUseGarrison =
-    Boolean(activeMembership?.battleId) &&
-    (activeMembership?.role === "owner" ||
-      activeMembership?.role === "admin" ||
-      activeMembership?.capabilities.includes("garrison"));
+  const canCallRallies = canUseBattleTool(activeMembership, "rally_caller");
+  const canUseGarrison = canUseBattleTool(activeMembership, "garrison");
   const profileInitial = username?.charAt(0).toUpperCase() || "?";
   function navClassName(href: string) {
     return pathname === href ? "nav-link active-nav-link" : "nav-link";
@@ -160,36 +180,127 @@ export function AppHeader() {
     return role.replaceAll("_", " ");
   }
 
+  const isAdmin =
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
+  const inBattleSection = BATTLE_SECTION_PATHS.some((path) =>
+    pathname.startsWith(path),
+  );
+  // Main sections. On phones they become a tab bar at the bottom.
+  const mainLinks: {
+    href: string;
+    label: string;
+    icon: NavIconName;
+    active: boolean;
+    live?: boolean;
+  }[] = activeMembership
+    ? [
+        {
+          href: "/state/overwatch",
+          label: t("overwatch"),
+          icon: "overwatch",
+          active: pathname.startsWith("/state/overwatch"),
+        },
+        {
+          href: "/state/intel",
+          label: t("intel"),
+          icon: "intel",
+          active: pathname.startsWith("/state/intel"),
+        },
+        ...(isAdmin
+          ? [
+              {
+                href: "/state/planning",
+                label: t("planning"),
+                icon: "planning" as const,
+                active: pathname.startsWith("/state/planning"),
+              },
+            ]
+          : []),
+        ...(activeMembership.battleId && (canCallRallies || canUseGarrison)
+          ? [
+              {
+                href: "/battle",
+                label: t("liveBattle"),
+                icon: "live" as const,
+                active: inBattleSection,
+                live: true,
+              },
+            ]
+          : []),
+        {
+          href: isAdmin ? "/state/manage" : "/state/stats",
+          label: t("state"),
+          icon: "state",
+          active: STATE_SECTION_PATHS.some((path) => pathname.startsWith(path)),
+        },
+      ]
+    : [];
+
   return (
     <header className="app-header">
-      <div className="header-top">
-        <Link className="brand-link" href="/">
-          <span className="brand-mark">WOS</span>
-          <span className="brand-copy">
-            <strong>WOSOverwatch</strong>
-            <small>{t("battleCoordination")}</small>
-          </span>
+      <DemoBanner />
+      <BillingBanner />
+      <div className="header-bar">
+        <Link className="brand-link" href="/" aria-label="Overwatch">
+          <Image
+            src="/brand/overwatch-mark-on-dark.svg"
+            width={36}
+            height={36}
+            alt=""
+            priority
+          />
+          <span className="brand-name">Overwatch</span>
         </Link>
+
+        {mainLinks.length > 0 && (
+          <nav className="main-nav" aria-label={t("mainNavigation")}>
+            {mainLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`main-nav-link${link.active ? " active" : ""}${link.live ? " live" : ""}`}
+                aria-current={link.active ? "page" : undefined}
+              >
+                <NavIcon name={link.icon} />
+                <span>{link.label}</span>
+              </Link>
+            ))}
+          </nav>
+        )}
 
         {signedIn === true ? (
           <div className="account-controls">
+            {memberships.length > 1 ? (
+              <label className="state-switcher">
+                <span className="visually-hidden">{t("activeWorkspace")}</span>
+                <select
+                  value={activeMembership?.key ?? ""}
+                  onChange={(event) => setActiveMembership(event.target.value)}
+                >
+                  {memberships.map((membership) => (
+                    <option key={membership.key} value={membership.key}>
+                      {membership.stateName} ·{" "}
+                      {membership.wosNickname || membership.wosId}
+                      {` (${translatedRole(membership.role)})`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : activeMembership ? (
+              <span className="state-chip" title={t("activeWorkspace")}>
+                {activeMembership.stateName}
+              </span>
+            ) : null}
+
             <details className="header-language-menu">
               <summary
-                className="language-button"
+                className="icon-button"
                 aria-label={t("language")}
                 title={t("language")}
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  width="19"
-                  height="19"
-                >
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M3 12h18M12 3c2.3 2.5 3.5 5.5 3.5 9s-1.2 6.5-3.5 9c-2.3-2.5-3.5-5.5-3.5-9S9.7 5.5 12 3Z" />
-                </svg>
+                <NavIcon name="globe" />
               </summary>
-              <div className="header-language-dropdown">
+              <div className="header-dropdown">
                 <label className="profile-language-field">
                   <span>{t("language")}</span>
                   <select
@@ -209,12 +320,12 @@ export function AppHeader() {
             </details>
 
             <Link
-              className="notification-button"
+              className="icon-button notification-button"
               href="/notifications"
               aria-label={`${unreadCount} ${t("unreadNotifications")}`}
               title={t("notifications")}
             >
-              <span aria-hidden="true">🔔</span>
+              <NavIcon name="bell" />
               {unreadCount > 0 && (
                 <span className="notification-count">
                   {unreadCount > 99 ? "99+" : unreadCount}
@@ -235,16 +346,19 @@ export function AppHeader() {
                   {!avatarUrl && profileInitial}
                 </span>
               </summary>
-              <div className="profile-dropdown">
+              <div className="header-dropdown profile-dropdown">
                 <span className="profile-username">
-                  {username
-                    ? `@${username}`
-                    : identityLoaded
-                      ? t("setupRequired")
-                      : t("profile")}
+                  {username ?? (identityLoaded ? "" : t("profile"))}
                 </span>
-                <Link href="/profile">{t("profile")}</Link>
-                <Link href="/account">{t("wosAccounts")}</Link>
+                <Link href="/account">{t("Account")}</Link>
+                <Link href="/notifications">{t("notifications")}</Link>
+                <Link href="/guides">{t("Guides")}</Link>
+                <Link href="/privacy">{t("Privacy")}</Link>
+                {!isDemoMode() && (
+                  <button type="button" onClick={() => enterDemo()}>
+                    {t("Try the private demo")}
+                  </button>
+                )}
                 <button type="button" onClick={signOut}>
                   {t("signOut")}
                 </button>
@@ -252,90 +366,55 @@ export function AppHeader() {
             </details>
           </div>
         ) : signedIn === false ? (
-          <Link className="nav-link header-sign-in" href="/login">
-            {t("signIn")}
-          </Link>
+          <nav className="public-nav" aria-label={t("mainNavigation")}>
+            <Link
+              className={`main-nav-link${pathname.startsWith("/guides") ? " active" : ""}`}
+              href="/guides"
+            >
+              {t("Guides")}
+            </Link>
+            {pathname !== "/login" && (
+              <Link className="secondary-link" href="/login">
+                {t("signIn")}
+              </Link>
+            )}
+          </nav>
         ) : (
           <span className="header-account-placeholder" />
         )}
       </div>
 
-      {signedIn === true && (
-        <div className="header-workspace-row">
-          <nav aria-label={t("mainNavigation")}>
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/overwatch")}
-                href="/state/overwatch"
-              >
-                {t("overwatch")}
-              </Link>
-            )}
-            {activeMembership && (
-              <Link
-                className={navClassName("/state/votes")}
-                href="/state/votes"
-              >
-                {t("votes")}
-              </Link>
-            )}
-            {(activeMembership?.role === "owner" ||
-              activeMembership?.role === "admin") && (
-              <Link
-                className={navClassName("/state/planning")}
-                href="/state/planning"
-              >
-                {t("planning")}
-              </Link>
-            )}
-            {activeMembership?.battleId &&
-              (canCallRallies || canUseGarrison) && (
-                <Link className={navClassName("/battle")} href="/battle">
-                  {t("liveBattle")}
+      <StateSectionNav />
+      {inBattleSection &&
+        (canCallRallies || canUseGarrison) && (
+          // Live Battle sub-navigation, so callers can jump between enemy
+          // leaders, calling rallies and the garrison timer directly.
+          <nav className="state-section-nav" aria-label={t("Live Battle")}>
+            {[
+              {
+                href: "/admin/leaders",
+                label: t("Enemy leaders"),
+                show: canCallRallies,
+              },
+              {
+                href: "/admin/call-rally",
+                label: t("Call rally"),
+                show: canCallRallies,
+              },
+              { href: "/garrison", label: t("Garrison"), show: canUseGarrison },
+            ]
+              .filter((link) => link.show)
+              .map((link) => (
+                <Link
+                  key={link.href}
+                  className={navClassName(link.href)}
+                  href={link.href}
+                >
+                  {link.label}
                 </Link>
-              )}
-            {activeMembership && (
-              <Link
-                className={
-                  pathname.startsWith("/state/manage") ||
-                  pathname.startsWith("/state/stats") ||
-                  pathname.startsWith("/state/tags") ||
-                  pathname.startsWith("/state/announcements") ||
-                  pathname.startsWith("/state/alliances")
-                    ? "nav-link active-nav-link"
-                    : "nav-link"
-                }
-                href={
-                  activeMembership.role === "owner" ||
-                  activeMembership.role === "admin"
-                    ? "/state/manage"
-                    : "/state/stats"
-                }
-              >
-                {t("state")}
-              </Link>
-            )}
+              ))}
           </nav>
-
-          {memberships.length > 0 && (
-            <label className="state-switcher">
-              <span>{t("activeWorkspace")}</span>
-              <select
-                value={activeMembership?.key ?? ""}
-                onChange={(event) => setActiveMembership(event.target.value)}
-              >
-                {memberships.map((membership) => (
-                  <option key={membership.key} value={membership.key}>
-                    {membership.stateName} —{" "}
-                    {membership.wosNickname || membership.wosId}
-                    {` (${translatedRole(membership.role)})`}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-      )}
+        )}
       {signedIn === true && !loadingStates && memberships.length === 0 && (
         <p className="state-status">{t("noStateSelected")}</p>
       )}

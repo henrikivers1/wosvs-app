@@ -1,30 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
-import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import {
+  localizedNotificationText,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_FILTERS,
+  notificationCategory,
+  type NotificationTextData,
+} from "@/lib/notificationKinds";
 
 type NotificationData = {
   announcement_id?: string;
-  invite_id?: string;
   plan_id?: string;
-  poll_id?: string;
   state_id?: string;
   comment_id?: string;
   tag_id?: string;
   tag_color?: string;
   token?: string;
-};
+} & NotificationTextData;
 
 type NotificationItem = {
   id: number;
   state_id: string | null;
   wos_account_id: string | null;
-  category: "state" | "social" | "tag" | "alliance" | "battle";
+  category: string;
   type: string;
   title: string;
   body: string;
@@ -36,60 +46,39 @@ type NotificationItem = {
 type AccountLabel = { id: string; nickname: string | null; wos_id: string };
 type StateLabel = { id: string; name: string };
 
-type InviteStatus = {
-  id: string;
-  status: string;
+// Where each notification type leads.
+const OVERWATCH = { href: "/state/overwatch", label: "Open Overwatch" };
+const HISTORY = { href: "/state/stats", label: "Open battle history" };
+const NOTIFICATION_LINKS: Record<string, { href: string; label: string }> = {
+  rallies_generated: { href: "/state/planning", label: "Review rallies" },
+  attendance_reminder: { href: "/state/overwatch", label: "Vote now" },
+  svs_drawn: OVERWATCH,
+  state_announcement: OVERWATCH,
+  battle_plan_assignment: OVERWATCH,
+  battle_plan_assignment_changed: OVERWATCH,
+  battle_plan_published: OVERWATCH,
+  state_tag_awarded: OVERWATCH,
+  state_alliance_assigned: OVERWATCH,
+  battle_plan_comment: { href: "/state/overwatch", label: "Open comments" },
+  battle_plan_comment_mention: {
+    href: "/state/overwatch",
+    label: "Open comments",
+  },
+  battle_started: { href: "/battle", label: "Open Live Battle" },
+  map_enemy_leaders: { href: "/admin/leaders", label: "Map enemy leaders" },
+  attendance_conflict: { href: "/state/planning", label: "Open Planning" },
+  pet_swap_reminder: { href: "/battle", label: "Open Live Battle" },
+  member_left_state: { href: "/state/manage", label: "Open State management" },
+  battle_completed: HISTORY,
+  battle_result: HISTORY,
+  battle_cancelled: HISTORY,
 };
-
-function notificationCategory(
-  type: string,
-  storedCategory?: NotificationItem["category"],
-) {
-  if (storedCategory === "state") return { label: "State", className: "state" };
-  if (storedCategory === "social")
-    return { label: "Social", className: "social" };
-  if (storedCategory === "tag") return { label: "Tag", className: "tag" };
-  if (storedCategory === "alliance")
-    return { label: "Alliance", className: "alliance" };
-  if (storedCategory === "battle")
-    return { label: "Battle", className: "battle" };
-  if (
-    type === "state_invite" ||
-    type === "state_invite_accepted" ||
-    type === "wos_account_released"
-  ) {
-    return { label: "Membership", className: "membership" };
-  }
-  if (type === "state_poll_created") {
-    return { label: "Vote", className: "vote" };
-  }
-  if (type === "state_announcement") {
-    return { label: "Notice", className: "notice" };
-  }
-  if (type === "state_tag_awarded") {
-    return { label: "New tag", className: "tag" };
-  }
-  if (
-    type === "battle_plan_comment" ||
-    type === "battle_plan_comment_mention"
-  ) {
-    return { label: "Plan comment", className: "comment" };
-  }
-  if (type === "battle_plan_assignment" || type === "battle_plan_published") {
-    return { label: "Battle plan", className: "plan" };
-  }
-  return { label: "Update", className: "general" };
-}
 
 export default function NotificationsPage() {
   const { t, formatDateTime } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { refreshMemberships } = useStates();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [inviteStatuses, setInviteStatuses] = useState<Record<string, string>>(
-    {},
-  );
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -97,8 +86,11 @@ export default function NotificationsPage() {
     {},
   );
   const [stateLabels, setStateLabels] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState("all");
 
-  const loadNotifications = useCallback(async () => {
+  // Marks what was there when the page opened as read; notifications that
+  // arrive while it is open stay unread (highlighted) until the next visit.
+  const loadNotifications = useCallback(async (markRead = false) => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -168,36 +160,10 @@ export default function NotificationsPage() {
         {},
       ),
     );
-    const inviteIds = [
-      ...new Set(
-        items
-          .map((item) => item.data?.invite_id)
-          .filter((id): id is string => Boolean(id)),
-      ),
-    ];
-
-    if (inviteIds.length > 0) {
-      const { data: invites } = await supabase
-        .from("state_invites")
-        .select("id, status")
-        .in("id", inviteIds);
-      setInviteStatuses(
-        ((invites ?? []) as InviteStatus[]).reduce<Record<string, string>>(
-          (statuses, invite) => {
-            statuses[invite.id] = invite.status;
-            return statuses;
-          },
-          {},
-        ),
-      );
-    } else {
-      setInviteStatuses({});
-    }
-
     const unreadIds = items
       .filter((item) => !item.read_at)
       .map((item) => item.id);
-    if (unreadIds.length > 0) {
+    if (markRead && unreadIds.length > 0) {
       await supabase
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
@@ -209,7 +175,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     const loadId = window.setTimeout(() => {
-      void loadNotifications();
+      void loadNotifications(true);
     }, 0);
     return () => window.clearTimeout(loadId);
   }, [loadNotifications]);
@@ -235,38 +201,52 @@ export default function NotificationsPage() {
     };
   }, [loadNotifications, supabase, userId]);
 
-  async function respondToInvitation(inviteId: string, acceptInvite: boolean) {
-    setMessage(t(""));
-    const { error } = await supabase.rpc("respond_to_state_invite", {
-      target_invite_id: inviteId,
-      accept_invite: acceptInvite,
-    });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage(
-      acceptInvite
-        ? "Invitation accepted. The state owner must now verify and approve you."
-        : "Invitation declined.",
-    );
-    await loadNotifications();
-    await refreshMemberships();
-  }
+  const activeFilter =
+    NOTIFICATION_FILTERS.find((item) => item.key === filter) ??
+    NOTIFICATION_FILTERS[0];
+  const visibleNotifications = activeFilter.categories.length
+    ? notifications.filter((notification) =>
+        activeFilter.categories.includes(
+          notificationCategory(
+            notification.type,
+            notification.category,
+            notification.data,
+          ),
+        ),
+      )
+    : notifications;
 
   return (
     <main>
       <AppHeader />
-      <section>
-        <h2>{t("Notifications")}</h2>
+      <section className="page-heading">
+        <h1>{t("Notifications")}</h1>
         <p>
           {t(
-            "Battle plans, comments, mentions, tags, votes, notices, and state membership updates appear here.",
+            "Battle results, rally assignments and everything an admin changes on your accounts appear here, colour-coded by action.",
           )}
         </p>
         {message && <p className="auth-message">{message}</p>}
+        {notifications.length > 0 && (
+          <div className="notification-filters" role="tablist">
+            {NOTIFICATION_FILTERS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                role="tab"
+                aria-selected={filter === item.key}
+                className={
+                  filter === item.key
+                    ? "notification-filter active"
+                    : "notification-filter"
+                }
+                onClick={() => setFilter(item.key)}
+              >
+                {t(item.label)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <p>{t("Loading notifications...")}</p>
@@ -274,27 +254,41 @@ export default function NotificationsPage() {
           <p>{t("You do not have any notifications yet.")}</p>
         ) : (
           <div className="notification-list">
-            {notifications.map((notification) => {
+            {visibleNotifications.length === 0 && (
+              <p>{t("No notifications in this filter.")}</p>
+            )}
+            {visibleNotifications.map((notification) => {
               const category = notificationCategory(
                 notification.type,
                 notification.category,
+                notification.data,
               );
-              const inviteId = notification.data?.invite_id;
-              const inviteStatus = inviteId
-                ? inviteStatuses[inviteId]
-                : undefined;
-
+              const categoryInfo = NOTIFICATION_CATEGORIES[category];
+              const text = localizedNotificationText(
+                notification.type,
+                notification.data ?? {},
+                t,
+                formatDateTime,
+              ) ?? { title: t(notification.title), body: notification.body };
               return (
                 <article
                   key={notification.id}
-                  className={`notification-card notification-${category.className}${notification.read_at ? "" : " notification-unread"}`}
+                  className={`notification-card notification-${category}${notification.read_at ? "" : " notification-unread"}`}
+                  style={
+                    category === "tag" && notification.data?.tag_color
+                      ? ({
+                          "--notification-color": notification.data.tag_color,
+                        } as CSSProperties)
+                      : undefined
+                  }
                 >
                   <div className="notification-card-heading">
                     <div>
                       <span className="notification-category">
-                        {t(category.label)}
+                        <span aria-hidden="true">{categoryInfo.icon}</span>{" "}
+                        {t(categoryInfo.label)}
                       </span>
-                      <h3>{t(notification.title)}</h3>
+                      <h3>{text.title}</h3>
                       {(notification.state_id ||
                         notification.wos_account_id) && (
                         <small className="notification-context">
@@ -315,98 +309,16 @@ export default function NotificationsPage() {
                       {formatDateTime(notification.created_at)}
                     </time>
                   </div>
-                  <p>{notification.body}</p>
+                  <p>{text.body}</p>
 
-                  {notification.type === "state_invite" &&
-                    inviteId &&
-                    inviteStatus === "pending_recipient" && (
-                      <div className="notification-actions">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            void respondToInvitation(inviteId, true)
-                          }
-                        >
-                          {t("Accept")}
-                        </button>
-                        <button
-                          type="button"
-                          className="danger-button"
-                          onClick={() =>
-                            void respondToInvitation(inviteId, false)
-                          }
-                        >
-                          {t("Decline")}
-                        </button>
-                      </div>
-                    )}
-
-                  {notification.type === "state_invite" &&
-                    inviteStatus === "pending_owner" && (
-                      <p className="status-badge">
-                        {t("Waiting for owner verification")}
-                      </p>
-                    )}
-                  {notification.type === "state_invite_accepted" && (
-                    <Link className="nav-link" href="/state/manage">
-                      {t("Review request")}
+                  {NOTIFICATION_LINKS[notification.type] && (
+                    <Link
+                      className="nav-link"
+                      href={NOTIFICATION_LINKS[notification.type].href}
+                    >
+                      {t(NOTIFICATION_LINKS[notification.type].label)}
                     </Link>
                   )}
-                  {notification.type === "state_poll_created" && (
-                    <Link className="nav-link" href="/state/votes">
-                      {t("Open vote")}
-                    </Link>
-                  )}
-                  {notification.type === "state_announcement" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "battle_plan_assignment" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "battle_plan_published" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {(notification.type === "battle_plan_comment" ||
-                    notification.type === "battle_plan_comment_mention") && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open comments")}
-                    </Link>
-                  )}
-                  {notification.type === "state_tag_awarded" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "state_alliance_assigned" && (
-                    <Link className="nav-link" href="/state/overwatch">
-                      {t("Open Overwatch")}
-                    </Link>
-                  )}
-                  {notification.type === "battle_started" && (
-                    <Link className="nav-link" href="/battle">
-                      {t("Open Live Battle")}
-                    </Link>
-                  )}
-                  {(notification.type === "battle_completed" ||
-                    notification.type === "battle_cancelled") && (
-                    <Link className="nav-link" href="/state/stats">
-                      {t("Open battle history")}
-                    </Link>
-                  )}
-                  {inviteStatus &&
-                    !["pending_recipient", "pending_owner"].includes(
-                      inviteStatus,
-                    ) && (
-                      <p className="status-badge">
-                        {inviteStatus.replace("_", " ")}
-                      </p>
-                    )}
                 </article>
               );
             })}

@@ -2,11 +2,7 @@ export const SUPPORTED_LOCALES = [
   "en",
   "zh",
   "es",
-  "pt",
   "ar",
-  "hi",
-  "ru",
-  "id",
   "th",
 ] as const;
 
@@ -19,11 +15,7 @@ export const LANGUAGE_OPTIONS: Array<{
   { code: "en", label: "English" },
   { code: "zh", label: "简体中文" },
   { code: "es", label: "Español" },
-  { code: "pt", label: "Português (Brasil)" },
   { code: "ar", label: "العربية" },
-  { code: "hi", label: "हिन्दी" },
-  { code: "ru", label: "Русский" },
-  { code: "id", label: "Bahasa Indonesia" },
   { code: "th", label: "ไทย" },
 ];
 

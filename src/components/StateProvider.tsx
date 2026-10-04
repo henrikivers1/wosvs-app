@@ -86,7 +86,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
 
     const stateIds = [...new Set(memberRows.map((row) => row.state_id))];
     const [{ data: states }, { data: battles }] = await Promise.all([
-      supabase.from("states").select("id, name").in("id", stateIds),
+      supabase.from("states").select("id, name, paid_until").in("id", stateIds),
       supabase
         .from("battles")
         .select("id, state_id, name")
@@ -141,6 +141,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
             ),
           battleId: activeBattle?.id ?? null,
           battleName: activeBattle?.name ?? null,
+          paidUntil: (state as { paid_until?: string | null }).paid_until ?? null,
         },
       ];
     });
@@ -177,6 +178,32 @@ export function StateProvider({ children }: { children: ReactNode }) {
       data.subscription.unsubscribe();
     };
   }, [refreshMemberships, supabase]);
+
+  // Live Battle opens and closes on the server (11:00 and 17:00 UTC); refresh so
+  // Live Battle appears and disappears without a page reload.
+  const stateIdsKey = [...new Set(memberships.map((item) => item.stateId))]
+    .sort()
+    .join(",");
+  useEffect(() => {
+    if (!stateIdsKey) return;
+    const channel = supabase.channel(`battle-status-${stateIdsKey}`);
+    for (const stateId of stateIdsKey.split(",")) {
+      channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "battles",
+          filter: `state_id=eq.${stateId}`,
+        },
+        () => void refreshMemberships(),
+      );
+    }
+    channel.subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [refreshMemberships, stateIdsKey, supabase]);
 
   function setActiveMembership(key: string) {
     if (!memberships.some((membership) => membership.key === key)) return;

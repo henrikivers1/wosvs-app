@@ -69,11 +69,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           template,
         );
       },
+      // Whiteout Survival runs on UTC, so every time in the app is shown
+      // in UTC regardless of the viewer's timezone.
       formatDateTime: (date) =>
-        new Intl.DateTimeFormat(locale, {
+        `${new Intl.DateTimeFormat(locale, {
           dateStyle: "medium",
           timeStyle: "short",
-        }).format(new Date(date)),
+          hourCycle: "h23",
+          timeZone: "UTC",
+        }).format(new Date(date))} UTC`,
       formatNumber: (number) => new Intl.NumberFormat(locale).format(number),
     }),
     [locale, setLocale],

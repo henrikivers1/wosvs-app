@@ -1,9 +1,13 @@
 import { oracleErrorResponse, positiveInteger } from "@/lib/oracleRouteError";
 import { requireStateMember, type StateAccess } from "@/lib/stateAccess";
-import { fetchStateAlliances, fetchSvsMatchup } from "@/lib/wosOracleState";
+import {
+  fetchStateSummary,
+  fetchTopPlayers,
+  type StateSummary,
+} from "@/lib/wosOracleState";
 
 // Opponent of the active (or next scheduled) battle: the number set on its
-// plan, falling back to this season's SvS draw.
+// plan, falling back to the stored SvS draw.
 async function resolveOpponent(access: StateAccess, stateId: string) {
   const { data: battles } = await access.admin
     .from("battles")
@@ -23,11 +27,14 @@ async function resolveOpponent(access: StateAccess, stateId: string) {
     }
   }
 
-  if (access.gameStateNumber) {
-    const matchup = await fetchSvsMatchup(access.gameStateNumber);
-    if (matchup?.opponent) {
-      return { opponent: matchup.opponent, source: "draw" };
-    }
+  // The draw stored by the automation job; no WOSOracle request needed.
+  const { data: state } = await access.admin
+    .from("states")
+    .select("svs_opponent")
+    .eq("id", stateId)
+    .maybeSingle();
+  if (state?.svs_opponent) {
+    return { opponent: state.svs_opponent as number, source: "draw" };
   }
   return null;
 }
@@ -54,8 +61,33 @@ export async function GET(request: Request) {
       );
     }
 
-    const alliances = await fetchStateAlliances(resolved.opponent);
-    return Response.json({ ...resolved, alliances });
+    // Prefer the intel the automation already stored: no WOSOracle request.
+    const { data: intel } = await access.admin
+      .from("battle_intel")
+      .select("opponent")
+      .eq("state_id", stateId!)
+      .eq("opponent_state", resolved.opponent)
+      .order("fetched_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const stored = intel?.opponent as StateSummary | undefined;
+    if (stored?.alliances?.length && (stored.topPlayers?.length ?? 0) > 5) {
+      return Response.json({
+        ...resolved,
+        alliances: stored.alliances,
+        topPlayers: stored.topPlayers,
+      });
+    }
+
+    // Otherwise build the top players from WOSOracle (cached for 10 minutes).
+    const summary = stored?.alliances?.length
+      ? stored
+      : await fetchStateSummary(resolved.opponent, { userId: access.userId });
+    return Response.json({
+      ...resolved,
+      alliances: summary.alliances,
+      topPlayers: await fetchTopPlayers(summary, { userId: access.userId }),
+    });
   } catch (error) {
     return oracleErrorResponse(error, "oracle-opponent");
   }

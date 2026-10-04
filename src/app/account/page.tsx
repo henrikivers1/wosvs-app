@@ -1,11 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
+import { JoinerHeroesEditor } from "@/components/JoinerHeroesEditor";
+import { furnaceLabel } from "@/lib/furnace";
 
 type WosAccount = {
   id: string;
@@ -67,20 +70,12 @@ const COMBAT_FIELDS: Array<{
   { key: "marksman_t12_skill", label: "Marksman T12 skill", min: 0, max: 3 },
 ];
 
-const AUTOMATIC_REFRESH_MS = 6 * 60 * 60 * 1000;
-
-function furnaceLabel(rawLevel: number | null) {
-  if (rawLevel === null) return "—";
-  return rawLevel <= 30 ? `Furnace ${rawLevel}` : `FC${rawLevel - 30}`;
-}
 
 export default function AccountPage() {
   const { t, formatDateTime, formatNumber } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const { memberships, loadingStates } = useStates();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [username, setUsername] = useState("");
 
   function roleLabel(role: string) {
     if (role === "owner") return t("Owner");
@@ -91,7 +86,6 @@ export default function AccountPage() {
   const [combatProfiles, setCombatProfiles] = useState<
     Record<string, CombatProfile>
   >({});
-  const [newWosId, setNewWosId] = useState("");
   const [message, setMessage] = useState("");
   const [syncingIds, setSyncingIds] = useState<string[]>([]);
   const automaticSyncAttempts = useRef<Set<string>>(new Set());
@@ -106,29 +100,13 @@ export default function AccountPage() {
       return;
     }
 
-    setUserId(user.id);
-    const [{ data: profile }, { data: savedAccounts }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", user.id)
-        .maybeSingle(),
-      supabase
+    const { data: savedAccounts } = await supabase
         .from("wos_accounts")
         .select(
           "id, wos_id, nickname, is_configured, furnace_level, furnace_level_raw, power, chief_level, vip_level, kills, labyrinth_score, game_avatar_url, state_number, alliance_abbr, alliance_name, game_active, player_data_updated_at, player_data_synced_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
         )
-        .eq("user_id", user.id)
-        .eq("is_configured", true)
-        .order("created_at"),
-    ]);
+        .eq("user_id", user.id);
 
-    if (!profile?.username) {
-      router.replace("/account/setup");
-      return;
-    }
-
-    setUsername(profile.username);
     const loadedAccounts = (savedAccounts ?? []) as WosAccount[];
     setAccounts(loadedAccounts);
     setCombatProfiles(
@@ -180,7 +158,15 @@ export default function AccountPage() {
           throw new Error(result.error || "Player synchronization failed.");
         }
 
-        if (!result.cached) {
+        if (result.cached) {
+          if (force) {
+            setMessage(
+              t(
+                "Player data was refreshed in the last 24 hours. It also updates automatically every week.",
+              ),
+            );
+          }
+        } else {
           setMessage(t("Player data synchronized from WOSOracle."));
           await loadAccount();
         }
@@ -201,67 +187,15 @@ export default function AccountPage() {
 
   useEffect(() => {
     accounts.forEach((account) => {
-      const syncedAt = account.player_data_synced_at
-        ? new Date(account.player_data_synced_at).getTime()
-        : 0;
-      const stale = Date.now() - syncedAt >= AUTOMATIC_REFRESH_MS;
-
+      // Synced accounts refresh weekly on the server; only brand-new
+      // accounts are pulled from WOSOracle when the page opens.
+      const stale = !account.player_data_synced_at;
       if (stale && !automaticSyncAttempts.current.has(account.id)) {
         automaticSyncAttempts.current.add(account.id);
         void syncPlayer(account.id, false);
       }
     });
   }, [accounts, syncPlayer]);
-
-  async function addWosAccount() {
-    if (!userId || !/^[0-9]+$/.test(newWosId.trim())) {
-      setMessage(t("Enter a numeric WOS ID."));
-      return;
-    }
-
-    setMessage(t(""));
-    const { data: createdAccount, error } = await supabase
-      .from("wos_accounts")
-      .insert({
-        user_id: userId,
-        wos_id: newWosId.trim(),
-        is_configured: true,
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      setMessage(
-        error.code === "23505"
-          ? t(
-              "That WOS ID is already registered. If it is yours, ask an admin of your state to release it.",
-            )
-          : error.message,
-      );
-      return;
-    }
-
-    setNewWosId("");
-    automaticSyncAttempts.current.add(createdAccount.id);
-    await syncPlayer(createdAccount.id, true);
-  }
-
-  async function removeWosAccount(id: string) {
-    const { data, error } = await supabase
-      .from("wos_accounts")
-      .delete()
-      .eq("id", id)
-      .select("id");
-
-    if (error || !data || data.length === 0) {
-      setMessage(
-        t("This WOS account cannot be removed while it belongs to a state."),
-      );
-      return;
-    }
-
-    await loadAccount();
-  }
 
   async function saveCombatProfile(accountId: string) {
     const profile = combatProfiles[accountId];
@@ -279,7 +213,7 @@ export default function AccountPage() {
       return;
     }
 
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase
       .from("wos_accounts")
       .update(profile)
@@ -297,22 +231,25 @@ export default function AccountPage() {
   return (
     <main>
       <AppHeader />
-      <section>
-        <h2>{t("Account")}</h2>
+      <section className="page-heading">
+        <h1>{t("Account")}</h1>
         <p>
-          {t("Public username:")}{" "}
-          <strong>
-            {t("@")}
-            {username}
-          </strong>
+          {t("You sign in with your WOS ID and your PIN.")}{" "}
+          <Link href="/account/pin">{t("Change PIN")}</Link>
         </p>
-        <p>{t("Your email is private and is never shown to other players.")}</p>
+        {!loadingStates && memberships.length === 0 && (
+          <p className="page-message">
+            {t(
+              "You are not in a state. Ask your state leader for the join link and first-time PIN.",
+            )}
+          </p>
+        )}
       </section>
 
       <section>
-        <h2>{t("Your WOS accounts")}</h2>
+        <h2>{t("Your WOS account")}</h2>
         {accounts.length === 0 ? (
-          <p>{t("No WOS accounts added.")}</p>
+          <p>{t("Loading...")}</p>
         ) : (
           <ul>
             {accounts.map((account) => {
@@ -455,6 +392,13 @@ export default function AccountPage() {
                       )}
                     </div>
 
+                    <JoinerHeroesEditor
+                      wosAccountId={account.id}
+                      stateIds={accountMemberships.map(
+                        (membership) => membership.stateId,
+                      )}
+                    />
+
                     <details className="combat-profile-editor">
                       <summary>{t("Troop details (manual)")}</summary>
                       <p className="form-hint">
@@ -497,38 +441,12 @@ export default function AccountPage() {
                       </button>
                     </details>
                   </div>
-                  <button
-                    type="button"
-                    className="danger-button"
-                    onClick={() => void removeWosAccount(account.id)}
-                  >
-                    {t("Remove")}
-                  </button>
                 </li>
               );
             })}
           </ul>
         )}
 
-        <h3>{t("Add another WOS account")}</h3>
-        <p>
-          {t(
-            "Enter only the WOS ID. Name, avatar, state, Furnace and statistics are synchronized automatically.",
-          )}
-        </p>
-        <label>
-          {t("WOS ID")}
-          <input
-            type="text"
-            inputMode="numeric"
-            value={newWosId}
-            onChange={(event) => setNewWosId(event.target.value)}
-            placeholder={t("Numeric WOS ID")}
-          />
-        </label>
-        <button type="button" onClick={addWosAccount}>
-          {t("Add WOS account")}
-        </button>
         {message && <p className="auth-message">{message}</p>}
       </section>
     </main>

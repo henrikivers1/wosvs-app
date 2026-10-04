@@ -35,6 +35,8 @@ export default function StateStatsPage() {
   const [wosAccountCount, setWosAccountCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const canSetResult =
+    activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const loadStatistics = useCallback(async () => {
     if (loadingStates) return;
@@ -47,7 +49,7 @@ export default function StateStatsPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     const [historyResult, overviewResult] = await Promise.all([
       supabase.rpc("get_state_battle_history_v2", {
         target_state_id: activeMembership.stateId,
@@ -76,7 +78,7 @@ export default function StateStatsPage() {
       setWosAccountCount(Number(overview?.wos_account_count ?? 0));
     }
     setLoading(false);
-  }, [activeMembership, loadingStates, supabase, t]);
+  }, [activeMembership, loadingStates, supabase]);
 
   useEffect(() => {
     const loadId = window.setTimeout(() => {
@@ -92,6 +94,28 @@ export default function StateStatsPage() {
   const completedBattles = history.filter(
     (battle) => battle.battle_status === "completed",
   ).length;
+
+  // When WOSOracle never reports it: every member still gets the result.
+  async function setResult(battleId: string, result: "win" | "loss") {
+    if (
+      !window.confirm(
+        result === "win"
+          ? t("Mark this battle as a Victory? Every member is told.")
+          : t("Mark this battle as a Defeat? Every member is told."),
+      )
+    ) {
+      return;
+    }
+    const { error } = await supabase.rpc("set_battle_result", {
+      target_battle_id: battleId,
+      battle_result: result,
+    });
+    if (error) {
+      setMessage(t(error.message));
+      return;
+    }
+    await loadStatistics();
+  }
 
   return (
     <main>
@@ -213,6 +237,28 @@ export default function StateStatsPage() {
                         <dd>{battle.leader_count}</dd>
                       </div>
                     </dl>
+                    {canSetResult &&
+                      battle.battle_status === "completed" &&
+                      !battle.battle_result && (
+                        <div className="history-result-actions">
+                          <span>
+                            {t("No result from WOSOracle yet. Set it yourself:")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => void setResult(battle.battle_id, "win")}
+                          >
+                            {t("Victory")}
+                          </button>
+                          <button
+                            type="button"
+                            className="danger-button"
+                            onClick={() => void setResult(battle.battle_id, "loss")}
+                          >
+                            {t("Defeat")}
+                          </button>
+                        </div>
+                      )}
                   </article>
                 ))}
               </div>

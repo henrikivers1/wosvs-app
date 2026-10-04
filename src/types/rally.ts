@@ -7,6 +7,7 @@ export type EnemyLeader = {
   wosId: string | null;
   power: number | null;
   allianceAbbr: string | null;
+  labyrinthScore: number | null;
 };
 
 // Extra details when a leader was picked from a WOSOracle roster.
@@ -14,6 +15,7 @@ export type EnemyLeaderDetails = {
   wosId: string | null;
   power: number | null;
   allianceAbbr: string | null;
+  labyrinthScore: number | null;
 };
 
 export type EnemyRally = {

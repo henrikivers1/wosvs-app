@@ -1,0 +1,263 @@
+import type { NavIconName } from "@/components/NavIcon";
+
+// The content of /guides. Every string is an English translation key; keep
+// them short and plain so they translate well.
+
+export type GuideTopic = {
+  title: string;
+  body?: string;
+  steps?: string[];
+  tip?: string;
+};
+
+export type GuideSection = {
+  id: string;
+  icon: NavIconName;
+  title: string;
+  intro: string;
+  audience: string;
+  topics: GuideTopic[];
+};
+
+export const GUIDE_SECTIONS: GuideSection[] = [
+  {
+    id: "getting-started",
+    icon: "overwatch",
+    title: "Getting started",
+    audience: "Everyone",
+    intro:
+      "Open your state's join link, enter your WOS ID and choose a PIN. It takes about a minute.",
+    topics: [
+      {
+        title: "Join your state",
+        steps: [
+          "Get the join link and first-time PIN from your state leader. They usually post it in the state or alliance chat.",
+          "Open the link and enter your WOS ID and the first-time PIN.",
+          "Choose your own PIN of 6 to 12 digits. From now on you sign in with your WOS ID and that PIN.",
+        ],
+        tip: "Want to look around first? The free demo needs no account.",
+      },
+      {
+        title: "Your player data",
+        body: "Your name, avatar, state, power, Furnace, Labyrinth score and alliance are filled in from WOSOracle. They refresh every Monday, and you can refresh by hand once a day on Account.",
+      },
+      {
+        title: "Change your PIN",
+        body: "On Account, press Change PIN. You need your current PIN. If you signed in with a one-time PIN, Overwatch asks you to choose your own straight away.",
+      },
+      {
+        title: "Forgot your PIN?",
+        body: "Ask an admin of your state. They give you a one-time PIN, and you choose a new PIN when you sign in. Is your state not on Overwatch yet? Your leader can message us on Discord: wosoverwatch.",
+      },
+      {
+        title: "Tell us your joiner heroes",
+        body: "On Account, tick every joiner hero you have at 4★ or higher. Rallies only give you a hero you own, so this decides which rally you can join.",
+      },
+      {
+        title: "Fill in your troop details",
+        body: "On Account, open Troop details and enter your troop tier, camp FC and T12 skill for infantry, lancers and marksmen. WOSOracle doesn't have these, and they decide who holds the castle: the garrison takes the strongest defenders first.",
+      },
+      {
+        title: "Language and notifications",
+        body: "Change the language with the globe in the header. The bell shows your notifications, coloured by kind: green Victory, red Defeat, blue rally assignments, purple roles, gold alliances.",
+      },
+    ],
+  },
+  {
+    id: "before-svs",
+    icon: "planning",
+    title: "Before the SvS",
+    audience: "Members",
+    intro:
+      "After the draw you only need to do one thing: say when you can play.",
+    topics: [
+      {
+        title: "How an SvS runs",
+        steps: [
+          "The draw: Overwatch finds your opponent on WOSOracle and tells everyone. Voting opens.",
+          "30 hours before the battle: a reminder goes to everyone who has not voted.",
+          "24 hours before: the garrison and rallies are built from the votes. Admins can review and change them.",
+          "6 hours before: the plan is published and everyone gets their rally, hero and formation.",
+          "11:00 UTC: Live Battle opens. Admins and coordinators are told to map the enemy rally leads, and the garrison enters their city.",
+          "12:00–17:00 UTC: the battle, in three pet blocks (12–14, 14–16 and 16–17). Each Rally Lead and Castle Holder is reminded 5 minutes before their block.",
+          "After the battle: everyone gets Victory or Defeat as soon as WOSOracle has the result.",
+        ],
+        tip: "Votes that come in after the rallies are built still get an open seat, and you are told at once.",
+      },
+      {
+        title: "Vote your attendance",
+        steps: [
+          "Open Overwatch.",
+          "Pick Whole battle, First half (12:00–14:30 UTC), Second half (14:30–17:00 UTC) or Can't join.",
+          "Tick voice call if you can join it.",
+        ],
+        tip: "You can change your answer until the battle starts. If you have not voted 30 hours before, you get a reminder.",
+      },
+      {
+        title: "Get your rally",
+        body: "Six hours before the battle the plan is published and you get a message like “Hi Frost, you've been assigned to Ted's rally in Frost Wolves. You're joining with Jessie and 50/20/30 formation. Leads: Ted 12:00–14:00, Ice 14:00–16:00.” Rally Leads are told which blocks they lead, Castle Holders when to take over, and the garrison to stay in the castle. Overwatch shows the same details, and you are told about every change.",
+      },
+      {
+        title: "Check the opponent",
+        body: "Intel shows the opponent's likely rally leads, sorted by Labyrinth score, their alliances and their SvS record next to your own state's numbers. It is all imported from WOSOracle after the draw.",
+      },
+    ],
+  },
+  {
+    id: "battle",
+    icon: "live",
+    title: "During the battle",
+    audience: "Garrison and coordinators",
+    intro:
+      "Live Battle opens by itself at 11:00 UTC, an hour before the battle. Every member has the Garrison role, and coordinators also call rallies. Use that hour to enter coordinates.",
+    topics: [
+      {
+        title: "Garrison: when to send",
+        steps: [
+          "Open Live Battle, then Garrison.",
+          "Enter your city's X and Y once; your march time is worked out for you.",
+          "Turn on sound and notifications.",
+          "Send when the countdown reaches zero.",
+        ],
+        body: "The timer aims your reinforcements between two enemy rallies, or right after the last one hits.",
+        tip: "If the game lags on your connection, add your ping in milliseconds under Send early.",
+      },
+      {
+        title: "The shared battle clock",
+        body: "Every device times against the same server clock, so a phone that is a few seconds off still sends on time. If it says the clock is not synchronized, press Resync clock.",
+      },
+      {
+        title: "Coordinators: enemy leaders",
+        body: "At 11:00 UTC on battle day, owners, admins and coordinators get a notice to map the enemy rally leaders. Under Enemy leaders the opponent's 20 strongest players are already listed, best Labyrinth score first: those are their likely rally leads. Tap Use, enter the city coordinates and add them. Someone else leads? Add them by WOS ID and their Labyrinth score is looked up too. Coordinates are remembered: next time that player is prefilled, and known leaders are added automatically when Live Battle opens. Mark a leader's pet when it is active.",
+      },
+      {
+        title: "Coordinators: call a rally",
+        steps: [
+          "Open Call rally and pick the enemy leader.",
+          "Type the rally timer you see in the game, for example 4:59.",
+          "Press Call rally the moment the in-game timer shows that value.",
+        ],
+        tip: "Every second of delay shifts the whole schedule. Cancel a rally only if it was called by mistake; it disappears for everyone.",
+      },
+      {
+        title: "After the battle",
+        body: "The battle ends at 17:00 UTC. As soon as WOSOracle has the result, every member gets Victory or Defeat. Past battles are under State, Stats & history.",
+      },
+    ],
+  },
+  {
+    id: "admins",
+    icon: "state",
+    title: "Running your state",
+    audience: "Owners and admins",
+    intro:
+      "Overwatch does the routine work for every SvS. These are the places to look and the settings that shape it.",
+    topics: [
+      {
+        title: "First setup",
+        steps: [
+          "We create your state with its in-game number when you message us on Discord. You sign in with your WOS ID and the one-time PIN we send, then choose your own PIN.",
+          "Under State management, make a join link and post it with its first-time PIN in your state and alliance chats.",
+          "Set your hero generation so only unlocked heroes are offered.",
+          "Add your alliances: load them from WOSOracle, add a shell alliance by its ID, or type a name.",
+          "Mark Rally Leads and Castle Holders under Leads & holders in Planning, and give the Coordinator role to the players who call rallies. Every member has Garrison already.",
+        ],
+      },
+      {
+        title: "SvS automation settings",
+        body: "In State management, SvS automation decides how many rallies are built, how many players each takes, the garrison size, the default formation, the four default joiner heroes and the order auto-fill weighs players in. Turn automatic rallies or automatic publishing off if you prefer to do them yourself.",
+      },
+      {
+        title: "The Next SvS checklist",
+        body: "Planning opens with a checklist: the draw, votes, rallies, publishing and Live Battle, each with when it happens automatically. The gold button runs the next step now: Generate now, then Publish now.",
+      },
+      {
+        title: "Needs attention",
+        body: "Under the checklist, Needs attention lists what to check before publishing: a pet block without a lead or castle holder, no garrison, a rally without an alliance or heroes, a player in the wrong half, players without a joiner hero, or open seats while players wait. Each line has a button that fixes it. When the list is empty, publish.",
+      },
+      {
+        title: "How rallies are built",
+        body: "The battle runs in three pet blocks: 12–14, 14–16 and 16–17 UTC. Each rally gets one Rally Lead per block, so leads swap when their pets run out, while the joiners stay. Rallies go into their first lead's alliance. Players are added by your auto-fill priorities and only get a joiner hero they own at 4★.",
+      },
+      {
+        title: "The garrison",
+        body: "One garrison holds the castle the whole battle. It is filled first, with the strongest defenders who play the whole battle: highest troop FC, then troop tier, then troop skill. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.",
+      },
+      {
+        title: "Adjust by hand",
+        body: "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. Nothing you change is undone by the automation.",
+      },
+      {
+        title: "Leads & holders",
+        body: "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). They only lead or hold and are never placed as joiners. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
+      },
+      {
+        title: "Bring your members in",
+        body: "Under State management, make a join link and share it with its first-time PIN in your chats. Players get in right away when WOSOracle lists them in your state. Make a new link whenever the old one should stop working; players who already joined are not affected.",
+      },
+      {
+        title: "Members and roles",
+        body: "The owner sets who is an admin and can hand the state to an admin with Make owner. Admins give the Coordinator role, can take Garrison away (every member has it by default) and remove members. A member whose WOS ID moves to another state is marked, and you are told. Every change is sent to the member as a notification.",
+      },
+      {
+        title: "Lost PINs and wrong players",
+        body: "Reset PIN on a member gives them a one-time PIN and signs them out. Owners reset anyone, admins reset members. If someone joined with a WOS ID that is not theirs, reset its PIN and give the one-time PIN to the real player.",
+      },
+      {
+        title: "Notices and tags",
+        body: "Send notices to the whole state, one alliance or everyone with a tag. Tags are for your own groupings; rally and hero tags are created automatically when you publish.",
+      },
+    ],
+  },
+];
+
+export const GUIDE_FAQ: { q: string; a: string }[] = [
+  {
+    q: "Where do I get help?",
+    a: "Message us on Discord: wosoverwatch. Your state's admins can also help with anything inside your state.",
+  },
+  {
+    q: "Someone already joined with my WOS ID.",
+    a: "Ask an admin of your state to press Reset PIN on that WOS ID and give you the one-time PIN. The other person is signed out, and you choose your own PIN when you sign in.",
+  },
+  {
+    q: "It says too many wrong PINs.",
+    a: "Wait 15 minutes and try again, or ask an admin of your state for a one-time PIN.",
+  },
+  {
+    q: "Can I use more than one WOS account?",
+    a: "Each login has one WOS ID. Join with your other account's WOS ID and its own PIN, after signing out or in another browser.",
+  },
+  {
+    q: "I moved to another state.",
+    a: "Ask the new state's leader for their join link. Enter the first-time PIN, then your own PIN: your login stays the same.",
+  },
+  {
+    q: "My power or Furnace is out of date.",
+    a: "Press Refresh player data on Account (once a day). Everyone is also refreshed every Monday.",
+  },
+  {
+    q: "A player can't come anymore after the plan went out.",
+    a: "Owners and admins get a notice as soon as they change their vote. Open Planning: Needs attention offers to take them out, and Fill open seats adds someone from the waiting list.",
+  },
+  {
+    q: "We won, but it still says Battle over.",
+    a: "The result comes from WOSOracle, usually within hours. If it never arrives, an owner or admin can set Victory or Defeat under State, Stats & history.",
+  },
+  {
+    q: "I can't see Live Battle.",
+    a: "It only appears from 11:00 to 17:00 UTC on battle day. Every member has the Garrison role by default; if you still can't see it, ask an admin whether yours was removed.",
+  },
+  {
+    q: "The times look wrong.",
+    a: "Every time in Overwatch is UTC, like the game's SvS. In Live Battle, press Resync clock.",
+  },
+  {
+    q: "I don't get send alerts on my phone.",
+    a: "Allow notifications for this site in your browser, keep the Garrison page open and the screen on during the battle.",
+  },
+  {
+    q: "Is the demo safe to try?",
+    a: "Yes. It runs only in your browser with fake players. Nothing is saved to any state, and Reset demo starts it over.",
+  },
+];

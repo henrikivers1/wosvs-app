@@ -1,9 +1,12 @@
 "use client";
 
+import { blockLabel } from "@/lib/castle";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
+import { SvsStatus } from "@/components/SvsStatus";
+import { AttendanceVote } from "@/components/AttendanceVote";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -22,6 +25,7 @@ type Tag = {
   name: string;
   color: string;
   system_key: string | null;
+  kind: "custom" | "rally" | "hero";
 };
 
 type Alliance = {
@@ -42,14 +46,19 @@ type PlanGroup = {
   id: string;
   plan_id: string;
   name: string;
+  kind: "rally" | "garrison";
   leader_wos_account_id: string;
+  lead_rotation: Array<string | null> | null;
   alliance_id: string | null;
   notes: string | null;
+  formation: string | null;
 };
 
 type Assignment = {
   plan_id: string;
   group_id: string;
+  hero: string | null;
+  formation: string | null;
 };
 
 type Announcement = {
@@ -83,6 +92,8 @@ export default function OverwatchPage() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [alliance, setAlliance] = useState<Alliance | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
+  // The next plan whose battle has not ended yet (else the latest one).
+  const [nextPlanId, setNextPlanId] = useState<string | null>(null);
   const [groups, setGroups] = useState<PlanGroup[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -108,11 +119,10 @@ export default function OverwatchPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
+    setMessage("");
     const stateId = activeMembership.stateId;
     const accountId = activeMembership.wosAccountId;
 
-    await supabase.rpc("cleanup_expired_state_announcements");
 
     const [
       battleResult,
@@ -182,7 +192,7 @@ export default function OverwatchPage() {
       tagIds.length
         ? supabase
             .from("state_tags")
-            .select("id, name, color, system_key")
+            .select("id, name, color, system_key, kind")
             .in("id", tagIds)
             .order("name")
         : Promise.resolve({ data: [], error: null }),
@@ -197,14 +207,14 @@ export default function OverwatchPage() {
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, leader_wos_account_id, alliance_id, notes",
+              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, alliance_id, notes, formation",
             )
             .in("plan_id", planIds)
         : Promise.resolve({ data: [], error: null }),
       planIds.length
         ? supabase
             .from("battle_plan_assignments")
-            .select("plan_id, group_id")
+            .select("plan_id, group_id, hero, formation")
             .in("plan_id", planIds)
             .eq("wos_account_id", accountId)
         : Promise.resolve({ data: [], error: null }),
@@ -212,6 +222,7 @@ export default function OverwatchPage() {
         ? supabase
             .from("state_announcements")
             .select("id, title, body, expires_at, created_at")
+        .gt("expires_at", new Date().toISOString())
             .in("id", announcementIds)
             .order("created_at", { ascending: false })
         : Promise.resolve({ data: [], error: null }),
@@ -243,7 +254,10 @@ export default function OverwatchPage() {
     ).filter((comment) => comment.visibility === "public");
     const accountIds = [
       ...new Set([
-        ...loadedGroups.map((group) => group.leader_wos_account_id),
+        ...loadedGroups.flatMap((group) => [
+          group.leader_wos_account_id,
+          ...((group.lead_rotation ?? []).filter(Boolean) as string[]),
+        ]),
         ...loadedComments.flatMap((comment) =>
           comment.author_wos_account_id ? [comment.author_wos_account_id] : [],
         ),
@@ -266,13 +280,21 @@ export default function OverwatchPage() {
     setTags((tagResult.data ?? []) as Tag[]);
     setAlliance((allianceResult.data as Alliance | null) ?? null);
     setPlans(planRows);
+    const stillRunningAfter = Date.now() - 5 * 60 * 60 * 1000;
+    setNextPlanId(
+      (
+        planRows.find(
+          (plan) => new Date(plan.scheduled_at).getTime() > stillRunningAfter,
+        ) ?? planRows[planRows.length - 1]
+      )?.id ?? null,
+    );
     setGroups(loadedGroups);
     setAssignments((assignmentResult.data ?? []) as Assignment[]);
     setAnnouncements((announcementResult.data ?? []) as Announcement[]);
     setComments(loadedComments);
     setAccountLabels((accountResult.data ?? []) as AccountLabel[]);
     setLoading(false);
-  }, [activeMembership, supabase, t]);
+  }, [activeMembership, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -283,22 +305,36 @@ export default function OverwatchPage() {
     return () => window.clearTimeout(loadId);
   }, [loadOverwatch, loadingStates, router, signedIn]);
 
+  // This state's notices, comments, plans and assignments; a burst of
+  // changes (publishing writes a row per member) reloads once.
   useEffect(() => {
     if (!activeMembership) return;
-    const channel = supabase
-      .channel(`overwatch-${activeMembership.key}`)
-      .on(
+    let timer: number | undefined;
+    const reload = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void loadOverwatch(), 400);
+    };
+    const channel = supabase.channel(`overwatch-${activeMembership.key}`);
+    for (const table of [
+      "state_announcements",
+      "battle_plan_comments",
+      "battle_plans",
+      "battle_plan_assignments",
+    ]) {
+      channel.on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "state_announcements" },
-        () => void loadOverwatch(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "battle_plan_comments" },
-        () => void loadOverwatch(),
-      )
-      .subscribe();
+        {
+          event: "*",
+          schema: "public",
+          table,
+          filter: `state_id=eq.${activeMembership.stateId}`,
+        },
+        reload,
+      );
+    }
+    channel.subscribe();
     return () => {
+      window.clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
   }, [activeMembership, loadOverwatch, supabase]);
@@ -306,7 +342,7 @@ export default function OverwatchPage() {
   async function postPublicComment(planId: string) {
     if (!activeMembership || !commentDraft.trim()) return;
     setSavingComment(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_battle_plan_comment", {
       target_plan_id: planId,
       commenter_wos_account_id: activeMembership.wosAccountId,
@@ -353,14 +389,24 @@ export default function OverwatchPage() {
   );
   const featuredBattle = activeBattle ?? scheduledBattle;
   const featuredPlan =
-    plans.find((plan) => plan.id === featuredBattle?.plan_id) ?? plans[0];
+    plans.find((plan) => plan.id === featuredBattle?.plan_id) ??
+    plans.find((plan) => plan.id === nextPlanId);
   const ownAssignment = assignments.find(
     (assignment) => assignment.plan_id === featuredPlan?.id,
   );
   const ownGroup = groups.find((group) => group.id === ownAssignment?.group_id);
-  const leader = accountLabels.find(
-    (account) => account.id === ownGroup?.leader_wos_account_id,
-  );
+  const labelOf = (accountId: string) => {
+    const account = accountLabels.find((item) => item.id === accountId);
+    return account?.nickname ?? account?.wos_id ?? t("Unknown");
+  };
+  // Who leads (or holds) each pet block, and the blocks that are mine.
+  const rotation = (ownGroup?.lead_rotation ?? [])
+    .map((id, block) => (id ? { block, id } : null))
+    .filter((slot): slot is { block: number; id: string } => slot !== null);
+  const myBlocks = rotation
+    .filter((slot) => slot.id === activeMembership.wosAccountId)
+    .map((slot) => blockLabel(slot.block));
+  const isGarrison = ownGroup?.kind === "garrison";
   const publicComments = comments.filter(
     (comment) => comment.plan_id === featuredPlan?.id,
   );
@@ -382,10 +428,15 @@ export default function OverwatchPage() {
           <span
             className={`battle-state ${featuredBattle.status === "active" ? "battle-state-active" : ""}`}
           >
-            {featuredBattle.status}
+            {featuredBattle.status === "active" ? t("Active") : t("Scheduled")}
           </span>
         )}
       </section>
+      <SvsStatus stateId={activeMembership.stateId} />
+      <AttendanceVote
+        stateId={activeMembership.stateId}
+        wosAccountId={activeMembership.wosAccountId}
+      />
 
       {message && <p className="page-message">{message}</p>}
       {loading ? (
@@ -427,17 +478,53 @@ export default function OverwatchPage() {
               <p className="section-label">{t("Your assignment")}</p>
               {ownGroup ? (
                 <>
-                  <h2>{ownGroup.name}</h2>
-                  <p>
-                    {t("Rally Lead:")}{" "}
-                    <strong>
-                      {leader?.nickname ?? leader?.wos_id ?? t("Unknown")}
-                    </strong>
-                  </p>
+                  <h2>{isGarrison ? t("Garrison") : ownGroup.name}</h2>
+                  {myBlocks.length > 0 && (
+                    <p className="assignment-role">
+                      {isGarrison
+                        ? t("You hold the castle {blocks} UTC.", {
+                            blocks: myBlocks.join(", "),
+                          })
+                        : t("You lead {blocks} UTC.", {
+                            blocks: myBlocks.join(", "),
+                          })}
+                    </p>
+                  )}
+                  {isGarrison && myBlocks.length === 0 && (
+                    <p className="assignment-role">
+                      {t("Stay in the castle the whole battle.")}
+                    </p>
+                  )}
+                  <ul className="assignment-rotation">
+                    {rotation.map((slot) => (
+                      <li key={slot.block}>
+                        <time>{blockLabel(slot.block)}</time>
+                        <strong>{labelOf(slot.id)}</strong>
+                      </li>
+                    ))}
+                  </ul>
                   <p>
                     {t("Alliance:")}{" "}
                     <strong>{alliance?.name ?? t("Not selected")}</strong>
                   </p>
+                  {!isGarrison && myBlocks.length === 0 && (
+                    <>
+                      <p>
+                        {t("Join with:")}{" "}
+                        <strong>
+                          {ownAssignment?.hero ?? t("Not assigned yet")}
+                        </strong>
+                      </p>
+                      <p>
+                        {t("Formation:")}{" "}
+                        <strong>
+                          {ownAssignment?.formation ??
+                            ownGroup.formation ??
+                            t("Not set")}
+                        </strong>
+                      </p>
+                    </>
+                  )}
                   {ownGroup.notes && <p>{ownGroup.notes}</p>}
                 </>
               ) : (
@@ -463,6 +550,13 @@ export default function OverwatchPage() {
 
             <article className="overwatch-card">
               <p className="section-label">{t("Your tags")}</p>
+              {tags
+                .filter((tag) => tag.kind === "hero")
+                .map((tag) => (
+                  <p key={`hero-${tag.id}`} className="join-hero">
+                    {t("Join with: {hero}", { hero: tag.name })}
+                  </p>
+                ))}
               {tags.length ? (
                 <div className="overwatch-tags">
                   {tags.map((tag) => (

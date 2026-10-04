@@ -1,108 +1,72 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
+import { SvsStatus } from "@/components/SvsStatus";
+import { MoreMenu } from "@/components/planning/MoreMenu";
+import { NeedsAttention } from "@/components/planning/NeedsAttention";
+import { NextSvsChecklist } from "@/components/planning/NextSvsChecklist";
+import {
+  PlanComments,
+  type PlanComment,
+} from "@/components/planning/PlanComments";
+import { PlayerSheet } from "@/components/planning/PlayerSheet";
+import { RallyColumn } from "@/components/planning/RallyColumn";
+import { RallyForm, type RallyFormValues } from "@/components/planning/RallyForm";
+import { RallyLeadsPanel } from "@/components/planning/RallyLeadsPanel";
+import { RallySetupEditor } from "@/components/planning/RallySetupEditor";
+import { RotationEditor } from "@/components/planning/RotationEditor";
+import { UnassignedList } from "@/components/planning/UnassignedList";
+import { findPlanIssues, type PlanIssue } from "@/components/planning/planIssues";
+import {
+  averageTroopTier,
+  groupLeadIds,
+  type AccountRow,
+  type BattlePlan,
+  type PlanAssignment,
+  type PlanGroup,
+  type StateAlliance,
+  type StateMember,
+  type StateTag,
+} from "@/components/planning/types";
+import {
+  AUTOFILL_CRITERIA,
+  distributeGroupHeroes,
+  pickHero,
+  type AutofillCriterion,
+  type AutofillDraft,
+  type AutofillGroup,
+} from "@/lib/autofill";
+import { fillPlan, seatMemberIds, type FillMember } from "@/lib/castle";
+import type { AttendanceRow } from "@/lib/attendance";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
 
-type BattleType = "svs" | "castle" | "test";
-type BattlePlan = {
-  id: string;
-  name: string;
-  battle_type: BattleType;
-  scheduled_at: string;
-  notes: string | null;
-  status: "draft" | "published";
-  opponent_state_number: number | null;
+export type AutomationSettings = {
+  auto_plan: boolean;
+  auto_publish: boolean;
+  rally_count: number;
+  rally_size: number;
+  default_formation: string | null;
+  default_joiner_heroes: string[];
+  autofill_priorities: string[];
 };
-type PlanGroup = {
-  id: string;
-  plan_id: string;
-  name: string;
-  leader_wos_account_id: string;
-  alliance_id: string | null;
-  assignment_tag_id: string | null;
-  max_members: number;
-  notes: string | null;
-  sort_order: number;
-};
-type PlanAssignment = {
-  plan_id: string;
-  group_id: string;
-  wos_account_id: string;
-};
-type AccountRow = {
-  id: string;
-  user_id: string;
-  wos_id: string;
-  nickname: string | null;
-  furnace_level: number | null;
-  furnace_level_raw: number | null;
-  power: number | null;
-  infantry_tier: number | null;
-  lancer_tier: number | null;
-  marksman_tier: number | null;
-  infantry_fc_level: number | null;
-  lancer_fc_level: number | null;
-  marksman_fc_level: number | null;
-  infantry_t12_skill: number | null;
-  lancer_t12_skill: number | null;
-  marksman_t12_skill: number | null;
-};
-type StateTag = {
-  id: string;
-  name: string;
-  color: string;
-  system_key: string | null;
-};
-type StateAlliance = {
-  id: string;
-  name: string;
-  color: string;
-  max_members: number;
-};
-type StateMember = AccountRow & {
-  role: string;
-  username: string | null;
-  tags: StateTag[];
-};
-type StatePoll = { id: string; question: string; closes_at: string };
-type PollOption = {
-  id: string;
-  poll_id: string;
-  label: string;
-  sort_order: number;
-};
-type PollResponse = {
-  poll_id: string;
-  option_id: string;
-  wos_account_id: string;
-};
-type PlanComment = {
-  id: string;
-  plan_id: string;
-  author_wos_account_id: string | null;
-  visibility: "public" | "admins";
-  body: string;
-  created_at: string;
-};
+// Plans this long after their battle start move to the history list.
+const PLAN_HISTORY_AFTER_MS = 5 * 60 * 60 * 1000;
+const ACCOUNT_COLUMNS =
+  "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, labyrinth_score, heroes_updated_at, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill, alliance_abbr";
 type ScheduledBattle = {
   id: string;
   plan_id: string | null;
   status: "scheduled" | "active" | "completed" | "cancelled";
   scheduled_at: string | null;
 };
-
-function defaultScheduledTime() {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  date.setHours(18, 0, 0, 0);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
+type RallyEditor = {
+  groupId: string;
+  mode: "setup" | "edit" | "rotation";
+} | null;
 
 function parseOpponent(value: string) {
   const trimmed = value.trim();
@@ -111,105 +75,83 @@ function parseOpponent(value: string) {
     : null;
 }
 
-function toLocalDateTime(value: string) {
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+// The edit form works in UTC, like the game: "2026-10-10T12:00".
+function toUtcInputValue(value: string) {
+  return new Date(value).toISOString().slice(0, 16);
 }
 
-function average(values: Array<number | null>) {
-  const numbers = values.filter((value): value is number => value !== null);
-  return numbers.length
-    ? numbers.reduce((sum, value) => sum + value, 0) / numbers.length
-    : null;
+function fromUtcInputValue(value: string) {
+  return new Date(`${value}:00Z`);
 }
 
-function formatAverage(value: number | null) {
-  return value === null ? "—" : value.toFixed(1);
-}
-
-function furnaceLabel(rawLevel: number | null) {
-  if (rawLevel === null) return "—";
-  return rawLevel <= 30 ? `Furnace ${rawLevel}` : `FC${rawLevel - 30}`;
+function scrollToRally(groupId: string) {
+  window.setTimeout(
+    () =>
+      document
+        .getElementById(`rally-${groupId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+    50,
+  );
 }
 
 export default function BattlePlanningPage() {
-  const { t, formatDateTime, formatNumber } = useLanguage();
+  const { t, formatDateTime } = useLanguage();
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { activeMembership, signedIn, loadingStates, refreshMemberships } =
-    useStates();
+  const { activeMembership, signedIn, loadingStates } = useStates();
   const [plans, setPlans] = useState<BattlePlan[]>([]);
   const [groups, setGroups] = useState<PlanGroup[]>([]);
   const [assignments, setAssignments] = useState<PlanAssignment[]>([]);
   const [members, setMembers] = useState<StateMember[]>([]);
   const [tags, setTags] = useState<StateTag[]>([]);
   const [alliances, setAlliances] = useState<StateAlliance[]>([]);
-  const [polls, setPolls] = useState<StatePoll[]>([]);
-  const [pollOptions, setPollOptions] = useState<PollOption[]>([]);
-  const [pollResponses, setPollResponses] = useState<PollResponse[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
+  const [heroGeneration, setHeroGeneration] = useState<number | null>(null);
+  const [automation, setAutomation] = useState<AutomationSettings | null>(
+    null,
+  );
+  // When the data was loaded; used instead of reading the clock in render.
+  const [loadedAt, setLoadedAt] = useState(0);
+  const [newPlanOpponent, setNewPlanOpponent] = useState("");
+  const [newPlanDate, setNewPlanDate] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [planComments, setPlanComments] = useState<PlanComment[]>([]);
   const [scheduledBattles, setScheduledBattles] = useState<ScheduledBattle[]>(
     [],
   );
-  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>(
-    {},
-  );
-  const [commentVisibility, setCommentVisibility] = useState<
-    Record<string, "public" | "admins">
-  >({});
-  const [planName, setPlanName] = useState("");
-  const [battleType, setBattleType] = useState<BattleType>("svs");
-  const [scheduledAt, setScheduledAt] = useState(defaultScheduledTime);
-  const [planNotes, setPlanNotes] = useState("");
-  const [planOpponent, setPlanOpponent] = useState("");
-  const [fillingFromOracle, setFillingFromOracle] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [editingPlanName, setEditingPlanName] = useState("");
-  const [editingBattleType, setEditingBattleType] = useState<BattleType>("svs");
   const [editingScheduledAt, setEditingScheduledAt] = useState("");
   const [editingPlanNotes, setEditingPlanNotes] = useState("");
   const [editingPlanOpponent, setEditingPlanOpponent] = useState("");
-  const [addingGroupToPlanId, setAddingGroupToPlanId] = useState<string | null>(
-    null,
-  );
-  const [groupName, setGroupName] = useState("");
-  const [groupLeaderId, setGroupLeaderId] = useState("");
-  const [groupAllianceId, setGroupAllianceId] = useState("");
-  const [groupTagId, setGroupTagId] = useState("");
-  const [groupCapacity, setGroupCapacity] = useState(10);
-  const [groupNotes, setGroupNotes] = useState("");
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  const [editingGroupName, setEditingGroupName] = useState("");
-  const [editingGroupLeaderId, setEditingGroupLeaderId] = useState("");
-  const [editingGroupAllianceId, setEditingGroupAllianceId] = useState("");
-  const [editingGroupTagId, setEditingGroupTagId] = useState("");
-  const [editingGroupCapacity, setEditingGroupCapacity] = useState(10);
-  const [editingGroupNotes, setEditingGroupNotes] = useState("");
-  const [memberSearch, setMemberSearch] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const [pollFilter, setPollFilter] = useState("");
-  const [pollOptionFilter, setPollOptionFilter] = useState("");
-  const [minimumFurnace, setMinimumFurnace] = useState(0);
-  const [minimumTroopTier, setMinimumTroopTier] = useState(0);
+  const [addingRallyToPlanId, setAddingRallyToPlanId] = useState<
+    string | null
+  >(null);
+  const [rallyEditor, setRallyEditor] = useState<RallyEditor>(null);
+  const [addingGarrisonToPlanId, setAddingGarrisonToPlanId] = useState<
+    string | null
+  >(null);
+  const [showRallyLeads, setShowRallyLeads] = useState(false);
+  const [openPlayer, setOpenPlayer] = useState<{
+    planId: string;
+    memberId: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   const isAdmin =
     activeMembership?.role === "owner" || activeMembership?.role === "admin";
-  const rallyLeadTag = tags.find((tag) => tag.system_key === "rally_lead");
   const regularTags = tags.filter((tag) => !tag.system_key);
   const rallyLeaders = members.filter((member) =>
     member.tags.some((tag) => tag.system_key === "rally_lead"),
   );
-  const filtersActive = Boolean(
-    memberSearch.trim() ||
-    tagFilter ||
-    pollOptionFilter ||
-    minimumFurnace > 0 ||
-    minimumTroopTier > 0,
+  const castleHolders = members.filter((member) =>
+    member.tags.some((tag) => tag.system_key === "castle_holder"),
   );
+  // Rally Leads and Castle Holders only lead or hold; they never join.
+  const leadTagged = new Set(rallyLeaders.map((member) => member.id));
+  const holderTagged = new Set(castleHolders.map((member) => member.id));
 
   const loadPlanning = useCallback(async () => {
     if (!activeMembership) {
@@ -219,39 +161,37 @@ export default function BattlePlanningPage() {
       setMembers([]);
       setTags([]);
       setAlliances([]);
-      setPolls([]);
-      setPollOptions([]);
-      setPollResponses([]);
+      setAttendance([]);
       setPlanComments([]);
       setScheduledBattles([]);
       setLoading(false);
       return;
     }
-    setLoading(true);
-    setMessage(t(""));
     const stateId = activeMembership.stateId;
+    // Round 1: everything that only needs the state id.
     const [
       planResult,
       memberResult,
       tagResult,
       allianceResult,
-      pollResult,
+      attendanceResult,
       battleResult,
+      stateResult,
     ] = await Promise.all([
       supabase
         .from("battle_plans")
         .select(
-          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number",
+          "id, name, battle_type, scheduled_at, notes, status, opponent_state_number, auto_created, attendance_reminder_sent_at, auto_planned_at",
         )
         .eq("state_id", stateId)
         .order("scheduled_at", { ascending: true }),
       supabase
         .from("state_members")
-        .select("wos_account_id, role")
+        .select(`wos_account_id, role, wos_accounts!inner(${ACCOUNT_COLUMNS})`)
         .eq("state_id", stateId),
       supabase
         .from("state_tags")
-        .select("id, name, color, system_key")
+        .select("id, name, color, system_key, kind")
         .eq("state_id", stateId)
         .order("name"),
       supabase
@@ -259,26 +199,31 @@ export default function BattlePlanningPage() {
         .select("id, name, color, max_members")
         .eq("state_id", stateId)
         .order("name"),
-      isAdmin
-        ? supabase
-            .from("state_polls")
-            .select("id, question, closes_at")
-            .eq("state_id", stateId)
-            .order("created_at", { ascending: false })
-        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("battle_attendance")
+        .select("plan_id, wos_account_id, availability, voice_call")
+        .eq("state_id", stateId),
       supabase
         .from("battles")
         .select("id, plan_id, status, scheduled_at")
         .eq("state_id", stateId)
         .in("status", ["scheduled", "active", "completed"]),
+      supabase
+        .from("states")
+        .select(
+          "hero_generation_max, svs_opponent, svs_battle_at, svs_next_battle_at, auto_plan, auto_publish, rally_count, rally_size, garrison_size, default_formation, default_joiner_heroes, autofill_priorities",
+        )
+        .eq("id", stateId)
+        .maybeSingle(),
     ]);
     const firstError =
       planResult.error ||
       memberResult.error ||
       tagResult.error ||
       allianceResult.error ||
-      pollResult.error ||
-      battleResult.error;
+      attendanceResult.error ||
+      battleResult.error ||
+      stateResult.error;
     if (firstError) {
       setMessage(firstError.message);
       setLoading(false);
@@ -286,29 +231,39 @@ export default function BattlePlanningPage() {
     }
 
     const planRows = (planResult.data ?? []) as BattlePlan[];
-    const memberRows = (memberResult.data ?? []) as Array<{
+    const memberRows = (memberResult.data ?? []) as unknown as Array<{
       wos_account_id: string;
       role: string;
+      wos_accounts: AccountRow | AccountRow[];
     }>;
+    const accountRows = memberRows.map((row) =>
+      Array.isArray(row.wos_accounts) ? row.wos_accounts[0] : row.wos_accounts,
+    );
     const stateTags = (tagResult.data ?? []) as StateTag[];
-    const pollRows = (pollResult.data ?? []) as StatePoll[];
-    const planIds = planRows.map((plan) => plan.id);
-    const accountIds = memberRows.map((member) => member.wos_account_id);
-    const pollIds = pollRows.map((poll) => poll.id);
+    // Full detail only for current plans; older ones are listed as history.
+    const now = Date.now();
+    setLoadedAt(now);
+    const historyBefore = now - PLAN_HISTORY_AFTER_MS;
+    const planIds = planRows
+      .filter((plan) => new Date(plan.scheduled_at).getTime() > historyBefore)
+      .map((plan) => plan.id);
+    const accountIds = accountRows.map((account) => account.id);
+    const userIds = [...new Set(accountRows.map((account) => account.user_id))];
+
+    // Round 2: rows that hang off the plans and members found above.
     const [
       groupResult,
       assignmentResult,
-      accountResult,
       tagAssignmentResult,
-      optionResult,
-      responseResult,
       commentResult,
+      heroResult,
+      profileResult,
     ] = await Promise.all([
       planIds.length
         ? supabase
             .from("battle_plan_groups")
             .select(
-              "id, plan_id, name, leader_wos_account_id, alliance_id, assignment_tag_id, max_members, notes, sort_order",
+              "id, plan_id, name, kind, leader_wos_account_id, lead_rotation, alliance_id, assignment_tag_id, max_members, notes, sort_order, formation, joiner_heroes, shift",
             )
             .in("plan_id", planIds)
             .order("sort_order")
@@ -316,16 +271,8 @@ export default function BattlePlanningPage() {
       planIds.length
         ? supabase
             .from("battle_plan_assignments")
-            .select("plan_id, group_id, wos_account_id")
+            .select("plan_id, group_id, wos_account_id, hero")
             .in("plan_id", planIds)
-        : Promise.resolve({ data: [], error: null }),
-      accountIds.length
-        ? supabase
-            .from("wos_accounts")
-            .select(
-              "id, user_id, wos_id, nickname, furnace_level, furnace_level_raw, power, infantry_tier, lancer_tier, marksman_tier, infantry_fc_level, lancer_fc_level, marksman_fc_level, infantry_t12_skill, lancer_t12_skill, marksman_t12_skill",
-            )
-            .in("id", accountIds)
         : Promise.resolve({ data: [], error: null }),
       accountIds.length
         ? supabase
@@ -333,49 +280,56 @@ export default function BattlePlanningPage() {
             .select("tag_id, wos_account_id")
             .in("wos_account_id", accountIds)
         : Promise.resolve({ data: [], error: null }),
-      pollIds.length
-        ? supabase
-            .from("state_poll_options")
-            .select("id, poll_id, label, sort_order")
-            .in("poll_id", pollIds)
-            .order("sort_order")
-        : Promise.resolve({ data: [], error: null }),
-      isAdmin
-        ? supabase.rpc("get_state_poll_admin_responses", {
-            target_state_id: stateId,
-          })
-        : Promise.resolve({ data: [], error: null }),
       planIds.length
         ? supabase.rpc("get_battle_plan_comments", {
             target_state_id: stateId,
             viewer_wos_account_id: activeMembership.wosAccountId,
           })
         : Promise.resolve({ data: [], error: null }),
+      accountIds.length
+        ? supabase
+            .from("player_heroes")
+            .select("wos_account_id, hero")
+            .in("wos_account_id", accountIds)
+        : Promise.resolve({ data: [], error: null }),
+      userIds.length
+        ? supabase.from("profiles").select("id, username").in("id", userIds)
+        : Promise.resolve({ data: [], error: null }),
     ]);
     const secondError =
       groupResult.error ||
       assignmentResult.error ||
-      accountResult.error ||
       tagAssignmentResult.error ||
-      optionResult.error ||
-      responseResult.error ||
-      commentResult.error;
+      commentResult.error ||
+      heroResult.error ||
+      profileResult.error;
     if (secondError) {
       setMessage(secondError.message);
       setLoading(false);
       return;
     }
 
-    const accountRows = (accountResult.data ?? []) as AccountRow[];
-    const userIds = [...new Set(accountRows.map((account) => account.user_id))];
-    const profileResult = userIds.length
-      ? await supabase.from("profiles").select("id, username").in("id", userIds)
-      : { data: [], error: null };
-    if (profileResult.error) {
-      setMessage(profileResult.error.message);
-      setLoading(false);
-      return;
-    }
+    const stateRow = stateResult.data;
+    const heroesByAccount = new Map<string, string[]>();
+    (
+      (heroResult.data ?? []) as { wos_account_id: string; hero: string }[]
+    ).forEach((row) =>
+      heroesByAccount.set(row.wos_account_id, [
+        ...(heroesByAccount.get(row.wos_account_id) ?? []),
+        row.hero,
+      ]),
+    );
+    setHeroGeneration(stateRow?.hero_generation_max ?? null);
+    setAutomation(
+      stateRow && "auto_plan" in stateRow
+        ? (stateRow as unknown as AutomationSettings)
+        : null,
+    );
+    const nextBattle = stateRow?.svs_battle_at ?? stateRow?.svs_next_battle_at;
+    setNewPlanOpponent(
+      stateRow?.svs_opponent ? String(stateRow.svs_opponent) : "",
+    );
+    setNewPlanDate(nextBattle ? String(nextBattle).slice(0, 10) : "");
     const membershipById = new Map(
       memberRows.map((member) => [member.wos_account_id, member]),
     );
@@ -399,6 +353,7 @@ export default function BattlePlanningPage() {
             ...account,
             role: membership.role,
             username: usernameById.get(account.user_id) ?? null,
+            heroes: heroesByAccount.get(account.id) ?? [],
             tags: tagAssignments
               .filter((item) => item.wos_account_id === account.id)
               .flatMap((item) => {
@@ -419,13 +374,11 @@ export default function BattlePlanningPage() {
     setMembers(loadedMembers);
     setTags(stateTags);
     setAlliances((allianceResult.data ?? []) as StateAlliance[]);
-    setPolls(pollRows);
-    setPollOptions((optionResult.data ?? []) as PollOption[]);
-    setPollResponses((responseResult.data ?? []) as PollResponse[]);
+    setAttendance((attendanceResult.data ?? []) as AttendanceRow[]);
     setPlanComments((commentResult.data ?? []) as PlanComment[]);
     setScheduledBattles((battleResult.data ?? []) as ScheduledBattle[]);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase, t]);
+  }, [activeMembership, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -436,156 +389,60 @@ export default function BattlePlanningPage() {
     return () => window.clearTimeout(loadId);
   }, [loadPlanning, loadingStates, router, signedIn]);
 
+  // One reload for a burst of changes (an auto-fill writes a row per
+  // player), and only for this state's rows.
   useEffect(() => {
     if (!activeMembership) return;
-    const channel = supabase
-      .channel(`plan-comments-${activeMembership.key}`)
-      .on(
+    let timer: number | undefined;
+    const reload = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void loadPlanning(), 400);
+    };
+    const stateFilter = `state_id=eq.${activeMembership.stateId}`;
+    const channel = supabase.channel(`planning-${activeMembership.key}`);
+    for (const table of [
+      "battle_plans",
+      "battle_plan_groups",
+      "battle_plan_assignments",
+      "battle_plan_comments",
+      "battle_attendance",
+      "battles",
+    ]) {
+      channel.on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "battle_plans",
-          filter: `state_id=eq.${activeMembership.stateId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "battle_plan_groups" },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "battle_plan_assignments" },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "battle_plan_comments",
-          filter: `state_id=eq.${activeMembership.stateId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "battles",
-          filter: `state_id=eq.${activeMembership.stateId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `wos_account_id=eq.${activeMembership.wosAccountId}`,
-        },
-        () => void loadPlanning(),
-      )
-      .subscribe();
+        { event: "*", schema: "public", table, filter: stateFilter },
+        reload,
+      );
+    }
+    channel.subscribe();
     return () => {
+      window.clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
   }, [activeMembership, loadPlanning, supabase]);
 
-  async function createPlan() {
-    if (!activeMembership || !isAdmin) return;
-    const date = new Date(scheduledAt);
-    if (
-      planName.trim().length < 3 ||
-      Number.isNaN(date.getTime()) ||
-      date <= new Date()
-    ) {
-      setMessage(t("Enter a plan name and choose a future battle time."));
-      return;
-    }
+  // Runs one write, reloads, and shows its message or error.
+  async function run(
+    action: () => PromiseLike<{ error: { message: string } | null }>,
+    success?: string,
+  ) {
     setSaving(true);
-    setMessage(t(""));
-    const { data: newPlanId, error } = await supabase.rpc(
-      "create_battle_plan",
-      {
-        target_state_id: activeMembership.stateId,
-        plan_name: planName.trim(),
-        selected_battle_type: battleType,
-        plan_scheduled_at: date.toISOString(),
-        plan_notes: planNotes.trim() || null,
-      },
-    );
-    const opponentNumber = parseOpponent(planOpponent);
-    const opponentError =
-      !error && opponentNumber
-        ? (
-            await supabase.rpc("set_battle_plan_opponent", {
-              target_plan_id: newPlanId,
-              opponent_number: opponentNumber,
-            })
-          ).error
-        : null;
-    if (error || opponentError) {
-      setMessage((error ?? opponentError)!.message);
-      if (!error) await loadPlanning();
-    } else {
-      setPlanName("");
-      setBattleType("svs");
-      setScheduledAt(defaultScheduledTime());
-      setPlanNotes("");
-      setPlanOpponent("");
+    setMessage("");
+    const { error } = await action();
+    if (error) setMessage(error.message);
+    else {
       await loadPlanning();
-      setMessage(t("Battle plan created as a draft."));
+      if (success) setMessage(success);
     }
     setSaving(false);
+    return !error;
   }
 
-  async function fillFromOracle() {
-    if (!activeMembership) return;
-    setFillingFromOracle(true);
-    setMessage(t(""));
-    try {
-      const response = await fetch(
-        `/api/oracle/matchup?stateId=${activeMembership.stateId}`,
-      );
-      const result = (await response.json()) as {
-        error?: string;
-        opponent?: number | null;
-        battleAt?: string | null;
-      };
-      if (!response.ok) {
-        setMessage(result.error || t("The SvS draw could not be loaded."));
-        return;
-      }
-      setBattleType("svs");
-      if (result.battleAt) setScheduledAt(toLocalDateTime(result.battleAt));
-      if (result.opponent) {
-        setPlanOpponent(String(result.opponent));
-        if (!planName.trim()) setPlanName(`SVS vs ${result.opponent}`);
-        setMessage(
-          t("Filled in from WOSOracle: state {opponent}.", {
-            opponent: result.opponent,
-          }),
-        );
-      } else {
-        setMessage(t("Your state sits this SvS season out."));
-      }
-    } catch {
-      setMessage(t("The SvS draw could not be loaded."));
-    } finally {
-      setFillingFromOracle(false);
-    }
-  }
-
+  // --- Plan ---------------------------------------------------------------
   function beginEditingPlan(plan: BattlePlan) {
     setEditingPlanId(plan.id);
     setEditingPlanName(plan.name);
-    setEditingBattleType(plan.battle_type);
-    setEditingScheduledAt(toLocalDateTime(plan.scheduled_at));
+    setEditingScheduledAt(toUtcInputValue(plan.scheduled_at));
     setEditingPlanNotes(plan.notes ?? "");
     setEditingPlanOpponent(
       plan.opponent_state_number ? String(plan.opponent_state_number) : "",
@@ -593,198 +450,56 @@ export default function BattlePlanningPage() {
   }
   async function savePlan() {
     if (!editingPlanId) return;
-    const date = new Date(editingScheduledAt);
+    const date = fromUtcInputValue(editingScheduledAt);
     if (editingPlanName.trim().length < 3 || Number.isNaN(date.getTime())) {
       setMessage(t("Enter a valid plan name and time."));
       return;
     }
-    setSaving(true);
-    const { error } = await supabase.rpc("update_battle_plan", {
-      target_plan_id: editingPlanId,
-      plan_name: editingPlanName.trim(),
-      selected_battle_type: editingBattleType,
-      plan_scheduled_at: date.toISOString(),
-      plan_notes: editingPlanNotes.trim() || null,
-    });
-    const opponentError = error
-      ? null
-      : (
-          await supabase.rpc("set_battle_plan_opponent", {
-            target_plan_id: editingPlanId,
-            opponent_number: parseOpponent(editingPlanOpponent),
-          })
-        ).error;
-    if (error || opponentError) setMessage((error ?? opponentError)!.message);
-    else {
-      setEditingPlanId(null);
-      await loadPlanning();
-      setMessage(t("Battle plan updated. Republish to notify players."));
-    }
-    setSaving(false);
+    const saved = await run(async () => {
+      const { error } = await supabase.rpc("update_battle_plan", {
+        target_plan_id: editingPlanId,
+        plan_name: editingPlanName.trim(),
+        selected_battle_type: "svs",
+        plan_scheduled_at: date.toISOString(),
+        plan_notes: editingPlanNotes.trim() || null,
+      });
+      if (error) return { error };
+      return supabase.rpc("set_battle_plan_opponent", {
+        target_plan_id: editingPlanId,
+        opponent_number: parseOpponent(editingPlanOpponent),
+      });
+    }, t("Battle plan updated. Republish to notify players."));
+    if (saved) setEditingPlanId(null);
   }
   async function deletePlan(plan: BattlePlan) {
-    if (!window.confirm(`Delete “${plan.name}” and every group in it?`)) return;
-    setSaving(true);
-    const { error } = await supabase.rpc("delete_battle_plan", {
-      target_plan_id: plan.id,
-    });
-    if (error) setMessage(error.message);
-    else {
-      await loadPlanning();
-      setMessage(t("Battle plan deleted."));
-    }
-    setSaving(false);
-  }
-  function openGroupForm(planId: string) {
-    setAddingGroupToPlanId(planId);
-    setGroupName("");
-    setGroupLeaderId("");
-    setGroupAllianceId("");
-    setGroupTagId("");
-    setGroupCapacity(10);
-    setGroupNotes("");
-  }
-  async function createGroup(planId: string) {
-    if (!groupName.trim() || !groupLeaderId || !groupAllianceId) {
-      setMessage(t("Enter a name, Rally Lead, and destination alliance."));
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase.rpc("create_battle_plan_group", {
-      target_plan_id: planId,
-      group_name: groupName.trim(),
-      leader_account_id: groupLeaderId,
-      destination_alliance_id: groupAllianceId,
-      publish_tag_id: groupTagId || null,
-      group_max_members: groupCapacity,
-      group_notes: groupNotes.trim() || null,
-    });
-    if (error) setMessage(error.message);
-    else {
-      setAddingGroupToPlanId(null);
-      await loadPlanning();
-      setMessage(t("Rally group created and its leader assigned."));
-    }
-    setSaving(false);
-  }
-  function beginEditingGroup(group: PlanGroup) {
-    setEditingGroupId(group.id);
-    setEditingGroupName(group.name);
-    setEditingGroupLeaderId(group.leader_wos_account_id);
-    setEditingGroupAllianceId(group.alliance_id ?? "");
-    setEditingGroupTagId(group.assignment_tag_id ?? "");
-    setEditingGroupCapacity(group.max_members);
-    setEditingGroupNotes(group.notes ?? "");
-  }
-  async function saveGroup() {
-    if (
-      !editingGroupId ||
-      !editingGroupName.trim() ||
-      !editingGroupLeaderId ||
-      !editingGroupAllianceId
-    ) {
-      setMessage(t("Enter a name, Rally Lead, and destination alliance."));
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase.rpc("update_battle_plan_group", {
-      target_group_id: editingGroupId,
-      group_name: editingGroupName.trim(),
-      leader_account_id: editingGroupLeaderId,
-      destination_alliance_id: editingGroupAllianceId,
-      publish_tag_id: editingGroupTagId || null,
-      group_max_members: editingGroupCapacity,
-      group_notes: editingGroupNotes.trim() || null,
-    });
-    if (error) setMessage(error.message);
-    else {
-      setEditingGroupId(null);
-      await loadPlanning();
-      setMessage(t("Rally group updated. Republish to apply assignments."));
-    }
-    setSaving(false);
-  }
-  async function deleteGroup(group: PlanGroup) {
-    const count = assignments.filter(
-      (item) => item.group_id === group.id,
-    ).length;
     if (
       !window.confirm(
-        `Delete “${group.name}”? ${count} assigned accounts will become unassigned.`,
+        t(
+          "Delete “{name}”, every group in it and its upcoming battle? Finished battles stay in the history.",
+          { name: plan.name },
+        ),
       )
     )
       return;
-    setSaving(true);
-    const { error } = await supabase.rpc("delete_battle_plan_group", {
-      target_group_id: group.id,
-    });
-    if (error) setMessage(error.message);
-    else await loadPlanning();
-    setSaving(false);
-  }
-  async function assignMember(
-    planId: string,
-    accountId: string,
-    groupId: string | null,
-  ) {
-    if (!isAdmin || saving) return;
-    setSaving(true);
-    const { error } = await supabase.rpc("set_battle_plan_assignment", {
-      target_plan_id: planId,
-      target_wos_account_id: accountId,
-      target_group_id: groupId,
-    });
-    if (error) setMessage(error.message);
-    else await loadPlanning();
-    setSaving(false);
-  }
-  async function bulkAssign(planId: string, group: PlanGroup) {
-    const candidates = getCandidates(planId);
-    if (!candidates.length) {
-      setMessage(t("No unassigned accounts match the current filters."));
-      return;
-    }
-    if (group.max_members <= getGroupMembers(planId, group.id).length) {
-      setMessage(t("That rally group is full."));
-      return;
-    }
-    setSaving(true);
-    const { data, error } = await supabase.rpc(
-      "bulk_assign_battle_plan_members",
-      {
-        target_plan_id: planId,
-        target_group_id: group.id,
-        target_wos_account_ids: candidates.map((member) => member.id),
-      },
+    await run(
+      () =>
+        supabase.rpc("delete_battle_plan", { target_plan_id: plan.id }),
+      t("Battle plan deleted."),
     );
-    if (error) setMessage(error.message);
-    else {
-      await loadPlanning();
-      setMessage(
-        `${Number(data ?? 0)} matching accounts added to ${group.name}.`,
-      );
-    }
-    setSaving(false);
   }
-  function dropMember(
-    event: DragEvent<HTMLElement>,
-    planId: string,
-    groupId: string | null,
-  ) {
-    event.preventDefault();
-    const accountId = event.dataTransfer.getData("text/plain");
-    if (accountId) void assignMember(planId, accountId, groupId);
-  }
-  async function publishPlan(plan: BattlePlan) {
-    const action = plan.status === "published" ? "Republish" : "Publish";
+  // After publishing, changes go out with Republish.
+  async function republishPlan(plan: BattlePlan) {
     if (
+      !activeMembership ||
       !window.confirm(
-        `${action} “${plan.name}”? Assigned accounts will be moved to each group’s destination alliance, optional group tags will be applied, and players will be notified.`,
+        t("Republish “{name}”? Every member gets their updated assignment.", {
+          name: plan.name,
+        }),
       )
     )
       return;
-    if (!activeMembership) return;
     setSaving(true);
+    setMessage("");
     const { data, error } = await supabase.rpc(
       "publish_battle_plan_with_notifications",
       {
@@ -796,235 +511,403 @@ export default function BattlePlanningPage() {
     else {
       await loadPlanning();
       setMessage(
-        `Plan published and battle scheduled. ${Number(data ?? 0)} accounts notified.`,
+        t("Republished. {count} accounts notified.", {
+          count: Number(data ?? 0),
+        }),
       );
     }
     setSaving(false);
   }
+  async function createSvsPlan() {
+    if (!activeMembership || !isAdmin) return;
+    await run(
+      () =>
+        supabase.rpc("create_svs_plan", {
+          target_state_id: activeMembership.stateId,
+          opponent_number: Number(newPlanOpponent) || null,
+          battle_date: newPlanDate || null,
+        }),
+      t("SvS plan created."),
+    );
+  }
 
-  async function startScheduledBattle(battle: ScheduledBattle) {
-    if (!activeMembership) return;
+  // Runs the automation's next step now ("generate" also fills open seats).
+  async function runPlanStep(planId: string, action: "generate" | "publish") {
+    if (!activeMembership || saving) return;
+    if (
+      action === "publish" &&
+      !window.confirm(
+        t("Publish now? Every member gets their rally assignment."),
+      )
+    ) {
+      return;
+    }
+    setSaving(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/automation/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stateId: activeMembership.stateId,
+          planId,
+          action,
+        }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        ralliesCreated?: number;
+        playersAssigned?: number;
+        published?: boolean;
+      };
+      if (!response.ok) throw new Error(result.error ?? "Planning failed.");
+      setMessage(
+        result.published
+          ? t("Published. Every member got their assignment.")
+          : t("{rallies} rallies created, {players} players added.", {
+              rallies: result.ralliesCreated ?? 0,
+              players: result.playersAssigned ?? 0,
+            }),
+      );
+      await loadPlanning();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // --- Rallies ------------------------------------------------------------
+  async function saveRally(planId: string, group: PlanGroup | null, values: RallyFormValues) {
+    if (!values.name.trim() || !values.leaderId || !values.allianceId) {
+      setMessage(t("Enter a name, Rally Lead, and destination alliance."));
+      return;
+    }
+    const fields = {
+      group_name: values.name.trim(),
+      leader_account_id: values.leaderId,
+      destination_alliance_id: values.allianceId,
+      publish_tag_id: values.tagId || null,
+      group_max_members: values.capacity,
+      group_notes: values.notes.trim() || null,
+    };
+    const saved = await run(
+      () =>
+        group
+          ? supabase.rpc("update_battle_plan_group", {
+              target_group_id: group.id,
+              ...fields,
+            })
+          : supabase.rpc("create_battle_plan_group", {
+              target_plan_id: planId,
+              ...fields,
+            }),
+      group ? t("Rally updated.") : t("Rally added."),
+    );
+    if (saved) {
+      setRallyEditor(null);
+      setAddingRallyToPlanId(null);
+    }
+  }
+  async function deleteRally(group: PlanGroup) {
+    const count = assignments.filter((item) => item.group_id === group.id).length;
+    if (
+      !window.confirm(
+        t("Delete “{name}”? Its {count} players go back to the waiting list.", {
+          name: group.name,
+          count,
+        }),
+      )
+    )
+      return;
+    await run(() =>
+      supabase.rpc("delete_battle_plan_group", { target_group_id: group.id }),
+    );
+  }
+
+  // Current state of one rally for auto-fill and hero picking.
+  function toAutofillGroup(group: PlanGroup): AutofillGroup {
+    const groupAssignments = assignments.filter(
+      (item) => item.group_id === group.id,
+    );
+    const heroUsage: Record<string, number> = {};
+    groupAssignments.forEach((item) => {
+      if (item.hero) heroUsage[item.hero] = (heroUsage[item.hero] ?? 0) + 1;
+    });
+    return {
+      id: group.id,
+      maxMembers: group.max_members,
+      memberIds: seatMemberIds(
+        group.leader_wos_account_id,
+        group.lead_rotation ?? [],
+        groupAssignments.map((item) => item.wos_account_id),
+      ),
+      shift: group.shift ?? "whole",
+      joinerHeroes: group.kind === "garrison" ? [] : (group.joiner_heroes ?? []),
+      heroUsage,
+      totalPower: groupAssignments.reduce(
+        (sum, item) =>
+          sum +
+          (members.find((member) => member.id === item.wos_account_id)?.power ??
+            0),
+        0,
+      ),
+    };
+  }
+  function applyDrafts(
+    planId: string,
+    drafts: AutofillDraft[],
+    replaceExisting: boolean,
+  ) {
+    return supabase.rpc("apply_battle_plan_autofill", {
+      target_plan_id: planId,
+      new_assignments: drafts,
+      replace_existing: replaceExisting,
+    });
+  }
+  // Empties every rally and the garrison (leads and holders stay) and fills
+  // them again: the garrison with the strongest defenders, then the rallies
+  // by the state's auto-fill priorities.
+  async function rebuildRallies(planId: string) {
+    const planGroups = groups.filter((group) => group.plan_id === planId);
+    if (!planGroups.length) return;
     if (
       !window.confirm(
         t(
-          "Start this battle period now? Live Battle tools will become available to assigned accounts.",
+          "Rebuild every rally from scratch? Leaders stay; everyone else is placed again by your auto-fill priorities, and hand-made changes are lost.",
         ),
       )
     )
       return;
-    setSaving(true);
-    setMessage(t(""));
-    const { error } = await supabase.rpc("activate_scheduled_battle", {
-      target_battle_id: battle.id,
-      actor_wos_account_id: activeMembership.wosAccountId,
-    });
-    if (error) setMessage(error.message);
-    else {
-      await loadPlanning();
-      await refreshMemberships();
-      setMessage(
-        t("Battle period started. Live Battle tools are now available."),
-      );
-    }
-    setSaving(false);
+    const priorities = (
+      automation?.autofill_priorities ?? ["hero_match", "equal_power", "fc"]
+    ).filter((value): value is AutofillCriterion =>
+      AUTOFILL_CRITERIA.some((criterion) => criterion.value === value),
+    );
+    const answers = new Map(
+      attendance
+        .filter((row) => row.plan_id === planId)
+        .map((row) => [row.wos_account_id, row]),
+    );
+    const pool: FillMember[] = members.map((member) => ({
+      id: member.id,
+      power: member.power ?? 0,
+      fc: member.furnace_level_raw ?? 0,
+      troop: averageTroopTier(member),
+      labyrinth: member.labyrinth_score ?? 0,
+      voice: Boolean(answers.get(member.id)?.voice_call),
+      availability: answers.get(member.id)?.availability ?? null,
+      heroes: member.heroes,
+      defense: member,
+    }));
+    const drafts = fillPlan(
+      planGroups.map((group) => ({
+        ...toAutofillGroup(group),
+        kind: group.kind ?? "rally",
+        memberIds: [group.leader_wos_account_id],
+        heroUsage: {},
+        totalPower:
+          members.find((member) => member.id === group.leader_wos_account_id)
+            ?.power ?? 0,
+      })),
+      pool,
+      priorities,
+      new Set([
+        ...planGroups.flatMap(groupLeadIds),
+        ...leadTagged,
+        ...holderTagged,
+      ]),
+    );
+    await run(
+      () => applyDrafts(planId, drafts, true),
+      t("Rallies rebuilt: {count} players placed.", { count: drafts.length }),
+    );
   }
-
-  async function postComment(planId: string) {
-    if (!activeMembership) return;
-    const body = (commentDrafts[planId] ?? "").trim();
-    if (!body) {
-      setMessage(t("Write a comment before posting."));
+  async function moveMembers(planId: string, groupId: string, ids: string[]) {
+    if (!isAdmin || saving || !ids.length) return;
+    const group = groups.find((item) => item.id === groupId);
+    if (!group) return;
+    const leads = ids.filter((id) => leadTagged.has(id) || holderTagged.has(id));
+    if (leads.length) {
+      setMessage(
+        t(
+          "Rally Leads and Castle Holders only lead or hold, so they can't join. Set them under a rally's ⋯ → Leads by pet block.",
+        ),
+      );
+      ids = ids.filter((id) => !leads.includes(id));
+      if (!ids.length) return;
+    }
+    const current = toAutofillGroup(group);
+    const drafts: AutofillDraft[] = ids.map((id) => {
+      const member = members.find((item) => item.id === id);
+      const hero = pickHero(
+        current.joinerHeroes,
+        member?.heroes ?? [],
+        current.heroUsage,
+      );
+      if (hero) current.heroUsage[hero] = (current.heroUsage[hero] ?? 0) + 1;
+      return { group_id: groupId, wos_account_id: id, hero };
+    });
+    const moved = await run(() => applyDrafts(planId, drafts, false));
+    if (moved) setSelectedIds(new Set());
+  }
+  async function moveMember(planId: string, accountId: string, groupId: string | null) {
+    if (!isAdmin || saving) return;
+    if (groups.some((group) => groupLeadIds(group).includes(accountId))) {
+      setMessage(
+        t("Leads and holders stay with their group. Change its leads under ⋯ → Leads by pet block."),
+      );
       return;
     }
-    setSaving(true);
-    setMessage(t(""));
-    const { error } = await supabase.rpc("create_battle_plan_comment", {
-      target_plan_id: planId,
-      commenter_wos_account_id: activeMembership.wosAccountId,
-      comment_body: body,
-      comment_visibility: isAdmin
-        ? (commentVisibility[planId] ?? "public")
-        : "public",
-    });
-    if (error) setMessage(error.message);
-    else {
-      setCommentDrafts((drafts) => ({ ...drafts, [planId]: "" }));
-      await loadPlanning();
-      setMessage(t("Comment posted."));
+    if (groupId) {
+      await moveMembers(planId, groupId, [accountId]);
+      return;
     }
-    setSaving(false);
+    await run(() =>
+      supabase.rpc("set_battle_plan_assignment", {
+        target_plan_id: planId,
+        target_wos_account_id: accountId,
+        target_group_id: null,
+      }),
+    );
+  }
+  async function setMemberHero(planId: string, accountId: string, hero: string | null) {
+    if (!isAdmin || saving) return;
+    await run(() =>
+      supabase.rpc("set_assignment_details", {
+        target_plan_id: planId,
+        target_wos_account_id: accountId,
+        assigned_hero: hero,
+        assigned_formation: null,
+      }),
+    );
+  }
+  // Hands the rally's joiner heroes to its members by 4★ ownership so
+  // every hero is covered.
+  async function assignGroupHeroes(
+    planId: string,
+    group: PlanGroup,
+    joinerHeroes: string[] = group.joiner_heroes ?? [],
+  ) {
+    if (!isAdmin) return;
+    const memberIds = assignments
+      .filter((item) => item.group_id === group.id)
+      .map((item) => item.wos_account_id);
+    const heroes = distributeGroupHeroes(
+      memberIds,
+      groupLeadIds(group),
+      joinerHeroes,
+      (memberId) =>
+        members.find((member) => member.id === memberId)?.heroes ?? [],
+    );
+    const drafts: AutofillDraft[] = Object.entries(heroes).map(
+      ([memberId, hero]) => ({ group_id: group.id, wos_account_id: memberId, hero }),
+    );
+    if (!drafts.length) return;
+    const covered = new Set(Object.values(heroes).filter(Boolean));
+    await run(
+      () => applyDrafts(planId, drafts, false),
+      t("Heroes assigned in {group}: {covered} of {total} joiner heroes covered.", {
+        group: group.name,
+        covered: covered.size,
+        total: joinerHeroes.length,
+      }),
+    );
+  }
+  async function toggleRallyLead(member: StateMember, enabled: boolean) {
+    if (!activeMembership) return;
+    await run(() =>
+      supabase.rpc("set_state_rally_lead", {
+        target_state_id: activeMembership.stateId,
+        target_wos_account_id: member.id,
+        enabled,
+      }),
+    );
+  }
+  async function toggleCastleHolder(member: StateMember, enabled: boolean) {
+    if (!activeMembership) return;
+    await run(() =>
+      supabase.rpc("set_state_castle_holder", {
+        target_state_id: activeMembership.stateId,
+        target_wos_account_id: member.id,
+        enabled,
+      }),
+    );
+  }
+  // Who leads (or holds) each pet block; the garrison may move alliance too.
+  async function saveRotation(
+    group: PlanGroup,
+    leads: Array<string | null>,
+    allianceId: string | null,
+  ) {
+    const saved = await run(async () => {
+      const { error } = await supabase.rpc("set_battle_plan_group_rotation", {
+        target_group_id: group.id,
+        leads,
+      });
+      if (error || !allianceId || allianceId === group.alliance_id) {
+        return { error };
+      }
+      return supabase.rpc("update_battle_plan_group", {
+        target_group_id: group.id,
+        group_name: group.name,
+        leader_account_id: leads.find(Boolean)!,
+        destination_alliance_id: allianceId,
+        publish_tag_id: group.assignment_tag_id,
+        group_max_members: group.max_members,
+        group_notes: group.notes,
+      });
+    }, group.kind === "garrison" ? t("Castle holders saved.") : t("Leads saved."));
+    if (saved) setRallyEditor(null);
+  }
+  async function addGarrison(
+    planId: string,
+    holders: Array<string | null>,
+    allianceId: string | null,
+  ) {
+    if (!allianceId) {
+      setMessage(t("Choose the alliance holding the castle."));
+      return;
+    }
+    const added = await run(
+      () =>
+        supabase.rpc("create_garrison_group", {
+          target_plan_id: planId,
+          holders,
+          destination_alliance_id: allianceId,
+        }),
+      t("Garrison added. Fill open seats to put your strongest defenders in it."),
+    );
+    if (added) setAddingGarrisonToPlanId(null);
   }
 
+  // --- Comments -----------------------------------------------------------
+  async function postComment(
+    planId: string,
+    body: string,
+    visibility: "public" | "admins",
+  ) {
+    if (!activeMembership || !body) return false;
+    return run(
+      () =>
+        supabase.rpc("create_battle_plan_comment", {
+          target_plan_id: planId,
+          commenter_wos_account_id: activeMembership.wosAccountId,
+          comment_body: body,
+          comment_visibility: visibility,
+        }),
+      t("Comment posted."),
+    );
+  }
   async function deleteComment(comment: PlanComment) {
     if (!window.confirm(t("Delete this comment?"))) return;
-    setSaving(true);
-    setMessage(t(""));
-    const { error } = await supabase.rpc("delete_battle_plan_comment", {
-      target_comment_id: comment.id,
-      actor_wos_account_id: activeMembership?.wosAccountId,
-    });
-    if (error) setMessage(error.message);
-    else {
-      await loadPlanning();
-      setMessage(t("Comment deleted."));
-    }
-    setSaving(false);
-  }
-
-  function getPlanGroups(planId: string) {
-    return groups.filter((group) => group.plan_id === planId);
-  }
-  function getGroupMembers(planId: string, groupId: string) {
-    const ids = new Set(
-      assignments
-        .filter((item) => item.plan_id === planId && item.group_id === groupId)
-        .map((item) => item.wos_account_id),
-    );
-    return members.filter((member) => ids.has(member.id));
-  }
-  function getCandidates(planId: string) {
-    if (!filtersActive) return [];
-    const assigned = new Set(
-      assignments
-        .filter((item) => item.plan_id === planId)
-        .map((item) => item.wos_account_id),
-    );
-    const search = memberSearch.trim().toLowerCase();
-    const votedIds = pollOptionFilter
-      ? new Set(
-          pollResponses
-            .filter((response) => response.option_id === pollOptionFilter)
-            .map((response) => response.wos_account_id),
-        )
-      : null;
-    return members.filter((member) => {
-      if (assigned.has(member.id)) return false;
-      if (
-        search &&
-        ![member.nickname, member.wos_id, member.username]
-          .filter(Boolean)
-          .some((value) => value?.toLowerCase().includes(search))
-      )
-        return false;
-      if (tagFilter && !member.tags.some((tag) => tag.id === tagFilter))
-        return false;
-      if (votedIds && !votedIds.has(member.id)) return false;
-      if ((member.furnace_level ?? 0) < minimumFurnace) return false;
-      if (
-        minimumTroopTier > 0 &&
-        [member.infantry_tier, member.lancer_tier, member.marksman_tier].some(
-          (value) => (value ?? 0) < minimumTroopTier,
-        )
-      )
-        return false;
-      return true;
-    });
-  }
-  function renderStats(groupMembers: StateMember[]) {
-    const troopValues = groupMembers.flatMap((member) => [
-      member.infantry_tier,
-      member.lancer_tier,
-      member.marksman_tier,
-    ]);
-    const skillValues = groupMembers.flatMap((member) => [
-      member.infantry_t12_skill,
-      member.lancer_t12_skill,
-      member.marksman_t12_skill,
-    ]);
-    return (
-      <div className="plan-group-stats">
-        <span>
-          {t("Avg power")}{" "}
-          <strong>
-            {(() => {
-              const value = average(groupMembers.map((member) => member.power));
-              return value === null ? "—" : formatNumber(Math.round(value));
-            })()}
-          </strong>
-        </span>
-        <span>
-          {t("Avg furnace")}{" "}
-          <strong>
-            {formatAverage(
-              average(groupMembers.map((member) => member.furnace_level)),
-            )}
-          </strong>
-        </span>
-        <span>
-          {t("Avg troop")}{" "}
-          <strong>{formatAverage(average(troopValues))}</strong>
-        </span>
-        <span>
-          {t("Avg T12 skill")}{" "}
-          <strong>{formatAverage(average(skillValues))}</strong>
-        </span>
-      </div>
-    );
-  }
-  function renderMemberCard(member: StateMember, planId: string) {
-    const planGroups = getPlanGroups(planId);
-    const assignedGroupId =
-      assignments.find(
-        (item) => item.plan_id === planId && item.wos_account_id === member.id,
-      )?.group_id ?? "";
-    return (
-      <div
-        key={member.id}
-        className="plan-member-card"
-        draggable={isAdmin && !saving}
-        onDragStart={(event) => {
-          event.dataTransfer.setData("text/plain", member.id);
-          event.dataTransfer.effectAllowed = "move";
-        }}
-      >
-        <div className="plan-member-main">
-          <strong>{member.nickname || `WOS ID ${member.wos_id}`}</strong>
-          <small>
-            {member.username ? `@${member.username} · ` : ""}
-            {t("WOS ID")} {member.wos_id}
-          </small>
-        </div>
-        <small className="plan-member-stats">
-          {furnaceLabel(member.furnace_level_raw)} {t("· Power")}{" "}
-          {member.power === null ? "—" : formatNumber(member.power)}{" "}
-          {t("· Troops")} {member.infantry_tier ?? "—"}
-          {t("/")}
-          {member.lancer_tier ?? "—"}
-          {t("/")}
-          {member.marksman_tier ?? "—"}
-        </small>
-        <div className="plan-member-context">
-          {member.tags.map((tag) => (
-            <span key={tag.id} className="member-tag-pill">
-              <span style={{ backgroundColor: tag.color }} />
-              {tag.name}
-            </span>
-          ))}
-        </div>
-        {isAdmin && (
-          <label className="plan-assignment-select">
-            {t("Assignment")}
-            <select
-              value={assignedGroupId}
-              disabled={saving}
-              onChange={(event) =>
-                void assignMember(planId, member.id, event.target.value || null)
-              }
-            >
-              <option value="">{t("Unassigned")}</option>
-              {planGroups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name} {t("(")}
-                  {getGroupMembers(planId, group.id).length}
-                  {t("/")}
-                  {group.max_members}
-                  {t(")")}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </div>
+    await run(
+      () =>
+        supabase.rpc("delete_battle_plan_comment", {
+          target_comment_id: comment.id,
+          actor_wos_account_id: activeMembership?.wosAccountId,
+        }),
+      t("Comment deleted."),
     );
   }
 
@@ -1038,8 +921,460 @@ export default function BattlePlanningPage() {
       </main>
     );
 
+  const historyBefore = loadedAt - PLAN_HISTORY_AFTER_MS;
+  const currentPlans = plans.filter(
+    (plan) => new Date(plan.scheduled_at).getTime() > historyBefore,
+  );
+  const historyPlans = plans
+    .filter((plan) => new Date(plan.scheduled_at).getTime() <= historyBefore)
+    .reverse();
+
+  function renderPlan(plan: BattlePlan) {
+    if (!activeMembership) return null;
+    const planGroups = groups.filter((group) => group.plan_id === plan.id);
+    const planAssignments = assignments.filter((item) => item.plan_id === plan.id);
+    const planAttendance = attendance.filter((row) => row.plan_id === plan.id);
+    const answers = new Map(planAttendance.map((row) => [row.wos_account_id, row]));
+    const assignmentById = new Map(
+      planAssignments.map((item) => [item.wos_account_id, item]),
+    );
+    const issues: PlanIssue[] = isAdmin
+      ? findPlanIssues({
+          groups: planGroups,
+          assignments: planAssignments,
+          members,
+          attendance: planAttendance,
+          leadTagged,
+          holderTagged,
+        })
+      : [];
+    const flagged = new Set(
+      issues.flatMap((issue) =>
+        "member" in issue
+          ? [issue.member.id]
+          : "members" in issue
+            ? issue.members.map((member) => member.id)
+            : [],
+      ),
+    );
+    const heroByMember = new Map(
+      planAssignments.map((item) => [item.wos_account_id, item.hero]),
+    );
+    // Leads and holders never join, so they are not waiting for a seat.
+    const waiting = members.filter(
+      (member) =>
+        !assignmentById.has(member.id) &&
+        !leadTagged.has(member.id) &&
+        !holderTagged.has(member.id),
+    );
+    const garrison = planGroups.find((group) => group.kind === "garrison");
+    const rallyCount = planGroups.filter((group) => group.kind !== "garrison").length;
+    const memberById = new Map(members.map((member) => [member.id, member]));
+    const scheduledBattle = scheduledBattles.find(
+      (battle) => battle.plan_id === plan.id,
+    );
+    const battleStarted =
+      scheduledBattle?.status === "active" ||
+      scheduledBattle?.status === "completed";
+    const comments = planComments.filter((comment) => comment.plan_id === plan.id);
+    const ownGroup = planGroups.find(
+      (group) =>
+        group.id === assignmentById.get(activeMembership.wosAccountId)?.group_id,
+    );
+    const leadCount = rallyLeaders.length + castleHolders.length;
+
+    const openSheet = (member: StateMember) =>
+      setOpenPlayer({ planId: plan.id, memberId: member.id });
+
+    return (
+      <div key={plan.id} className="plan-workspace-wrap">
+        {isAdmin && (
+          <NextSvsChecklist
+            plan={plan}
+            autoPlan={automation?.auto_plan ?? true}
+            autoPublish={automation?.auto_publish ?? true}
+            memberCount={members.length}
+            votedCount={planAttendance.length}
+            availableCount={
+              planAttendance.filter((row) => row.availability !== "unavailable")
+                .length
+            }
+            rallyCount={rallyCount}
+            assignedCount={planAssignments.length}
+            issueCount={
+              issues.filter(
+                (issue) =>
+                  issue.kind !== "heroes_unknown" &&
+                  issue.kind !== "no_hero_anywhere",
+              ).length
+            }
+            missingAlliance={planGroups.filter((group) => !group.alliance_id).length}
+            busy={saving}
+            now={loadedAt}
+            onGenerate={() => void runPlanStep(plan.id, "generate")}
+            onPublish={() => void runPlanStep(plan.id, "publish")}
+          />
+        )}
+
+        <div className="plan-toolbar">
+          <div className="plan-toolbar-title">
+            <h2>{plan.name}</h2>
+            <span
+              className={`plan-status-pill ${plan.status === "published" ? "is-published" : ""}`}
+            >
+              {plan.status === "published" ? t("Published") : t("Draft")}
+            </span>
+            <time>{formatDateTime(plan.scheduled_at)}</time>
+          </div>
+          {isAdmin && (
+            <div className="plan-toolbar-actions">
+              <button
+                type="button"
+                className="secondary-link"
+                aria-expanded={showRallyLeads}
+                onClick={() => setShowRallyLeads((value) => !value)}
+              >
+                {t("Leads & holders ({count})", { count: leadCount })}
+              </button>
+              {plan.status === "published" && (
+                <button
+                  type="button"
+                  className="secondary-link"
+                  disabled={saving || battleStarted}
+                  onClick={() => void republishPlan(plan)}
+                >
+                  {t("Republish")}
+                </button>
+              )}
+              <MoreMenu
+                label={t("Plan actions")}
+                items={[
+                  { label: t("Add rally"), onSelect: () => setAddingRallyToPlanId(plan.id) },
+                  ...(garrison
+                    ? []
+                    : [
+                        {
+                          label: t("Add garrison"),
+                          onSelect: () => setAddingGarrisonToPlanId(plan.id),
+                        },
+                      ]),
+                  {
+                    label: t("Rebuild all rallies"),
+                    onSelect: () => void rebuildRallies(plan.id),
+                    disabled: saving || !planGroups.length,
+                  },
+                  { label: t("Edit plan"), onSelect: () => beginEditingPlan(plan) },
+                  ...(scheduledBattle?.status !== "active"
+                    ? [
+                        {
+                          label: t("Delete plan"),
+                          onSelect: () => void deletePlan(plan),
+                          danger: true,
+                        },
+                      ]
+                    : []),
+                ]}
+              />
+            </div>
+          )}
+        </div>
+        {plan.notes && <p className="battle-plan-notes">{plan.notes}</p>}
+        {message && <p className="page-message">{message}</p>}
+
+        {isAdmin && editingPlanId === plan.id && (
+          <div className="plan-inline-editor">
+            <label>
+              {t("Plan name")}
+              <input
+                value={editingPlanName}
+                onChange={(event) => setEditingPlanName(event.target.value)}
+              />
+            </label>
+            <label>
+              {t("Start (UTC)")}
+              <input
+                type="datetime-local"
+                value={editingScheduledAt}
+                onChange={(event) => setEditingScheduledAt(event.target.value)}
+              />
+            </label>
+            <label>
+              {t("Opponent state")}
+              <input
+                type="text"
+                inputMode="numeric"
+                value={editingPlanOpponent}
+                onChange={(event) => setEditingPlanOpponent(event.target.value)}
+              />
+            </label>
+            <label>
+              {t("Notes")}
+              <textarea
+                value={editingPlanNotes}
+                onChange={(event) => setEditingPlanNotes(event.target.value)}
+              />
+            </label>
+            <div className="button-row">
+              <button
+                type="button"
+                className="primary-button"
+                disabled={saving}
+                onClick={() => void savePlan()}
+              >
+                {t("Save plan")}
+              </button>
+              <button
+                type="button"
+                className="secondary-link"
+                onClick={() => setEditingPlanId(null)}
+              >
+                {t("Cancel")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isAdmin && showRallyLeads && (
+          <RallyLeadsPanel
+            members={members}
+            answers={answers}
+            busy={saving}
+            onToggleLead={(member, enabled) => void toggleRallyLead(member, enabled)}
+            onToggleHolder={(member, enabled) =>
+              void toggleCastleHolder(member, enabled)
+            }
+            onClose={() => setShowRallyLeads(false)}
+          />
+        )}
+
+        {isAdmin && addingRallyToPlanId === plan.id && (
+          <section className="rally-form-panel">
+            <h3>{t("Add rally")}</h3>
+            <RallyForm
+              group={null}
+              leaders={rallyLeaders}
+              alliances={alliances}
+              tags={regularTags}
+              busy={saving}
+              onSubmit={(values) => void saveRally(plan.id, null, values)}
+              onCancel={() => setAddingRallyToPlanId(null)}
+            />
+          </section>
+        )}
+
+        {isAdmin && addingGarrisonToPlanId === plan.id && (
+          <section className="rally-form-panel">
+            <h3>{t("Add garrison")}</h3>
+            <RotationEditor
+              title={t("Castle holders by pet block")}
+              candidates={castleHolders}
+              initial={[]}
+              answers={answers}
+              alliances={alliances}
+              initialAllianceId={null}
+              busy={saving}
+              onSave={(holders, allianceId) =>
+                void addGarrison(plan.id, holders, allianceId)
+              }
+              onCancel={() => setAddingGarrisonToPlanId(null)}
+            />
+          </section>
+        )}
+
+        {isAdmin && planGroups.length > 0 && (
+          <NeedsAttention
+            issues={issues}
+            busy={saving}
+            onFillOpenSlots={() => void runPlanStep(plan.id, "generate")}
+            onAssignHeroes={(group) => void assignGroupHeroes(plan.id, group)}
+            onMove={(member, target) =>
+              void moveMember(plan.id, member.id, target?.id ?? null)
+            }
+            onEditGroup={(group) => {
+              setRallyEditor({ groupId: group.id, mode: "edit" });
+              scrollToRally(group.id);
+            }}
+            onSetupGroup={(group) => {
+              setRallyEditor({ groupId: group.id, mode: "setup" });
+              scrollToRally(group.id);
+            }}
+            onEditRotation={(group) => {
+              setRallyEditor({ groupId: group.id, mode: "rotation" });
+              scrollToRally(group.id);
+            }}
+            onAddGarrison={() => setAddingGarrisonToPlanId(plan.id)}
+            onOpenLeads={() => setShowRallyLeads(true)}
+            onOpenPlayer={openSheet}
+          />
+        )}
+
+        {!isAdmin && (
+          <div className="own-plan-assignment">
+            <span>{t("Your assignment")}</span>
+            <strong>{ownGroup?.name ?? t("Not in a rally yet")}</strong>
+          </div>
+        )}
+
+        {planGroups.length === 0 ? (
+          <div className="empty-state compact-empty-state">
+            <h3>{t("No rallies yet")}</h3>
+            <p>
+              {isAdmin
+                ? t("Press Generate now above, or add a rally from the ⋯ menu.")
+                : t("Your admins have not set up the rallies yet.")}
+            </p>
+          </div>
+        ) : (
+          <div className={`plan-workspace${isAdmin ? "" : " is-readonly"}`}>
+            {isAdmin && (
+              <UnassignedList
+                players={waiting}
+                answers={answers}
+                groups={planGroups}
+                tags={tags}
+                isAdmin={isAdmin}
+                busy={saving}
+                selectedIds={selectedIds}
+                onToggle={(accountId) =>
+                  setSelectedIds((current) => {
+                    const next = new Set(current);
+                    if (next.has(accountId)) next.delete(accountId);
+                    else next.add(accountId);
+                    return next;
+                  })
+                }
+                onSelect={(ids) => setSelectedIds(new Set(ids))}
+                onMoveSelected={(groupId) =>
+                  void moveMembers(plan.id, groupId, [...selectedIds])
+                }
+                onOpenPlayer={openSheet}
+                onDropPlayer={(accountId) =>
+                  assignmentById.has(accountId) &&
+                  void moveMember(plan.id, accountId, null)
+                }
+              />
+            )}
+            <div className="rally-board">
+              {planGroups.map((group) => {
+                const leadIds = new Set(groupLeadIds(group));
+                const joiners = planAssignments
+                  .filter(
+                    (item) =>
+                      item.group_id === group.id && !leadIds.has(item.wos_account_id),
+                  )
+                  .flatMap((item) => {
+                    const member = memberById.get(item.wos_account_id);
+                    return member ? [member] : [];
+                  })
+                  .sort((first, second) => (second.power ?? 0) - (first.power ?? 0));
+                const leads = [0, 1, 2].map((block) => {
+                  const id = group.lead_rotation?.[block] ?? null;
+                  return id ? (memberById.get(id) ?? null) : null;
+                });
+                const garrisonGroup = group.kind === "garrison";
+                const editor =
+                  isAdmin && rallyEditor?.groupId === group.id ? (
+                    rallyEditor.mode === "rotation" ? (
+                      <RotationEditor
+                        title={
+                          garrisonGroup
+                            ? t("Castle holders by pet block")
+                            : t("Leads by pet block")
+                        }
+                        candidates={garrisonGroup ? castleHolders : rallyLeaders}
+                        initial={group.lead_rotation ?? []}
+                        answers={answers}
+                        alliances={garrisonGroup ? alliances : undefined}
+                        initialAllianceId={group.alliance_id}
+                        busy={saving}
+                        onSave={(rotation, allianceId) =>
+                          void saveRotation(group, rotation, allianceId)
+                        }
+                        onCancel={() => setRallyEditor(null)}
+                      />
+                    ) : rallyEditor.mode === "setup" ? (
+                      <RallySetupEditor
+                        group={group}
+                        heroGeneration={heroGeneration}
+                        onCancel={() => setRallyEditor(null)}
+                        onSaved={(joinerHeroes) => {
+                          setRallyEditor(null);
+                          void assignGroupHeroes(plan.id, group, joinerHeroes);
+                        }}
+                      />
+                    ) : (
+                      <RallyForm
+                        group={group}
+                        leaders={garrisonGroup ? castleHolders : rallyLeaders}
+                        alliances={alliances}
+                        tags={regularTags}
+                        busy={saving}
+                        onSubmit={(values) => void saveRally(plan.id, group, values)}
+                        onCancel={() => setRallyEditor(null)}
+                      />
+                    )
+                  ) : null;
+                return (
+                  <div key={group.id} id={`rally-${group.id}`} className="rally-board-cell">
+                    <RallyColumn
+                      group={group}
+                      leads={leads}
+                      members={joiners}
+                      heroByMember={heroByMember}
+                      allianceName={
+                        alliances.find((item) => item.id === group.alliance_id)
+                          ?.name ?? null
+                      }
+                      flagged={flagged}
+                      isAdmin={isAdmin}
+                      busy={saving}
+                      selectedCount={selectedIds.size}
+                      editor={editor}
+                      onOpenPlayer={openSheet}
+                      onDropPlayer={(accountId) =>
+                        assignmentById.get(accountId)?.group_id !== group.id &&
+                        void moveMember(plan.id, accountId, group.id)
+                      }
+                      onMoveSelected={() =>
+                        void moveMembers(plan.id, group.id, [...selectedIds])
+                      }
+                      onEditRotation={() =>
+                        setRallyEditor({ groupId: group.id, mode: "rotation" })
+                      }
+                      onSetup={() => setRallyEditor({ groupId: group.id, mode: "setup" })}
+                      onAssignHeroes={() => void assignGroupHeroes(plan.id, group)}
+                      onEdit={() => setRallyEditor({ groupId: group.id, mode: "edit" })}
+                      onDelete={() => void deleteRally(group)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <PlanComments
+          comments={comments}
+          members={members}
+          viewerAccountId={activeMembership.wosAccountId}
+          isAdmin={isAdmin}
+          busy={saving}
+          onPost={(body, visibility) => postComment(plan.id, body, visibility)}
+          onDelete={(comment) => void deleteComment(comment)}
+        />
+      </div>
+    );
+  }
+
+  const sheetPlan = openPlayer
+    ? plans.find((plan) => plan.id === openPlayer.planId)
+    : undefined;
+  const sheetMember = openPlayer
+    ? members.find((member) => member.id === openPlayer.memberId)
+    : undefined;
+
   return (
-    <main>
+    <main className="planning-page">
       <AppHeader />
       {!activeMembership ? (
         <section className="empty-state">
@@ -1048,905 +1383,140 @@ export default function BattlePlanningPage() {
         </section>
       ) : (
         <>
-          <section className="battle-planning-heading">
+          <section className="page-heading">
             <p className="section-label">{activeMembership.stateName}</p>
             <h1>{t("Battle planning")}</h1>
             <p>
               {t(
-                "Build rally groups, assign every member here, then publish the alliance roster and optional tags.",
+                "The automation builds and publishes the plan. Check what needs attention, adjust anything by hand, and publish.",
               )}
             </p>
           </section>
-          {isAdmin && (
-            <section>
-              <h2>{t("Create battle plan")}</h2>
-              <div className="battle-plan-create-grid">
-                <label>
-                  {t("Plan name")}
-                  <input
-                    value={planName}
-                    maxLength={100}
-                    onChange={(event) => setPlanName(event.target.value)}
-                    placeholder={t("SVS vs 1501")}
-                  />
-                </label>
-                <label>
-                  {t("Type")}
-                  <select
-                    value={battleType}
-                    onChange={(event) =>
-                      setBattleType(event.target.value as BattleType)
-                    }
-                  >
-                    <option value="svs">{t("SVS")}</option>
-                    <option value="castle">{t("Castle")}</option>
-                    <option value="test">{t("Test")}</option>
-                  </select>
-                </label>
-                <label>
-                  {t("Scheduled start")}
-                  <input
-                    type="datetime-local"
-                    value={scheduledAt}
-                    onChange={(event) => setScheduledAt(event.target.value)}
-                  />
-                </label>
-                <label>
-                  {t("Opponent state")}
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={planOpponent}
-                    onChange={(event) => setPlanOpponent(event.target.value)}
-                    placeholder={t("e.g. 1501")}
-                  />
-                </label>
-                <label className="battle-plan-notes-field">
-                  {t("Notes")}
-                  <textarea
-                    rows={3}
-                    maxLength={2000}
-                    value={planNotes}
-                    onChange={(event) => setPlanNotes(event.target.value)}
-                  />
-                </label>
-              </div>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void createPlan()}
-              >
-                {t("Create draft plan")}
-              </button>{" "}
-              <button
-                type="button"
-                className="secondary-link"
-                disabled={fillingFromOracle}
-                onClick={() => void fillFromOracle()}
-              >
-                {fillingFromOracle
-                  ? t("Loading SvS draw...")
-                  : t("Fill from SvS draw (WOSOracle)")}
-              </button>
-            </section>
-          )}
-          <section>
-            <div className="section-title-row">
-              <div>
-                <p className="section-label">{t("Scheduled operations")}</p>
-                <h2>
-                  {isAdmin
-                    ? t("Draft and published plans")
-                    : t("Published plans")}
-                </h2>
-              </div>
-            </div>
-            {message && <p className="page-message">{message}</p>}
-            {loading ? (
+          {loading ? (
+            <section className="loading-panel">
               <p>{t("Loading battle plans...")}</p>
-            ) : plans.length === 0 ? (
-              <div className="empty-state compact-empty-state">
-                <h3>{t("No battle plans yet")}</h3>
-              </div>
-            ) : (
-              <div className="battle-plan-list">
-                {plans.map((plan) => {
-                  const planGroups = getPlanGroups(plan.id);
-                  const candidates = getCandidates(plan.id);
-                  const comments = planComments.filter(
-                    (comment) => comment.plan_id === plan.id,
-                  );
-                  const ownAssignment = assignments.find(
-                    (item) =>
-                      item.plan_id === plan.id &&
-                      item.wos_account_id === activeMembership.wosAccountId,
-                  );
-                  const ownGroup = planGroups.find(
-                    (group) => group.id === ownAssignment?.group_id,
-                  );
-                  const ownAlliance = alliances.find(
-                    (alliance) => alliance.id === ownGroup?.alliance_id,
-                  );
-                  const scheduledBattle = scheduledBattles.find(
-                    (battle) => battle.plan_id === plan.id,
-                  );
-                  return (
-                    <article
-                      key={plan.id}
-                      id={`plan-${plan.id}`}
-                      className="battle-plan-card"
+            </section>
+          ) : currentPlans.length === 0 ? (
+            <>
+              <SvsStatus stateId={activeMembership.stateId} />
+              {isAdmin && (
+                <section>
+                  <p className="section-label">{t("No SvS plan")}</p>
+                  <h2>{t("Create the SvS plan")}</h2>
+                  <p>
+                    {t(
+                      "There is no upcoming battle plan. It is normally created automatically from the SvS draw; if it was deleted, create it again here. A state can only have one upcoming plan.",
+                    )}
+                  </p>
+                  <div className="invite-form">
+                    <label>
+                      {t("Opponent state")}
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={newPlanOpponent}
+                        onChange={(event) => setNewPlanOpponent(event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      {t("Battle date (12:00–17:00 UTC)")}
+                      <input
+                        type="date"
+                        value={newPlanDate}
+                        onChange={(event) => setNewPlanDate(event.target.value)}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      disabled={saving || !newPlanOpponent || !newPlanDate}
+                      onClick={() => void createSvsPlan()}
                     >
-                      <div className="battle-plan-card-heading">
-                        <div>
-                          <span
-                            className={`poll-status ${plan.status === "published" ? "open" : "closed"}`}
-                          >
-                            {t(
-                              plan.status.charAt(0).toUpperCase() +
-                                plan.status.slice(1),
-                            )}
-                          </span>
-                          {scheduledBattle && (
-                            <span className="battle-type-badge">
-                              {t(
-                                scheduledBattle.status.charAt(0).toUpperCase() +
-                                  scheduledBattle.status.slice(1),
-                              )}
-                            </span>
-                          )}
-                          <span className="battle-type-badge">
-                            {plan.battle_type.toUpperCase()}
-                          </span>
-                          <h3>{plan.name}</h3>
-                          <time>{formatDateTime(plan.scheduled_at)}</time>
-                          {plan.opponent_state_number && (
-                            <span className="battle-type-badge">
-                              {t("vs state {opponent}", {
-                                opponent: plan.opponent_state_number,
-                              })}
-                            </span>
-                          )}
-                        </div>
-                        {isAdmin && (
-                          <div className="battle-plan-actions">
-                            <button
-                              className="secondary-link"
-                              onClick={() => beginEditingPlan(plan)}
-                            >
-                              {t("Edit")}
-                            </button>
-                            <button
-                              disabled={
-                                saving ||
-                                scheduledBattle?.status === "active" ||
-                                scheduledBattle?.status === "completed"
-                              }
-                              onClick={() => void publishPlan(plan)}
-                            >
-                              {plan.status === "published"
-                                ? t("Republish")
-                                : t("Publish & schedule")}
-                            </button>
-                            {scheduledBattle?.status === "scheduled" && (
-                              <button
-                                disabled={saving}
-                                onClick={() =>
-                                  void startScheduledBattle(scheduledBattle)
-                                }
-                              >
-                                {t("Start battle")}
-                              </button>
-                            )}
-                            {plan.status === "draft" && (
-                              <button
-                                className="danger-button"
-                                disabled={saving}
-                                onClick={() => void deletePlan(plan)}
-                              >
-                                {t("Delete draft")}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      {plan.notes && (
-                        <p className="battle-plan-notes">{plan.notes}</p>
-                      )}
-                      {!isAdmin && ownGroup && (
-                        <div className="own-plan-assignment">
-                          <span>{t("Your assignment")}</span>
-                          <strong>{ownGroup.name}</strong>
-                          <small>
-                            {t("Alliance:")}{" "}
-                            {ownAlliance?.name ?? t("Not selected")}
-                          </small>
-                        </div>
-                      )}
-                      {!isAdmin && !ownGroup && (
-                        <p className="unassigned-plan-warning">
-                          {t(
-                            "This WOS account has not been assigned to a rally group.",
-                          )}
-                        </p>
-                      )}
-                      {isAdmin && editingPlanId === plan.id && (
-                        <div className="plan-inline-editor">
-                          <label>
-                            {t("Plan name")}
-                            <input
-                              value={editingPlanName}
-                              onChange={(event) =>
-                                setEditingPlanName(event.target.value)
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t("Type")}
-                            <select
-                              value={editingBattleType}
-                              onChange={(event) =>
-                                setEditingBattleType(
-                                  event.target.value as BattleType,
-                                )
-                              }
-                            >
-                              <option value="svs">{t("SVS")}</option>
-                              <option value="castle">{t("Castle")}</option>
-                              <option value="test">{t("Test")}</option>
-                            </select>
-                          </label>
-                          <label>
-                            {t("Start")}
-                            <input
-                              type="datetime-local"
-                              value={editingScheduledAt}
-                              onChange={(event) =>
-                                setEditingScheduledAt(event.target.value)
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t("Opponent state")}
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={editingPlanOpponent}
-                              onChange={(event) =>
-                                setEditingPlanOpponent(event.target.value)
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t("Notes")}
-                            <textarea
-                              value={editingPlanNotes}
-                              onChange={(event) =>
-                                setEditingPlanNotes(event.target.value)
-                              }
-                            />
-                          </label>
-                          <div className="button-row">
-                            <button
-                              disabled={saving}
-                              onClick={() => void savePlan()}
-                            >
-                              {t("Save plan")}
-                            </button>
-                            <button
-                              className="secondary-link"
-                              onClick={() => setEditingPlanId(null)}
-                            >
-                              {t("Cancel")}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {isAdmin && (
-                        <div className="plan-admin-toolbar">
-                          <button
-                            className="secondary-link"
-                            onClick={() => openGroupForm(plan.id)}
-                          >
-                            {t("Add rally group")}
-                          </button>
-                          <span>
-                            {t(
-                              "Only accounts with the permanent Rally Lead tag appear as leaders.",
-                            )}
-                          </span>
-                        </div>
-                      )}
-                      {isAdmin && addingGroupToPlanId === plan.id && (
-                        <div className="plan-group-editor">
-                          <label>
-                            {t("Group name")}
-                            <input
-                              value={groupName}
-                              onChange={(event) =>
-                                setGroupName(event.target.value)
-                              }
-                              placeholder={t("TED Rally")}
-                            />
-                          </label>
-                          <label>
-                            {t("Rally Lead")}
-                            <select
-                              value={groupLeaderId}
-                              onChange={(event) =>
-                                setGroupLeaderId(event.target.value)
-                              }
-                            >
-                              <option value="">
-                                {t("Choose tagged leader")}
-                              </option>
-                              {rallyLeaders.map((member) => (
-                                <option key={member.id} value={member.id}>
-                                  {member.nickname || member.wos_id}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            {t("Destination alliance")}
-                            <select
-                              value={groupAllianceId}
-                              onChange={(event) =>
-                                setGroupAllianceId(event.target.value)
-                              }
-                            >
-                              <option value="">{t("Choose alliance")}</option>
-                              {alliances.map((alliance) => (
-                                <option key={alliance.id} value={alliance.id}>
-                                  {alliance.name}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            {t("Tag after publish")}
-                            <select
-                              value={groupTagId}
-                              onChange={(event) =>
-                                setGroupTagId(event.target.value)
-                              }
-                            >
-                              <option value="">{t("No automatic tag")}</option>
-                              {regularTags.map((tag) => (
-                                <option key={tag.id} value={tag.id}>
-                                  {tag.name}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            {t("Capacity")}
-                            <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={groupCapacity}
-                              onChange={(event) =>
-                                setGroupCapacity(Number(event.target.value))
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t("Instructions")}
-                            <input
-                              value={groupNotes}
-                              onChange={(event) =>
-                                setGroupNotes(event.target.value)
-                              }
-                            />
-                          </label>
-                          <button
-                            disabled={saving}
-                            onClick={() => void createGroup(plan.id)}
-                          >
-                            {t("Create group")}
-                          </button>
-                          <button
-                            className="secondary-link"
-                            onClick={() => setAddingGroupToPlanId(null)}
-                          >
-                            {t("Cancel")}
-                          </button>
-                          {rallyLeaders.length === 0 && (
-                            <p className="page-message">
-                              {t(
-                                "Assign Rally Lead tags from State members first.",
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      {isAdmin && (
-                        <div className="plan-roster-filters">
-                          <div className="section-title-row">
-                            <div>
-                              <p className="section-label">
-                                {t("Candidate finder")}
-                              </p>
-                              <h4>{t("Find accounts worth assigning")}</h4>
-                            </div>
-                            <span className="retention-badge">
-                              {filtersActive
-                                ? `${candidates.length} matches`
-                                : t("Add a filter")}
-                            </span>
-                          </div>
-                          <input
-                            type="search"
-                            value={memberSearch}
-                            onChange={(event) =>
-                              setMemberSearch(event.target.value)
-                            }
-                            placeholder={t("Name, username, or WOS ID")}
-                          />
-                          <select
-                            value={tagFilter}
-                            onChange={(event) =>
-                              setTagFilter(event.target.value)
-                            }
-                          >
-                            <option value="">{t("Any tag")}</option>
-                            {tags.map((tag) => (
-                              <option key={tag.id} value={tag.id}>
-                                {tag.name}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={pollFilter}
-                            onChange={(event) => {
-                              setPollFilter(event.target.value);
-                              setPollOptionFilter("");
-                            }}
-                          >
-                            <option value="">{t("Any vote")}</option>
-                            {polls.map((poll) => (
-                              <option key={poll.id} value={poll.id}>
-                                {poll.question}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={pollOptionFilter}
-                            disabled={!pollFilter}
-                            onChange={(event) =>
-                              setPollOptionFilter(event.target.value)
-                            }
-                          >
-                            <option value="">{t("Any answer")}</option>
-                            {pollOptions
-                              .filter((option) => option.poll_id === pollFilter)
-                              .map((option) => (
-                                <option key={option.id} value={option.id}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </select>
-                          <label>
-                            {t("Minimum Fire Crystal Furnace")}
-                            <input
-                              type="number"
-                              min="0"
-                              max="10"
-                              value={minimumFurnace}
-                              onChange={(event) =>
-                                setMinimumFurnace(Number(event.target.value))
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t("Minimum all troop tiers")}
-                            <input
-                              type="number"
-                              min="0"
-                              max="12"
-                              value={minimumTroopTier}
-                              onChange={(event) =>
-                                setMinimumTroopTier(Number(event.target.value))
-                              }
-                            />
-                          </label>
-                          <button
-                            className="secondary-link"
-                            onClick={() => {
-                              setMemberSearch("");
-                              setTagFilter("");
-                              setPollFilter("");
-                              setPollOptionFilter("");
-                              setMinimumFurnace(0);
-                              setMinimumTroopTier(0);
-                            }}
-                          >
-                            {t("Clear filters")}
-                          </button>
-                          <p>
-                            {filtersActive
-                              ? t(
-                                  "Drag individual matches into a group, or use Add matching on a group.",
-                                )
-                              : t(
-                                  "The full member list stays hidden. Add at least one filter to find candidates.",
-                                )}
-                          </p>
-                          {filtersActive && (
-                            <div className="plan-member-list candidate-result-list">
-                              {candidates
-                                .slice(0, 50)
-                                .map((member) =>
-                                  renderMemberCard(member, plan.id),
-                                )}
-                              {candidates.length > 50 && (
-                                <p>
-                                  {t("Showing the first 50 of")}{" "}
-                                  {candidates.length}{" "}
-                                  {t("matches. Narrow the filters.")}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <div className="battle-plan-board">
-                        {planGroups.map((group) => {
-                          const groupMembers = getGroupMembers(
-                            plan.id,
-                            group.id,
-                          );
-                          const leader = members.find(
-                            (member) =>
-                              member.id === group.leader_wos_account_id,
-                          );
-                          const alliance = alliances.find(
-                            (item) => item.id === group.alliance_id,
-                          );
-                          const assignmentTag = tags.find(
-                            (tag) => tag.id === group.assignment_tag_id,
-                          );
-                          return (
-                            <div
-                              key={group.id}
-                              className="plan-group-column"
-                              onDragOver={(event) => event.preventDefault()}
-                              onDrop={(event) =>
-                                dropMember(event, plan.id, group.id)
-                              }
-                            >
-                              {isAdmin && editingGroupId === group.id ? (
-                                <div className="plan-group-edit-panel">
-                                  <label>
-                                    {t("Name")}
-                                    <input
-                                      value={editingGroupName}
-                                      onChange={(event) =>
-                                        setEditingGroupName(event.target.value)
-                                      }
-                                    />
-                                  </label>
-                                  <label>
-                                    {t("Rally Lead")}
-                                    <select
-                                      value={editingGroupLeaderId}
-                                      onChange={(event) =>
-                                        setEditingGroupLeaderId(
-                                          event.target.value,
-                                        )
-                                      }
-                                    >
-                                      {rallyLeaders.map((member) => (
-                                        <option
-                                          key={member.id}
-                                          value={member.id}
-                                        >
-                                          {member.nickname || member.wos_id}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </label>
-                                  <label>
-                                    {t("Destination alliance")}
-                                    <select
-                                      value={editingGroupAllianceId}
-                                      onChange={(event) =>
-                                        setEditingGroupAllianceId(
-                                          event.target.value,
-                                        )
-                                      }
-                                    >
-                                      <option value="">
-                                        {t("Choose alliance")}
-                                      </option>
-                                      {alliances.map((item) => (
-                                        <option key={item.id} value={item.id}>
-                                          {item.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </label>
-                                  <label>
-                                    {t("Tag after publish")}
-                                    <select
-                                      value={editingGroupTagId}
-                                      onChange={(event) =>
-                                        setEditingGroupTagId(event.target.value)
-                                      }
-                                    >
-                                      <option value="">
-                                        {t("No automatic tag")}
-                                      </option>
-                                      {regularTags.map((tag) => (
-                                        <option key={tag.id} value={tag.id}>
-                                          {tag.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </label>
-                                  <label>
-                                    {t("Capacity")}
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      max="100"
-                                      value={editingGroupCapacity}
-                                      onChange={(event) =>
-                                        setEditingGroupCapacity(
-                                          Number(event.target.value),
-                                        )
-                                      }
-                                    />
-                                  </label>
-                                  <label>
-                                    {t("Instructions")}
-                                    <input
-                                      value={editingGroupNotes}
-                                      onChange={(event) =>
-                                        setEditingGroupNotes(event.target.value)
-                                      }
-                                    />
-                                  </label>
-                                  <button
-                                    disabled={saving}
-                                    onClick={() => void saveGroup()}
-                                  >
-                                    {t("Save group")}
-                                  </button>
-                                  <button
-                                    className="secondary-link"
-                                    onClick={() => setEditingGroupId(null)}
-                                  >
-                                    {t("Cancel")}
-                                  </button>
-                                </div>
-                              ) : (
-                                <>
-                                  <div className="plan-group-heading">
-                                    <div>
-                                      <h4>{group.name}</h4>
-                                      <small>
-                                        {t("Leader:")}{" "}
-                                        {leader?.nickname ||
-                                          leader?.wos_id ||
-                                          t("Unknown")}
-                                      </small>
-                                    </div>
-                                    <span>
-                                      {groupMembers.length}
-                                      {t("/")}
-                                      {group.max_members}
-                                    </span>
-                                  </div>
-                                  <p className="plan-group-notes">
-                                    {t("Alliance:")}{" "}
-                                    <strong>
-                                      {alliance?.name ??
-                                        t("Select before publishing")}
-                                    </strong>
-                                    {assignmentTag
-                                      ? ` · Publish tag: ${assignmentTag.name}`
-                                      : ""}
-                                  </p>
-                                  {group.notes && (
-                                    <p className="plan-group-notes">
-                                      {group.notes}
-                                    </p>
-                                  )}
-                                  {renderStats(groupMembers)}
-                                  {isAdmin && (
-                                    <div className="plan-group-actions">
-                                      <button
-                                        className="secondary-link"
-                                        disabled={
-                                          !filtersActive ||
-                                          !candidates.length ||
-                                          saving
-                                        }
-                                        onClick={() =>
-                                          void bulkAssign(plan.id, group)
-                                        }
-                                      >
-                                        {t("Add matching")}
-                                      </button>
-                                      <button
-                                        className="secondary-link"
-                                        onClick={() => beginEditingGroup(group)}
-                                      >
-                                        {t("Edit")}
-                                      </button>
-                                      <button
-                                        className="danger-button"
-                                        disabled={saving}
-                                        onClick={() => void deleteGroup(group)}
-                                      >
-                                        {t("Delete")}
-                                      </button>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                              <div className="plan-member-list">
-                                {groupMembers.length ? (
-                                  groupMembers.map((member) =>
-                                    renderMemberCard(member, plan.id),
-                                  )
-                                ) : (
-                                  <p className="plan-drop-hint">
-                                    {t("Drop filtered candidates here.")}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="plan-comments">
-                        <div className="section-title-row">
-                          <div>
-                            <p className="section-label">
-                              {t("Plan discussion")}
-                            </p>
-                            <h4>{t("Comments")}</h4>
-                          </div>
-                          <span className="retention-badge">
-                            {comments.length}
-                          </span>
-                        </div>
-                        {comments.length === 0 ? (
-                          <p className="plan-comments-empty">
-                            {t("No comments yet.")}
-                          </p>
-                        ) : (
-                          <div className="plan-comment-list">
-                            {comments.map((comment) => {
-                              const author = members.find(
-                                (member) =>
-                                  member.id === comment.author_wos_account_id,
-                              );
-                              return (
-                                <article
-                                  key={comment.id}
-                                  className={`plan-comment plan-comment-${comment.visibility}`}
-                                >
-                                  <div className="plan-comment-heading">
-                                    <div>
-                                      <strong>
-                                        {author?.nickname ||
-                                          author?.wos_id ||
-                                          t("Former member")}
-                                      </strong>
-                                      {author?.username && (
-                                        <small>
-                                          {t("@")}
-                                          {author.username}
-                                        </small>
-                                      )}
-                                    </div>
-                                    <div>
-                                      <span className="comment-visibility">
-                                        {comment.visibility === "admins"
-                                          ? t("Admin only")
-                                          : t("Public")}
-                                      </span>
-                                      <time>
-                                        {formatDateTime(comment.created_at)}
-                                      </time>
-                                    </div>
-                                  </div>
-                                  <p>{comment.body}</p>
-                                  {(isAdmin ||
-                                    comment.author_wos_account_id ===
-                                      activeMembership.wosAccountId) && (
-                                    <button
-                                      type="button"
-                                      className="danger-button comment-delete-button"
-                                      disabled={saving}
-                                      onClick={() =>
-                                        void deleteComment(comment)
-                                      }
-                                    >
-                                      {t("Delete")}
-                                    </button>
-                                  )}
-                                </article>
-                              );
-                            })}
-                          </div>
-                        )}
-                        <div className="plan-comment-form">
-                          <label>
-                            {t("Comment")}
-                            <textarea
-                              rows={3}
-                              maxLength={2000}
-                              value={commentDrafts[plan.id] ?? ""}
-                              onChange={(event) =>
-                                setCommentDrafts((drafts) => ({
-                                  ...drafts,
-                                  [plan.id]: event.target.value,
-                                }))
-                              }
-                              placeholder={t(
-                                "Write a comment. Use @username to mention and notify someone.",
-                              )}
-                            />
-                          </label>
-                          {isAdmin && (
-                            <label>
-                              {t("Visibility")}
-                              <select
-                                value={commentVisibility[plan.id] ?? "public"}
-                                onChange={(event) =>
-                                  setCommentVisibility((visibility) => ({
-                                    ...visibility,
-                                    [plan.id]: event.target.value as
-                                      "public" | "admins",
-                                  }))
-                                }
-                              >
-                                <option value="public">
-                                  {t("Public — all state members")}
-                                </option>
-                                <option value="admins">
-                                  {t("Admin only")}
-                                </option>
-                              </select>
-                            </label>
-                          )}
-                          <button
-                            type="button"
-                            disabled={
-                              saving || !(commentDrafts[plan.id] ?? "").trim()
-                            }
-                            onClick={() => void postComment(plan.id)}
-                          >
-                            {t("Post comment")}
-                          </button>
-                        </div>
-                        <p className="form-hint">
-                          {t(
-                            "Mention another state member with their account username, for example @Henrik. They receive a notification. Owners and Admins are notified about new comments.",
-                          )}
-                        </p>
-                      </div>
-                    </article>
+                      {t("Create SvS plan")}
+                    </button>
+                  </div>
+                  {message && <p className="page-message">{message}</p>}
+                </section>
+              )}
+            </>
+          ) : (
+            currentPlans.map(renderPlan)
+          )}
+
+          {historyPlans.length > 0 && (
+            <details className="plan-history">
+              <summary>
+                {t("Earlier plans ({count})", { count: historyPlans.length })}
+              </summary>
+              <ul>
+                {historyPlans.map((plan) => {
+                  const battle = scheduledBattles.find(
+                    (item) => item.plan_id === plan.id,
+                  );
+                  const status = battle?.status ?? plan.status;
+                  return (
+                    <li key={plan.id}>
+                      <strong>{plan.name}</strong>{" "}
+                      <time>{formatDateTime(plan.scheduled_at)}</time>{" "}
+                      <span className="battle-type-badge">
+                        {t(status.charAt(0).toUpperCase() + status.slice(1))}
+                      </span>
+                    </li>
                   );
                 })}
-              </div>
-            )}
-          </section>
-          {isAdmin && !rallyLeadTag && (
-            <section className="empty-state">
-              <h2>{t("Rally Lead tag missing")}</h2>
-              <p>
-                {t(
-                  "Run the Battle Planning V2 SQL upgrade before using this page.",
-                )}
-              </p>
-            </section>
+              </ul>
+            </details>
           )}
         </>
+      )}
+
+      {sheetPlan && sheetMember && (
+        <PlayerSheet
+          member={sheetMember}
+          groups={groups.filter((group) => group.plan_id === sheetPlan.id)}
+          groupSizes={
+            new Map(
+              groups
+                .filter((group) => group.plan_id === sheetPlan.id)
+                .map((group) => [
+                  group.id,
+                  assignments.filter((item) => item.group_id === group.id).length,
+                ]),
+            )
+          }
+          groupId={
+            assignments.find(
+              (item) =>
+                item.plan_id === sheetPlan.id &&
+                item.wos_account_id === sheetMember.id,
+            )?.group_id ?? null
+          }
+          hero={
+            assignments.find(
+              (item) =>
+                item.plan_id === sheetPlan.id &&
+                item.wos_account_id === sheetMember.id,
+            )?.hero ?? null
+          }
+          answer={attendance.find(
+            (row) =>
+              row.plan_id === sheetPlan.id &&
+              row.wos_account_id === sheetMember.id,
+          )}
+          isLeader={groups.some(
+            (group) =>
+              group.plan_id === sheetPlan.id &&
+              groupLeadIds(group).includes(sheetMember.id),
+          )}
+          isLeadTagged={
+            leadTagged.has(sheetMember.id) || holderTagged.has(sheetMember.id)
+          }
+          isAdmin={isAdmin}
+          busy={saving}
+          onMove={(groupId) => void moveMember(sheetPlan.id, sheetMember.id, groupId)}
+          onSetHero={(hero) => void setMemberHero(sheetPlan.id, sheetMember.id, hero)}
+          onClose={() => setOpenPlayer(null)}
+        />
       )}
     </main>
   );

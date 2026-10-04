@@ -13,4 +13,6 @@ export type StateMembership = {
   capabilities: StateCapability[];
   battleId: string | null;
   battleName: string | null;
+  // Billing: null when the state is not billed.
+  paidUntil: string | null;
 };

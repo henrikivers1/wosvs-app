@@ -73,8 +73,7 @@ export default function AnnouncementsPage() {
     }
 
     setLoading(true);
-    setMessage(t(""));
-    await supabase.rpc("cleanup_expired_state_announcements");
+    setMessage("");
 
     const [allianceResult, tagResult, recipientResult] = await Promise.all([
       supabase
@@ -117,6 +116,7 @@ export default function AnnouncementsPage() {
       .select(
         "id, title, body, audience_type, audience_id, audience_value, expires_at, created_at",
       )
+        .gt("expires_at", new Date().toISOString())
       .eq("state_id", activeMembership.stateId)
       .order("created_at", { ascending: false });
 
@@ -155,7 +155,7 @@ export default function AnnouncementsPage() {
     setTags((tagResult.data ?? []) as NamedAudience[]);
     setRecipientCounts(counts);
     setLoading(false);
-  }, [activeMembership, isAdmin, supabase, t]);
+  }, [activeMembership, isAdmin, supabase]);
 
   useEffect(() => {
     if (!loadingStates && signedIn === false) {
@@ -223,7 +223,7 @@ export default function AnnouncementsPage() {
     }
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("create_state_announcement", {
       target_state_id: activeMembership.stateId,
       sender_wos_account_id: activeMembership.wosAccountId,
@@ -264,7 +264,7 @@ export default function AnnouncementsPage() {
     }
 
     setSaving(true);
-    setMessage(t(""));
+    setMessage("");
     const { error } = await supabase.rpc("delete_state_announcement", {
       target_announcement_id: announcement.id,
     });
@@ -438,7 +438,7 @@ export default function AnnouncementsPage() {
                   </span>
                 </label>
               </div>
-              <button
+              <button className="primary-button"
                 type="button"
                 disabled={saving}
                 onClick={() => void createAnnouncement()}
