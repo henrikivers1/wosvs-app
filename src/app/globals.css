@@ -1296,6 +1296,30 @@ li button {
   margin-left: auto;
 }
 /* The garrison's countdown: readable at a glance in battle */
+.garrison-taps {
+  display: grid;
+  margin: 0 0 16px;
+  padding: 0;
+  gap: 6px;
+  list-style: none;
+}
+.garrison-taps li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.garrison-taps li.is-next {
+  border-color: var(--gold);
+}
+.garrison-taps time {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
 .send-status {
   display: inline-block;
   margin-top: 4px;

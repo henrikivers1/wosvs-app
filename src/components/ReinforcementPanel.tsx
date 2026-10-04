@@ -68,6 +68,34 @@ export function ReinforcementSettings({
           />
         </label>
         <label>
+          {t("Speedups for close rallies")}
+          <select
+            value={timing.speedupMode}
+            onChange={(event) =>
+              timing.setSpeedupMode(event.target.value as typeof timing.speedupMode)
+            }
+          >
+            <option value="25-50">{t("25% and 50%")}</option>
+            <option value="25-25x2">{t("25% only (two for a third march)")}</option>
+            <option value="off">{t("Off: one send per rally")}</option>
+          </select>
+        </label>
+        <label>
+          {t("Seconds before you can tap a speedup")}
+          <input
+            type="number"
+            min="1"
+            max="10"
+            step="0.5"
+            value={timing.speedupDelayMs / 1000}
+            onChange={(event) =>
+              timing.setSpeedupDelayMs(
+                Math.round(Math.max(1, Math.min(10, Number(event.target.value) || 3)) * 1000),
+              )
+            }
+          />
+        </label>
+        <label>
           <input
             type="checkbox"
             checked={timing.playerPetActive}
@@ -120,6 +148,11 @@ export function ReinforcementSettings({
       <p>
         {t(
           "Your reinforcements land this long after the enemy rally hits (default 100 ms), never later than halfway to the next hit. With sound on you hear 3, 2, 1 and a high tone: tap Send on the tone. Tap Test sound once so your phone allows the beeps.",
+        )}
+      </p>
+      <p>
+        {t(
+          "Rallies that hit close together each get their own march. When there is no time to send them one after another, a march is sent later and sped up with a March Accelerator: two short low beeps mean tap the speedup. A speedup takes 25% or 50% off the time that is left, and tapping it a little late barely moves the landing.",
         )}
       </p>
     </>
@@ -179,11 +212,30 @@ export function ReinforcementSchedule({
 
   return (
     <>
+      {timing.upcomingTaps.length > 0 && (
+        <ol className="garrison-taps" aria-label={t("Your taps")}>
+          {timing.upcomingTaps.slice(0, 8).map((tap, index) => (
+            <li key={tap.key} className={index === 0 ? "is-next" : undefined}>
+              <time>{formatUtcTimePrecise(new Date(tap.at))}</time>
+              <strong>
+                {tap.kind === "send"
+                  ? t("Send march {number}", { number: tap.march })
+                  : t("Speed up march {number} by {percent}%", {
+                      number: tap.march,
+                      percent: tap.percent ?? 25,
+                    })}
+              </strong>
+            </li>
+          ))}
+        </ol>
+      )}
       {timing.landingWindows.map((landingWindow, index) => {
+        const march = timing.marchFor(landingWindow);
+        const marchNumber = timing.marchNumber(landingWindow);
         const windowMs = landingWindow.closesAt
           ? landingWindow.closesAt.getTime() - landingWindow.opensAt.getTime()
           : null;
-        const msUntilSend = timing.getMsUntilSend(landingWindow);
+        const msUntilSend = timing.getMsUntilNextTap(landingWindow);
 
         return (
           <article key={landingWindow.id}>
@@ -217,13 +269,31 @@ export function ReinforcementSchedule({
                 )}
               </p>
             )}
-            <p>
-              {t("Send reinforcement at:")}{" "}
-              <strong>
-                {formatUtcTimePrecise(timing.getSendTime(landingWindow))}{" "}
-                {t("UTC")}
-              </strong>
-            </p>
+            {march ? (
+              <p>
+                {marchNumber !== null && `${t("March {number}", { number: marchNumber })} · `}
+                {t("Send reinforcement at:")}{" "}
+                <strong>
+                  {formatUtcTimePrecise(timing.getSendTime(landingWindow))}{" "}
+                  {t("UTC")}
+                </strong>
+                {march.taps
+                  .filter((tap) => tap.kind === "speedup")
+                  .map((tap, tapIndex) => (
+                    <span key={tapIndex}>
+                      {" · "}
+                      {t("speed up {percent}% at {time}", {
+                        percent: tap.percent ?? 25,
+                        time: formatUtcTimePrecise(new Date(tap.at)),
+                      })}
+                    </span>
+                  ))}
+              </p>
+            ) : (
+              <p className="auth-message">
+                {t("No time for a march here: it would come too close to your other taps.")}
+              </p>
+            )}
             <p
               className={
                 msUntilSend <= 0 && msUntilSend > -1500

@@ -119,7 +119,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           "Turn on sound and tap Test sound once, so your phone allows the beeps.",
           "You hear 3, 2, 1 and a high tone: tap Send in the game on the tone.",
         ],
-        body: "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives.",
+        body: "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.",
         tip: "If the game lags on your connection, add your ping in milliseconds under Send early.",
       },
       {

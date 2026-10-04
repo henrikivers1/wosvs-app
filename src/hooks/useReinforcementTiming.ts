@@ -4,9 +4,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { calculateMarchTime } from "@/lib/marchTime";
 import {
+  DEFAULT_MIN_TAP_GAP_MS,
+  DEFAULT_SPEEDUP_DELAY_MS,
+  planMarches,
+  type PlannedMarch,
+  type SpeedupMode,
+} from "@/lib/marchPlan";
+import {
   buildLandingWindows,
   DEFAULT_LAND_AFTER_MS,
-  windowSendTime,
   type LandingWindow,
 } from "@/lib/reinforcementWindows";
 import type { EnemyRally } from "@/types/rally";
@@ -19,6 +25,8 @@ type StoredSettings = {
   y: number;
   sendEarlyMs: number;
   landAfterMs?: number;
+  speedupMode?: SpeedupMode;
+  speedupDelayMs?: number;
 };
 
 // "3, 2, 1, SEND": short ticks 3, 2 and 1 seconds before the send and a
@@ -28,6 +36,10 @@ const COUNTDOWN_TICKS_MS = [3000, 2000, 1000];
 // Beeps are put on the audio clock this far ahead, so they keep time even
 // when the page's timers are slowed down.
 const SCHEDULE_AHEAD_MS = 5000;
+const TICK_HZ = 880;
+const SEND_HZ = 1320;
+// Speedups: two short, lower beeps.
+const SPEEDUP_HZ = 660;
 
 function playTone(
   context: AudioContext,
@@ -71,6 +83,17 @@ function showSystemNotification(title: string, options: NotificationOptions) {
   }
 }
 
+// One tap the player makes: sending a march or speeding one up.
+export type GarrisonTap = {
+  key: string;
+  windowId: string;
+  // Marches are numbered in the order they are sent.
+  march: number;
+  kind: "send" | "speedup";
+  percent?: 25 | 50;
+  at: number;
+};
+
 export function useReinforcementTiming(
   rallies: EnemyRally[],
   currentTime: Date,
@@ -80,13 +103,15 @@ export function useReinforcementTiming(
   const [playerY, setPlayerY] = useState(606);
   const [sendEarlyMs, setSendEarlyMs] = useState(0);
   const [landAfterMs, setLandAfterMs] = useState(DEFAULT_LAND_AFTER_MS);
+  const [speedupMode, setSpeedupMode] = useState<SpeedupMode>("25-50");
+  const [speedupDelayMs, setSpeedupDelayMs] = useState(DEFAULT_SPEEDUP_DELAY_MS);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [playerPetActive, setPlayerPetActive] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const alertedWindows = useRef<Set<string>>(new Set());
+  const alertedTaps = useRef<Set<string>>(new Set());
 
-  // Keep coordinates and ping compensation across reloads during a battle.
+  // Keep coordinates, ping compensation and speedups across reloads.
   useEffect(() => {
     const loadId = window.setTimeout(() => {
       const stored = readStoredSettings();
@@ -99,6 +124,10 @@ export function useReinforcementTiming(
         if (Number.isFinite(stored.landAfterMs)) {
           setLandAfterMs(stored.landAfterMs!);
         }
+        if (stored.speedupMode) setSpeedupMode(stored.speedupMode);
+        if (Number.isFinite(stored.speedupDelayMs)) {
+          setSpeedupDelayMs(stored.speedupDelayMs!);
+        }
       }
       setSettingsLoaded(true);
     }, 0);
@@ -110,46 +139,126 @@ export function useReinforcementTiming(
     try {
       window.localStorage.setItem(
         SETTINGS_KEY,
-        JSON.stringify({ x: playerX, y: playerY, sendEarlyMs, landAfterMs }),
+        JSON.stringify({
+          x: playerX,
+          y: playerY,
+          sendEarlyMs,
+          landAfterMs,
+          speedupMode,
+          speedupDelayMs,
+        }),
       );
     } catch {
       // Storage can be unavailable (private mode); settings stay in memory.
     }
-  }, [playerX, playerY, sendEarlyMs, landAfterMs, settingsLoaded]);
+  }, [playerX, playerY, sendEarlyMs, landAfterMs, speedupMode, speedupDelayMs, settingsLoaded]);
 
   const playerMarchTime = calculateMarchTime(playerX, playerY, playerPetActive);
+  const now = currentTime.getTime();
 
-  const getSendTime = (landingWindow: LandingWindow) =>
-    windowSendTime(landingWindow, playerMarchTime, sendEarlyMs);
-
-  const landingWindows = useMemo(
-    () =>
-      buildLandingWindows(rallies, landAfterMs).filter(
-        (landingWindow) =>
-          currentTime.getTime() <
-          windowSendTime(
-            landingWindow,
-            playerMarchTime,
-            sendEarlyMs,
-          ).getTime() +
-            HIDE_AFTER_SEND_MS,
-      ),
-    [currentTime, landAfterMs, playerMarchTime, rallies, sendEarlyMs],
+  const allWindows = useMemo(
+    () => buildLandingWindows(rallies, landAfterMs),
+    [rallies, landAfterMs],
   );
 
+  // One march per landing window, sped up where sends would come too close
+  // together. Marches already sent keep their plan when rallies change.
+  const [sentMarches, setSentMarches] = useState<Map<string, PlannedMarch>>(new Map());
+  const plan = useMemo(() => {
+    const fixed = new Map(
+      [...sentMarches].filter(([id]) => allWindows.some((item) => item.id === id)),
+    );
+    return planMarches(
+      allWindows.map((landingWindow) => ({
+        id: landingWindow.id,
+        at: landingWindow.targetTime.getTime(),
+      })),
+      {
+        marchMs: playerMarchTime * 1000,
+        speedupDelayMs,
+        minGapMs: DEFAULT_MIN_TAP_GAP_MS,
+        earlyMs: sendEarlyMs,
+        mode: speedupMode,
+      },
+      fixed,
+    );
+  }, [allWindows, playerMarchTime, sendEarlyMs, sentMarches, speedupDelayMs, speedupMode]);
+  // Remember marches as they are sent.
+  useEffect(() => {
+    const newlySent = [...plan].filter(
+      (entry): entry is [string, PlannedMarch] =>
+        Boolean(entry[1]) && entry[1]!.taps[0].at <= now && !sentMarches.has(entry[0]),
+    );
+    if (!newlySent.length) return;
+    const saveId = window.setTimeout(
+      () => setSentMarches((current) => new Map([...current, ...newlySent])),
+      0,
+    );
+    return () => window.clearTimeout(saveId);
+  }, [now, plan, sentMarches]);
+
+  const taps = useMemo(() => {
+    const marches = [...plan.entries()]
+      .filter((entry): entry is [string, PlannedMarch] => Boolean(entry[1]))
+      .sort((first, second) => first[1].taps[0].at - second[1].taps[0].at);
+    return marches.flatMap(([windowId, march], index) =>
+      march.taps.map((tap, tapIndex) => ({
+        key: `${windowId}:${tapIndex}:${tap.at}`,
+        windowId,
+        march: index + 1,
+        kind: tap.kind,
+        percent: tap.percent,
+        at: tap.at,
+      })),
+    ).sort((first, second) => first.at - second.at) as GarrisonTap[];
+  }, [plan]);
+
+  const marchFor = (landingWindow: LandingWindow) => plan.get(landingWindow.id) ?? null;
+  const marchNumber = (landingWindow: LandingWindow) =>
+    taps.find((tap) => tap.windowId === landingWindow.id)?.march ?? null;
+  const lastTapAt = (landingWindow: LandingWindow) => {
+    const march = marchFor(landingWindow);
+    return march ? march.taps[march.taps.length - 1].at : landingWindow.targetTime.getTime();
+  };
+
+  // Windows stay on screen until a few seconds after their last tap.
+  const landingWindows = allWindows.filter(
+    (landingWindow) => now < lastTapAt(landingWindow) + HIDE_AFTER_SEND_MS,
+  );
+  const upcomingTaps = taps.filter((tap) => tap.at > now - 1500);
+
+  const getSendTime = (landingWindow: LandingWindow) =>
+    new Date(marchFor(landingWindow)?.taps[0].at ?? landingWindow.targetTime.getTime() - playerMarchTime * 1000);
+
   function getMsUntilSend(landingWindow: LandingWindow): number {
-    return getSendTime(landingWindow).getTime() - currentTime.getTime();
+    return getSendTime(landingWindow).getTime() - now;
   }
 
+  // Until the window's next tap (send or speedup), for the status colour.
+  function getMsUntilNextTap(landingWindow: LandingWindow): number {
+    const march = marchFor(landingWindow);
+    const next = march?.taps.find((tap) => tap.at > now - 1500);
+    return next ? next.at - now : -Infinity;
+  }
+
+  // The window's next tap, as "Send in 3.2 seconds" or "SPEED UP 25% NOW".
   function getSendStatus(landingWindow: LandingWindow): string {
-    const msRemaining = getMsUntilSend(landingWindow);
-    if (msRemaining > 0) {
-      return t("Send in {seconds} seconds", {
-        seconds: (msRemaining / 1000).toFixed(1),
-      });
+    const march = marchFor(landingWindow);
+    if (!march) return t("No time for a march here");
+    const next = march.taps.find((tap) => tap.at > now - 1500);
+    if (!next) return t("Send time passed");
+    const msRemaining = next.at - now;
+    if (next.kind === "speedup") {
+      return msRemaining > 0
+        ? t("Speed up {percent}% in {seconds} seconds", {
+            percent: next.percent ?? 25,
+            seconds: (msRemaining / 1000).toFixed(1),
+          })
+        : t("SPEED UP {percent}% NOW", { percent: next.percent ?? 25 });
     }
-    if (msRemaining > -1500) return t("SEND NOW");
-    return t("Send time passed");
+    return msRemaining > 0
+      ? t("Send in {seconds} seconds", { seconds: (msRemaining / 1000).toFixed(1) })
+      : t("SEND NOW");
   }
 
   // Browsers only start audio after a tap, so the first tap anywhere on the
@@ -181,63 +290,72 @@ export function useReinforcementTiming(
     const context = audioContext();
     if (!context) return;
     const start = context.currentTime + 0.1;
-    COUNTDOWN_TICKS_MS.forEach((_, index) => playTone(context, start + index * 0.5, 880, 0.08));
-    playTone(context, start + COUNTDOWN_TICKS_MS.length * 0.5, 1320, 0.35);
+    COUNTDOWN_TICKS_MS.forEach((_, index) => playTone(context, start + index * 0.5, TICK_HZ, 0.08));
+    playTone(context, start + 1.5, SEND_HZ, 0.35);
+    playTone(context, start + 2.2, SPEEDUP_HZ, 0.12);
+    playTone(context, start + 2.4, SPEEDUP_HZ, 0.12);
   }
 
-  // Each window's beeps, keyed by its send time so they are moved when the
-  // send time changes (new coordinates, a rally called or cancelled).
-  const scheduled = useRef<Map<string, { sendAt: number; tones: OscillatorNode[] }>>(new Map());
+  // Each tap's beeps, put on the audio clock a few seconds ahead. A tap's
+  // key holds its time, so a changed plan stops the old beeps.
+  const scheduled = useRef<Map<string, OscillatorNode[]>>(new Map());
   useEffect(() => {
     const context = audioRef.current;
-    const live = new Set<string>();
-    const sendTimes = landingWindows
-      .map((landingWindow) => windowSendTime(landingWindow, playerMarchTime, sendEarlyMs).getTime())
-      .sort((first, second) => first - second);
-    landingWindows.forEach((landingWindow) => {
-      const sendAt = windowSendTime(landingWindow, playerMarchTime, sendEarlyMs).getTime();
-      // Ticks that would fall before the previous window's send tone are
-      // left out, so close windows play "3, 2, 1, SEND, SEND".
-      const previous = sendTimes.filter((time) => time < sendAt).pop() ?? -Infinity;
-      const msUntil = sendAt - currentTime.getTime();
-      if (msUntil < -500 || msUntil > SCHEDULE_AHEAD_MS) return;
-      live.add(landingWindow.id);
-      const existing = scheduled.current.get(landingWindow.id);
-      if (existing && existing.sendAt === sendAt) return;
-      existing?.tones.forEach((tone) => {
+    const stop = (tones: OscillatorNode[]) =>
+      tones.forEach((tone) => {
         try {
           tone.stop();
         } catch {
           // Already finished.
         }
       });
-      scheduled.current.delete(landingWindow.id);
-      if (!soundEnabled || !context || context.state !== "running") return;
-      // The audio clock and the battle clock tick together; place each beep
-      // at its offset from now.
-      const now = context.currentTime;
-      const tones = [
-        ...COUNTDOWN_TICKS_MS.filter((before) => sendAt - before > previous + 300).map((before) => ({
+    const wanted = new Set(
+      taps.filter((tap) => tap.at - now <= SCHEDULE_AHEAD_MS && tap.at - now > -500).map((tap) => tap.key),
+    );
+    for (const [key, tones] of scheduled.current) {
+      const at = Number(key.split(":")[2]);
+      if (!wanted.has(key) && at > now) {
+        stop(tones);
+        scheduled.current.delete(key);
+      } else if (at < now - 2000) {
+        scheduled.current.delete(key);
+      }
+    }
+    if (!soundEnabled || !context || context.state !== "running") return;
+    const audioNow = context.currentTime;
+    taps.forEach((tap, index) => {
+      if (!wanted.has(tap.key) || scheduled.current.has(tap.key)) return;
+      const msUntil = tap.at - now;
+      // Ticks that would fall before the previous tap are left out, so
+      // close taps play "3, 2, 1, SEND, tick, tick, SPEED UP".
+      const previous = index > 0 ? taps[index - 1].at : -Infinity;
+      const beeps = [
+        ...COUNTDOWN_TICKS_MS.filter((before) => tap.at - before > previous + 300).map((before) => ({
           at: msUntil - before,
-          frequency: 880,
+          frequency: TICK_HZ,
           duration: 0.08,
         })),
-        { at: msUntil, frequency: 1320, duration: 0.35 },
-      ]
-        .filter((beep) => beep.at > -50)
-        .map((beep) => playTone(context, now + Math.max(0, beep.at) / 1000, beep.frequency, beep.duration));
-      scheduled.current.set(landingWindow.id, { sendAt, tones });
+        ...(tap.kind === "send"
+          ? [{ at: msUntil, frequency: SEND_HZ, duration: 0.35 }]
+          : [
+              { at: msUntil, frequency: SPEEDUP_HZ, duration: 0.12 },
+              { at: msUntil + 180, frequency: SPEEDUP_HZ, duration: 0.12 },
+            ]),
+      ].filter((beep) => beep.at > -50);
+      scheduled.current.set(
+        tap.key,
+        beeps.map((beep) =>
+          playTone(context, audioNow + Math.max(0, beep.at) / 1000, beep.frequency, beep.duration),
+        ),
+      );
     });
-    for (const [id, entry] of scheduled.current) {
-      if (!live.has(id) && entry.sendAt < currentTime.getTime() - 500) scheduled.current.delete(id);
-    }
-  }, [currentTime, landingWindows, playerMarchTime, sendEarlyMs, soundEnabled]);
+  }, [now, soundEnabled, taps]);
 
   // Sound off: silence beeps already on the audio clock.
   useEffect(() => {
     if (soundEnabled) return;
-    for (const entry of scheduled.current.values()) {
-      entry.tones.forEach((tone) => {
+    for (const tones of scheduled.current.values()) {
+      tones.forEach((tone) => {
         try {
           tone.stop();
         } catch {
@@ -259,46 +377,30 @@ export function useReinforcementTiming(
   }
 
   useEffect(() => {
-    landingWindows.forEach((landingWindow) => {
-      const msRemaining =
-        windowSendTime(landingWindow, playerMarchTime, sendEarlyMs).getTime() -
-        currentTime.getTime();
+    taps.forEach((tap) => {
+      const msRemaining = tap.at - now;
+      if (msRemaining > 0 || msRemaining < -1000 || alertedTaps.current.has(tap.key)) {
+        return;
+      }
+      alertedTaps.current.add(tap.key);
       if (
-        msRemaining > 0 ||
-        msRemaining < -1000 ||
-        alertedWindows.current.has(landingWindow.id)
+        !notificationsEnabled ||
+        !("Notification" in window) ||
+        Notification.permission !== "granted"
       ) {
         return;
       }
-      alertedWindows.current.add(landingWindow.id);
-
-      if (
-        notificationsEnabled &&
-        "Notification" in window &&
-        Notification.permission === "granted"
-      ) {
-        showSystemNotification(t("SEND REINFORCEMENTS NOW"), {
-          body: landingWindow.before
-            ? t("Land between {first} and {second}.", {
-                first: landingWindow.after.enemyName,
-                second: landingWindow.before.enemyName,
-              })
-            : t("Land right after {name} hits.", {
-                name: landingWindow.after.enemyName,
-              }),
-          tag: `window-${landingWindow.id}`,
-        });
-      }
+      showSystemNotification(
+        tap.kind === "send"
+          ? t("SEND REINFORCEMENTS NOW")
+          : t("SPEED UP {percent}% NOW", { percent: tap.percent ?? 25 }),
+        {
+          body: t("March {number}", { number: tap.march }),
+          tag: `tap-${tap.key}`,
+        },
+      );
     });
-  }, [
-    currentTime,
-    landingWindows,
-    notificationsEnabled,
-    playerMarchTime,
-    sendEarlyMs,
-    soundEnabled,
-    t,
-  ]);
+  }, [notificationsEnabled, now, t, taps]);
 
   return {
     playerX,
@@ -309,6 +411,10 @@ export function useReinforcementTiming(
     setSendEarlyMs,
     landAfterMs,
     setLandAfterMs,
+    speedupMode,
+    setSpeedupMode,
+    speedupDelayMs,
+    setSpeedupDelayMs,
     testSound,
     playerPetActive,
     setPlayerPetActive,
@@ -318,8 +424,12 @@ export function useReinforcementTiming(
     enableNotifications,
     playerMarchTime,
     landingWindows,
+    upcomingTaps,
+    marchFor,
+    marchNumber,
     getSendTime,
     getMsUntilSend,
+    getMsUntilNextTap,
     getSendStatus,
   };
 }

@@ -28,6 +28,38 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.":
+    "El temporizador hace que tus refuerzos lleguen justo después de cada impacto de rally enemigo (100 ms por defecto, en Llegar tras el impacto), antes de que llegue el siguiente. Cuando los rallies impactan seguidos, cada uno recibe su propia marcha: \"Tus pulsaciones\" muestra cada envío y cada Acelerador de marcha del 25% o 50% que debes pulsar, una marcha cada vez.",
+  "Speedups for close rallies":
+    "Aceleradores para rallies seguidos",
+  "25% and 50%":
+    "25% y 50%",
+  "25% only (two for a third march)":
+    "Solo 25% (dos para una tercera marcha)",
+  "Off: one send per rally":
+    "Desactivado: un envío por rally",
+  "Seconds before you can tap a speedup":
+    "Segundos antes de poder pulsar un acelerador",
+  "Rallies that hit close together each get their own march. When there is no time to send them one after another, a march is sent later and sped up with a March Accelerator: two short low beeps mean tap the speedup. A speedup takes 25% or 50% off the time that is left, and tapping it a little late barely moves the landing.":
+    "Los rallies que impactan seguidos reciben cada uno su propia marcha. Si no hay tiempo para enviarlas una tras otra, una marcha se envía más tarde y se acelera con un Acelerador de marcha: dos pitidos cortos y graves significan pulsar el acelerador. Un acelerador quita el 25% o el 50% del tiempo restante, y pulsarlo un poco tarde apenas cambia la llegada.",
+  "Your taps":
+    "Tus pulsaciones",
+  "Send march {number}":
+    "Envía la marcha {number}",
+  "Speed up march {number} by {percent}%":
+    "Acelera la marcha {number} un {percent}%",
+  "March {number}":
+    "Marcha {number}",
+  "speed up {percent}% at {time}":
+    "acelera un {percent}% a las {time}",
+  "No time for a march here: it would come too close to your other taps.":
+    "No hay tiempo para una marcha aquí: quedaría demasiado cerca de tus otras pulsaciones.",
+  "No time for a march here":
+    "No hay tiempo para una marcha aquí",
+  "Speed up {percent}% in {seconds} seconds":
+    "Acelera un {percent}% en {seconds} segundos",
+  "SPEED UP {percent}% NOW":
+    "ACELERA UN {percent}% YA",
   "Land after the hit (ms)":
     "Llegar tras el impacto (ms)",
   "Test sound":
@@ -36,8 +68,6 @@ const spanishInterface: Record<string, string> = {
     "Tus refuerzos llegan este tiempo después del impacto del rally enemigo (100 ms por defecto), nunca más tarde de la mitad hasta el siguiente impacto. Con el sonido activado oyes 3, 2, 1 y un tono agudo: pulsa Enviar con el tono. Pulsa Probar sonido una vez para que tu teléfono permita los pitidos.",
   "Under {ms} ms between these rallies: aiming for the middle of the gap.":
     "Menos de {ms} ms entre estos rallies: se apunta al centro del hueco.",
-  "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives.":
-    "El temporizador hace que tus refuerzos lleguen justo después de cada impacto de rally enemigo (100 ms por defecto, en Llegar tras el impacto), antes de que llegue el siguiente.",
   "Turn on sound and tap Test sound once, so your phone allows the beeps.":
     "Activa el sonido y pulsa Probar sonido una vez para que tu teléfono permita los pitidos.",
   "You hear 3, 2, 1 and a high tone: tap Send in the game on the tone.":
