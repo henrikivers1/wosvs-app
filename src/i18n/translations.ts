@@ -1466,6 +1466,12 @@ const spanishInterface: Record<string, string> = {
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
   "Battle plan deleted.": "Plan de batalla eliminado.",
+  "Want this for your state?":
+    "¿Lo quieres para tu estado?",
+  "Get Overwatch for your state":
+    "Consigue Overwatch para tu estado",
+  "State leaders message us on Discord and we set your state up. Your members then join with a link from you.":
+    "Los líderes de estado nos escriben por Discord y configuramos su estado. Después, tus miembros se unen con un enlace que les das tú.",
   "Battle plan reset.": "Plan de batalla restablecido.",
   "Reset plan": "Restablecer plan",
   "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":

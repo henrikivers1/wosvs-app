@@ -81,6 +81,12 @@ export const chineseInterface: Record<string, string> = {
   "Battle losses": "战斗失败",
   "Battle period active": "战斗期进行中",
   "Battle plan deleted.": "作战计划已删除。",
+  "Want this for your state?":
+    "想为你的州使用吗？",
+  "Get Overwatch for your state":
+    "为你的州开通 Overwatch",
+  "State leaders message us on Discord and we set your state up. Your members then join with a link from you.":
+    "州领袖在 Discord 上联系我们，我们为你的州完成设置。之后你的成员通过你发的链接加入。",
   "Battle plan reset.": "作战计划已重置。",
   "Reset plan": "重置计划",
   "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":

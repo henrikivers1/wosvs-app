@@ -81,6 +81,12 @@ export const thaiInterface: Record<string, string> = {
   "Battle losses": "แพ้การรบ",
   "Battle period active": "ช่วงการรบกำลังดำเนินอยู่",
   "Battle plan deleted.": "ลบแผนการรบแล้ว",
+  "Want this for your state?":
+    "อยากได้สำหรับสเตทของคุณไหม?",
+  "Get Overwatch for your state":
+    "รับ Overwatch สำหรับสเตทของคุณ",
+  "State leaders message us on Discord and we set your state up. Your members then join with a link from you.":
+    "ผู้นำสเตทส่งข้อความหาเราทาง Discord แล้วเราจะตั้งค่าสเตทให้ จากนั้นสมาชิกของคุณเข้าร่วมด้วยลิงก์จากคุณ",
   "Battle plan reset.": "รีเซ็ตแผนการรบแล้ว",
   "Reset plan": "รีเซ็ตแผน",
   "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":

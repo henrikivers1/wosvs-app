@@ -60,7 +60,8 @@ export function LandingVideo() {
           <source src="/video/overwatch-tour.webm" type="video/webm" />
           <source src="/video/overwatch-tour.mp4" type="video/mp4" />
         </video>
-        {muted && (
+      </div>
+      {muted && (
           <button type="button" className="landing-video-sound" onClick={soundOn}>
             <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 5 6 9H3v6h3l5 4V5Z" />
@@ -68,8 +69,7 @@ export function LandingVideo() {
             </svg>
             {t("Play with sound")}
           </button>
-        )}
-      </div>
+      )}
     </section>
   );
 }
