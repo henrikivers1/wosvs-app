@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { type FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useLanguage } from "@/components/LanguageProvider";
 import { PinField } from "@/components/PinField";
@@ -10,7 +9,6 @@ import { enterDemo } from "@/lib/demo/mode";
 
 export default function LoginPage() {
   const { t } = useLanguage();
-  const router = useRouter();
   const [wosId, setWosId] = useState("");
   const [pin, setPin] = useState("");
   const [message, setMessage] = useState("");
@@ -44,8 +42,9 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      router.push(result.mustChangePin ? "/account/pin" : "/");
-      router.refresh();
+      // A full load: the sign-in happened on the server, and the signed-in
+      // state the browser already holds would still say signed out.
+      window.location.assign(result.mustChangePin ? "/account/pin" : "/");
     } catch {
       setMessage(t("Sign-in failed. Try again."));
       setLoading(false);

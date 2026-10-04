@@ -68,8 +68,8 @@ export default function ChangePinPage() {
         setLoading(false);
         return;
       }
-      router.push(mustChange ? "/" : "/account");
-      router.refresh();
+      // A full load, so every page sees the new session state.
+      window.location.assign(mustChange ? "/" : "/account");
     } catch {
       setMessage(t("Your PIN could not be changed."));
       setLoading(false);

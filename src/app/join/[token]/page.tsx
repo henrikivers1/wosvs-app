@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { useLanguage } from "@/components/LanguageProvider";
 import { PinField } from "@/components/PinField";
@@ -13,7 +13,6 @@ type Checked = { status: "new" | "existing"; nickname: string };
 // Joining a state with the link and first-time PIN from its leader.
 export default function JoinPage() {
   const { t } = useLanguage();
-  const router = useRouter();
   const { token } = useParams<{ token: string }>();
   const [state, setState] = useState<{ stateName: string } | null>(null);
   const [linkError, setLinkError] = useState("");
@@ -104,8 +103,10 @@ export default function JoinPage() {
     try {
       const result = await send(true);
       if (result?.ok) {
-        router.push("/");
-        router.refresh();
+        // A full load: the join signed in on the server, and the signed-in
+        // state the browser already holds would still say signed out.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign("/");
         return;
       }
     } catch {
