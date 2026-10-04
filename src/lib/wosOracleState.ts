@@ -167,7 +167,8 @@ export async function fetchStateSummary(
         {
           key: optionalText(stat.key) ?? label,
           label,
-          value: toNumber(stat.value) ?? 0,
+          // WOSOracle sends the stat's amount as "total".
+          value: toNumber(stat.total ?? stat.value) ?? 0,
           rank: toNumber(stat.rank) ?? 0,
           outOf: toNumber(stat.out_of) ?? 0,
         },
