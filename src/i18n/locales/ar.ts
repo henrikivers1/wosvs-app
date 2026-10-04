@@ -909,7 +909,7 @@ export const arabicInterface: Record<string, string> = {
   "Your notifications.": "إشعاراتك.",
   "Why": "لماذا",
   "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.": "فقط لتشغيل Overwatch لك ولولايتك: تسجيل الدخول وتخطيط الحشود وتوقيت التعزيزات وإبلاغك بالتغييرات.",
-  "No ads, no tracking, no analytics. We never sell or share your data for marketing.": "لا إعلانات ولا تتبّع ولا تحليلات. لا نبيع بياناتك ولا نشاركها لأغراض تسويقية أبدًا.",
+  "No ads and no tracking. Vercel counts anonymous page views, without cookies, so we can see how the site is used. We never sell or share your data for marketing.": "لا إعلانات ولا تتبّع. يحسب Vercel مشاهدات الصفحات بشكل مجهول ودون ملفات تعريف الارتباط، لنعرف كيف يُستخدم الموقع. لا نبيع بياناتك ولا نشاركها لأغراض التسويق.",
   "Who can see it": "من يمكنه رؤيتها",
   "Services we use": "الخدمات التي نستخدمها",
   "Supabase stores the database and handles sign-in.": "تخزّن Supabase قاعدة البيانات وتتولى تسجيل الدخول.",

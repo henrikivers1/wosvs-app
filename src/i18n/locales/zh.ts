@@ -897,7 +897,7 @@ export const chineseInterface: Record<string, string> = {
   "Your notifications.": "你的通知。",
   "Why": "用途",
   "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.": "仅用于为你和你的州运行 Overwatch：登录、规划集结、计算增援时机，以及通知你变更。",
-  "No ads, no tracking, no analytics. We never sell or share your data for marketing.": "没有广告、没有跟踪、没有统计分析。我们绝不出售或为营销目的分享你的数据。",
+  "No ads and no tracking. Vercel counts anonymous page views, without cookies, so we can see how the site is used. We never sell or share your data for marketing.": "没有广告，没有跟踪。Vercel 会在不使用 Cookie 的情况下统计匿名页面浏览量，让我们了解网站的使用情况。我们绝不出售或为营销目的分享你的数据。",
   "Who can see it": "谁能看到",
   "Services we use": "我们使用的服务",
   "Supabase stores the database and handles sign-in.": "Supabase 存储数据库并负责登录。",

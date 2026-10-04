@@ -748,8 +748,8 @@ const spanishInterface: Record<string, string> = {
     "Para qué",
   "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.":
     "Solo para que Overwatch funcione para ti y tu estado: iniciar sesión, planificar rallies, cronometrar refuerzos y avisarte de los cambios.",
-  "No ads, no tracking, no analytics. We never sell or share your data for marketing.":
-    "Sin anuncios, sin rastreo, sin analíticas. Nunca vendemos ni compartimos tus datos con fines de marketing.",
+  "No ads and no tracking. Vercel counts anonymous page views, without cookies, so we can see how the site is used. We never sell or share your data for marketing.":
+    "Sin anuncios y sin rastreo. Vercel cuenta visitas anónimas a las páginas, sin cookies, para que veamos cómo se usa el sitio. Nunca vendemos ni compartimos tus datos con fines de marketing.",
   "Who can see it":
     "Quién puede verlo",
   "Services we use":

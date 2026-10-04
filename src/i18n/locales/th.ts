@@ -910,7 +910,7 @@ export const thaiInterface: Record<string, string> = {
   "Your notifications.": "การแจ้งเตือนของคุณ",
   "Why": "เพื่ออะไร",
   "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.": "ใช้เพื่อให้ Overwatch ทำงานสำหรับคุณและรัฐของคุณเท่านั้น: การเข้าสู่ระบบ การวางแผนแรลลี่ การจับเวลาส่งกำลังเสริม และการแจ้งให้คุณทราบเมื่อมีการเปลี่ยนแปลง",
-  "No ads, no tracking, no analytics. We never sell or share your data for marketing.": "ไม่มีโฆษณา ไม่มีการติดตาม ไม่มีระบบวิเคราะห์ เราไม่ขายหรือแบ่งปันข้อมูลของคุณเพื่อการตลาด",
+  "No ads and no tracking. Vercel counts anonymous page views, without cookies, so we can see how the site is used. We never sell or share your data for marketing.": "ไม่มีโฆษณาและไม่มีการติดตาม Vercel นับการเข้าชมหน้าแบบไม่ระบุตัวตนโดยไม่ใช้คุกกี้ เพื่อให้เราเห็นว่ามีการใช้งานเว็บไซต์อย่างไร เราไม่ขายหรือแบ่งปันข้อมูลของคุณเพื่อการตลาด",
   "Who can see it": "ใครเห็นข้อมูลได้บ้าง",
   "Services we use": "บริการที่เราใช้",
   "Supabase stores the database and handles sign-in.": "Supabase จัดเก็บฐานข้อมูลและดูแลการเข้าสู่ระบบ",
