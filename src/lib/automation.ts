@@ -112,6 +112,20 @@ async function refreshDraw(
     if (error) throw new Error(error.message);
     report.drawsFound += 1;
 
+    // Saved before the intel, which can wait a minute for WOSOracle's rate
+    // limit; pages show the draw from these columns.
+    const { error: saveError } = await admin
+      .from("states")
+      .update({
+        svs_season: matchup.season,
+        svs_opponent: matchup.opponent,
+        svs_battle_at: battleAt.toISOString(),
+        svs_draw_expected_at: null,
+        svs_next_battle_at: battleAt.toISOString(),
+      })
+      .eq("id", state.id);
+    if (saveError) throw new Error(saveError.message);
+
     if (planId && battleAt.getTime() > now) {
       try {
         await refreshIntel(admin, {
@@ -127,17 +141,6 @@ async function refreshDraw(
       }
     }
 
-    const { error: saveError } = await admin
-      .from("states")
-      .update({
-        svs_season: matchup.season,
-        svs_opponent: matchup.opponent,
-        svs_battle_at: battleAt.toISOString(),
-        svs_draw_expected_at: null,
-        svs_next_battle_at: battleAt.toISOString(),
-      })
-      .eq("id", state.id);
-    if (saveError) throw new Error(saveError.message);
     return;
   }
 
