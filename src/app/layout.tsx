@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { StateProvider } from "@/components/StateProvider";
+import { WebAnalytics } from "@/components/WebAnalytics";
 import "./globals.css";
 
 // Brand type: Archivo (wordmark, headings, body) with its width axis for
@@ -50,6 +51,7 @@ export default function RootLayout({
         <LanguageProvider>
           <StateProvider>{children}</StateProvider>
         </LanguageProvider>
+        <WebAnalytics />
       </body>
     </html>
   );

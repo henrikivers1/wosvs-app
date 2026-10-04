@@ -81,6 +81,10 @@ export const thaiInterface: Record<string, string> = {
   "Battle losses": "แพ้การรบ",
   "Battle period active": "ช่วงการรบกำลังดำเนินอยู่",
   "Battle plan deleted.": "ลบแผนการรบแล้ว",
+  "Battle plan reset.": "รีเซ็ตแผนการรบแล้ว",
+  "Reset plan": "รีเซ็ตแผน",
+  "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.":
+    "รีเซ็ต “{name}”? แรลลี่และการมอบหมายจะถูกลบ และแผนจะกลับเป็นยังไม่เผยแพร่ ข้อมูลข่าวกรอง การโหวตเข้าร่วม และ Rally Lead ที่เลือกไว้ยังคงอยู่ และจะไม่มีการแจ้งเตือนสมาชิก",
   "Battle plan published": "เผยแพร่แผนการรบแล้ว",
   "Battle plan updated. Republish to notify players.":
     "อัปเดตแผนการรบแล้ว เผยแพร่อีกครั้งเพื่อแจ้งผู้เล่น",
@@ -906,7 +910,7 @@ export const thaiInterface: Record<string, string> = {
   "Your notifications.": "การแจ้งเตือนของคุณ",
   "Why": "เพื่ออะไร",
   "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.": "ใช้เพื่อให้ Overwatch ทำงานสำหรับคุณและรัฐของคุณเท่านั้น: การเข้าสู่ระบบ การวางแผนแรลลี่ การจับเวลาส่งกำลังเสริม และการแจ้งให้คุณทราบเมื่อมีการเปลี่ยนแปลง",
-  "No ads, no tracking, no analytics. We never sell or share your data for marketing.": "ไม่มีโฆษณา ไม่มีการติดตาม ไม่มีระบบวิเคราะห์ เราไม่ขายหรือแบ่งปันข้อมูลของคุณเพื่อการตลาด",
+  "No ads and no tracking. Vercel counts anonymous page views, without cookies, so we can see how the site is used. We never sell or share your data for marketing.": "ไม่มีโฆษณาและไม่มีการติดตาม Vercel นับการเข้าชมหน้าแบบไม่ระบุตัวตนโดยไม่ใช้คุกกี้ เพื่อให้เราเห็นว่ามีการใช้งานเว็บไซต์อย่างไร เราไม่ขายหรือแบ่งปันข้อมูลของคุณเพื่อการตลาด",
   "Who can see it": "ใครเห็นข้อมูลได้บ้าง",
   "Services we use": "บริการที่เราใช้",
   "Supabase stores the database and handles sign-in.": "Supabase จัดเก็บฐานข้อมูลและดูแลการเข้าสู่ระบบ",

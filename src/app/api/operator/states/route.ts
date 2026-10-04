@@ -22,7 +22,9 @@ function oracleFailure(error: unknown) {
   return fail("The WOS ID could not be checked right now.", 503);
 }
 
-// Every state with its owner and member count.
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Every state with its owner, member count and members who joined this week.
 export async function GET() {
   const admin = await requireOperator();
   if (admin instanceof Response) return admin;
@@ -34,12 +36,13 @@ export async function GET() {
       .order("created_at", { ascending: false }),
     admin
       .from("state_members")
-      .select("state_id, role, wos_accounts!state_members_wos_account_id_fkey!inner(wos_id, nickname)"),
+      .select("state_id, role, joined_at, wos_accounts!state_members_wos_account_id_fkey!inner(wos_id, nickname)"),
   ]);
   if (error) {
     console.error("[operator] State list failed:", error);
     return fail("The states could not be loaded.", 500);
   }
+  const weekAgo = Date.now() - WEEK_MS;
   return Response.json({
     states: (states ?? []).map((state) => {
       const rows = (members ?? []).filter((row) => row.state_id === state.id);
@@ -54,6 +57,9 @@ export async function GET() {
         createdAt: state.created_at,
         paidUntil: state.paid_until,
         memberCount: rows.length,
+        joinedThisWeek: rows.filter(
+          (row) => new Date(row.joined_at).getTime() >= weekAgo,
+        ).length,
         owner: ownerAccount
           ? { wosId: ownerAccount.wos_id, nickname: ownerAccount.nickname }
           : null,

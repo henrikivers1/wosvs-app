@@ -501,6 +501,22 @@ export default function BattlePlanningPage() {
       t("Battle plan deleted."),
     );
   }
+  // The SvS plan from the draw is reset instead: its intel and votes stay.
+  async function resetPlan(plan: BattlePlan) {
+    if (
+      !window.confirm(
+        t(
+          "Reset “{name}”? Its rallies and assignments are removed and it goes back to unpublished. Intel, attendance votes and picked Rally Leads stay, and members are not notified.",
+          { name: plan.name },
+        ),
+      )
+    )
+      return;
+    await run(
+      () => supabase.rpc("reset_svs_plan", { target_plan_id: plan.id }),
+      t("Battle plan reset."),
+    );
+  }
   // After publishing, changes go out with Republish.
   async function republishPlan(plan: BattlePlan) {
     if (
@@ -1125,7 +1141,17 @@ export default function BattlePlanningPage() {
                     disabled: saving || !planGroups.length,
                   },
                   { label: t("Edit plan"), onSelect: () => beginEditingPlan(plan) },
-                  ...(scheduledBattle?.status !== "active"
+                  ...(plan.auto_created
+                    ? !battleStarted
+                      ? [
+                          {
+                            label: t("Reset plan"),
+                            onSelect: () => void resetPlan(plan),
+                            danger: true,
+                          },
+                        ]
+                      : []
+                    : scheduledBattle?.status !== "active"
                     ? [
                         {
                           label: t("Delete plan"),

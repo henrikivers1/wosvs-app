@@ -1,3 +1,4 @@
+import { notifyOperators } from "@/lib/operator";
 import { savePlayer } from "@/lib/playerSync";
 import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
 import {
@@ -164,15 +165,40 @@ export async function POST(request: Request) {
     // The weekly sync fills it in later.
     console.error("[auth-join] Saving player data failed:", error);
   }
-  const { error: memberError } = await admin
+  const { data: joined, error: memberError } = await admin
     .from("state_members")
     .upsert(
       { state_id: link.stateId, wos_account_id: login.accountId, role: "member" },
       { onConflict: "state_id,wos_account_id", ignoreDuplicates: true },
-    );
+    )
+    .select("state_id");
   if (memberError) {
     console.error("[auth-join] Membership failed:", memberError);
     return fail("You are signed in, but joining the state failed. Try the link again.", 500);
+  }
+  // Only a new membership is returned; rejoining with the link is not news.
+  if (joined?.length) {
+    const { count } = await admin
+      .from("state_members")
+      .select("wos_account_id", { count: "exact", head: true })
+      .eq("state_id", link.stateId);
+    const stateLabel = `${link.state.name} (#${link.state.game_state_number})`;
+    await notifyOperators(admin, {
+      type: "operator_member_joined",
+      title: `New member in ${stateLabel}`,
+      body: `${player.name} (WOS ID ${wosId}) joined ${stateLabel}${
+        existing ? " with an existing login" : " as a new player"
+      }. The state now has ${count ?? "?"} members.`,
+      stateId: link.stateId,
+      data: {
+        player: player.name,
+        wos_id: wosId,
+        state_name: link.state.name,
+        state_number: link.state.game_state_number,
+        new_login: !existing,
+        members: count,
+      },
+    });
   }
   return Response.json({ ok: true, stateId: link.stateId });
 }

@@ -6,7 +6,7 @@ import { DiscordHandle } from "@/components/DiscordHandle";
 import { useLanguage } from "@/components/LanguageProvider";
 
 const CONTACT_EMAIL = "privacy@wosoverwatch.com";
-const UPDATED = "2026-10-03";
+const UPDATED = "2026-10-04";
 
 // Plain-language privacy notice. Every string is an English translation key.
 const SECTIONS: { title: string; items: string[] }[] = [
@@ -24,7 +24,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
     title: "Why",
     items: [
       "Only to run Overwatch for you and your state: sign-in, planning rallies, timing reinforcements and telling you about changes.",
-      "No ads, no tracking, no analytics. We never sell or share your data for marketing.",
+      "No ads and no tracking. Vercel counts anonymous page views, without cookies, so we can see how the site is used. We never sell or share your data for marketing.",
     ],
   },
   {
