@@ -45,8 +45,8 @@ Vercel in step 4.
 3. **Database:** in the SQL Editor run, in filename order, every file in
    `supabase/migrations/` that has not been run on this project yet. A brand
    new project runs `supabase/schema.sql` first.
-   - The last one is `20261008090000_v1_fixes.sql`. It schedules the
-     `wos-pet-swaps` pg_cron job too.
+   - `20261008090000_v1_fixes.sql` schedules the `wos-pet-swaps` pg_cron
+     job too. The last one is `20261009090000_delete_states.sql`.
    - Check: `select jobname, schedule from cron.job;` lists
      `wos-advance-battles` and `wos-housekeeping`. If not, pg_cron was off:
      enable it and run `20261005120000_…` and `20261005150000_…` again.
