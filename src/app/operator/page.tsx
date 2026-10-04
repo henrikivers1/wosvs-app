@@ -10,6 +10,7 @@ type OperatorState = {
   stateNumber: number | null;
   createdAt: string;
   memberCount: number;
+  joinedThisWeek: number;
   owner: { wosId: string; nickname: string | null } | null;
   paidUntil: string | null;
 };
@@ -212,6 +213,11 @@ export default function OperatorPage() {
 
           <section>
             <h2>States ({states.length})</h2>
+            <p>
+              {states.reduce((sum, state) => sum + state.memberCount, 0)} members,{" "}
+              {states.reduce((sum, state) => sum + state.joinedThisWeek, 0)} joined in the
+              last 7 days.
+            </p>
             <ul>
               {states.map((state) => (
                 <li key={state.id} className="member-row">
@@ -224,7 +230,7 @@ export default function OperatorPage() {
                       {state.owner
                         ? `${state.owner.nickname ?? state.owner.wosId} (WOS ID ${state.owner.wosId})`
                         : "No owner"}
-                      {` · ${state.memberCount} members · ${formatDateTime(state.createdAt)}`}
+                      {` · ${state.memberCount} members (+${state.joinedThisWeek} this week) · ${formatDateTime(state.createdAt)}`}
                     </small>
                   </span>
                   <div className="member-actions operator-billing">
