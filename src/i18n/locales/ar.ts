@@ -1273,4 +1273,5 @@ export const arabicInterface: Record<string, string> = {
   "Speed up {percent}% in {seconds} seconds": "سرّع {percent}% خلال {seconds} ثانية",
   "SPEED UP {percent}% NOW": "سرّع {percent}% الآن",
   "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.": "يجعل المؤقت تعزيزاتك تصل بعد ضربة كل حشد للعدو مباشرة (100 ms افتراضيًا، ضمن الوصول بعد الضربة)، قبل وصول الحشد التالي. عندما تضرب الحشود متقاربة، تحصل كل منها على مسيرة خاصة: تعرض \"ضغطاتك\" كل إرسال وكل مسرّع مسيرة 25% أو 50% يجب الضغط عليه، مسيرة تلو الأخرى.",
+  "That player is already on the list.": "هذا اللاعب موجود في القائمة بالفعل.",
 };

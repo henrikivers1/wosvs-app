@@ -28,6 +28,8 @@ const english = {
 } as const;
 
 const spanishInterface: Record<string, string> = {
+  "That player is already on the list.":
+    "Ese jugador ya está en la lista.",
   "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.":
     "El temporizador hace que tus refuerzos lleguen justo después de cada impacto de rally enemigo (100 ms por defecto, en Llegar tras el impacto), antes de que llegue el siguiente. Cuando los rallies impactan seguidos, cada uno recibe su propia marcha: \"Tus pulsaciones\" muestra cada envío y cada Acelerador de marcha del 25% o 50% que debes pulsar, una marcha cada vez.",
   "Speedups for close rallies":

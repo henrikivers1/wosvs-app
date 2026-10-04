@@ -1261,4 +1261,5 @@ export const chineseInterface: Record<string, string> = {
   "Speed up {percent}% in {seconds} seconds": "{seconds} 秒后加速 {percent}%",
   "SPEED UP {percent}% NOW": "立即加速 {percent}%",
   "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.": "计时器让你的增援在每次敌方集结命中后立刻到达（默认 100 毫秒，见“命中后到达”），赶在下一次到来之前。集结相继很近时，每个都分配一支行军：“你的操作”列出每次派遣和每个要点击的 25% 或 50% 行军加速，一次一支行军。",
+  "That player is already on the list.": "该玩家已在列表中。",
 };

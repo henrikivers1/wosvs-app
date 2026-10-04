@@ -1274,4 +1274,5 @@ export const thaiInterface: Record<string, string> = {
   "Speed up {percent}% in {seconds} seconds": "เร่ง {percent}% ในอีก {seconds} วินาที",
   "SPEED UP {percent}% NOW": "เร่ง {percent}% ตอนนี้",
   "The timer lands your reinforcements just after each enemy rally hits (100 ms by default, under Land after the hit), before the next one arrives. When rallies hit close together, each gets its own march: \"Your taps\" lists every send and every 25% or 50% March Accelerator to tap, one march at a time.": "ตัวจับเวลาจะให้กำลังเสริมของคุณลงทันทีหลังแรลลี่ศัตรูแต่ละครั้งโจมตี (ค่าเริ่มต้น 100 ms ที่ ลงหลังการโจมตี) ก่อนครั้งถัดไปจะมาถึง เมื่อแรลลี่โจมตีใกล้กัน แต่ละครั้งจะได้เดินทัพของตัวเอง: \"การกดของคุณ\" แสดงทุกการส่งและทุก March Accelerator 25% หรือ 50% ที่ต้องกด ทีละเดินทัพ",
+  "That player is already on the list.": "ผู้เล่นคนนี้อยู่ในรายชื่อแล้ว",
 };

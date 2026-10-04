@@ -6,6 +6,7 @@ import { calculateMarchTime } from "@/lib/marchTime";
 import {
   DEFAULT_MIN_TAP_GAP_MS,
   DEFAULT_SPEEDUP_DELAY_MS,
+  OLD_DEFAULT_SPEEDUP_DELAY_MS,
   planMarches,
   type PlannedMarch,
   type SpeedupMode,
@@ -125,7 +126,10 @@ export function useReinforcementTiming(
           setLandAfterMs(stored.landAfterMs!);
         }
         if (stored.speedupMode) setSpeedupMode(stored.speedupMode);
-        if (Number.isFinite(stored.speedupDelayMs)) {
+        if (
+          Number.isFinite(stored.speedupDelayMs) &&
+          stored.speedupDelayMs !== OLD_DEFAULT_SPEEDUP_DELAY_MS
+        ) {
           setSpeedupDelayMs(stored.speedupDelayMs!);
         }
       }

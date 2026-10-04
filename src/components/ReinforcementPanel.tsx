@@ -85,12 +85,12 @@ export function ReinforcementSettings({
           <input
             type="number"
             min="1"
-            max="10"
+            max="15"
             step="0.5"
             value={timing.speedupDelayMs / 1000}
             onChange={(event) =>
               timing.setSpeedupDelayMs(
-                Math.round(Math.max(1, Math.min(10, Number(event.target.value) || 3)) * 1000),
+                Math.round(Math.max(1, Math.min(15, Number(event.target.value) || 5)) * 1000),
               )
             }
           />
@@ -159,6 +159,8 @@ export function ReinforcementSettings({
   );
 }
 
+const HIT_SHOWN_FOR_MS = 5_000;
+
 export function IncomingRallies({
   rallies,
   onCancelRally,
@@ -167,9 +169,11 @@ export function IncomingRallies({
   onCancelRally?: (rally: EnemyRally) => void;
 }) {
   const { t } = useLanguage();
-  const ordered = [...rallies].sort(
-    (first, second) => first.impactTime.getTime() - second.impactTime.getTime(),
-  );
+  const { currentTime } = useBattle();
+  // Rallies drop off a few seconds after they hit.
+  const ordered = [...rallies]
+    .filter((rally) => rally.impactTime.getTime() > currentTime.getTime() - HIT_SHOWN_FOR_MS)
+    .sort((first, second) => first.impactTime.getTime() - second.impactTime.getTime());
 
   if (ordered.length === 0) return <p>{t("No incoming rallies.")}</p>;
 

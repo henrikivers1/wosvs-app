@@ -38,7 +38,10 @@ export type MarchPlanOptions = {
   mode: SpeedupMode;
 };
 
-export const DEFAULT_SPEEDUP_DELAY_MS = 3000;
+// Opening the march and finding the accelerator takes a few seconds.
+export const DEFAULT_SPEEDUP_DELAY_MS = 5000;
+// The first version's default, still saved in some browsers.
+export const OLD_DEFAULT_SPEEDUP_DELAY_MS = 3000;
 export const DEFAULT_MIN_TAP_GAP_MS = 2000;
 
 // A speedup can wait up to this much longer than the player's delay, to
