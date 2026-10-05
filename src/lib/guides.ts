@@ -181,7 +181,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "The garrison",
-        body: "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.",
+        body: "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop tier, then troop skill, then troop FC. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.",
       },
       {
         title: "Adjust by hand",

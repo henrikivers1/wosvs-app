@@ -90,8 +90,8 @@ const spanishInterface: Record<string, string> = {
     "Inicio del tercer bloque (UTC)",
   "A block is longer than 2 hours, longer than a pet lasts.":
     "Un bloque dura más de 2 horas, más de lo que dura una mascota.",
-  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.":
-    "Una guarnición defiende el castillo toda la batalla. Siempre se llena primero, con los niveles de tropa más altos entre quienes juegan toda la batalla: FC de tropa, luego nivel de tropa y luego habilidad de tropa. Hasta que se publica el plan, un defensor más fuerte que esté en un rally pasa a la guarnición. Hasta tres Defensores del castillo se turnan, uno por bloque de mascotas. Cuando les toca, se cambian a la alianza que tiene el castillo y toman el relevo; no llevan unidos. Ajusta el tamaño de la guarnición en Automatización de SvS.",
+  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop tier, then troop skill, then troop FC. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.":
+    "Una guarnición defiende el castillo toda la batalla. Siempre se llena primero, con los niveles de tropa más altos entre quienes juegan toda la batalla: nivel de tropa, luego habilidad de tropa y luego FC de tropa. Hasta que se publica el plan, un defensor más fuerte que esté en un rally pasa a la guarnición. Hasta tres Defensores del castillo se turnan, uno por bloque de mascotas. Cuando les toca, se cambian a la alianza que tiene el castillo y toman el relevo; no llevan unidos. Ajusta el tamaño de la guarnición en Automatización de SvS.",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.":
     "Arrastra jugadores entre rallies o desde la lista de espera. Toca a un jugador para cambiar su rally o el héroe que lleva. El menú ⋯ de un rally tiene Configuración del rally (formación, mitad y héroes de unión), Asignar héroes, Editar y Eliminar. La automatización respeta tus cambios, salvo que pasa a un defensor más fuerte a la guarnición hasta que se publica el plan.",
   "Press Leads & holders in Planning to mark Rally Leads and Castle Holders from your players ranked by Labyrinth. For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.":
@@ -1466,6 +1466,20 @@ const spanishInterface: Record<string, string> = {
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
   "Battle plan deleted.": "Plan de batalla eliminado.",
+  "Minimum Furnace to join":
+    "Horno mínimo para unirse",
+  "Anyone in the state":
+    "Cualquiera del estado",
+  "Keeps spy accounts out: players below this Furnace level can't join with the link. Players who already joined stay.":
+    "Mantiene fuera las cuentas espía: los jugadores por debajo de este nivel de Horno no pueden unirse con el enlace. Los que ya se unieron se quedan.",
+  "Players below {level} can't join with the link.":
+    "Los jugadores por debajo de {level} no pueden unirse con el enlace.",
+  "Anyone in your state can join with the link.":
+    "Cualquiera de tu estado puede unirse con el enlace.",
+  "Only state owners and admins can change who can join.":
+    "Solo los dueños y administradores del estado pueden cambiar quién puede unirse.",
+  "Choose a Furnace level between Furnace 1 and FC10.":
+    "Elige un nivel de Horno entre Horno 1 y FC10.",
   "Video guides":
     "Guías en vídeo",
   "Watch how it works":

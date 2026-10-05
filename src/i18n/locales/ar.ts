@@ -81,6 +81,20 @@ export const arabicInterface: Record<string, string> = {
   "Battle losses": "خسائر المعارك",
   "Battle period active": "فترة المعركة نشطة",
   "Battle plan deleted.": "تم حذف خطة المعركة.",
+  "Minimum Furnace to join":
+    "الحد الأدنى للفرن للانضمام",
+  "Anyone in the state":
+    "أي شخص في الولاية",
+  "Keeps spy accounts out: players below this Furnace level can't join with the link. Players who already joined stay.":
+    "يمنع حسابات التجسس: لا يمكن للاعبين الأقل من مستوى الفرن هذا الانضمام عبر الرابط. يبقى من انضموا بالفعل.",
+  "Players below {level} can't join with the link.":
+    "لا يمكن للاعبين الأقل من {level} الانضمام عبر الرابط.",
+  "Anyone in your state can join with the link.":
+    "يمكن لأي شخص في ولايتك الانضمام عبر الرابط.",
+  "Only state owners and admins can change who can join.":
+    "يمكن فقط لمالكي الولاية والمشرفين تغيير من يمكنه الانضمام.",
+  "Choose a Furnace level between Furnace 1 and FC10.":
+    "اختر مستوى فرن بين الفرن 1 و FC10.",
   "Video guides":
     "أدلة الفيديو",
   "Watch how it works":
@@ -1276,7 +1290,7 @@ export const arabicInterface: Record<string, string> = {
   "Save Rally Leads": "حفظ قادة الحشود",
   "Pick the Rally Leads": "اختر قادة الحشود",
   "Pick who leads rallies in {plan} before {time}, when the rallies are set up. Otherwise your Rally Leads who can play are used.": "اختر من يقود الحشود في {plan} قبل {time}، عند إعداد الحشود. وإلا سيُستخدم قادة الحشود الذين يمكنهم اللعب.",
-  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "حامية واحدة تحمي القلعة طوال المعركة. تُملأ دائمًا أولًا بأعلى مستويات القوات بين اللاعبين الذين يلعبون المعركة كاملة: مستوى FC للقوات، ثم فئة القوات، ثم مهارة القوات. حتى نشر الخطة، يُنقل المدافع الأقوى الموجود في حشد إلى الحامية. يتناوب ما يصل إلى ثلاثة من حماة القلعة، واحد لكل فترة حيوانات. عندما يحين دورهم ينتقلون إلى التحالف الذي يحمل القلعة ويتولون القيادة؛ ولا يجلبون منضمين. حدّد حجم الحامية ضمن أتمتة SvS.",
+  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop tier, then troop skill, then troop FC. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "حامية واحدة تحمي القلعة طوال المعركة. تُملأ دائمًا أولًا بأعلى مستويات القوات بين اللاعبين الذين يلعبون المعركة كاملة: فئة القوات، ثم مهارة القوات، ثم مستوى FC للقوات. حتى نشر الخطة، يُنقل المدافع الأقوى الموجود في حشد إلى الحامية. يتناوب ما يصل إلى ثلاثة من حماة القلعة، واحد لكل فترة حيوانات. عندما يحين دورهم ينتقلون إلى التحالف الذي يحمل القلعة ويتولون القيادة؛ ولا يجلبون منضمين. حدّد حجم الحامية ضمن أتمتة SvS.",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.": "اسحب اللاعبين بين الحشود أو من قائمة الانتظار. اضغط على لاعب لتغيير حشده أو البطل الذي يجلبه. قائمة ⋯ للحشد فيها إعداد الحشد (التشكيل والنصف وأبطال الانضمام) وتعيين الأبطال والتعديل والحذف. تحتفظ الأتمتة بتغييراتك، إلا أنها تنقل مدافعًا أقوى إلى الحامية حتى نشر الخطة.",
   "Press Leads & holders in Planning to mark Rally Leads and Castle Holders from your players ranked by Labyrinth. For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.": "اضغط القادة والحماة في التخطيط لتحديد قادة الحشود وحماة القلعة من لاعبيك مرتبين حسب المتاهة. لكل معركة SvS، اضغط اختر قادة الحشود في قائمة SvS التالية لتختار من يقود هذه المرة: ليس كل قائد يستطيع اللعب في كل معركة، وقد تكون نقاط المتاهة مضخّمة. القادة الذين لا تختارهم ينضمون إلى الحشود مثل الجميع. غيّر من يقود فترة من قائمة ⋯ للحشد ← القادة حسب فترة الحيوانات، أو من قائمة ⋯ للحامية ← حماة القلعة حسب فترة الحيوانات.",
   "Second pet block starts (UTC)": "بداية فترة الحيوانات الثانية (UTC)",

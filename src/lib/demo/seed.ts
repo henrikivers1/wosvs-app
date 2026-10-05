@@ -126,7 +126,13 @@ export function buildDemoSeed(now: Date): DemoTables {
     const userId =
       index === 0 || index === memberViewIndex ? DEMO_USER_ID : id("u0", index);
     const accountId = id("ac", index);
-    const furnaceRaw = 55 + Math.floor(rand() * 26);
+    // Whole Fire Crystal levels, mostly FC6–FC9, and troops that match the
+    // Furnace: the same tier, troop FC and T12 skill for all three types.
+    const fireCrystal = [5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 10][Math.floor(rand() * 12)];
+    const furnaceRaw = 30 + fireCrystal * 5;
+    const tier = fireCrystal >= 9 ? 12 : fireCrystal >= 7 ? 11 + Math.floor(rand() * 2) : 10 + Math.floor(rand() * 2);
+    const troopFc = Math.max(0, fireCrystal - 2 - Math.floor(rand() * 3));
+    const skill = tier === 12 ? 4 + Math.floor(rand() * 7) : 1 + Math.floor(rand() * 5);
     const alliance = alliances[index % alliances.length];
     accounts.push({
       id: accountId,
@@ -136,8 +142,8 @@ export function buildDemoSeed(now: Date): DemoTables {
       is_configured: true,
       created_at: iso,
       furnace_level_raw: furnaceRaw,
-      furnace_level: Math.min(10, Math.floor((furnaceRaw - 30) / 5)),
-      power: Math.round((40 + rand() * 210) * 1_000_000),
+      furnace_level: fireCrystal,
+      power: Math.round((fireCrystal * 22 + rand() * 40) * 1_000_000),
       chief_level: 60 + Math.floor(rand() * 20),
       vip_level: 5 + Math.floor(rand() * 8),
       kills: Math.round(rand() * 5_000_000),
@@ -151,15 +157,15 @@ export function buildDemoSeed(now: Date): DemoTables {
       player_data_source: "demo",
       player_data_updated_at: iso,
       player_data_synced_at: iso,
-      infantry_tier: 10 + Math.floor(rand() * 3),
-      lancer_tier: 10 + Math.floor(rand() * 3),
-      marksman_tier: 10 + Math.floor(rand() * 3),
-      infantry_fc_level: Math.floor(rand() * 6),
-      lancer_fc_level: Math.floor(rand() * 6),
-      marksman_fc_level: Math.floor(rand() * 6),
-      infantry_t12_skill: 1 + Math.floor(rand() * 9),
-      lancer_t12_skill: 1 + Math.floor(rand() * 9),
-      marksman_t12_skill: 1 + Math.floor(rand() * 9),
+      infantry_tier: tier,
+      lancer_tier: tier,
+      marksman_tier: tier,
+      infantry_fc_level: troopFc,
+      lancer_fc_level: troopFc,
+      marksman_fc_level: troopFc,
+      infantry_t12_skill: skill,
+      lancer_t12_skill: skill,
+      marksman_t12_skill: skill,
     });
     if (index !== memberViewIndex)
       profiles.push({
@@ -441,7 +447,8 @@ export function buildDemoSeed(now: Date): DemoTables {
             wosId: String(400_000_000 + index),
             name: `${ENEMY_NAMES[index % ENEMY_NAMES.length]}${index < ENEMY_NAMES.length ? "" : index + 1}`,
             power: 320_000_000 - index * 9_000_000,
-            furnaceLevel: 80 - Math.floor(index / 4),
+            // Whole Fire Crystal levels: FC10 down to FC6.
+            furnaceLevel: 80 - Math.floor(index / 4) * 5,
             allianceAbbr: enemyAlliances[index % 5].abbr,
             labyrinthScore: 3400 - ((index * 7) % 20) * 110 - index * 12,
           })).sort((first, second) => second.labyrinthScore - first.labyrinthScore),
@@ -528,7 +535,7 @@ export function demoEnemyRoster(allianceId: number) {
     wosId: String(410_000_000 + allianceId * 100 + index),
     name: `${ENEMY_NAMES[index % ENEMY_NAMES.length]}${index + 1}`,
     power: Math.round((60 + rand() * 260) * 1_000_000),
-    furnaceLevel: 60 + Math.floor(rand() * 20),
+    furnaceLevel: 30 + (6 + Math.floor(rand() * 5)) * 5,
     rank: index === 0 ? 5 : 1 + Math.floor(rand() * 4),
   })).sort((first, second) => second.power - first.power);
 }

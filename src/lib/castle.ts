@@ -13,7 +13,7 @@ import {
 //   group sets other swap times. Rally leads and castle holders swap when
 //   their pets run out, one per block.
 // * The garrison holds the castle all battle and is filled first, with the
-//   strongest defenders (troop FC, troop tier, troop skill).
+//   strongest defenders (troop tier, troop skill, then troop FC).
 // * Rally Leads and Castle Holders only lead or hold; they never join.
 
 export const PET_BLOCKS = [0, 1, 2] as const;
@@ -81,13 +81,13 @@ function mean(values: Array<number | null>) {
     : 0;
 }
 
-// Strongest defender first: troop FC level, then troop tier, then troop
-// skill, then Furnace and power to break ties.
+// Strongest defender first: troop tier, then troop skill, then troop FC
+// level, then Furnace and power to break ties.
 export function defenseKey(member: DefenseStats) {
   return [
-    mean([member.infantry_fc_level, member.lancer_fc_level, member.marksman_fc_level]),
     mean([member.infantry_tier, member.lancer_tier, member.marksman_tier]),
     mean([member.infantry_t12_skill, member.lancer_t12_skill, member.marksman_t12_skill]),
+    mean([member.infantry_fc_level, member.lancer_fc_level, member.marksman_fc_level]),
     member.furnace_level_raw ?? 0,
     member.power ?? 0,
   ];
