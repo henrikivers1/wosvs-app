@@ -81,6 +81,20 @@ export const thaiInterface: Record<string, string> = {
   "Battle losses": "แพ้การรบ",
   "Battle period active": "ช่วงการรบกำลังดำเนินอยู่",
   "Battle plan deleted.": "ลบแผนการรบแล้ว",
+  "Minimum Furnace to join":
+    "เตาขั้นต่ำเพื่อเข้าร่วม",
+  "Anyone in the state":
+    "ทุกคนในสเตท",
+  "Keeps spy accounts out: players below this Furnace level can't join with the link. Players who already joined stay.":
+    "กันบัญชีสายลับ: ผู้เล่นที่เตาต่ำกว่าระดับนี้เข้าร่วมด้วยลิงก์ไม่ได้ ผู้ที่เข้าร่วมแล้วยังอยู่",
+  "Players below {level} can't join with the link.":
+    "ผู้เล่นที่ต่ำกว่า {level} เข้าร่วมด้วยลิงก์ไม่ได้",
+  "Anyone in your state can join with the link.":
+    "ทุกคนในสเตทของคุณเข้าร่วมด้วยลิงก์ได้",
+  "Only state owners and admins can change who can join.":
+    "เฉพาะเจ้าของและแอดมินของสเตทเท่านั้นที่เปลี่ยนผู้ที่เข้าร่วมได้",
+  "Choose a Furnace level between Furnace 1 and FC10.":
+    "เลือกระดับเตาระหว่างเตา 1 ถึง FC10",
   "Video guides":
     "วิดีโอแนะนำ",
   "Watch how it works":
@@ -1277,7 +1291,7 @@ export const thaiInterface: Record<string, string> = {
   "Save Rally Leads": "บันทึกผู้นำแรลลี่",
   "Pick the Rally Leads": "เลือกผู้นำแรลลี่",
   "Pick who leads rallies in {plan} before {time}, when the rallies are set up. Otherwise your Rally Leads who can play are used.": "เลือกผู้นำแรลลี่ใน {plan} ก่อน {time} ซึ่งเป็นเวลาจัดตั้งแรลลี่ ไม่เช่นนั้นจะใช้ผู้นำแรลลี่ที่เล่นได้",
-  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "กองรักษาการณ์หนึ่งกองป้องกันปราสาทตลอดการต่อสู้ และจะถูกเติมก่อนเสมอด้วยผู้มีระดับทหารสูงสุดในบรรดาผู้ที่เล่นทั้งการต่อสู้: FC ของทหาร จากนั้นระดับทหาร แล้วสกิลทหาร จนกว่าจะเผยแพร่แผน ผู้ป้องกันที่แข็งแกร่งกว่าที่อยู่ในแรลลี่จะถูกสลับเข้ากองรักษาการณ์ ผู้ถือปราสาทสูงสุดสามคนผลัดกัน หนึ่งคนต่อช่วงสัตว์เลี้ยง เมื่อถึงตาก็ย้ายไปพันธมิตรที่ถือปราสาทและรับช่วง โดยไม่พาผู้เข้าร่วมมา ตั้งขนาดกองรักษาการณ์ได้ในระบบอัตโนมัติ SvS",
+  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop tier, then troop skill, then troop FC. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "กองรักษาการณ์หนึ่งกองป้องกันปราสาทตลอดการต่อสู้ และจะถูกเติมก่อนเสมอด้วยผู้มีระดับทหารสูงสุดในบรรดาผู้ที่เล่นทั้งการต่อสู้: ระดับทหาร จากนั้นสกิลทหาร แล้ว FC ของทหาร จนกว่าจะเผยแพร่แผน ผู้ป้องกันที่แข็งแกร่งกว่าที่อยู่ในแรลลี่จะถูกสลับเข้ากองรักษาการณ์ ผู้ถือปราสาทสูงสุดสามคนผลัดกัน หนึ่งคนต่อช่วงสัตว์เลี้ยง เมื่อถึงตาก็ย้ายไปพันธมิตรที่ถือปราสาทและรับช่วง โดยไม่พาผู้เข้าร่วมมา ตั้งขนาดกองรักษาการณ์ได้ในระบบอัตโนมัติ SvS",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.": "ลากผู้เล่นระหว่างแรลลี่หรือจากรายชื่อรอ แตะผู้เล่นเพื่อเปลี่ยนแรลลี่หรือฮีโร่ที่นำมา เมนู ⋯ ของแรลลี่มีการตั้งค่าแรลลี่ (รูปขบวน ครึ่ง และฮีโร่ผู้เข้าร่วม) กำหนดฮีโร่ แก้ไข และลบ ระบบอัตโนมัติจะคงการเปลี่ยนแปลงของคุณไว้ ยกเว้นจะสลับผู้ป้องกันที่แข็งแกร่งกว่าเข้ากองรักษาการณ์จนกว่าจะเผยแพร่แผน",
   "Press Leads & holders in Planning to mark Rally Leads and Castle Holders from your players ranked by Labyrinth. For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.": "กดผู้นำและผู้ถือในหน้าวางแผนเพื่อกำหนดผู้นำแรลลี่และผู้ถือปราสาทจากผู้เล่นที่เรียงตามเขาวงกต สำหรับแต่ละ SvS กดเลือกผู้นำแรลลี่ในรายการ SvS ถัดไปเพื่อเลือกว่าใครนำในครั้งนี้ เพราะผู้นำไม่ได้เล่นได้ทุกการต่อสู้ และคะแนนเขาวงกตอาจสูงเกินจริง ผู้นำที่ไม่ได้เลือกจะเข้าร่วมแรลลี่เหมือนคนอื่น เปลี่ยนผู้นำของแต่ละช่วงได้ที่เมนู ⋯ ของแรลลี่ → ผู้นำตามช่วงสัตว์เลี้ยง หรือเมนู ⋯ ของกองรักษาการณ์ → ผู้ถือปราสาทตามช่วงสัตว์เลี้ยง",
   "Second pet block starts (UTC)": "ช่วงสัตว์เลี้ยงที่สองเริ่ม (UTC)",

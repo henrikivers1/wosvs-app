@@ -18,6 +18,7 @@ import {
   signInWithPin,
   WOS_ID_PATTERN,
 } from "@/lib/pinAuth";
+import { furnaceLabel } from "@/lib/furnace";
 import { fetchOraclePlayer, OraclePlayerError } from "@/lib/wosOracle";
 
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,64}$/;
@@ -34,13 +35,14 @@ async function loadLink(token: string) {
   const admin = createAdminClient();
   const { data } = await admin
     .from("state_join_links")
-    .select("state_id, pin, states!inner(name, game_state_number)")
+    .select("state_id, pin, states!inner(name, game_state_number, min_furnace_level)")
     .eq("token", token)
     .maybeSingle();
   if (!data) return null;
   const state = data.states as unknown as {
     name: string;
     game_state_number: number | null;
+    min_furnace_level: number | null;
   };
   return { stateId: data.state_id as string, pin: data.pin as string, state };
 }
@@ -118,6 +120,14 @@ export async function POST(request: Request) {
   if (player.state !== link.state.game_state_number) {
     return fail(
       `${player.name} is in state ${player.state ?? "?"}, not state ${link.state.game_state_number}.`,
+      403,
+    );
+  }
+  // The state's minimum Furnace, against spy accounts.
+  const minFurnace = link.state.min_furnace_level;
+  if (minFurnace && player.furnaceLevel < minFurnace) {
+    return fail(
+      `${link.state.name} needs ${furnaceLabel(minFurnace)} or higher to join. ${player.name} is ${furnaceLabel(player.furnaceLevel)}.`,
       403,
     );
   }

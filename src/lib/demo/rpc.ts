@@ -1112,6 +1112,12 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     demoTable("state_join_links").push(link);
     return ok([{ token: link.token, pin: link.pin, created_at: link.created_at }]);
   },
+  set_state_min_furnace: ({ target_state_id, level }) => {
+    const state = byId("states", target_state_id);
+    if (!state) return fail("State not found.");
+    state.min_furnace_level = level ?? null;
+    return ok();
+  },
 };
 
 export function runDemoRpc(name: string, args: Args = {}): DemoResult {

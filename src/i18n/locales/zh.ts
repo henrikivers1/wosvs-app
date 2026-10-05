@@ -81,6 +81,20 @@ export const chineseInterface: Record<string, string> = {
   "Battle losses": "战斗失败",
   "Battle period active": "战斗期进行中",
   "Battle plan deleted.": "作战计划已删除。",
+  "Minimum Furnace to join":
+    "加入所需最低熔炉等级",
+  "Anyone in the state":
+    "州内任何人",
+  "Keeps spy accounts out: players below this Furnace level can't join with the link. Players who already joined stay.":
+    "防止间谍账号：熔炉低于此等级的玩家无法通过链接加入。已加入的玩家不受影响。",
+  "Players below {level} can't join with the link.":
+    "低于 {level} 的玩家无法通过链接加入。",
+  "Anyone in your state can join with the link.":
+    "你州内的任何人都可以通过链接加入。",
+  "Only state owners and admins can change who can join.":
+    "只有州主和管理员可以更改谁能加入。",
+  "Choose a Furnace level between Furnace 1 and FC10.":
+    "请选择熔炉 1 到 FC10 之间的熔炉等级。",
   "Video guides":
     "视频指南",
   "Watch how it works":
@@ -1264,7 +1278,7 @@ export const chineseInterface: Record<string, string> = {
   "Save Rally Leads": "保存集结队长",
   "Pick the Rally Leads": "选择集结队长",
   "Pick who leads rallies in {plan} before {time}, when the rallies are set up. Otherwise your Rally Leads who can play are used.": "请在 {time}（建立集结时）之前选择 {plan} 的集结队长，否则将使用能参战的集结队长。",
-  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop FC, then troop tier, then troop skill. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "一个驻防在整场战斗中守住城堡。它总是最先填充，选取打满全场的玩家中兵种等级最高的：兵种FC，其次兵种阶级，再次兵种技能。在计划发布前，集结中更强的防守者会被换入驻防。最多三名城堡守卫轮流驻守，每个宠物时段一人。轮到他们时，他们转到占领城堡的联盟并接手；他们不带加入者。在SvS自动化中设置驻防人数。",
+  "One garrison holds the castle the whole battle. It is always filled first, with the highest troop levels among players who play the whole battle: troop tier, then troop skill, then troop FC. Until the plan is published, a stronger defender placed in a rally is swapped into the garrison. Up to three Castle Holders take turns, one per pet block. When it's their turn they swap to the alliance holding the castle and take over; they bring no joiners. Set the garrison size under SvS automation.": "一个驻防在整场战斗中守住城堡。它总是最先填充，选取打满全场的玩家中兵种等级最高的：兵种阶级，其次兵种技能，再次兵种FC。在计划发布前，集结中更强的防守者会被换入驻防。最多三名城堡守卫轮流驻守，每个宠物时段一人。轮到他们时，他们转到占领城堡的联盟并接手；他们不带加入者。在SvS自动化中设置驻防人数。",
   "Drag players between rallies or from the Waiting list. Tap a player to change their rally or the hero they bring. A rally's ⋯ menu has Rally setup (formation, half and joiner heroes), Assign heroes, Edit and Delete. The automation keeps your changes, except that it swaps a stronger defender into the garrison until the plan is published.": "在集结之间或从等待列表拖动玩家。点击玩家可更改其集结或携带的英雄。集结的 ⋯ 菜单中有集结设置（阵型、半场和加入英雄）、分配英雄、编辑和删除。自动化会保留你的更改，只是在计划发布前会把更强的防守者换入驻防。",
   "Press Leads & holders in Planning to mark Rally Leads and Castle Holders from your players ranked by Labyrinth. For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.": "在规划中点击队长与守卫，从按迷宫排序的玩家中标记集结队长和城堡守卫。每次SvS，在下次SvS清单中点击选择集结队长，决定这次由谁带队：不是每位队长都能参加每场战斗，迷宫分数也可能虚高。未被选中的队长会像其他人一样加入集结。在集结的 ⋯ → 按宠物时段的队长，或驻防的 ⋯ → 按宠物时段的城堡守卫中更改某时段的人选。",
   "Second pet block starts (UTC)": "第二个宠物时段开始（UTC）",

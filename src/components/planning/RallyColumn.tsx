@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { availabilityLabel } from "@/lib/attendance";
-import { blockLabel, PET_BLOCKS } from "@/lib/castle";
+import { blockLabel, compareDefense, PET_BLOCKS } from "@/lib/castle";
 import { furnaceLabel } from "@/lib/furnace";
 import { MoreMenu } from "./MoreMenu";
 import { memberName, type PlanGroup, type StateMember } from "./types";
@@ -36,10 +36,11 @@ export function defenseLine(member: StateMember) {
     member.lancer_t12_skill,
     member.marksman_t12_skill,
   ]);
+  // In ranking order: troop tier, troop skill, then troop FC.
   return [
-    fc === null ? null : `FC ${fc}`,
     tier === null ? null : `T${tier}`,
     skill === null ? null : `S${skill}`,
+    fc === null ? null : `FC ${fc}`,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -211,7 +212,7 @@ export function RallyColumn({
       {editor}
 
       <ol className="rally-players">
-        {members.map((member) => {
+        {(garrison ? [...members].sort(compareDefense) : members).map((member) => {
           const hero = heroByMember.get(member.id) ?? null;
           return (
             <li

@@ -2,9 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { furnaceLabel } from "@/lib/furnace";
 import { createClient } from "@/lib/supabase/client";
 
 type JoinLink = { token: string; pin: string; created_at: string };
+
+// Raw furnace numbers to choose from: Furnace 20–30, then FC1–FC10.
+const FURNACE_CHOICES = [
+  ...Array.from({ length: 11 }, (_, index) => 20 + index),
+  ...Array.from({ length: 10 }, (_, index) => 35 + index * 5),
+];
 
 // The state's join link and first-time PIN for owners and admins to share
 // in their chats. It works until they make a new one.
@@ -21,14 +28,38 @@ export function JoinLinkCard({
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [minFurnace, setMinFurnace] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.rpc("get_state_join_link", {
-      target_state_id: stateId,
-    });
+    const [{ data }, { data: state }] = await Promise.all([
+      supabase.rpc("get_state_join_link", { target_state_id: stateId }),
+      supabase.from("states").select("min_furnace_level").eq("id", stateId).maybeSingle(),
+    ]);
     setLink(((data as JoinLink[] | null) ?? [])[0] ?? null);
+    setMinFurnace((state as { min_furnace_level: number | null } | null)?.min_furnace_level ?? null);
     setLoaded(true);
   }, [stateId, supabase]);
+
+  async function saveMinFurnace(value: string) {
+    const level = value ? Number(value) : null;
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("set_state_min_furnace", {
+      target_state_id: stateId,
+      level,
+    });
+    setBusy(false);
+    if (error) {
+      setMessage(t(error.message));
+      return;
+    }
+    setMinFurnace(level);
+    setMessage(
+      level
+        ? t("Players below {level} can't join with the link.", { level: furnaceLabel(level) })
+        : t("Anyone in your state can join with the link."),
+    );
+  }
 
   useEffect(() => {
     const loadId = window.setTimeout(() => void load(), 0);
@@ -138,6 +169,26 @@ export function JoinLinkCard({
         >
           {t("Make a join link")}
         </button>
+      )}
+      {loaded && (
+        <label className="join-min-furnace">
+          {t("Minimum Furnace to join")}
+          <select
+            value={minFurnace ?? ""}
+            disabled={busy}
+            onChange={(event) => void saveMinFurnace(event.target.value)}
+          >
+            <option value="">{t("Anyone in the state")}</option>
+            {FURNACE_CHOICES.map((level) => (
+              <option key={level} value={level}>
+                {furnaceLabel(level)}
+              </option>
+            ))}
+          </select>
+          <small>
+            {t("Keeps spy accounts out: players below this Furnace level can't join with the link. Players who already joined stay.")}
+          </small>
+        </label>
       )}
       {message && <p className="form-hint">{message}</p>}
     </section>
