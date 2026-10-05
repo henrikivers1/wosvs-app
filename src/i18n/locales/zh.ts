@@ -81,6 +81,34 @@ export const chineseInterface: Record<string, string> = {
   "Battle losses": "战斗失败",
   "Battle period active": "战斗期进行中",
   "Battle plan deleted.": "作战计划已删除。",
+  "Video guides":
+    "视频指南",
+  "Watch how it works":
+    "看看它如何运作",
+  "Our YouTube channel":
+    "我们的 YouTube 频道",
+  "Watch on YouTube":
+    "在 YouTube 上观看",
+  "Watch the video guides":
+    "观看视频指南",
+  "Play video: {title}":
+    "播放视频：{title}",
+  "Getting started & state management":
+    "入门与州管理",
+  "Opponent intel & stats":
+    "对手情报与统计",
+  "Live battle":
+    "实时战斗",
+  "Getting your state, join links, alliances, SvS automation, members and roles.":
+    "获取你的州、加入链接、联盟、SvS 自动化、成员和角色。",
+  "The Next SvS checklist, Rally Leads, the garrison and rallies, and publishing.":
+    "下次 SvS 清单、集结队长、驻防与集结，以及发布。",
+  "Their alliances, likely rally leads and SvS record, and your battle history.":
+    "他们的联盟、可能的集结队长和 SvS 战绩，以及你的战斗历史。",
+  "What coordinators and the garrison see, and how the send timing works.":
+    "协调员和驻防各自看到的内容，以及派兵时机如何计算。",
+  "The video guides are on YouTube. Their player only loads when you press play.":
+    "视频指南在 YouTube 上。只有在你点击播放时才会加载播放器。",
   "Want this for your state?":
     "想为你的州使用吗？",
   "Get Overwatch for your state":

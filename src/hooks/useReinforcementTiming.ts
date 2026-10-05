@@ -19,6 +19,9 @@ import {
 import type { EnemyRally } from "@/types/rally";
 
 const HIDE_AFTER_SEND_MS = 3_000;
+// A send counts as done only if its time passed this recently (the clock
+// ticks every 100 ms; background tabs can lag to about a second).
+const SENT_GRACE_MS = 5_000;
 const SETTINGS_KEY = "wosoverwatch-reinforcement-settings";
 
 type StoredSettings = {
@@ -187,11 +190,16 @@ export function useReinforcementTiming(
       fixed,
     );
   }, [allWindows, playerMarchTime, sendEarlyMs, sentMarches, speedupDelayMs, speedupMode]);
-  // Remember marches as they are sent.
+  // Remember marches as they are sent: only when the send time has just
+  // passed. A plan whose send is long past (a half-typed coordinate gives a
+  // huge march time) must not be locked in as sent.
   useEffect(() => {
     const newlySent = [...plan].filter(
       (entry): entry is [string, PlannedMarch] =>
-        Boolean(entry[1]) && entry[1]!.taps[0].at <= now && !sentMarches.has(entry[0]),
+        Boolean(entry[1]) &&
+        entry[1]!.taps[0].at <= now &&
+        entry[1]!.taps[0].at > now - SENT_GRACE_MS &&
+        !sentMarches.has(entry[0]),
     );
     if (!newlySent.length) return;
     const saveId = window.setTimeout(

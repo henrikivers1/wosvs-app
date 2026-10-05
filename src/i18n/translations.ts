@@ -1466,6 +1466,34 @@ const spanishInterface: Record<string, string> = {
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
   "Battle plan deleted.": "Plan de batalla eliminado.",
+  "Video guides":
+    "Guías en vídeo",
+  "Watch how it works":
+    "Mira cómo funciona",
+  "Our YouTube channel":
+    "Nuestro canal de YouTube",
+  "Watch on YouTube":
+    "Ver en YouTube",
+  "Watch the video guides":
+    "Ver las guías en vídeo",
+  "Play video: {title}":
+    "Reproducir vídeo: {title}",
+  "Getting started & state management":
+    "Primeros pasos y gestión del estado",
+  "Opponent intel & stats":
+    "Inteligencia del rival y estadísticas",
+  "Live battle":
+    "Batalla en vivo",
+  "Getting your state, join links, alliances, SvS automation, members and roles.":
+    "Cómo conseguir tu estado, enlaces de unión, alianzas, automatización de SvS, miembros y roles.",
+  "The Next SvS checklist, Rally Leads, the garrison and rallies, and publishing.":
+    "La lista de la próxima SvS, los líderes de rally, la guarnición y los rallies, y la publicación.",
+  "Their alliances, likely rally leads and SvS record, and your battle history.":
+    "Sus alianzas, sus probables líderes de rally y su historial de SvS, y tu historial de batallas.",
+  "What coordinators and the garrison see, and how the send timing works.":
+    "Lo que ven los coordinadores y la guarnición, y cómo funciona el momento de envío.",
+  "The video guides are on YouTube. Their player only loads when you press play.":
+    "Las guías en vídeo están en YouTube. Su reproductor solo se carga cuando pulsas reproducir.",
   "Want this for your state?":
     "¿Lo quieres para tu estado?",
   "Get Overwatch for your state":

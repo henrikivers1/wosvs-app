@@ -16,6 +16,8 @@ const contentSecurityPolicy = [
   "media-src 'self' data: blob:",
   "font-src 'self'",
   `connect-src 'self' ${supabase}`,
+  // Guide videos: YouTube's privacy-enhanced player, loaded on play.
+  "frame-src https://www.youtube-nocookie.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

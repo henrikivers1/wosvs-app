@@ -81,6 +81,34 @@ export const arabicInterface: Record<string, string> = {
   "Battle losses": "خسائر المعارك",
   "Battle period active": "فترة المعركة نشطة",
   "Battle plan deleted.": "تم حذف خطة المعركة.",
+  "Video guides":
+    "أدلة الفيديو",
+  "Watch how it works":
+    "شاهد كيف يعمل",
+  "Our YouTube channel":
+    "قناتنا على YouTube",
+  "Watch on YouTube":
+    "شاهد على YouTube",
+  "Watch the video guides":
+    "شاهد أدلة الفيديو",
+  "Play video: {title}":
+    "تشغيل الفيديو: {title}",
+  "Getting started & state management":
+    "البدء وإدارة الولاية",
+  "Opponent intel & stats":
+    "معلومات الخصم والإحصائيات",
+  "Live battle":
+    "المعركة المباشرة",
+  "Getting your state, join links, alliances, SvS automation, members and roles.":
+    "الحصول على ولايتك، روابط الانضمام، التحالفات، أتمتة SvS، الأعضاء والأدوار.",
+  "The Next SvS checklist, Rally Leads, the garrison and rallies, and publishing.":
+    "قائمة SvS التالية، قادة الحشود، الحامية والحشود، والنشر.",
+  "Their alliances, likely rally leads and SvS record, and your battle history.":
+    "تحالفاتهم وقادة حشودهم المحتملون وسجل SvS الخاص بهم، وسجل معاركك.",
+  "What coordinators and the garrison see, and how the send timing works.":
+    "ما يراه المنسقون والحامية، وكيف يعمل توقيت الإرسال.",
+  "The video guides are on YouTube. Their player only loads when you press play.":
+    "أدلة الفيديو موجودة على YouTube. لا يتم تحميل المشغل إلا عند الضغط على تشغيل.",
   "Want this for your state?":
     "هل تريده لولايتك؟",
   "Get Overwatch for your state":

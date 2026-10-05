@@ -9,6 +9,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { LandingVideo } from "@/components/LandingVideo";
 import { NavIcon, type NavIconName } from "@/components/NavIcon";
 import { enterDemo } from "@/lib/demo/mode";
+import { YOUTUBE_CHANNEL } from "@/lib/videoGuides";
 
 const FEATURES: { icon: NavIconName; title: string; body: string }[] = [
   {
@@ -297,6 +298,10 @@ export function LandingPage() {
         </div>
         <nav aria-label={t("Footer")}>
           <Link href="/guides">{t("Guides")}</Link>
+          <Link href="/guides#videos">{t("Video guides")}</Link>
+          <a href={YOUTUBE_CHANNEL} target="_blank" rel="noopener noreferrer">
+            YouTube
+          </a>
           <Link href="/login">{t("Sign in")}</Link>
           <Link href="/privacy">{t("Privacy")}</Link>
           <button type="button" onClick={() => enterDemo()}>
