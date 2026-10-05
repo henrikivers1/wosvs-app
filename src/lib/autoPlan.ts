@@ -2,7 +2,6 @@ import type { Availability } from "@/lib/attendance";
 import type { AutofillCriterion, GroupShift } from "@/lib/autofill";
 import {
   blockFits,
-  compareDefense,
   DEFAULT_BLOCK_SWAPS,
   fillPlan,
   garrisonSwaps,
@@ -328,7 +327,12 @@ async function createGarrison(
       const answer = availability(member.id);
       return Boolean(answer) && answer !== "unavailable";
     })
-    .sort(compareDefense);
+    // Castle Holders take their turns in Labyrinth order, like Rally Leads.
+    .sort(
+      (first, second) =>
+        (second.labyrinth_score ?? 0) - (first.labyrinth_score ?? 0) ||
+        (second.power ?? 0) - (first.power ?? 0),
+    );
   const swaps = settings.block_swaps ?? DEFAULT_BLOCK_SWAPS;
   const rotation = planRotation(
     holders.map((member) => member.id),

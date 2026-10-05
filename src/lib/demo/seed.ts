@@ -1,4 +1,3 @@
-import { compareDefense, type DefenseStats } from "@/lib/castle";
 import type { DemoTables, Row } from "@/lib/demo/store";
 
 export const DEMO_USER_ID = "00000000-0000-4000-8000-00000000d3e0";
@@ -216,13 +215,10 @@ export function buildDemoSeed(now: Date): DemoTables {
     .filter((account) => account.user_id !== DEMO_USER_ID)
     .slice(0, 8);
   const leaderIds = new Set(leaders.map((leader) => leader.id));
-  // The three strongest defenders hold the castle.
-  const holders = accounts
+  // The next three by Labyrinth hold the castle.
+  const holders = byLabyrinth
     .filter(
       (account) => account.user_id !== DEMO_USER_ID && !leaderIds.has(account.id),
-    )
-    .sort((first, second) =>
-      compareDefense(first as DefenseStats, second as DefenseStats),
     )
     .slice(0, 3);
 

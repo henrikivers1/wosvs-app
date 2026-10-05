@@ -189,7 +189,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         title: "Leads & holders",
-        body: "Press Leads & holders in Planning to mark Rally Leads (ranked by Labyrinth) and Castle Holders (ranked by defense). For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
+        body: "Press Leads & holders in Planning to mark Rally Leads and Castle Holders from your players ranked by Labyrinth. For each SvS, press Pick Rally Leads in the Next SvS checklist to choose who leads this time: not every lead can play every battle, and a Labyrinth score can be inflated. Leads you don't pick join rallies like everyone else. Change who leads a block under a rally's ⋯ → Leads by pet block, or the garrison's ⋯ → Castle holders by pet block.",
       },
       {
         title: "Bring your members in",
