@@ -5,8 +5,10 @@ import { AppHeader } from "@/components/AppHeader";
 import { useLanguage } from "@/components/LanguageProvider";
 import { NavIcon } from "@/components/NavIcon";
 import { useStates } from "@/components/StateProvider";
+import { VideoGuidePlayer } from "@/components/VideoGuidePlayer";
 import { enterDemo } from "@/lib/demo/mode";
 import { GUIDE_FAQ, GUIDE_SECTIONS } from "@/lib/guides";
+import { VIDEO_GUIDES, YOUTUBE_CHANNEL } from "@/lib/videoGuides";
 
 // A guide to everything in Overwatch. Public, so players can read it before
 // they join.
@@ -28,6 +30,19 @@ export default function GuidesPage() {
         </p>
       </section>
 
+      <section id="videos" className="video-guides">
+        <p className="section-label">{t("Video guides")}</p>
+        <h2>{t("Watch how it works")}</h2>
+        <div className="video-guide-grid">
+          {VIDEO_GUIDES.map((video) => (
+            <VideoGuidePlayer key={video.youtubeId} video={video} />
+          ))}
+        </div>
+        <a className="secondary-link" href={YOUTUBE_CHANNEL} target="_blank" rel="noopener noreferrer">
+          {t("Our YouTube channel")}
+        </a>
+      </section>
+
       <nav className="guide-cards" aria-label={t("Guides")}>
         {GUIDE_SECTIONS.map((section) => (
           <a key={section.id} href={`#${section.id}`} className="guide-card">
@@ -45,6 +60,9 @@ export default function GuidesPage() {
         <aside className="guide-toc" aria-label={t("On this page")}>
           <p className="section-label">{t("On this page")}</p>
           <ol>
+            <li>
+              <a href="#videos">{t("Video guides")}</a>
+            </li>
             {GUIDE_SECTIONS.map((section) => (
               <li key={section.id}>
                 <a href={`#${section.id}`}>{t(section.title)}</a>

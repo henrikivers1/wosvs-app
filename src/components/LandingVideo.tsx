@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { YOUTUBE_CHANNEL } from "@/lib/videoGuides";
 
 // The one-minute tour, recorded from the demo with narration and music.
 // Browsers only autoplay muted video, so it plays silently while on screen
@@ -70,6 +72,13 @@ export function LandingVideo() {
             {t("Play with sound")}
           </button>
       )}
+      <p className="landing-video-more">
+        <Link href="/guides#videos">{t("Watch the video guides")}</Link>
+        <span aria-hidden="true"> · </span>
+        <a href={YOUTUBE_CHANNEL} target="_blank" rel="noopener noreferrer">
+          {t("Our YouTube channel")}
+        </a>
+      </p>
     </section>
   );
 }

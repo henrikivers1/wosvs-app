@@ -81,6 +81,34 @@ export const thaiInterface: Record<string, string> = {
   "Battle losses": "แพ้การรบ",
   "Battle period active": "ช่วงการรบกำลังดำเนินอยู่",
   "Battle plan deleted.": "ลบแผนการรบแล้ว",
+  "Video guides":
+    "วิดีโอแนะนำ",
+  "Watch how it works":
+    "ดูว่าใช้งานอย่างไร",
+  "Our YouTube channel":
+    "ช่อง YouTube ของเรา",
+  "Watch on YouTube":
+    "ดูบน YouTube",
+  "Watch the video guides":
+    "ดูวิดีโอแนะนำ",
+  "Play video: {title}":
+    "เล่นวิดีโอ: {title}",
+  "Getting started & state management":
+    "เริ่มต้นใช้งานและการจัดการสเตท",
+  "Opponent intel & stats":
+    "ข่าวกรองคู่แข่งและสถิติ",
+  "Live battle":
+    "การต่อสู้สด",
+  "Getting your state, join links, alliances, SvS automation, members and roles.":
+    "การรับสเตทของคุณ ลิงก์เข้าร่วม พันธมิตร ระบบอัตโนมัติ SvS สมาชิกและบทบาท",
+  "The Next SvS checklist, Rally Leads, the garrison and rallies, and publishing.":
+    "รายการ SvS ถัดไป ผู้นำแรลลี่ กองรักษาการณ์และแรลลี่ และการเผยแพร่",
+  "Their alliances, likely rally leads and SvS record, and your battle history.":
+    "พันธมิตร ผู้นำแรลลี่ที่น่าจะเป็น และสถิติ SvS ของพวกเขา รวมถึงประวัติการต่อสู้ของคุณ",
+  "What coordinators and the garrison see, and how the send timing works.":
+    "สิ่งที่ผู้ประสานงานและกองรักษาการณ์เห็น และการจับเวลาส่งทำงานอย่างไร",
+  "The video guides are on YouTube. Their player only loads when you press play.":
+    "วิดีโอแนะนำอยู่บน YouTube ตัวเล่นจะโหลดเมื่อคุณกดเล่นเท่านั้น",
   "Want this for your state?":
     "อยากได้สำหรับสเตทของคุณไหม?",
   "Get Overwatch for your state":
