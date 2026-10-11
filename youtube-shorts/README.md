@@ -11,6 +11,15 @@ python3 brush.py     # out/brush-your-teeth-short.mp4
 python3 twinkle.py 4 17   # preview PNG frames at 4s and 17s instead of rendering
 ```
 
+## Funny sketches (wordless slapstick)
+`sketchkit.py` adds sprites with squash & stretch, keyframes, camera shake, cartoon SFX and gibberish voices.
+```
+python3 humpty.py         # out/humpty-dumpty-sketch.mp4
+python3 cow.py            # out/hey-diddle-diddle-sketch.mp4
+python3 spider_slide.py   # out/itsy-bitsy-waterslide-sketch.mp4
+python3 cow.py 4 11       # preview PNG frames instead of rendering
+```
+
 ## Upload
 Needs `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN` in the environment.
 ```
