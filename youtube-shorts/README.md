@@ -20,6 +20,17 @@ python3 spider_slide.py   # out/itsy-bitsy-waterslide-sketch.mp4
 python3 cow.py 4 11       # preview PNG frames instead of rendering
 ```
 
+## Original songs with sung vocals ("Bath Time Bubbles")
+Soft 3D-look toddler video with an AI-sung original song.
+Setup (once): `pip install kokoro-onnx praat-parselmouth soundfile` and download `kokoro-v1.0.onnx` + `voices-v1.0.bin`
+from https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0 into `voices/`.
+```
+python3 bath_song_audio.py   # song: Kokoro TTS words retuned onto the melody (sing.py) + band (studio.py)
+python3 bath_song.py         # video: soft-3D renderer (toon3d.py), 4 parallel workers
+python3 bath_song.py 9.5     # preview a frame into out/pv/
+```
+`fonts/Fredoka.ttf` is under the SIL Open Font License (`fonts/OFL.txt`).
+
 ## Upload
 Needs `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN` in the environment.
 ```

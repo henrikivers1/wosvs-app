@@ -1,0 +1,182 @@
+"""'Bath Time Bubbles' - an original toddler song. Builds the full stereo mix plus lip-sync envelopes."""
+import os
+import numpy as np
+import parselmouth
+from parselmouth.praat import call
+from studio import *
+from sing import Singer, sing_lines
+
+BPM = 112
+BEAT = 60 / BPM
+TOTAL_BEATS = 80
+DUR = TOTAL_BEATS * BEAT + 1.2
+
+D4, E4, Fs4, G4, A4, B4, Cs5, D5 = 62, 64, 66, 67, 69, 71, 73, 74
+
+LEAD = [
+    dict(start=8, text="Bath time, bath time, in the tub we go!",
+         notes=[(A4, 1), (Fs4, 1), (A4, 1), (Fs4, 1), (G4, .5), (G4, .5), (A4, .5), (B4, .5), (A4, 2)]),
+    dict(start=16, text="Bub-bles on my nose and bub-bles on my toes!",
+         notes=[(B4, .5), (B4, .5), (A4, .5), (Fs4, .5), (A4, 1.5), (A4, .5), (B4, .5), (B4, .5), (A4, .5), (Fs4, .5),
+                (D4, 2)]),
+    dict(start=24, text="Scrub, scrub, scrub, and splash, splash, splash!",
+         notes=[(D5, 1), (D5, 1), (D5, 1), (B4, 1), (A4, 1), (A4, 1), (Fs4, 2)]),
+    dict(start=32, text="Rub-ber duck-y says", notes=[(G4, .5), (G4, .5), (Fs4, .5), (E4, .5), (D4, 2)]),
+    dict(start=36, text="quack, quack, quack!", notes=[(A4, 1), (A4, 1), (D5, 2)]),
+    dict(start=40, text="Splish splash, splish splash, scrub a dub dub!",
+         notes=[(D5, .5), (A4, 1.5), (D5, .5), (A4, 1.5), (B4, .5), (A4, .5), (G4, 1), (Fs4, 2)]),
+    dict(start=48, text="I'm a hap-py bub-ble in the tub!",
+         notes=[(Fs4, .5), (G4, .5), (A4, 1), (A4, .5), (B4, .5), (A4, 1), (G4, .5), (Fs4, .5), (E4, 3)]),
+    dict(start=56, text="Splish splash, splish splash, wash-y wash-y wash!",
+         notes=[(D5, .5), (A4, 1.5), (D5, .5), (A4, 1.5), (B4, .5), (A4, .5), (B4, .5), (A4, .5), (Fs4, 2)]),
+    dict(start=64, text="Bath time is the best time, yes it is!",
+         notes=[(D4, .5), (Fs4, 1), (A4, .5), (A4, .5), (B4, .5), (A4, 1), (Fs4, 1), (E4, 1), (D4, 2)]),
+]
+CHORUS_FROM = 36   # backing choir joins from the quacks onwards
+CHORDS = [(0, "D"), (4, "A"), (8, "D"), (12, "A"), (16, "G"), (20, "D"), (24, "G"), (28, "D"), (32, "Em"),
+          (34, "D"), (36, "A"), (40, "D"), (44, "G"), (46, "D"), (48, "D"), (52, "A"), (56, "D"), (60, "Bm"),
+          (64, "D"), (68, "Bm"), (69, "A"), (70, "D"), (72, "G"), (74, "A"), (76, "D")]
+SPOKEN = [(1.0, "It's bath time!"), (72.6, "Ta-da! Squeaky clean!")]
+QUACKS = [36, 37, 38]
+SPLASHES = [28, 29, 30, 40.5, 42.5, 56.5, 58.5]
+POPS = [19, 23, 50, 52, 54, 74, 75]
+D_SCALE = [62, 64, 66, 67, 69, 71, 73]
+
+
+def chord_at(beat):
+    c = CHORDS[0][1]
+    for b, name in CHORDS:
+        if b <= beat:
+            c = name
+    return c
+
+
+def third_above(m):
+    pcs = [(n - 62) % 12 for n in D_SCALE]
+    pc = (m - 62) % 12
+    if pc not in pcs:
+        return m + 4
+    i = pcs.index(pc)
+    j = i + 2
+    return m + (D_SCALE[j % 7] + 12 * (j // 7) - D_SCALE[i])
+
+
+def childlike(x, formant=1.1):
+    s = parselmouth.Sound(x, SR)
+    out = call(s, "Change gender", 75, 700, formant, 0, 1, 1)
+    y = out.values[0]
+    return np.pad(y, (0, max(0, len(x) - len(y))))[: len(x)]
+
+
+def build(out_wav, env_path):
+    lead_singer = Singer("af_heart", speed=0.8)
+    lead, events = sing_lines(lead_singer, LEAD, DUR, BEAT)
+    lead = childlike(lead, 1.08)
+    # spoken lines (toddler)
+    talk = np.zeros_like(lead)
+    for b, text in SPOKEN:
+        a, sr = lead_singer.k.create(text, voice="af_heart", speed=1.0, lang="en-us")
+        snd = parselmouth.Sound(np.asarray(a, float), sr)
+        snd = call(snd, "Change gender", 75, 600, 1.16, 330, 1.4, 1.0).resample(SR)
+        y = snd.values[0]
+        y = y / (np.sqrt(np.mean(y ** 2)) + 1e-9) * 0.12
+        i = int(b * BEAT * SR)
+        talk[i:i + len(y)] += y[: len(talk) - i]
+    # backing choir: two other voices on the chorus, one doubling, one a third above
+    choir_lines = [l for l in LEAD if l["start"] >= CHORUS_FROM]
+    dbl, _ = sing_lines(Singer("af_bella", speed=0.8, vibrato=0.01), choir_lines, DUR, BEAT)
+    harm_lines = [dict(l, notes=[(third_above(m) if m else m, b) for m, b in l["notes"]]) for l in choir_lines]
+    harm, _ = sing_lines(Singer("af_nicole", speed=0.8, vibrato=0.01), harm_lines, DUR, BEAT)
+    dbl, harm = childlike(dbl, 1.15), childlike(harm, 1.15)
+
+    T = Track(DUR)
+    # ---------------- ukulele strums
+    pattern = [(0, 1.0, 1), (1, 0.8, 1), (1.5, 0.55, -1), (2.5, 0.6, -1), (3, 0.85, 1), (3.5, 0.55, -1)]
+    for bar in range(TOTAL_BEATS // 4):
+        for off, vel, direction in pattern:
+            b = bar * 4 + off
+            if b >= 76.01:
+                continue
+            notes = chord_notes(chord_at(b), 4)
+            notes = sorted(set([n if n >= 60 else n + 12 for n in notes] + [notes[0] + 12]))
+            seq = notes if direction > 0 else notes[::-1]
+            for k, m in enumerate(seq):
+                T.add(b * BEAT + k * 0.011, pluck(hz(m), 1.1, 0.65, 0.994), pan=-0.35 + 0.1 * k, gain=0.085 * vel)
+    for k, m in enumerate(sorted(chord_notes("D", 4) + [74, 78])):  # final ringing strum
+        T.add(76 * BEAT + k * 0.03, pluck(hz(m), 3.0, 0.7, 0.998), pan=-0.3 + 0.15 * k, gain=0.14)
+    # ---------------- bass + drums from the verse
+    for bar in range(2, 19):
+        for off, length, deg in [(0, 1.4, 0), (1.5, 0.5, 0), (2, 1.0, 7), (3.5, 0.5, 12)]:
+            b = bar * 4 + off
+            root = chord_notes(chord_at(b), 2)[0]
+            T.add(b * BEAT, bass(hz(root + deg), length * BEAT, 0.42))
+        chorus = bar >= 10
+        for beat in range(4):
+            b = bar * 4 + beat
+            if beat in (0, 2):
+                T.add(b * BEAT, kick(0.75))
+            if chorus and beat == 2:
+                T.add((b + 0.5) * BEAT, kick(0.45))
+            if beat in (1, 3) and bar >= 6:
+                T.add(b * BEAT, clap(0.32), pan=0.05)
+            T.add(b * BEAT, shaker(0.07), pan=0.4)
+            T.add((b + 0.5) * BEAT, shaker(0.05), pan=0.4)
+            if chorus:
+                T.add((b + 0.5) * BEAT, hat(0.07), pan=-0.3)
+    T.add(76 * BEAT, kick(0.8))
+    # ---------------- glockenspiel: intro hook + doubling the chorus
+    hook = [(0, D5), (0.5, A4), (2, D5), (2.5, A4), (4, B4), (4.5, A4), (5, G4), (6, Fs4)]
+    for b, m in hook:
+        T.add(b * BEAT, glock(hz(m + 12), 0.2), pan=0.3)
+    for l in LEAD:
+        if l["start"] >= 40:
+            b = l["start"]
+            for m, d in l["notes"]:
+                if m:
+                    T.add(b * BEAT, glock(hz(m + 12), 0.07), pan=0.35)
+                b += d
+    T.add(72 * BEAT, sparkle(0.14), pan=0.2)
+    # ---------------- sound effects
+    for b in QUACKS:
+        T.add(b * BEAT, squeak(0.22, 1900 + (b - 36) * 150), pan=-0.4)
+    T.add(4.5 * BEAT, squeak(0.2, 2100), pan=-0.4)
+    T.add(77 * BEAT, squeak(0.22, 2200), pan=-0.4)
+    for b in SPLASHES:
+        T.add(b * BEAT, splash(0.22), pan=0.1)
+    for b in POPS:
+        T.add(b * BEAT, bubble_pop(0.25), pan=0.3)
+    music = T.buf
+    # ---------------- vocals: compression, reverb, mix
+    V = Track(DUR)
+    V.add(0, lead, 0.0, 1.0)
+    V.add(0, talk, 0.0, 1.0)
+    V.add(0.012, dbl, -0.55, 0.45)
+    V.add(0.02, harm, 0.55, 0.38)
+    vox = compress(V.buf, 0.18, 3.0)
+    ir = reverb_ir(1.6)
+    wet = convolve_stereo(vox, ir)
+    delay = np.zeros_like(vox)
+    dl = int(BEAT * 0.75 * SR)
+    delay[dl:] = vox[:-dl] * 0.12
+    if os.environ.get("STEMS"):
+        def lvl(x):
+            return 20 * np.log10(np.sqrt(np.mean(x[int(4.3 * SR):int(41 * SR)] ** 2)) + 1e-12)
+        print("vocals %.1f dB  music %.1f dB  uke-band share check" % (lvl(vox * 1.9), lvl(music * 0.5)))
+    mix = vox * 1.9 + wet * 0.18 + delay + music * 0.5 + convolve_stereo(music, ir) * 0.03
+    mix = master(mix[: int(DUR * SR)])
+    write_wav(out_wav, mix)
+    # lip-sync envelopes per video frame (toddler = lead + spoken; duck = quacks)
+    fps = 30
+    hop = SR // fps
+    toddler = np.abs(lead[: int(DUR * SR)] + talk[: int(DUR * SR)])
+    n = len(toddler) // hop
+    env = toddler[: n * hop].reshape(n, hop).mean(axis=1)
+    env = np.clip(env / (np.percentile(env[env > 1e-4], 95) + 1e-9), 0, 1)
+    np.save(env_path, env)
+    return events
+
+
+if __name__ == "__main__":
+    os.makedirs("out", exist_ok=True)
+    build("out/bath-song.wav", "out/bath-song-mouth.npy")
+    print("done", DUR)
