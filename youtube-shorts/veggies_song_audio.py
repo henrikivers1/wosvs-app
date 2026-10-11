@@ -1,10 +1,10 @@
 """'Yum Yum Veggies' - an original toddler song. Builds the stereo mix, lip-sync envelope and caption timings."""
-import os
+import os, sys
 import numpy as np
 import parselmouth
 from parselmouth.praat import call
 from studio import *
-from sing import Singer, sing_lines
+from sing import Singer, sing_lines, parse_syllables
 
 BPM = 112
 BEAT = 60 / BPM
@@ -84,27 +84,8 @@ def childlike(x, formant=1.1):
     return np.pad(y, (0, max(0, len(x) - len(y))))[: len(x)]
 
 
-def build(out_wav, env_path):
-    lead_singer = Singer("af_heart", speed=0.8)
-    lead, events = sing_lines(lead_singer, LEAD, DUR, BEAT)
-    lead = childlike(lead, 1.08)
-    # spoken lines (toddler)
-    talk = np.zeros_like(lead)
-    for b, text in SPOKEN:
-        a, sr = lead_singer.k.create(text, voice="af_heart", speed=1.0, lang="en-us")
-        snd = parselmouth.Sound(np.asarray(a, float), sr)
-        snd = call(snd, "Change gender", 75, 600, 1.16, 330, 1.4, 1.0).resample(SR)
-        y = snd.values[0]
-        y = y / (np.sqrt(np.mean(y ** 2)) + 1e-9) * 0.12
-        i = int(b * BEAT * SR)
-        talk[i:i + len(y)] += y[: len(talk) - i]
-    # backing choir: two other voices on the chorus, one doubling, one a third above
-    choir_lines = [l for l in LEAD if l["start"] >= CHORUS_FROM]
-    dbl, _ = sing_lines(Singer("af_bella", speed=0.8, vibrato=0.01), choir_lines, DUR, BEAT)
-    harm_lines = [dict(l, notes=[(third_above(m) if m else m, b) for m, b in l["notes"]]) for l in choir_lines]
-    harm, _ = sing_lines(Singer("af_nicole", speed=0.8, vibrato=0.01), harm_lines, DUR, BEAT)
-    dbl, harm = childlike(dbl, 1.15), childlike(harm, 1.15)
-
+def band():
+    """Ukulele, bass, drums, glockenspiel and sound effects, all on the beat grid."""
     T = Track(DUR)
     # ---------------- ukulele strums
     pattern = [(0, 1.0, 1), (1, 0.8, 1), (1.5, 0.55, -1), (2.5, 0.6, -1), (3, 0.85, 1), (3.5, 0.55, -1)]
@@ -162,7 +143,31 @@ def build(out_wav, env_path):
         T.add(b * BEAT, splash(0.22), pan=0.1)
     for b in POPS:
         T.add(b * BEAT, bubble_pop(0.25), pan=0.3)
-    music = T.buf
+    return T.buf
+
+
+def build(out_wav, env_path):
+    lead_singer = Singer("af_heart", speed=0.8)
+    lead, events = sing_lines(lead_singer, LEAD, DUR, BEAT)
+    lead = childlike(lead, 1.08)
+    # spoken lines (toddler)
+    talk = np.zeros_like(lead)
+    for b, text in SPOKEN:
+        a, sr = lead_singer.k.create(text, voice="af_heart", speed=1.0, lang="en-us")
+        snd = parselmouth.Sound(np.asarray(a, float), sr)
+        snd = call(snd, "Change gender", 75, 600, 1.16, 330, 1.4, 1.0).resample(SR)
+        y = snd.values[0]
+        y = y / (np.sqrt(np.mean(y ** 2)) + 1e-9) * 0.12
+        i = int(b * BEAT * SR)
+        talk[i:i + len(y)] += y[: len(talk) - i]
+    # backing choir: two other voices on the chorus, one doubling, one a third above
+    choir_lines = [l for l in LEAD if l["start"] >= CHORUS_FROM]
+    dbl, _ = sing_lines(Singer("af_bella", speed=0.8, vibrato=0.01), choir_lines, DUR, BEAT)
+    harm_lines = [dict(l, notes=[(third_above(m) if m else m, b) for m, b in l["notes"]]) for l in choir_lines]
+    harm, _ = sing_lines(Singer("af_nicole", speed=0.8, vibrato=0.01), harm_lines, DUR, BEAT)
+    dbl, harm = childlike(dbl, 1.15), childlike(harm, 1.15)
+
+    music = band()
     # ---------------- vocals: compression, reverb, mix
     V = Track(DUR)
     V.add(0, lead, 0.0, 1.0)
@@ -196,7 +201,59 @@ def build(out_wav, env_path):
     return events
 
 
+def melody_note(f, dur):
+    """Toy piano attack + soft flute sustain: carries the tune in the instrumental sing-along."""
+    n = int((dur + 0.4) * SR)
+    t = np.arange(n) / SR
+    piano = sum(a * np.sin(2 * np.pi * f * k * t) * np.exp(-t * (3 + 2.5 * k)) for k, a in
+                [(1, 1.0), (2, 0.45), (3, 0.2), (4, 0.1)])
+    piano *= np.minimum(1, t / 0.003)
+    vib = 1 + 0.006 * np.sin(2 * np.pi * 5.2 * t) * np.minimum(1, t / 0.35)
+    ph = 2 * np.pi * f * np.cumsum(vib) / SR
+    flute = np.sin(ph) + 0.25 * np.sin(2 * ph) + 0.08 * np.sin(3 * ph)
+    hold = dur * 0.92
+    env = np.minimum(1, t / 0.04) * np.clip((hold + 0.12 - t) / 0.12, 0, 1)
+    return piano * 0.5 + flute * env * 0.42
+
+
+def syllable_times():
+    """Exact syllable start times (seconds) straight from the note grid."""
+    out = []
+    for ln in LEAD:
+        b = ln["start"]
+        k = 0
+        for word, nsyl in parse_syllables(ln["text"]):
+            for _ in range(nsyl):
+                while ln["notes"][k][0] is None:
+                    b += ln["notes"][k][1]
+                    k += 1
+                m, d = ln["notes"][k]
+                out.append(dict(t=b * BEAT, d=d * BEAT, word=word, midi=m))
+                b += d
+                k += 1
+    return out
+
+
+def build_instrumental(out_wav, words_json):
+    import json
+    music = band()
+    M = Track(DUR)
+    for e in syllable_times():
+        M.add(e["t"], melody_note(hz(e["midi"]), e["d"]), pan=0.0, gain=0.3)
+        if LEAD and e["t"] >= CHORUS_FROM * BEAT:   # chorus: octave glock sparkle on the tune
+            M.add(e["t"], glock(hz(e["midi"] + 12), 0.05), pan=0.3)
+    mel = M.buf
+    ir = reverb_ir(1.4)
+    mix = mel * 1.0 + convolve_stereo(mel, ir) * 0.12 + music * 0.55 + convolve_stereo(music, ir) * 0.03
+    write_wav(out_wav, master(mix[: int(DUR * SR)]))
+    with open(words_json, "w") as f:
+        json.dump(syllable_times(), f)
+
+
 if __name__ == "__main__":
     os.makedirs("out", exist_ok=True)
-    build("out/veggies-song.wav", "out/veggies-song-mouth.npy")
+    if "--sung" in sys.argv:
+        build("out/veggies-song.wav", "out/veggies-song-mouth.npy")
+    else:
+        build_instrumental("out/veggies-karaoke.wav", "out/veggies-karaoke-words.json")
     print("done", DUR)

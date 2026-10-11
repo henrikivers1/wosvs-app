@@ -1,7 +1,7 @@
 """'Yum Yum Veggies' video: AI-generated stills (assets/veggies/1-9.png) cut to the song with Ken Burns motion,
-beat pulses, sparkles, butterflies, karaoke captions and a subscribe end card.
+smooth 60 fps motion, crossfades, sparkles, butterflies, karaoke captions and a subscribe end card.
 
-    python3 veggies_song_audio.py   # song -> out/veggies-song.wav + word timings
+    python3 veggies_song_audio.py   # instrumental sing-along -> out/veggies-karaoke.wav + exact word timings
     python3 veggies_video.py        # -> out/yum-yum-veggies.mp4
     python3 veggies_video.py 5 22   # preview frames
 """
@@ -29,32 +29,20 @@ def img(i):
     return IMG[i] if IMG[i] is not None else IMG[FALLBACK[i]]
 
 
-# (start beat, image, zoom from, zoom to, focus from, focus to)  focus = fraction of the picture
-# Each sung line gets two 4-beat shots; images 6-9 fall back to close-ups of 1-5 until they exist.
+# One smooth camera move per sung line: (start beat, image, zoom from, zoom to, focus from, focus to).
+# Focus is a fraction of the picture; images 6-9 fall back to close-ups of 1-5 if missing.
 def shots():
     have = lambda i: IMG[i] is not None
-    s = [(0, 1, 1.0, 1.1, (.5, .5), (.45, .42)),
-         (8, 2, 1.04, 1.12, (.5, .5), (.45, .45)), (12, 2, 1.3, 1.38, (.72, .45), (.7, .44)),
-         (16, 3, 1.16, 1.06, (.5, .45), (.5, .45)), (20, 3, 1.35, 1.42, (.45, .5), (.48, .48)),
-         (24, 4, 1.0, 1.1, (.5, .5), (.55, .45)), (28, 4, 1.35, 1.42, (.75, .45), (.75, .43)),
-         (32, 5, 1.04, 1.12, (.5, .45), (.5, .38)), (36, 5, 1.35, 1.3, (.5, .8), (.5, .78))]
-    if have(6):
-        s += [(40, 6, 1.0, 1.08, (.5, .5), (.5, .45)), (44, 6, 1.25, 1.32, (.5, .7), (.5, .68))]
-    else:
-        s += [(40, 1, 1.35, 1.42, (.5, .73), (.5, .72)), (44, 5, 1.3, 1.38, (.5, .8), (.5, .79))]
-    if have(7):
-        s += [(48, 7, 1.04, 1.12, (.5, .5), (.5, .42)), (52, 7, 1.3, 1.36, (.5, .45), (.5, .44))]
-    else:
-        s += [(48, 2, 1.45, 1.5, (.78, .45), (.78, .44)), (52, 1, 1.15, 1.25, (.45, .4), (.42, .38))]
-    if have(8):
-        s += [(56, 8, 1.0, 1.1, (.5, .5), (.5, .45)), (60, 8, 1.28, 1.34, (.5, .55), (.5, .5))]
-    else:
-        s += [(56, 4, 1.45, 1.5, (.78, .48), (.78, .47)), (60, 3, 1.05, 1.15, (.5, .45), (.5, .42))]
-    if have(9):
-        s += [(64, 9, 1.0, 1.1, (.5, .5), (.5, .45)), (68, 9, 1.25, 1.32, (.5, .42), (.5, .4))]
-    else:
-        s += [(64, 5, 1.0, 1.1, (.5, .5), (.5, .42)), (68, 1, 1.0, 1.08, (.5, .5), (.48, .45))]
-    s += [(72, 9 if have(9) else 1, 1.0, 1.05, (.5, .5), (.5, .5)), (999, 1, 1, 1, (.5, .5), (.5, .5))]
+    s = [(0, 1, 1.0, 1.12, (.5, .5), (.45, .42)),
+         (8, 2, 1.0, 1.15, (.5, .5), (.55, .45)),
+         (16, 3, 1.14, 1.02, (.48, .45), (.5, .48)),
+         (24, 4, 1.0, 1.15, (.5, .5), (.58, .45)),
+         (32, 5, 1.0, 1.12, (.5, .55), (.5, .45)),
+         (40, 6 if have(6) else 1, 1.0, 1.12, (.5, .55), (.5, .6)),
+         (48, 7 if have(7) else 2, 1.12, 1.0, (.5, .45), (.5, .5)),
+         (56, 8 if have(8) else 4, 1.0, 1.14, (.5, .5), (.5, .45)),
+         (64, 9 if have(9) else 5, 1.0, 1.12, (.5, .5), (.48, .45)),
+         (72, 9 if have(9) else 1, 1.0, 1.05, (.5, .5), (.5, .5)), (999, 1, 1, 1, (.5, .5), (.5, .5))]
     return s
 
 
@@ -86,7 +74,7 @@ def lerp(a, b, t):
 
 
 # ---------------------------------------------------------------- captions from the sung word timings
-EVENTS = json.load(open("out/veggies-song-words.json"))
+EVENTS = json.load(open("out/veggies-karaoke-words.json"))
 LINES = []
 _k = 0
 for ln in LEAD:
@@ -183,12 +171,20 @@ def draw_butterflies(d, t):
                 draw_butterfly(d, x, y, t + ph, col, 1.6)
 
 
-def frame_image(b):
-    for (a, i, z0, z1, f0, f1), nxt in zip(SHOTS, SHOTS[1:]):
-        if a <= b < nxt[0]:
-            p = ease((b - a) / (nxt[0] - a))
-            return img(i), lerp(z0, z1, p), (lerp(f0[0], f1[0], p), lerp(f0[1], f1[1], p)), b - a
-    return img(1), 1.0, (.5, .5), 0
+FADE = 0.3   # seconds of crossfade into each new shot
+
+
+def shot_frame(k, b):
+    a, i, z0, z1, f0, f1 = SHOTS[k]
+    p = ease((b - a) / (SHOTS[k + 1][0] - a))       # one continuous eased move per shot
+    return kenburns(img(i), lerp(z0, z1, p), (lerp(f0[0], f1[0], p), lerp(f0[1], f1[1], p)))
+
+
+def shot_index(b):
+    for k in range(len(SHOTS) - 1):
+        if SHOTS[k][0] <= b < SHOTS[k + 1][0]:
+            return k
+    return 0
 
 
 def kenburns(src, zoom, focus, extra=1.0):
@@ -245,24 +241,27 @@ def end_card(t, b):
 def frame(t):
     b = t / BEAT
     if b >= 72:
-        return end_card(t, b)
-    src, zoom, focus, since = frame_image(b)
-    pulse = 1 + 0.012 * math.exp(-((b % 1) * BEAT) * 10)   # gentle beat bump
-    punch = 1 + 0.05 * math.exp(-since * BEAT * 9)          # zoom punch on each cut
-    out = kenburns(src, zoom, focus, pulse * punch)
-    # brief white flash on line changes
-    if since * BEAT < 0.08 and b > 1:
-        out = Image.blend(out, Image.new("RGB", (W, H), (255, 255, 255)), 0.35 * (1 - since * BEAT / 0.08))
+        out = end_card(t, b)
+        since = (b - 72) * BEAT
+        if since < FADE:
+            out = Image.blend(shot_frame(shot_index(71.99), 71.99), out, ease(since / FADE))
+        return out
+    k = shot_index(b)
+    out = shot_frame(k, b)
+    since = (b - SHOTS[k][0]) * BEAT
+    if k > 0 and since < FADE:      # soft crossfade from the previous shot
+        prev = shot_frame(k - 1, b)
+        out = Image.blend(prev, out, ease(since / FADE))
     d = ImageDraw.Draw(out, "RGBA")
     draw_sparkles(d, t, b)
     draw_butterflies(d, t)
     if b < 7.5:  # title
-        k = ease_out_back((t - 0.2) / 0.6) * (1 - ease((b - 6.8) / 0.7))
+        kk = ease_out_back((t - 0.2) / 0.6) * (1 - ease((b - 6.8) / 0.7))
         for i, (text, y, size, col) in enumerate([("Yum Yum", 210, 130, (255, 255, 255)),
                                                   ("Veggies!", 350, 150, (255, 160, 40))]):
-            s = int(size * k)
+            s = int(size * kk)
             if s > 8:
-                d.text((W / 2, y + 8 * math.sin(t * 4 + i)), text, font=font(s), fill=col, anchor="mm",
+                d.text((W / 2, y + 8 * math.sin(t * 2 + i)), text, font=font(s), fill=col, anchor="mm",
                        stroke_width=max(2, s // 10), stroke_fill=(60, 140, 40))
     draw_caption(out, t)
     return out
@@ -275,5 +274,5 @@ if __name__ == "__main__":
         for x in pv:
             frame(x).save(f"out/pv/veg_t{x:05.1f}.png")
     else:
-        render_parallel(frame, DUR, "out/veggies-song.wav", "out/yum-yum-veggies.mp4", workers=4)
+        render_parallel(frame, DUR, "out/veggies-karaoke.wav", "out/yum-yum-veggies.mp4", workers=4, fps=60)
         print("done")

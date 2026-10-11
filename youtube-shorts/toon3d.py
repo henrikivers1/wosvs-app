@@ -167,9 +167,9 @@ def shoot(world, zoom, focus):
     return world.resize((W, H), Image.LANCZOS, box=(x0, y0, x0 + cw, y0 + ch))
 
 
-def render_parallel(frame_fn, duration, audio_wav, out_path, workers=4, module=None):
+def render_parallel(frame_fn, duration, audio_wav, out_path, workers=4, fps=FPS):
     """Render frames in `workers` processes (fork) into segments, then concat and mux with audio."""
-    n = int(duration * FPS)
+    n = int(duration * fps)
     chunks = [(i * n // workers, (i + 1) * n // workers) for i in range(workers)]
     segs = []
     pids = []
@@ -179,11 +179,11 @@ def render_parallel(frame_fn, duration, audio_wav, out_path, workers=4, module=N
         pid = os.fork()
         if pid == 0:
             cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-                   "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "slow", "-crf", "17",
+                   "-r", str(fps), "-i", "-", "-c:v", "libx264", "-preset", "slow", "-crf", "17",
                    "-pix_fmt", "yuv420p", seg]
             p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
             for i in range(a, b):
-                p.stdin.write(frame_fn(i / FPS).convert("RGB").tobytes())
+                p.stdin.write(frame_fn(i / fps).convert("RGB").tobytes())
             p.stdin.close()
             p.wait()
             os._exit(0)
