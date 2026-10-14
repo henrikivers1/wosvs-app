@@ -1112,6 +1112,36 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     demoTable("state_join_links").push(link);
     return ok([{ token: link.token, pin: link.pin, created_at: link.created_at }]);
   },
+  state_roster_import_count: ({ target_state_id }) =>
+    ok(demoTable("state_roster_imports").filter((row) => row.state_id === target_state_id).length),
+  import_state_roster: ({ target_state_id, rows }) => {
+    const imports = demoTable("state_roster_imports");
+    const list = (rows as Row[]) ?? [];
+    for (const row of list) {
+      remove("state_roster_imports", (item) => item.state_id === target_state_id && item.wos_id === row.wos_id);
+      imports.push({ ...row, state_id: target_state_id });
+    }
+    // Fill members' empty fields, like the database does.
+    const memberIds = new Set(
+      demoTable("state_members").filter((m) => m.state_id === target_state_id).map((m) => m.wos_account_id),
+    );
+    let filled = 0;
+    const troops = ["infantry", "lancer", "marksman"].map((k) => [`${k}_tier`, `${k}_fc_level`, `${k}_t12_skill`]);
+    for (const account of demoTable("wos_accounts").filter((a) => memberIds.has(a.id))) {
+      const source = list.find((row) => row.wos_id === account.wos_id);
+      if (!source) continue;
+      // Each troop type as a whole, like the database.
+      for (const fields of troops) {
+        if (fields.every((field) => account[field] == null)) for (const field of fields) account[field] = source[field] ?? null;
+      }
+      if (!account.heroes_updated_at && Array.isArray(source.heroes)) {
+        for (const hero of source.heroes as string[]) demoTable("player_heroes").push({ wos_account_id: account.id, hero });
+        account.heroes_updated_at = nowIso();
+      }
+      filled += 1;
+    }
+    return ok({ saved: list.length, filled });
+  },
   set_state_min_furnace: ({ target_state_id, level }) => {
     const state = byId("states", target_state_id);
     if (!state) return fail("State not found.");

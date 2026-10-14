@@ -11,6 +11,7 @@ import { SvsStatus } from "@/components/SvsStatus";
 import { OracleAlliancePicker } from "@/components/OracleAlliancePicker";
 import { LATEST_HERO_GENERATION } from "@/lib/heroes";
 import { JoinLinkCard } from "@/components/JoinLinkCard";
+import { RosterImportCard } from "@/components/RosterImportCard";
 
 type StateMember = {
   wosAccountId: string;
@@ -503,6 +504,7 @@ export default function ManageStatePage() {
         stateId={activeMembership.stateId}
         stateName={activeMembership.stateName}
       />
+      <RosterImportCard stateId={activeMembership.stateId} />
 
       <section>
         <div className="section-title-row">

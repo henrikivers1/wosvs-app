@@ -81,6 +81,38 @@ export const chineseInterface: Record<string, string> = {
   "Battle losses": "战斗失败",
   "Battle period active": "战斗期进行中",
   "Battle plan deleted.": "作战计划已删除。",
+  "Import player data":
+    "导入玩家数据",
+  "Moving from another planning tool? Import its roster CSV. Troop tiers, troop FC, T12 skill and 4★ joiner heroes are matched by WOS ID and filled in for members now and when they join. Anything a player entered themselves is kept.":
+    "从其他规划工具迁移过来？导入它的玩家名单 CSV。兵种阶级、兵种FC、T12技能和4★加入英雄会按 WOS ID 匹配，并为现有成员立即填写，新成员加入时自动填写。玩家自己填写的内容会保留。",
+  "{count} players imported so far.":
+    "目前已导入 {count} 名玩家。",
+  "Roster CSV":
+    "玩家名单 CSV",
+  "The file is too large (over 5 MB).":
+    "文件过大（超过 5 MB）。",
+  "{players} players, {troops} with troop details, {heroes} with joiner heroes.":
+    "{players} 名玩家，{troops} 名有兵种数据，{heroes} 名有加入英雄。",
+  "{count} rows were skipped: no valid WOS ID.":
+    "跳过了 {count} 行：没有有效的 WOS ID。",
+  "Unknown heroes left out: {names}":
+    "未识别的英雄已忽略：{names}",
+  "Importing...":
+    "正在导入...",
+  "Import {count} players":
+    "导入 {count} 名玩家",
+  "Saved {saved} players. {filled} members were filled in now; the rest are filled in when they join.":
+    "已保存 {saved} 名玩家。现在已为 {filled} 名成员填写；其余成员加入时自动填写。",
+  "Only state owners and admins can import player data.":
+    "只有州主和管理员可以导入玩家数据。",
+  "The import must be a list of at most 5000 players.":
+    "导入最多只能包含 5000 名玩家。",
+  "The file has no players.":
+    "文件中没有玩家。",
+  "The file needs a \"Player ID\" column with each player's WOS ID.":
+    "文件需要一列 \"Player ID\"，包含每位玩家的 WOS ID。",
+  "Your state's admins can import your troop details and joiner heroes from another planning tool, matched by WOS ID. Anything you entered yourself is kept.":
+    "你所在州的管理员可以从其他规划工具导入你的兵种数据和加入英雄，按 WOS ID 匹配。你自己填写的内容会保留。",
   "Minimum Furnace to join":
     "加入所需最低熔炉等级",
   "Anyone in the state":
