@@ -1,5 +1,12 @@
 import { blockLabel, DEFAULT_BLOCK_SWAPS, validBlockSwaps } from "@/lib/castle";
 import type { DemoResult } from "@/lib/demo/query";
+import {
+  FDT_ALLIANCE_LIMIT,
+  fdtEventOver,
+  fdtRallyNote,
+  type FdtEvent,
+  type FdtTarget,
+} from "@/lib/fdt";
 import { DEMO_USER_ID } from "@/lib/demo/seed";
 import {
   emitDemoMemberNotifications,
@@ -200,6 +207,46 @@ function nextSundayEnd() {
   end.setUTCDate(end.getUTCDate() + ((7 - end.getUTCDay()) % 7));
   end.setUTCHours(23, 59, 59, 0);
   return end.toISOString();
+}
+
+// Same messages as notify_fdt_assignment, for the demo user's own accounts.
+function notifyFdtSpot(event: Row, accountId: unknown, changed: boolean) {
+  if (byId("wos_accounts", accountId)?.user_id !== DEMO_USER_ID) return;
+  const spot = demoTable("fdt_assignments").find(
+    (row) => row.event_id === event.id && row.wos_account_id === accountId,
+  );
+  const base = {
+    event_id: event.id,
+    event_name: event.name,
+    battle_start: event.battle_at,
+    player: accountName(accountId),
+  };
+  if (!spot) {
+    notifyDemoUser(
+      "fdt_assignment",
+      "Removed from the Frostdragon Tyrant lineup",
+      `Hi ${base.player}, you are no longer in the lineup for ${event.name}.`,
+      { ...base, removed: true },
+      event.state_id,
+      accountId,
+    );
+    return;
+  }
+  const allianceName = byId("state_alliances", spot.alliance_id)?.name;
+  notifyDemoUser(
+    "fdt_assignment",
+    changed ? "Your Frostdragon Tyrant spot changed" : "Your Frostdragon Tyrant spot",
+    `Hi ${base.player}, you play ${event.name} in ${allianceName}.`,
+    {
+      ...base,
+      alliance_name: allianceName,
+      target: spot.target,
+      note: fdtRallyNote(event as FdtEvent, spot.target as FdtTarget | null),
+      changed,
+    },
+    event.state_id,
+    accountId,
+  );
 }
 
 const handlers: Record<string, (args: Args) => DemoResult> = {
@@ -1147,6 +1194,144 @@ const handlers: Record<string, (args: Args) => DemoResult> = {
     if (!state) return fail("State not found.");
     state.min_furnace_level = level ?? null;
     return ok();
+  },
+
+  create_fdt_event: ({ target_state_id, event_name, event_battle_at }) => {
+    const name = String(event_name ?? "").trim();
+    if (!name || name.length > 60) {
+      return fail("Give the event a name of at most 60 characters.");
+    }
+    if (!event_battle_at || fdtEventOver({ battle_at: String(event_battle_at) })) {
+      return fail("Choose a battle time that has not passed.");
+    }
+    const id = newUuid();
+    demoTable("fdt_events").push({
+      id,
+      state_id: target_state_id,
+      name,
+      battle_at: event_battle_at,
+      capital_note: null,
+      spires_note: null,
+      published_at: null,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    });
+    const ownMember = demoTable("state_members").find(
+      (member) =>
+        member.state_id === target_state_id &&
+        byId("wos_accounts", member.wos_account_id)?.user_id === DEMO_USER_ID,
+    );
+    notifyDemoUser(
+      "fdt_vote",
+      "Can you play Frostdragon Tyrant?",
+      `${name} starts soon. Open Overwatch to vote whether you can play.`,
+      { event_id: id, event_name: name, battle_start: event_battle_at },
+      target_state_id,
+      ownMember?.wos_account_id ?? null,
+    );
+    return ok(id);
+  },
+
+  update_fdt_event: (args) => {
+    const event = byId("fdt_events", args.target_event_id);
+    if (!event) return fail("Frostdragon Tyrant event not found.");
+    const name = String(args.event_name ?? "").trim();
+    if (!name || name.length > 60) {
+      return fail("Give the event a name of at most 60 characters.");
+    }
+    if (!args.event_battle_at) return fail("Choose the battle time.");
+    event.name = name;
+    event.battle_at = args.event_battle_at;
+    event.capital_note = String(args.capital_rally_note ?? "").trim() || null;
+    event.spires_note = String(args.spires_rally_note ?? "").trim() || null;
+    event.updated_at = nowIso();
+    return ok();
+  },
+
+  delete_fdt_event: ({ target_event_id }) => {
+    remove("fdt_votes", (row) => row.event_id === target_event_id);
+    remove("fdt_assignments", (row) => row.event_id === target_event_id);
+    remove("fdt_events", (row) => row.id === target_event_id);
+    return ok();
+  },
+
+  set_fdt_vote: (args) => {
+    const event = byId("fdt_events", args.target_event_id);
+    if (!event) return fail("Frostdragon Tyrant event not found.");
+    if (fdtEventOver(event as FdtEvent)) return fail("This battle is over.");
+    remove(
+      "fdt_votes",
+      (row) =>
+        row.event_id === event.id &&
+        row.wos_account_id === args.target_wos_account_id,
+    );
+    demoTable("fdt_votes").push({
+      event_id: event.id,
+      state_id: event.state_id,
+      wos_account_id: args.target_wos_account_id,
+      availability: args.selected_availability,
+      voice_call: Boolean(args.joins_voice),
+      updated_at: nowIso(),
+    });
+    return ok();
+  },
+
+  set_fdt_assignment: (args) => {
+    const event = byId("fdt_events", args.target_event_id);
+    if (!event) return fail("Frostdragon Tyrant event not found.");
+    const accountId = args.target_wos_account_id;
+    const rows = demoTable("fdt_assignments");
+    const previous = rows.find(
+      (row) => row.event_id === event.id && row.wos_account_id === accountId,
+    );
+    const target = args.selected_target || null;
+    if (!args.target_alliance_id) {
+      if (!previous) return ok();
+      remove("fdt_assignments", (row) => row === previous);
+      if (event.published_at) notifyFdtSpot(event, accountId, true);
+      return ok();
+    }
+    if (target && target !== "capital" && target !== "spires") {
+      return fail("Choose the Capital or the Spires.");
+    }
+    const taken = rows.filter(
+      (row) =>
+        row.event_id === event.id &&
+        row.alliance_id === args.target_alliance_id &&
+        row.wos_account_id !== accountId,
+    ).length;
+    if (taken >= FDT_ALLIANCE_LIMIT) {
+      return fail("This alliance already has 60 players for Frostdragon Tyrant.");
+    }
+    if (previous) {
+      previous.alliance_id = args.target_alliance_id;
+      previous.target = target;
+      previous.updated_at = nowIso();
+    } else {
+      rows.push({
+        event_id: event.id,
+        state_id: event.state_id,
+        wos_account_id: accountId,
+        alliance_id: args.target_alliance_id,
+        target,
+        updated_at: nowIso(),
+      });
+    }
+    if (event.published_at) notifyFdtSpot(event, accountId, Boolean(previous));
+    return ok();
+  },
+
+  publish_fdt_event: ({ target_event_id }) => {
+    const event = byId("fdt_events", target_event_id);
+    if (!event) return fail("Frostdragon Tyrant event not found.");
+    if (fdtEventOver(event as FdtEvent)) return fail("This battle is over.");
+    const republish = Boolean(event.published_at);
+    event.published_at = nowIso();
+    const spots = demoTable("fdt_assignments").filter(
+      (row) => row.event_id === event.id,
+    );
+    spots.forEach((spot) => notifyFdtSpot(event, spot.wos_account_id, republish));
+    return ok(spots.length);
   },
 };
 

@@ -34,6 +34,25 @@ size, default formation and joiner heroes can be changed, in **State
 management → SvS automation**. Nothing the automation does overwrites manual
 changes.
 
+### Frostdragon Tyrant (FDT)
+
+FDT is planned on its own (`/state/planning/fdt`, `src/lib/fdt.ts`); there is
+no automation and no live battle mode for it.
+
+1. An owner or admin creates the event with its start time (UTC). Every
+   member gets "Can you play Frostdragon Tyrant?" (`create_fdt_event`).
+2. Members vote I can play / Maybe / Can't play and voice call in Overwatch
+   (`set_fdt_vote`) until 8 hours after the start.
+3. Admins put players in one of the state's alliances, at most **60 per
+   alliance** (enforced in `set_fdt_assignment`), with a target: the
+   **Capital** or the **Spires**. "Add everyone who said yes" places yes
+   voters in their usual alliance, strongest first, while it has room. Each
+   target has a rally note (e.g. which 4 joiner heroes first).
+4. **Publish** shows the lineup to members (`fdt_assignments` is admin-only
+   until then) and sends each player their alliance, target and rally note
+   (`publish_fdt_event`). After that every change is sent to that player at
+   once; publishing again resends everyone's spot.
+
 ### Billing
 
 `states.paid_until` (set on `/operator`; null = not billed). Five days before
@@ -123,8 +142,9 @@ Typical cost per state:
 | `/account`, `/account/pin` | everyone | Your WOS ID (sync), 4★ joiner heroes, manual troop/FC fields; change PIN (forced after a one-time PIN) |
 | `/notifications` | everyone | Inbox, colour per action, filters |
 | `/operator` | operators | Create states, one-time PINs |
-| `/state/overwatch` | members | Next SvS, attendance vote, own rally/hero/formation, notices, plan comments |
+| `/state/overwatch` | members | Next SvS, attendance vote, Frostdragon Tyrant vote and spot, own rally/hero/formation, notices, plan comments |
 | `/state/intel` | members | Opponent and own state from the stored intel |
+| `/state/planning/fdt` | admins | Frostdragon Tyrant: create the event, rally note per target, alliance (60 max) and target per player, publish |
 | `/state/planning` | admins | Next SvS checklist (one gold button per step), Needs attention (`planIssues.ts`: each problem with a one-tap fix), waiting list beside compact rally columns (drag, player sheet, rally ⋯ menu for setup/heroes/edit/delete), plan ⋯ menu (add rally, rebuild all, edit, delete), Rally Leads panel, folded comments, plan history. Auto-fill priorities live in State management → SvS automation |
 | `/state/manage` | admins | Join link, alliances, in-game number and hero generation, SvS automation settings, members (role, Coordinator/Garrison, Reset PIN, remove) |
 | `/state/alliances` | members | Published alliance rosters and alliance notices |
@@ -191,6 +211,7 @@ query in parallel.
 | SvS plan | `create_svs_plan`, `update_battle_plan`, `set_battle_plan_opponent`, `delete_battle_plan`, `get_upcoming_svs`, `set_battle_attendance` |
 | Rallies | `create/update/delete_battle_plan_group`, `create_garrison_group`, `set_battle_plan_group_rotation` (lead per pet block), `set_battle_plan_group_setup`, `set_battle_plan_assignment`, `set_assignment_details`, `apply_battle_plan_autofill`, `publish_battle_plan_with_notifications` |
 | Comments and notices | `create_battle_plan_comment`, `delete_battle_plan_comment`, `get_battle_plan_comments`, `create_state_announcement`, `delete_state_announcement`, `cleanup_expired_state_announcements` |
+| Frostdragon Tyrant | `create_fdt_event`, `update_fdt_event` (name, time, rally notes), `delete_fdt_event`, `set_fdt_vote`, `set_fdt_assignment`, `publish_fdt_event` |
 | History | `get_state_battle_history_v2`, `get_state_overview`, `set_battle_result` |
 | Permission checks used by RLS | `is_state_member/admin/owner`, `is_state_member_account`, `is_state_admin_account`, `owns_wos_account`, `can_read_wos_account`, `shares_state_with`, `can_view_*`, `can_manage_battle`, `can_call_state_rallies` |
 
@@ -198,7 +219,7 @@ query in parallel.
 
 - **Automation:** `automation_ensure_svs_plan`, `automation_advance_battles`, `automation_set_battle_result`, `publish_battle_plan`; for `/api/auth/*`: `pin_locked_until`, `record_pin_failure`, `clear_pin_failures`, `end_user_sessions`.
 - **WOSOracle budget:** `reserve_oracle_request`. `count_oracle_request` is the older counter, kept as a fallback until the new migration has run.
-- **Notifications:** `queue_account_notification`, `notify_member_action`, `account_display_name`.
+- **Notifications:** `notify_fdt_assignment`, `queue_account_notification`, `notify_member_action`, `account_display_name`.
 - **Nightly:** `automation_housekeeping`.
 
 ### Triggers
@@ -224,8 +245,8 @@ query in parallel.
 | Category | Colour | Types |
 |---|---|---|
 | victory / defeat | green / red | `battle_result` |
-| battle | orange | `svs_drawn`, `attendance_reminder`, `rallies_generated`, `battle_started` ("Live Battle is open" at 11:00), `map_enemy_leaders` (owners, admins, Coordinators at 11:00), `battle_completed`, `battle_cancelled` |
-| assignment | blue | `battle_plan_assignment`, `battle_plan_published`, `battle_plan_assignment_changed` |
+| battle | orange | `svs_drawn`, `attendance_reminder`, `rallies_generated`, `battle_started` ("Live Battle is open" at 11:00), `map_enemy_leaders` (owners, admins, Coordinators at 11:00), `battle_completed`, `battle_cancelled`, `fdt_vote` |
+| assignment | blue | `battle_plan_assignment`, `battle_plan_published`, `battle_plan_assignment_changed`, `fdt_assignment` (removal colour when taken out of the lineup) |
 | role | purple | `member_role_changed`, `capability_granted` |
 | tag | the tag's colour | `state_tag_awarded` |
 | alliance | gold | `state_alliance_assigned` |

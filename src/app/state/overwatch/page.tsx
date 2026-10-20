@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { SvsStatus } from "@/components/SvsStatus";
 import { AttendanceVote } from "@/components/AttendanceVote";
+import { FdtVote } from "@/components/FdtVote";
 import { useStates } from "@/components/StateProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -437,6 +438,13 @@ export default function OverwatchPage() {
       <AttendanceVote
         stateId={activeMembership.stateId}
         wosAccountId={activeMembership.wosAccountId}
+      />
+      <FdtVote
+        stateId={activeMembership.stateId}
+        wosAccountId={activeMembership.wosAccountId}
+        isAdmin={
+          activeMembership.role === "owner" || activeMembership.role === "admin"
+        }
       />
 
       {message && <p className="page-message">{message}</p>}

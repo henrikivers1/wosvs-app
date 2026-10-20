@@ -4900,3 +4900,106 @@ li button.lead-toggle.on:not(.holder) {
     grid-template-columns: 1fr;
   }
 }
+
+/* Frostdragon Tyrant planning (Planning → Frostdragon Tyrant) and vote */
+.fdt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fdt-create-form {
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.fdt-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.fdt-notes textarea {
+  width: 100%;
+}
+.fdt-alliance-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.fdt-alliance-card {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.fdt-alliance-card h3 {
+  margin: 0;
+}
+.fdt-count {
+  margin: 6px 0 2px;
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+}
+.fdt-count-full {
+  color: var(--accent);
+}
+.fdt-alliance-card small,
+.fdt-player-meta {
+  display: block;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.fdt-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.fdt-filters button {
+  min-height: 34px;
+  padding: 6px 12px;
+}
+.fdt-filters input {
+  flex: 1 1 180px;
+}
+.fdt-table select {
+  min-width: 130px;
+}
+.fdt-spot {
+  margin: 10px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+.fdt-spot p {
+  margin: 0;
+}
+.fdt-note {
+  margin-top: 6px !important;
+  white-space: pre-line;
+}
+@media (max-width: 640px) {
+  /* One small card per player: name and vote, then alliance and target. */
+  .fdt-table thead {
+    display: none;
+  }
+  .fdt-table tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fdt-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .fdt-table td {
+    padding: 0;
+    border-bottom: 0;
+  }
+  .fdt-table select {
+    width: 100%;
+    min-width: 0;
+  }
+}
