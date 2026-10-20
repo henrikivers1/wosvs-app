@@ -69,9 +69,11 @@ const LEGACY_TYPES: Record<string, NotificationCategory> = {
   attendance_reminder: "battle",
   rallies_generated: "battle",
   svs_drawn: "battle",
+  fdt_vote: "battle",
   battle_plan_assignment: "assignment",
   battle_plan_published: "assignment",
   battle_plan_assignment_changed: "assignment",
+  fdt_assignment: "assignment",
   member_role_changed: "role",
   capability_granted: "role",
   state_tag_awarded: "tag",
@@ -101,6 +103,7 @@ export function notificationCategory(
   if (type === "battle_result") {
     return data.result === "win" ? "victory" : "defeat";
   }
+  if (type === "fdt_assignment" && data.removed) return "removal";
   if (stored && stored in NOTIFICATION_CATEGORIES) {
     return stored as NotificationCategory;
   }
@@ -142,6 +145,11 @@ export type NotificationTextData = {
   battle_start?: string;
   availability?: string;
   paid_until?: string;
+  // Frostdragon Tyrant
+  event_name?: string;
+  target?: "capital" | "spires" | null;
+  note?: string | null;
+  removed?: boolean;
 };
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -492,6 +500,54 @@ export function localizedNotificationText(
           { plan: data.plan_name, start },
         ),
       };
+    case "fdt_vote":
+      if (!data.event_name || !start) return null;
+      return {
+        title: t("Can you play Frostdragon Tyrant?"),
+        body: t(
+          "{event} starts {start}. Open Overwatch to vote whether you can play.",
+          { event: data.event_name, start },
+        ),
+      };
+    case "fdt_assignment": {
+      if (!data.player || !data.event_name) return null;
+      if (data.removed) {
+        return {
+          title: t("Removed from the Frostdragon Tyrant lineup"),
+          body: t(
+            "Hi {player}, you are no longer in the lineup for {event}.",
+            { player, event: data.event_name },
+          ),
+        };
+      }
+      const alliance = data.alliance_name ?? t("an alliance");
+      const target =
+        data.target === "capital"
+          ? t("Capital")
+          : data.target === "spires"
+            ? t("Spires")
+            : null;
+      return {
+        title: data.changed
+          ? t("Your Frostdragon Tyrant spot changed")
+          : t("Your Frostdragon Tyrant spot"),
+        body:
+          (target
+            ? t("Hi {player}, you play {event} in {alliance}, target: {target}.", {
+                player,
+                event: data.event_name,
+                alliance,
+                target,
+              })
+            : t("Hi {player}, you play {event} in {alliance}.", {
+                player,
+                event: data.event_name,
+                alliance,
+              })) +
+          (data.note ? ` ${data.note}` : "") +
+          (start ? " " + t("Battle starts {date}.", { date: start }) : ""),
+      };
+    }
     case "attendance_reminder":
       if (!data.player || !data.plan_name) return null;
       return {

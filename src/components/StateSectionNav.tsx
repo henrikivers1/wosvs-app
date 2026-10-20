@@ -19,30 +19,44 @@ export function StateSectionNav() {
   const { t } = useLanguage();
   const pathname = usePathname();
   const { activeMembership } = useStates();
+  if (!activeMembership) return null;
+  const isAdmin =
+    activeMembership.role === "owner" || activeMembership.role === "admin";
+  const planning = pathname.startsWith("/state/planning");
   if (
-    !activeMembership ||
+    !planning &&
     !STATE_SECTION_PATHS.some((path) => pathname.startsWith(path))
   ) {
     return null;
   }
 
-  const isAdmin =
-    activeMembership.role === "owner" || activeMembership.role === "admin";
-  const links = [
+  // Planning: SvS, and Frostdragon Tyrant which is planned on its own.
+  const planningLinks = [
+    { href: "/state/planning", label: t("SvS"), admin: true },
+    { href: "/state/planning/fdt", label: t("Frostdragon Tyrant"), admin: true },
+  ];
+  const stateLinks = [
     { href: "/state/manage", label: t("Members & setup"), admin: true },
     { href: "/state/alliances", label: t("Alliances"), admin: false },
     { href: "/state/announcements", label: t("Send notices"), admin: false },
     { href: "/state/tags", label: t("Manage tags"), admin: true },
     { href: "/state/stats", label: t("Stats & history"), admin: false },
-  ].filter((link) => isAdmin || !link.admin);
+  ];
+  const links = (planning ? planningLinks : stateLinks).filter(
+    (link) => isAdmin || !link.admin,
+  );
+  if (!links.length) return null;
 
   return (
-    <nav className="state-section-nav" aria-label={t("State administration")}>
+    <nav
+      className="state-section-nav"
+      aria-label={planning ? t("planning") : t("State administration")}
+    >
       {links.map((link) => (
         <Link
           key={link.href}
           className={
-            pathname.startsWith(link.href)
+            (planning ? pathname === link.href : pathname.startsWith(link.href))
               ? "nav-link active-nav-link"
               : "nav-link"
           }
