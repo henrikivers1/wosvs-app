@@ -1,0 +1,14 @@
+[
+ ["title", "Frostdragon Tyrant. Plan your whole lineup in Overwatch."],
+ ["alliance", "Frostdragon Tyrant is fought by alliances, not by states. Each alliance sends up to sixty players into the Dragon Crypt."],
+ ["map", "In the middle is the Capital. Around it are four Spires: Life, Dragonbane, Shield and Blade. They open and close every thirty minutes, and holding one gives your alliance a buff."],
+ ["tyrant", "The rally captain who holds the Capital the longest becomes the Tyrant. So who goes where decides the battle."],
+ ["create", "Admins plan it under Planning, Frostdragon Tyrant. Create the event with its start time in U T C, and every member is asked to vote."],
+ ["vote", "Members vote in Overwatch. I can play, maybe, or can't play, and whether they can join voice."],
+ ["lineup", "Back in planning, every vote is listed, strongest player first. One tap puts everyone who said yes into their own alliance."],
+ ["assign", "Then give each player a target, the Capital or the Spires. Every alliance shows its count, and Overwatch never lets one go over sixty."],
+ ["notes", "Write one rally note per target, like which four joiner heroes to send first. No fixed joiner lists. Frostdragon moves too fast for that."],
+ ["publish", "Publish, and every player gets their alliance, target and rally note. Change a spot later, and that player is told at once."],
+ ["member", "In Overwatch, each player sees exactly where to go."],
+ ["end", "Overwatch. Try the free demo at woss overwatch dot com."]
+]

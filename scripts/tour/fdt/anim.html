@@ -1,0 +1,312 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: Archivo; src: url(../archivo.woff2) format("woff2"); font-weight: 400 800; }
+  @font-face { font-family: "IBM Plex Mono"; src: url(../plexmono.woff2) format("woff2"); font-weight: 500; }
+</style>
+<style>
+  html, body { margin: 0; background: #0b1d31; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// Deterministic animations for the Frostdragon Tyrant guide: render(scene, ms) draws one frame.
+const C = document.getElementById("c");
+const g = C.getContext("2d");
+const W = 1920, H = 1080;
+const COL = {
+  navy: "#0b1d31", deep: "#081524", raised: "#132b44", line: "#1e3a57", lineStrong: "#2b4c6e",
+  frost: "#eaf4fb", muted: "#86a5bf", mutedStrong: "#c2d7e7", ice: "#8ec4e6",
+  gold: "#f2b33d", goldText: "#f8d48c", aurora: "#5fe0c0", violet: "#9a7cf0", rose: "#f07c7c", roseText: "#ffc2c1",
+};
+const DISPLAY = "Archivo, Arial, sans-serif";
+const MONO = "'IBM Plex Mono', monospace";
+
+const logo = new Image();
+logo.src = "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M4,20 Q14,10 26,15" fill="none" stroke="#9A7CF0" stroke-width="2.2" stroke-linecap="round"/><path d="M4,30 Q15,21 28,25" fill="none" stroke="#5FE0C0" stroke-width="2.2" stroke-linecap="round"/><polygon points="6,88 30,46 54,88" fill="#1A3654"/><polygon points="30,46 37.2,58 33,55 29,60 25,55 22.8,58" fill="#C9DFEE"/><polygon points="18,88 54,22 92,88" fill="#24456A"/><polygon points="54,22 65.6,42 60,38 55,44 49,38 43.1,42" fill="#EAF4FB"/><line x1="54" y1="22" x2="54" y2="13" stroke="#EAF4FB" stroke-width="2.5"/><rect x="49.5" y="3" width="9" height="9" fill="#F2B33D"/><line x1="2" y1="89" x2="98" y2="89" stroke="#EAF4FB" stroke-width="3"/></svg>`);
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeOut = (t) => 1 - Math.pow(1 - clamp(t), 3);
+const span = (ms, from, to) => clamp((ms - from) / (to - from));
+function rng(seed) { let s = seed; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
+
+// Drifting snow, the same for every frame at a given time.
+const flakes = (() => { const r = rng(7); return Array.from({ length: 140 }, () => ({ x: r() * W, y: r() * H, s: 1 + r() * 2.6, v: 18 + r() * 40, w: r() * 6.28 })); })();
+function snow(ms, alpha = 1) {
+  const t = ms / 1000;
+  g.save();
+  for (const f of flakes) {
+    const y = (f.y + f.v * t) % H;
+    const x = (f.x + Math.sin(t * 0.6 + f.w) * 24 + W) % W;
+    g.globalAlpha = alpha * (0.25 + f.s / 5);
+    g.fillStyle = COL.frost;
+    g.beginPath(); g.arc(x, y, f.s, 0, 6.283); g.fill();
+  }
+  g.restore();
+}
+function backdrop() {
+  const grad = g.createRadialGradient(W / 2, H * 0.38, 60, W / 2, H * 0.45, W * 0.75);
+  grad.addColorStop(0, "#163352"); grad.addColorStop(0.55, COL.navy); grad.addColorStop(1, COL.deep);
+  g.fillStyle = grad; g.fillRect(0, 0, W, H);
+}
+function text(str, x, y, { size = 40, weight = 700, color = COL.frost, font = DISPLAY, align = "center", alpha = 1, spacing = 0, stretch = "normal" } = {}) {
+  g.save();
+  g.globalAlpha = alpha;
+  g.font = `${stretch === "normal" ? "" : stretch + " "}${weight} ${size}px ${font}`;
+  g.fillStyle = color; g.textAlign = align; g.textBaseline = "middle";
+  if (spacing) g.letterSpacing = spacing + "px";
+  g.fillText(str, x, y);
+  g.restore();
+}
+function pill(x, y, w, h, fill, stroke) {
+  g.beginPath(); g.roundRect(x, y, w, h, h / 2);
+  if (fill) { g.fillStyle = fill; g.fill(); }
+  if (stroke) { g.strokeStyle = stroke; g.lineWidth = 2; g.stroke(); }
+}
+
+// ---------- Title and end cards ----------
+function card(ms, { title, sub, cta, url, outAt }) {
+  backdrop();
+  snow(ms, 0.8);
+  const fadeOut = outAt ? 1 - span(ms, outAt, outAt + 500) : 1;
+  const a = easeOut(span(ms, 0, 900));
+  const s = 0.82 + 0.18 * a;
+  g.save();
+  g.globalAlpha = a * fadeOut;
+  const size = 150 * s;
+  if (logo.complete) g.drawImage(logo, W / 2 - size / 2, 300 - size / 2 - 20 * (1 - a), size, size);
+  g.restore();
+  // Wordmark: letters rise in one after another.
+  const word = title;
+  g.save();
+  g.font = `800 132px ${DISPLAY}`;
+  const total = g.measureText(word).width;
+  let x = W / 2 - total / 2;
+  for (let i = 0; i < word.length; i++) {
+    const p = easeOut(span(ms, 350 + i * 55, 950 + i * 55));
+    const w = g.measureText(word[i]).width;
+    text(word[i], x + w / 2, 500 + 40 * (1 - p), { size: 132, weight: 800, alpha: p * fadeOut });
+    x += w;
+  }
+  g.restore();
+  text(sub, W / 2, 610, { size: 40, weight: 500, color: COL.mutedStrong, alpha: easeOut(span(ms, 1100, 1700)) * fadeOut });
+  if (cta) {
+    const p = easeOut(span(ms, 1500, 2100));
+    g.save(); g.globalAlpha = p * fadeOut;
+    g.font = `700 40px ${DISPLAY}`;
+    const w = g.measureText(cta).width + 80;
+    g.beginPath(); g.roundRect(W / 2 - w / 2, 690 + 20 * (1 - p), w, 84, 18); g.fillStyle = COL.gold; g.fill();
+    g.restore();
+    text(cta, W / 2, 732 + 20 * (1 - p), { size: 40, weight: 700, color: COL.navy, alpha: p * fadeOut });
+    text(url, W / 2, 830, { size: 34, weight: 500, font: MONO, color: COL.ice, alpha: easeOut(span(ms, 1900, 2500)) * fadeOut, spacing: 2 });
+  }
+}
+
+// ---------- Frostdragon Tyrant explainer ----------
+const ALLIANCES = [
+  { name: "Frost Wolves", color: "#4f8fba" },
+  { name: "Ice Legion", color: "#5fbf7a" },
+  { name: "Polar Guard", color: "#e4a853" },
+];
+function heading(ms, kicker, title, y = 150) {
+  const a = easeOut(span(ms, 100, 800));
+  text(kicker, W / 2, y - 52, { size: 24, weight: 500, font: MONO, color: COL.goldText, alpha: a, spacing: 5 });
+  text(title, W / 2, y + 6 + 16 * (1 - a), { size: 64, weight: 800, alpha: a });
+}
+function badge(str, x, y, ms, from, { fill = COL.gold, color = COL.navy, size = 30 } = {}) {
+  const p = easeOut(span(ms, from, from + 500));
+  if (p <= 0) return;
+  g.save(); g.globalAlpha = p;
+  g.font = `700 ${size}px ${DISPLAY}`;
+  const w = g.measureText(str).width + size * 1.8, h = size * 2.1;
+  g.beginPath(); g.roundRect(x - w / 2, y - h / 2 + 18 * (1 - p), w, h, h / 2);
+  g.fillStyle = fill; g.fill(); g.restore();
+  text(str, x, y + 18 * (1 - p), { size, weight: 700, color, alpha: p });
+}
+
+function allianceScene(ms) {
+  backdrop(); snow(ms, 0.35);
+  heading(ms, "FROSTDRAGON TYRANT", "Alliances, not states");
+  ALLIANCES.forEach((al, k) => {
+    const cx = 520 + k * 440;
+    const a = easeOut(span(ms, 700 + k * 250, 1300 + k * 250));
+    g.save(); g.globalAlpha = a;
+    g.beginPath(); g.roundRect(cx - 200, 300, 400, 520, 22);
+    g.fillStyle = COL.raised; g.fill(); g.strokeStyle = COL.lineStrong; g.lineWidth = 2; g.stroke();
+    g.fillStyle = al.color; g.beginPath(); g.arc(cx - 120, 360, 12, 0, 6.283); g.fill();
+    g.restore();
+    text(al.name, cx + 14, 362, { size: 36, weight: 700, alpha: a });
+    // 60 seats fill up, one per player.
+    const filled = Math.round(60 * easeOut(span(ms, 2200 + k * 350, 6200 + k * 250)));
+    for (let i = 0; i < 60; i++) {
+      const col = i % 10, row = Math.floor(i / 10);
+      const x = cx - 153 + col * 34, y = 450 + row * 40;
+      g.save(); g.globalAlpha = a;
+      g.beginPath(); g.arc(x, y, 11, 0, 6.283);
+      if (i < filled) { g.fillStyle = al.color; g.fill(); }
+      else { g.strokeStyle = COL.lineStrong; g.lineWidth = 2; g.stroke(); }
+      g.restore();
+    }
+    const full = filled === 60;
+    text(`${filled}/60`, cx, 750, { size: 60, weight: 500, font: MONO, color: full ? COL.gold : COL.mutedStrong, alpha: a });
+  });
+  badge("Up to 60 players per alliance", W / 2, 920, ms, 7000);
+}
+
+const CAPITAL = [960, 560];
+const SPIRES = [
+  { name: "Life Spire", buff: "Health", pos: [520, 330], at: 3300 },
+  { name: "Dragonbane Spire", buff: "Lethality", pos: [1400, 330], at: 4000 },
+  { name: "Shield Spire", buff: "Defense", pos: [520, 800], at: 4750 },
+  { name: "Blade Spire", buff: "Attack", pos: [1400, 800], at: 5400 },
+];
+function capitalIcon(x, y, scale, alpha, glow = 0) {
+  g.save(); g.globalAlpha = alpha; g.translate(x, y); g.scale(scale, scale);
+  if (glow > 0) {
+    const r = g.createRadialGradient(0, 0, 10, 0, 0, 190);
+    r.addColorStop(0, `rgba(242,179,61,${0.35 * glow})`); r.addColorStop(1, "rgba(242,179,61,0)");
+    g.fillStyle = r; g.beginPath(); g.arc(0, 0, 190, 0, 6.283); g.fill();
+  }
+  g.fillStyle = "#24456a"; g.strokeStyle = COL.frost; g.lineWidth = 4;
+  g.beginPath();
+  g.moveTo(-110, 70); g.lineTo(-110, -10); g.lineTo(-80, -10); g.lineTo(-80, -40); g.lineTo(-50, -40); g.lineTo(-50, -10);
+  g.lineTo(-25, -10); g.lineTo(-25, -70); g.lineTo(0, -105); g.lineTo(25, -70); g.lineTo(25, -10);
+  g.lineTo(50, -10); g.lineTo(50, -40); g.lineTo(80, -40); g.lineTo(80, -10); g.lineTo(110, -10); g.lineTo(110, 70); g.closePath();
+  g.fill(); g.stroke();
+  g.fillStyle = COL.navy; g.beginPath(); g.roundRect(-18, 25, 36, 45, [18, 18, 0, 0]); g.fill();
+  g.strokeStyle = COL.frost; g.beginPath(); g.moveTo(0, -105); g.lineTo(0, -135); g.stroke();
+  g.fillStyle = COL.gold; g.fillRect(0, -135, 30, 18);
+  g.restore();
+}
+function spireIcon(x, y, alpha, state) {
+  g.save(); g.globalAlpha = alpha; g.translate(x, y);
+  if (state === "open") {
+    const r = g.createRadialGradient(0, -20, 5, 0, -20, 120);
+    r.addColorStop(0, "rgba(242,179,61,0.45)"); r.addColorStop(1, "rgba(242,179,61,0)");
+    g.fillStyle = r; g.beginPath(); g.arc(0, -20, 120, 0, 6.283); g.fill();
+  }
+  g.fillStyle = "#1a3654"; g.strokeStyle = state === "open" ? COL.gold : COL.ice; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(-34, 50); g.lineTo(-16, -60); g.lineTo(0, -90); g.lineTo(16, -60); g.lineTo(34, 50); g.closePath();
+  g.fill(); g.stroke();
+  if (state === "protected") {
+    g.strokeStyle = "rgba(142,196,230,0.85)"; g.lineWidth = 4; g.setLineDash([10, 8]);
+    g.beginPath(); g.arc(0, -15, 95, 0, 6.283); g.stroke(); g.setLineDash([]);
+  }
+  g.restore();
+}
+function mapScene(ms) {
+  backdrop(); snow(ms, 0.3);
+  const capA = easeOut(span(ms, 300, 1100));
+  // Paths from each Spire to the Capital.
+  for (const s of SPIRES) {
+    const a = easeOut(span(ms, s.at, s.at + 500));
+    if (a <= 0) continue;
+    g.save(); g.globalAlpha = a * 0.6; g.strokeStyle = COL.lineStrong; g.lineWidth = 4; g.setLineDash([14, 12]);
+    g.beginPath(); g.moveTo(...s.pos); g.lineTo(...CAPITAL); g.stroke(); g.restore();
+  }
+  capitalIcon(CAPITAL[0], CAPITAL[1] - 20, 1.25 + 0.15 * (1 - capA), capA, 0.6 + 0.4 * Math.sin(ms / 500));
+  text("CAPITAL", CAPITAL[0], CAPITAL[1] + 110, { size: 34, weight: 600, font: MONO, color: COL.goldText, alpha: capA, spacing: 6 });
+  // From "every thirty minutes": Spires take turns being open and protected.
+  const cycling = ms > 7300;
+  // Once a flag goes up on the Life Spire it stays open.
+  const phase = ms > 9400 ? 0 : Math.floor((ms - 7300) / 1100) % 2;
+  SPIRES.forEach((s, k) => {
+    const a = easeOut(span(ms, s.at, s.at + 500));
+    if (a <= 0) return;
+    const state = cycling ? ((k === 0 || k === 3) === (phase === 0) ? "open" : "protected") : "idle";
+    const [x, y] = s.pos;
+    spireIcon(x, y - 30 + 20 * (1 - a), a, state);
+    text(s.name, x, y + 60, { size: 34, weight: 700, alpha: a });
+    text(`Buff: ${s.buff}`, x, y + 102, { size: 24, weight: 500, font: MONO, color: COL.ice, alpha: a });
+    if (state !== "idle") {
+      text(state === "open" ? "OPEN" : "PROTECTED", x, y - 150, {
+        size: 22, weight: 600, font: MONO, spacing: 3, color: state === "open" ? COL.gold : COL.ice, alpha: a,
+      });
+    }
+  });
+  badge("30 min open · 30 min protected", W / 2, 110, ms, 7300, { fill: COL.raised, color: COL.frost, size: 28 });
+  // "Holding one gives your alliance a buff."
+  const hold = easeOut(span(ms, 9600, 10200));
+  if (hold > 0) {
+    const [x, y] = SPIRES[0].pos;
+    g.save(); g.globalAlpha = hold; g.strokeStyle = COL.frost; g.lineWidth = 4;
+    g.beginPath(); g.moveTo(x + 46, y - 30); g.lineTo(x + 46, y - 110); g.stroke();
+    g.fillStyle = ALLIANCES[0].color; g.beginPath(); g.moveTo(x + 46, y - 110); g.lineTo(x + 100, y - 95); g.lineTo(x + 46, y - 80); g.fill();
+    g.restore();
+    badge("+ Health for your whole alliance", W / 2, 990, ms, 9800);
+  }
+}
+
+function tyrantScene(ms) {
+  backdrop(); snow(ms, 0.3);
+  heading(ms, "WHO BECOMES TYRANT", "The longest Capital hold wins", 130);
+  const capA = easeOut(span(ms, 300, 1000));
+  capitalIcon(W / 2, 410, 1.0, capA, 0.5);
+  const crown = easeOut(span(ms, 5600, 6200));
+  if (crown > 0) {
+    g.save(); g.globalAlpha = crown; g.translate(W / 2, 250 + 20 * (1 - crown));
+    g.fillStyle = COL.gold; g.beginPath();
+    g.moveTo(-60, 30); g.lineTo(-70, -25); g.lineTo(-30, 5); g.lineTo(0, -40); g.lineTo(30, 5); g.lineTo(70, -25); g.lineTo(60, 30); g.closePath(); g.fill();
+    g.restore();
+  }
+  // Three rally captains; only their own hold time counts.
+  const captains = [
+    { name: "Northwind", alliance: ALLIANCES[0], rate: 1.0 },
+    { name: "Rival captain", alliance: { name: "Other state", color: COL.rose }, rate: 0.72 },
+    { name: "Snowhawk", alliance: ALLIANCES[2], rate: 0.45 },
+  ];
+  const grow = span(ms, 1500, 6000);
+  captains.forEach((c, k) => {
+    const y = 600 + k * 110;
+    const a = easeOut(span(ms, 1000 + k * 200, 1500 + k * 200));
+    g.save(); g.globalAlpha = a;
+    g.fillStyle = c.alliance.color; g.beginPath(); g.arc(470, y, 12, 0, 6.283); g.fill();
+    g.restore();
+    text(c.name, 500, y, { size: 32, weight: 700, align: "left", alpha: a });
+    text(c.alliance.name, 500, y + 34, { size: 20, weight: 500, font: MONO, color: COL.muted, align: "left", alpha: a });
+    const full = 760;
+    g.save(); g.globalAlpha = a;
+    g.beginPath(); g.roundRect(780, y - 18, full, 36, 18); g.fillStyle = COL.raised; g.fill();
+    const w = Math.max(36, full * c.rate * ease(grow));
+    g.beginPath(); g.roundRect(780, y - 18, w, 36, 18);
+    g.fillStyle = k === 0 ? COL.gold : c.alliance.color; g.fill();
+    g.restore();
+    const minutes = Math.round(c.rate * ease(grow) * 214);
+    const label = `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, "0")}m`;
+    text(label, 1570, y, { size: 30, weight: 500, font: MONO, align: "left", color: k === 0 && crown > 0 ? COL.gold : COL.mutedStrong, alpha: a });
+  });
+  badge("Only the rally captain's own hold time counts", W / 2, 960, ms, 6300, { fill: COL.raised, color: COL.frost, size: 28 });
+}
+
+window.render = (scene, ms) => {
+  g.clearRect(0, 0, W, H);
+  if (scene === "title") card(ms, { title: "Frostdragon Tyrant", sub: "Plan your whole FDT lineup in Overwatch." });
+  else if (scene === "end") card(ms, { title: "Overwatch", sub: "Frostdragon Tyrant planning, built in.", cta: "Try the free demo", url: "wosoverwatch.com" });
+  else if (scene === "alliance") allianceScene(ms);
+  else if (scene === "map") mapScene(ms);
+  else if (scene === "tyrant") tyrantScene(ms);
+  else if (scene === "thumb") thumbScene();
+};
+
+// YouTube thumbnail: the Crypt on the right, the title on the left.
+function thumbScene() {
+  backdrop(); snow(4000, 0.5);
+  g.save(); g.translate(560, 40); g.scale(0.78, 0.78);
+  capitalIcon(CAPITAL[0], CAPITAL[1] - 20, 1.5, 1, 1);
+  SPIRES.forEach((s, k) => spireIcon(s.pos[0], s.pos[1] - 30, 1, k === 0 || k === 3 ? "open" : "protected"));
+  g.restore();
+  if (logo.complete) g.drawImage(logo, 120, 170, 130, 130);
+  text("FROSTDRAGON", 120, 420, { size: 120, weight: 800, align: "left" });
+  text("TYRANT", 120, 545, { size: 150, weight: 800, align: "left", color: COL.gold });
+  text("Planning in Overwatch", 124, 665, { size: 54, weight: 600, align: "left", color: COL.mutedStrong });
+  badge("60 per alliance · Capital or Spires", 520, 820, 1000, 0, { size: 38 });
+}
+window.ready = Promise.all([document.fonts.load("800 40px Archivo"), document.fonts.load("500 20px 'IBM Plex Mono'"), new Promise((r) => (logo.complete ? r() : (logo.onload = r)))]);
+</script>
+</body>
+</html>
