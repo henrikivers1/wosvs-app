@@ -132,7 +132,8 @@ export function buildDemoSeed(now: Date): DemoTables {
     const furnaceRaw = 30 + fireCrystal * 5;
     const tier = fireCrystal >= 9 ? 12 : fireCrystal >= 7 ? 11 + Math.floor(rand() * 2) : 10 + Math.floor(rand() * 2);
     const troopFc = Math.max(0, fireCrystal - 2 - Math.floor(rand() * 3));
-    const skill = tier === 12 ? 4 + Math.floor(rand() * 7) : 1 + Math.floor(rand() * 5);
+    // The T12 joiner skill goes 0–3 and only matters at T12.
+    const skill = tier === 12 ? 1 + Math.floor(rand() * 3) : 0;
     const alliance = alliances[index % alliances.length];
     accounts.push({
       id: accountId,

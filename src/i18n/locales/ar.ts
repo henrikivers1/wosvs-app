@@ -81,6 +81,38 @@ export const arabicInterface: Record<string, string> = {
   "Battle losses": "خسائر المعارك",
   "Battle period active": "فترة المعركة نشطة",
   "Battle plan deleted.": "تم حذف خطة المعركة.",
+  "Import player data":
+    "استيراد بيانات اللاعبين",
+  "Moving from another planning tool? Import its roster CSV. Troop tiers, troop FC, T12 skill and 4★ joiner heroes are matched by WOS ID and filled in for members now and when they join. Anything a player entered themselves is kept.":
+    "قادم من أداة تخطيط أخرى؟ استورد ملف CSV الخاص بقائمة اللاعبين. تتم مطابقة فئات القوات ومستوى FC للقوات ومهارة T12 وأبطال الانضمام 4★ عبر WOS ID وتُملأ للأعضاء الآن وعند انضمامهم. يتم الاحتفاظ بأي شيء أدخله اللاعب بنفسه.",
+  "{count} players imported so far.":
+    "تم استيراد {count} لاعب حتى الآن.",
+  "Roster CSV":
+    "ملف CSV للاعبين",
+  "The file is too large (over 5 MB).":
+    "الملف كبير جدًا (أكثر من 5 ميغابايت).",
+  "{players} players, {troops} with troop details, {heroes} with joiner heroes.":
+    "{players} لاعب، {troops} مع بيانات القوات، {heroes} مع أبطال الانضمام.",
+  "{count} rows were skipped: no valid WOS ID.":
+    "تم تخطي {count} صف: لا يوجد WOS ID صالح.",
+  "Unknown heroes left out: {names}":
+    "أبطال غير معروفين تم استبعادهم: {names}",
+  "Importing...":
+    "جارٍ الاستيراد...",
+  "Import {count} players":
+    "استيراد {count} لاعب",
+  "Saved {saved} players. {filled} members were filled in now; the rest are filled in when they join.":
+    "تم حفظ {saved} لاعب. تم ملء بيانات {filled} عضو الآن؛ وتُملأ بيانات الباقين عند انضمامهم.",
+  "Only state owners and admins can import player data.":
+    "يمكن فقط لمالكي الولاية والمشرفين استيراد بيانات اللاعبين.",
+  "The import must be a list of at most 5000 players.":
+    "يجب أن يكون الاستيراد قائمة من 5000 لاعب كحد أقصى.",
+  "The file has no players.":
+    "لا يحتوي الملف على لاعبين.",
+  "The file needs a \"Player ID\" column with each player's WOS ID.":
+    "يحتاج الملف إلى عمود \"Player ID\" يحتوي على WOS ID لكل لاعب.",
+  "Your state's admins can import your troop details and joiner heroes from another planning tool, matched by WOS ID. Anything you entered yourself is kept.":
+    "يمكن لمشرفي ولايتك استيراد بيانات قواتك وأبطال الانضمام من أداة تخطيط أخرى، بالمطابقة عبر WOS ID. يتم الاحتفاظ بأي شيء أدخلته بنفسك.",
   "Minimum Furnace to join":
     "الحد الأدنى للفرن للانضمام",
   "Anyone in the state":

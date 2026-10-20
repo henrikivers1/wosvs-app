@@ -1466,6 +1466,38 @@ const spanishInterface: Record<string, string> = {
     "La actividad se conserva entre todos los periodos de batalla.",
   "Battle history": "Historial de batallas",
   "Battle plan deleted.": "Plan de batalla eliminado.",
+  "Import player data":
+    "Importar datos de jugadores",
+  "Moving from another planning tool? Import its roster CSV. Troop tiers, troop FC, T12 skill and 4★ joiner heroes are matched by WOS ID and filled in for members now and when they join. Anything a player entered themselves is kept.":
+    "¿Vienes de otra herramienta de planificación? Importa su CSV de jugadores. El nivel de tropa, el FC de tropa, la habilidad T12 y los héroes de unión 4★ se emparejan por WOS ID y se rellenan para los miembros ahora y cuando se unan. Lo que un jugador haya introducido se conserva.",
+  "{count} players imported so far.":
+    "{count} jugadores importados hasta ahora.",
+  "Roster CSV":
+    "CSV de jugadores",
+  "The file is too large (over 5 MB).":
+    "El archivo es demasiado grande (más de 5 MB).",
+  "{players} players, {troops} with troop details, {heroes} with joiner heroes.":
+    "{players} jugadores, {troops} con datos de tropas, {heroes} con héroes de unión.",
+  "{count} rows were skipped: no valid WOS ID.":
+    "Se omitieron {count} filas: sin WOS ID válido.",
+  "Unknown heroes left out: {names}":
+    "Héroes desconocidos omitidos: {names}",
+  "Importing...":
+    "Importando...",
+  "Import {count} players":
+    "Importar {count} jugadores",
+  "Saved {saved} players. {filled} members were filled in now; the rest are filled in when they join.":
+    "Se guardaron {saved} jugadores. {filled} miembros se rellenaron ahora; el resto se rellena cuando se unan.",
+  "Only state owners and admins can import player data.":
+    "Solo los dueños y administradores del estado pueden importar datos de jugadores.",
+  "The import must be a list of at most 5000 players.":
+    "La importación debe ser una lista de como máximo 5000 jugadores.",
+  "The file has no players.":
+    "El archivo no tiene jugadores.",
+  "The file needs a \"Player ID\" column with each player's WOS ID.":
+    "El archivo necesita una columna \"Player ID\" con el WOS ID de cada jugador.",
+  "Your state's admins can import your troop details and joiner heroes from another planning tool, matched by WOS ID. Anything you entered yourself is kept.":
+    "Los administradores de tu estado pueden importar tus datos de tropas y héroes de unión desde otra herramienta de planificación, emparejados por WOS ID. Lo que hayas introducido tú se conserva.",
   "Minimum Furnace to join":
     "Horno mínimo para unirse",
   "Anyone in the state":

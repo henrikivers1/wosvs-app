@@ -81,6 +81,38 @@ export const thaiInterface: Record<string, string> = {
   "Battle losses": "แพ้การรบ",
   "Battle period active": "ช่วงการรบกำลังดำเนินอยู่",
   "Battle plan deleted.": "ลบแผนการรบแล้ว",
+  "Import player data":
+    "นำเข้าข้อมูลผู้เล่น",
+  "Moving from another planning tool? Import its roster CSV. Troop tiers, troop FC, T12 skill and 4★ joiner heroes are matched by WOS ID and filled in for members now and when they join. Anything a player entered themselves is kept.":
+    "ย้ายมาจากเครื่องมือวางแผนอื่นหรือ? นำเข้าไฟล์ CSV รายชื่อผู้เล่น ระดับทหาร FC ของทหาร สกิล T12 และฮีโร่ร่วม 4★ จะจับคู่ด้วย WOS ID และเติมให้สมาชิกทันทีและเมื่อพวกเขาเข้าร่วม ข้อมูลที่ผู้เล่นกรอกเองจะถูกเก็บไว้",
+  "{count} players imported so far.":
+    "นำเข้าแล้ว {count} ผู้เล่น",
+  "Roster CSV":
+    "ไฟล์ CSV รายชื่อผู้เล่น",
+  "The file is too large (over 5 MB).":
+    "ไฟล์ใหญ่เกินไป (เกิน 5 MB)",
+  "{players} players, {troops} with troop details, {heroes} with joiner heroes.":
+    "{players} ผู้เล่น, {troops} มีข้อมูลทหาร, {heroes} มีฮีโร่ร่วม",
+  "{count} rows were skipped: no valid WOS ID.":
+    "ข้าม {count} แถว: ไม่มี WOS ID ที่ถูกต้อง",
+  "Unknown heroes left out: {names}":
+    "ฮีโร่ที่ไม่รู้จักถูกตัดออก: {names}",
+  "Importing...":
+    "กำลังนำเข้า...",
+  "Import {count} players":
+    "นำเข้า {count} ผู้เล่น",
+  "Saved {saved} players. {filled} members were filled in now; the rest are filled in when they join.":
+    "บันทึก {saved} ผู้เล่นแล้ว เติมข้อมูลให้ {filled} สมาชิกแล้วตอนนี้ ส่วนที่เหลือจะเติมเมื่อพวกเขาเข้าร่วม",
+  "Only state owners and admins can import player data.":
+    "เฉพาะเจ้าของและแอดมินของสเตทเท่านั้นที่นำเข้าข้อมูลผู้เล่นได้",
+  "The import must be a list of at most 5000 players.":
+    "การนำเข้าต้องเป็นรายการผู้เล่นไม่เกิน 5000 คน",
+  "The file has no players.":
+    "ไฟล์ไม่มีผู้เล่น",
+  "The file needs a \"Player ID\" column with each player's WOS ID.":
+    "ไฟล์ต้องมีคอลัมน์ \"Player ID\" ที่มี WOS ID ของผู้เล่นแต่ละคน",
+  "Your state's admins can import your troop details and joiner heroes from another planning tool, matched by WOS ID. Anything you entered yourself is kept.":
+    "แอดมินของสเตทคุณสามารถนำเข้าข้อมูลทหารและฮีโร่ร่วมของคุณจากเครื่องมือวางแผนอื่น โดยจับคู่ด้วย WOS ID ข้อมูลที่คุณกรอกเองจะถูกเก็บไว้",
   "Minimum Furnace to join":
     "เตาขั้นต่ำเพื่อเข้าร่วม",
   "Anyone in the state":

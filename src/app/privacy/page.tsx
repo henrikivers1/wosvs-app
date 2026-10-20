@@ -6,7 +6,7 @@ import { DiscordHandle } from "@/components/DiscordHandle";
 import { useLanguage } from "@/components/LanguageProvider";
 
 const CONTACT_EMAIL = "privacy@wosoverwatch.com";
-const UPDATED = "2026-10-05";
+const UPDATED = "2026-10-14";
 
 // Plain-language privacy notice. Every string is an English translation key.
 const SECTIONS: { title: string; items: string[] }[] = [
@@ -41,6 +41,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
       "Vercel hosts the website.",
       "WOSOracle provides the game data; we send it only WOS IDs, state numbers and alliance IDs.",
       "The video guides are on YouTube. Their player only loads when you press play.",
+      "Your state's admins can import your troop details and joiner heroes from another planning tool, matched by WOS ID. Anything you entered yourself is kept.",
       "These services may process data outside your country.",
     ],
   },
