@@ -2,7 +2,6 @@
 import { chromium } from "playwright";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 const S = process.argv[2];
-const DEBUG = process.argv[3] === "debug";
 const OUT = `${S}/vid/frames`;
 rmSync(OUT, { recursive: true, force: true }); mkdirSync(OUT, { recursive: true });
 const base = "http://localhost:3125";
@@ -103,7 +102,6 @@ async function endSeg() {
 }
 const wait = (ms) => page.waitForTimeout(ms);
 const caption = (cap, instant) => page.evaluate(([c, i]) => window.__owCaption(c, i), [cap, Boolean(instant)]);
-const shot = async (name) => { if (DEBUG) await page.screenshot({ path: `${S}/vid/r-${name}.png` }); };
 async function point(locator, { click = true, dx = 0.5, dy = 0.5 } = {}) {
   await locator.scrollIntoViewIfNeeded();
   const box = await locator.boundingBox();
@@ -117,7 +115,6 @@ async function scrollToEl(locator, offset = 140) {
   const top = await locator.evaluate((el, off) => el.getBoundingClientRect().top + window.scrollY - off, offset);
   await scrollTo(top);
 }
-async function type(locator, text) { await point(locator); await locator.press("Control+a"); await locator.pressSequentially(text, { delay: 120 }); }
 
 // Scene lengths follow the narration: 0.25 s + half the incoming transition
 // + the line + about a second + the outgoing transition (compose.py ORDER).
